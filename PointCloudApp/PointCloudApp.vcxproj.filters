@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\Camera">
+      <UniqueIdentifier>{cba56f7d-4017-4e1b-988a-c058b4dcaf62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Primitive">
+      <UniqueIdentifier>{8d33f900-971b-4963-94b0-1c6fee634147}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Utility">
+      <UniqueIdentifier>{579a6bd1-d4d7-411a-9a1c-40cbb2123c4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\GL">
+      <UniqueIdentifier>{733b07bf-202f-43b1-9077-0028c8bae427}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\GL\Shader">
+      <UniqueIdentifier>{8c55a26c-fb79-4fa4-9769-dc6432f99d41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\GL\Buffer">
+      <UniqueIdentifier>{1e16fcc8-d3be-481a-a2aa-951466319d06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Algorithm">
+      <UniqueIdentifier>{f3dc7009-918c-46e6-9c07-6c6e723ee763}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\extlibs">
+      <UniqueIdentifier>{7623ae20-670f-4175-85f1-555ca5721392}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Node">
+      <UniqueIdentifier>{6dd7074f-7431-4938-8430-2aa342a2abef}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PerspectiveCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="IPrimitive.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleShader.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="IShader.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderUtility.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraController.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="BDB.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Profiler.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="GLBuffer.cpp">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="MatrixTexture.cpp">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Primitive.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="PointCloudApp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtility.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="KMeansAlgorithm.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="KDTree.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\imgui_demo.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\imgui_draw.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\imgui_tables.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\imgui_widgets.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\imgui.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extlibs\imgui\backends\imgui_impl_glfw.cpp">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClCompile>
+    <ClCompile Include="PointCloudNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="PointCloud.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CameraController.h">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="PerspectiveCamera.h">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixTexture.h">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="GLBuffer.h">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="IShader.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderUtility.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleShader.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="IPrimitive.h">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="BDB.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseInput.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiler.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtility.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloudApp.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="IAlgorithm.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="KMeansAlgorithm.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="Random.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="KDTree.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\imgui.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\imgui_internal.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\imstb_rectpack.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\imstb_textedit.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\imstb_truetype.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\imconfig.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extlibs\imgui\backends\imgui_impl_glfw.h">
+      <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloudNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloud.h">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
