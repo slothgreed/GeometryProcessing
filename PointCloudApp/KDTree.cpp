@@ -23,6 +23,8 @@ public:
 		} else if (m_axis == KDTree::Axis::Z) {
 			return m_pointCloud->Position()[lhs].z < m_pointCloud->Position()[rhs].z;
 		}
+
+		return false;
 	}
 private:
 	PointCloud* m_pointCloud;
@@ -65,6 +67,10 @@ void KDTree::ShowUI()
 	if (ImGui::SliderInt("Depth", &m_ui.depth, 0, std::log(m_pPointCloud->GetData()->Position().size()))) {
 		m_pPointCloud->GetData()->SetColor(CreateLevelColor(m_ui.depth));
 		m_pPointCloud->UpdateData();
+	}
+
+	if (ImGui::Button("CreateLine")) {
+
 	}
 }
 KDTree::~KDTree()

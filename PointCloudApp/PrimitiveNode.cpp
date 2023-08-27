@@ -1,44 +1,44 @@
-#include "PointCloudNode.h"
+#include "PrimitiveNode.h"
 #include "PointCloud.h"
-PointCloudNode::PointCloudNode(std::unique_ptr<PointCloud>&& pPrimitive)
+PrimitiveNode::PrimitiveNode(unique_ptr<Primitive>&& pPrimitive)
 	:m_pShader(std::make_unique<SimpleShader>())
 {
-	m_pPointCloud = std::move(pPrimitive);
 	m_pShader->Build();
+	m_pPrimitive = std::move(pPrimitive);
 	BuildGLBuffer();
 }
 
-PointCloudNode::~PointCloudNode()
+PrimitiveNode::~PrimitiveNode()
 {
 
 }
 
-void PointCloudNode::BuildGLBuffer()
+void PrimitiveNode::BuildGLBuffer()
 {
-	if (!m_pPointCloud->NeedUpdate()) { return; }
+	if (!m_pPrimitive->NeedUpdate()) { return; }
 
 	m_pPositionBuffer = std::make_unique<GLBuffer>(GL_ARRAY_BUFFER);
-	m_pPositionBuffer->Create(m_pPointCloud->Position());
+	m_pPositionBuffer->Create(m_pPrimitive->Position());
 
 	m_pColorBuffer = std::make_unique<GLBuffer>(GL_ARRAY_BUFFER);
-	m_pColorBuffer->Create(m_pPointCloud->Color());
-	m_pPointCloud->ClearUpdate();
+	m_pColorBuffer->Create(m_pPrimitive->Color());
+	m_pPrimitive->ClearUpdate();
 }
-const std::unique_ptr<PointCloud>& PointCloudNode::GetData() const
-{ 
-	return m_pPointCloud;
-}
-void PointCloudNode::UpdateData()
+const std::unique_ptr<Primitive>& PrimitiveNode::GetData() const
 {
-	m_pPointCloud->Update();
+	return m_pPrimitive;
 }
-void PointCloudNode::UpdateRenderData()
+void PrimitiveNode::UpdateData()
+{
+	m_pPrimitive->Update();
+}
+void PrimitiveNode::UpdateRenderData()
 {
 	BuildGLBuffer();
 }
 
 
-void PointCloudNode::DrawData(const mat4x4& proj, const mat4x4& view)
+void PrimitiveNode::DrawData(const mat4x4& proj, const mat4x4& view)
 {
 	UpdateRenderData();
 	m_pShader->Use();

@@ -1,12 +1,12 @@
 #ifndef CAMERA_CONTROLLER_H
 #define CAMERA_CONTROLLER_H
 
-#include "PerspectiveCamera.h"
+#include "RenderCamera.h"
 #include "Mouse.h"
 class CameraController
 {
 public:
-	CameraController(const std::shared_ptr<PerspectiveCamera>& pCamera) :m_pCamera(pCamera),m_ZoomRatio(0.1f) {};
+	CameraController(const std::shared_ptr<RenderCamera>& pCamera) :m_pCamera(pCamera),m_ZoomRatio(0.1f) {};
 	~CameraController() {};
 	bool Move(const Mouse& mouse);
 	bool Wheel(const Mouse&  mouse);
@@ -16,7 +16,7 @@ private:
 	void Translate(const vec2& move);
 	float m_ZoomRatio;
 
-	std::shared_ptr<PerspectiveCamera> m_pCamera;
+	std::shared_ptr<RenderCamera> m_pCamera;
 
 };
 

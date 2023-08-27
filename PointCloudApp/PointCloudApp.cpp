@@ -11,7 +11,7 @@
 #include "MouseInput.h"
 #include "PointCloudApp.h"
 #include "CameraController.h"
-#include "PerspectiveCamera.h"
+#include "RenderCamera.h"
 #include "Profiler.h"
 #include "PointCloud.h"
 #include "PointCloudNode.h"
@@ -151,7 +151,7 @@ void PointCloudApp::Execute()
 
 	m_instance = this;
 	m_pMouse = std::make_unique<Mouse>();
-	auto pCamera = std::make_shared<PerspectiveCamera>();
+	auto pCamera = std::make_shared<RenderCamera>();
 	pCamera->Perspective(45, 1, 0.1, 10000);
 	pCamera->LookAt(vec3(0, 0, 1), vec3(0, 0, 0), vec3(0, 1, 0));
 	m_pCamera = pCamera;
@@ -165,15 +165,15 @@ void PointCloudApp::Execute()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	//primitives.push_back(std::unique_ptr<PointCloud>(PointCloud::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\dragon.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\cube.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\bunny4000.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\Armadillo.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\lucy.xyz")));
+	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
+	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
+	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
 	//auto pPointCloud = std::unique_ptr<PointCloud>(PointCloud::Create2D(100, vec2(0, 0), vec2(100, 100)));
 
-	auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\random_100.xyz")));
+	auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_100.xyz")));
 	//pPointCloud->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\random_100.xyz");
 	
 	std::vector<vec3> color(pPointCloud->Position().size(), vec3(1.0f, 1.0f, 1.0f));
@@ -181,15 +181,13 @@ void PointCloudApp::Execute()
 	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
 	//kmeans.Execute();
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
-
-	auto pNode = std::make_shared<PointCloudNode>();
-	m_algorithm[ALGORITHM_KDTREE] = new KDTree(pNode, 2);
-	
 	BDB bdb;
 	bdb.Apply(pPointCloud->CreateBDB());
 
-
-	pNode->Set(std::move(pPointCloud));
+	auto pNode = std::make_shared<PointCloudNode>(std::move(pPointCloud));
+	m_algorithm[ALGORITHM_KDTREE] = new KDTree(pNode, 2);
+	
+	
 	pCamera->FitToBDB(bdb);
 	
 	

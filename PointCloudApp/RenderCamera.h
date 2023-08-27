@@ -1,12 +1,12 @@
-#ifndef PERSPECTIVE_CAMERA_H
-#define	PERSPECTIVE_CAMERA_H
+#ifndef RENDER_CAMERA_H
+#define	RENDER_CAMERA_H
 #include "BDB.h"
 
-class PerspectiveCamera
+class RenderCamera
 {
 public:
-	PerspectiveCamera();
-	~PerspectiveCamera() {};
+	RenderCamera();
+	~RenderCamera() {};
 
 	void Perspective(float fov, float aspect, float _near, float _far);
 	void MoveWithSpherical(const vec2& move);
@@ -54,4 +54,4 @@ private:
 
 	float m_distance;
 };
-#endif // PERSPECTIVE_CAMERA_H
+#endif // RENDER_CAMERA_H

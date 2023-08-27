@@ -38,14 +38,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PerspectiveCamera.cpp">
-      <Filter>ソース ファイル\Camera</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="IPrimitive.cpp">
-      <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="SimpleShader.cpp">
       <Filter>ソース ファイル\GL\Shader</Filter>
@@ -76,9 +70,6 @@
     </ClCompile>
     <ClCompile Include="MatrixTexture.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Primitive.cpp">
-      <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="PointCloudApp.cpp">
       <Filter>ソース ファイル</Filter>
@@ -125,12 +116,21 @@
     <ClCompile Include="RenderNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
+    <ClCompile Include="PrimitiveNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Primitives.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Primitive.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
-      <Filter>ソース ファイル\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="PerspectiveCamera.h">
       <Filter>ソース ファイル\Camera</Filter>
     </ClInclude>
     <ClInclude Include="MatrixTexture.h">
@@ -147,9 +147,6 @@
     </ClInclude>
     <ClInclude Include="SimpleShader.h">
       <Filter>ソース ファイル\GL\Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="IPrimitive.h">
-      <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="BDB.h">
       <Filter>ソース ファイル\Utility</Filter>
@@ -168,9 +165,6 @@
     </ClInclude>
     <ClInclude Include="FileUtility.h">
       <Filter>ソース ファイル\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Primitive.h">
-      <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="PointCloudApp.h">
       <Filter>ソース ファイル</Filter>
@@ -222,6 +216,18 @@
     </ClInclude>
     <ClInclude Include="RenderNode.h">
       <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCamera.h">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitives.h">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

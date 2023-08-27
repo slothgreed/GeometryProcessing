@@ -1,5 +1,5 @@
 #include "CameraController.h"
-#include "PerspectiveCamera.h"
+#include "RenderCamera.h"
 
 bool CameraController::Move(const Mouse& mouse)
 {
@@ -37,27 +37,24 @@ bool CameraController::Wheel(const Mouse&  mouse)
 
 void CameraController::Zoom(float ratio)
 {
-	auto pCamera = (PerspectiveCamera*)m_pCamera.get();
-	vec3 eyeDirect = pCamera->Direction();
-	float len = pCamera->LookAtDistance() * ratio;
+	vec3 eyeDirect = m_pCamera->Direction();
+	float len = m_pCamera->LookAtDistance() * ratio;
 
 	vec3 newEye = eyeDirect * len + m_pCamera->Center();
 
-	m_pCamera->LookAt(newEye, pCamera->Center(), pCamera->Up());
+	m_pCamera->LookAt(newEye, m_pCamera->Center(), m_pCamera->Up());
 }
 
 void CameraController::Rotate(const vec2& move)
 {
-	auto pCamera = (PerspectiveCamera*)m_pCamera.get();
-	pCamera->MoveWithSpherical(move);
+	m_pCamera->MoveWithSpherical(move);
 }
 
 void CameraController::Translate(const vec2& move)
 {
-	auto pCamera = (PerspectiveCamera*)m_pCamera.get();
-	vec3 xDir = pCamera->XDirection() * move.x;
-	vec3 yDir = pCamera->YDirection() * move.y;
-	vec3 eye = pCamera->Eye() + xDir + yDir;
-	vec3 center = pCamera->Center() + xDir + yDir;
-	pCamera->LookAt(eye, center, pCamera->Up());
+	vec3 xDir = m_pCamera->XDirection() * move.x;
+	vec3 yDir = m_pCamera->YDirection() * move.y;
+	vec3 eye = m_pCamera->Eye() + xDir + yDir;
+	vec3 center = m_pCamera->Center() + xDir + yDir;
+	m_pCamera->LookAt(eye, center, m_pCamera->Up());
 }

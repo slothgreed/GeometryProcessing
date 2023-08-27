@@ -1,17 +1,17 @@
 #ifndef POINT_CLOUD_NODE_H
 #define POINT_CLOUD_NODE_H
 #include "SimpleShader.h"
+#include "RenderNode.h"
 class PointCloud;
-class PointCloudNode
+class PointCloudNode : public RenderNode
 {
 public:
-	PointCloudNode();
+	PointCloudNode(std::unique_ptr<PointCloud>&& pPrimitive);
 	~PointCloudNode();
 
-	void Set(std::unique_ptr<PointCloud>&& pPrimitive);
 	const std::unique_ptr<PointCloud>& GetData() const;
 	void UpdateData();
-	void Draw(const mat4x4& proj, const mat4x4& view);
+	void DrawData(const mat4x4& proj, const mat4x4& view);
 
 private:
 	void BuildGLBuffer();
