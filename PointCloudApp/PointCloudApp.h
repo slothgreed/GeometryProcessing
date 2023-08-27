@@ -16,7 +16,7 @@ public:
 private:
 	std::unordered_map<ALGORITHM_TYPE, IAlgorithm*> m_algorithm;
 	std::unique_ptr<Mouse> m_pMouse;
-	std::shared_ptr<RenderCamera> m_pCamera;
+	std::shared_ptr<Camera> m_pCamera;
 	std::unique_ptr<CameraController> m_pCameraController;
 };
 

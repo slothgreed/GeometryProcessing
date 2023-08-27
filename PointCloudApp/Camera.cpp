@@ -1,10 +1,10 @@
-#include "RenderCamera.h"
-RenderCamera::RenderCamera()
+#include "Camera.h"
+Camera::Camera()
 {
 	m_theta = 0;
 	m_phi = 0;
 }
-void RenderCamera::LookAt(const vec3& eye, const vec3& center, const vec3& up)
+void Camera::LookAt(const vec3& eye, const vec3& center, const vec3& up)
 {
 	m_View = glm::lookAt(eye, center, up);
 	m_eye = eye;
@@ -14,25 +14,25 @@ void RenderCamera::LookAt(const vec3& eye, const vec3& center, const vec3& up)
 	m_distance = glm::length(m_eye - m_center);
 }
 
-void RenderCamera::SetProject(mat4x4 proj)
+void Camera::SetProject(mat4x4 proj)
 {
 	m_Project = proj;
 }
 
-vec3 RenderCamera::XDirection()
+vec3 Camera::XDirection()
 {
 	return vec3(m_View[0].x, m_View[1].x, m_View[2].x);
 }
 
-vec3 RenderCamera::YDirection()
+vec3 Camera::YDirection()
 {
 	return vec3(m_View[0].y, m_View[1].y, m_View[2].y);
 }
-vec3 RenderCamera::ZDirection()
+vec3 Camera::ZDirection()
 {
 	return vec3(m_View[0].z, m_View[1].z, m_View[2].z);
 }
-void RenderCamera::Perspective(float fov, float aspect, float _near, float _far)
+void Camera::Perspective(float fov, float aspect, float _near, float _far)
 {
 	SetProject(glm::perspective(fov, aspect, _near, _far));
 	m_fov = fov;
@@ -41,14 +41,14 @@ void RenderCamera::Perspective(float fov, float aspect, float _near, float _far)
 	m_far = _far;
 }
 
-void RenderCamera::SphericalToCartesian(float radius, float x, float y, vec3& result)
+void Camera::SphericalToCartesian(float radius, float x, float y, vec3& result)
 {
 	result.x = radius * sin(y) * cos(x);
 	result.y = radius * cos(y);
 	result.z = radius * sin(y) * sin(x);
 }
 
-void RenderCamera::MoveWithSpherical(const vec2& move)
+void Camera::MoveWithSpherical(const vec2& move)
 {
 	SetTheta(move.x);
 	SetPhi(move.y);
@@ -61,7 +61,7 @@ void RenderCamera::MoveWithSpherical(const vec2& move)
 	LookAt(sphericalPos, Center(), Up());
 }
 
-void RenderCamera::SetPhi(float value)
+void Camera::SetPhi(float value)
 {
 	if (m_phi + value >= 179.0f)
 	{
@@ -77,7 +77,7 @@ void RenderCamera::SetPhi(float value)
 	}
 }
 
-void RenderCamera::SetTheta(float value)
+void Camera::SetTheta(float value)
 {
 	if (m_theta + value >= 360.0f)
 	{
@@ -93,7 +93,7 @@ void RenderCamera::SetTheta(float value)
 	}
 }
 
-void RenderCamera::FitToBDB(const BDB& bdb)
+void Camera::FitToBDB(const BDB& bdb)
 {
 	float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(m_fov / 2.0);
 	lookAtDistance *= 1.2f / m_aspect;

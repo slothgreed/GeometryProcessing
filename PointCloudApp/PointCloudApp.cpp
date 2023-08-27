@@ -11,7 +11,7 @@
 #include "MouseInput.h"
 #include "PointCloudApp.h"
 #include "CameraController.h"
-#include "RenderCamera.h"
+#include "Camera.h"
 #include "Profiler.h"
 #include "PointCloud.h"
 #include "PointCloudNode.h"
@@ -151,10 +151,9 @@ void PointCloudApp::Execute()
 
 	m_instance = this;
 	m_pMouse = std::make_unique<Mouse>();
-	auto pCamera = std::make_shared<RenderCamera>();
-	pCamera->Perspective(45, 1, 0.1, 10000);
-	pCamera->LookAt(vec3(0, 0, 1), vec3(0, 0, 0), vec3(0, 1, 0));
-	m_pCamera = pCamera;
+	m_pCamera = std::make_shared<Camera>();
+	m_pCamera->Perspective(45, 1, 0.1, 10000);
+	m_pCamera->LookAt(vec3(0, 0, 1), vec3(0, 0, 0), vec3(0, 1, 0));
 
 	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
 	glfwSetCursorPosCallback(window, CursorPosCallBack);
@@ -188,7 +187,7 @@ void PointCloudApp::Execute()
 	m_algorithm[ALGORITHM_KDTREE] = new KDTree(pNode, 2);
 	
 	
-	pCamera->FitToBDB(bdb);
+	m_pCamera->FitToBDB(bdb);
 	
 	
 	glEnable(GL_DEPTH_TEST);

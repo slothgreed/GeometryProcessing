@@ -119,14 +119,14 @@
     <ClCompile Include="PrimitiveNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="RenderCamera.cpp">
-      <Filter>ソース ファイル\Camera</Filter>
-    </ClCompile>
     <ClCompile Include="Primitives.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="Primitive.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -220,14 +220,14 @@
     <ClInclude Include="PrimitiveNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="RenderCamera.h">
-      <Filter>ソース ファイル\Camera</Filter>
-    </ClInclude>
     <ClInclude Include="Primitives.h">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>ソース ファイル\Camera</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

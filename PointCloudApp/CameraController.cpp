@@ -1,5 +1,5 @@
 #include "CameraController.h"
-#include "RenderCamera.h"
+#include "Camera.h"
 
 bool CameraController::Move(const Mouse& mouse)
 {
