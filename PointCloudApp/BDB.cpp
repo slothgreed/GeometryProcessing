@@ -10,11 +10,14 @@ BDB::~BDB()
 {
 }
 
-BDB::BDB(vec3 min, vec3 max)
+BDB::BDB(const vec3& min, const vec3& max)
 {
 	Set(min, max);
 }
-
+bool BDB::IsActive() const
+{
+	return m_min.x != numeric_limits<float>::infinity();
+}
 void BDB::Apply(const vec3& position)
 {
 	m_min.x = glm::min(m_min.x, position.x);

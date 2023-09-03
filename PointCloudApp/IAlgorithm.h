@@ -12,7 +12,6 @@ class IAlgorithm
 public:
 	IAlgorithm() {};
 	~IAlgorithm() {};
-
 	virtual ALGORITHM_TYPE GetType() = 0;
 	virtual void Execute() = 0;
 	virtual void ShowUI() = 0;

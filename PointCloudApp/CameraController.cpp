@@ -42,7 +42,7 @@ void CameraController::Zoom(float ratio)
 
 	vec3 newEye = eyeDirect * len + m_pCamera->Center();
 
-	m_pCamera->LookAt(newEye, m_pCamera->Center(), m_pCamera->Up());
+	m_pCamera->SetLookAt(newEye, m_pCamera->Center(), m_pCamera->Up());
 }
 
 void CameraController::Rotate(const vec2& move)
@@ -56,5 +56,5 @@ void CameraController::Translate(const vec2& move)
 	vec3 yDir = m_pCamera->YDirection() * move.y;
 	vec3 eye = m_pCamera->Eye() + xDir + yDir;
 	vec3 center = m_pCamera->Center() + xDir + yDir;
-	m_pCamera->LookAt(eye, center, m_pCamera->Up());
+	m_pCamera->SetLookAt(eye, center, m_pCamera->Up());
 }

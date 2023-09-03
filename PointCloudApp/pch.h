@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
+#include <algorithm>
+#include <string>
 #include <vector>
 #include <memory>
 #include <unordered_map>

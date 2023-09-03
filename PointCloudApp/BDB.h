@@ -4,8 +4,9 @@ class BDB
 {
 public:
 	BDB();
-	BDB(vec3 min, vec3 max);
+	BDB(const vec3& min, const vec3& max);
 	~BDB();
+	bool IsActive() const;
 	void Add(const vec3& pos);
 	void Set(vec3 min, vec3 max);
 	void Apply(const vec3& position);

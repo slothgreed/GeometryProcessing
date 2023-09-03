@@ -4,7 +4,7 @@ Camera::Camera()
 	m_theta = 0;
 	m_phi = 0;
 }
-void Camera::LookAt(const vec3& eye, const vec3& center, const vec3& up)
+void Camera::SetLookAt(const vec3& eye, const vec3& center, const vec3& up)
 {
 	m_View = glm::lookAt(eye, center, up);
 	m_eye = eye;
@@ -32,7 +32,7 @@ vec3 Camera::ZDirection()
 {
 	return vec3(m_View[0].z, m_View[1].z, m_View[2].z);
 }
-void Camera::Perspective(float fov, float aspect, float _near, float _far)
+void Camera::SetPerspective(float fov, float aspect, float _near, float _far)
 {
 	SetProject(glm::perspective(fov, aspect, _near, _far));
 	m_fov = fov;
@@ -58,7 +58,7 @@ void Camera::MoveWithSpherical(const vec2& move)
 	sphericalPos = glm::normalize(sphericalPos);
 	sphericalPos *= LookAtDistance();
 	sphericalPos += Center();
-	LookAt(sphericalPos, Center(), Up());
+	SetLookAt(sphericalPos, Center(), Up());
 }
 
 void Camera::SetPhi(float value)
@@ -101,5 +101,12 @@ void Camera::FitToBDB(const BDB& bdb)
 	vec3 eyeDirection = glm::normalize(Eye() - Center());
 	vec3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
 
-	LookAt(newPosition, bdb.Center(), Up());
+	SetLookAt(newPosition, bdb.Center(), Up());
+}
+
+
+void Camera::SetAspect(float aspect)
+{
+	SetPerspective(m_fov, aspect, m_near, m_far);
+	
 }

@@ -1,6 +1,6 @@
 #ifndef IPRIMITIVE_H
 #define IPRIMITIVE_H
-class BDB;
+#include "BDB.h"
 struct Vertex
 {
 	glm::vec3 m_position;
@@ -19,7 +19,7 @@ public:
 		Interleave
 	};
 public:
-	BDB CreateBDB() const;
+	const BDB& GetBDB();
 	GLuint GetDrawType();
 	void CalcNormal(); // 適当コード
 	bool IsInterleave() { return m_storeType == StoreType::Interleave; }
@@ -32,24 +32,27 @@ public:
 	std::vector<glm::vec3>& Color() { return m_color; };
 
 	std::vector<Vertex>& GetVertex() { return m_vertex; };
+	void SetIndex(std::vector<int>&& value) { m_index = std::move(value); }
 	std::vector<int>& Index() { return m_index; };
 	void Multi(const mat4x4& matrix);
 	void Convert(StoreType type);
 	std::shared_ptr<Primitive> Clone();
 	int GetTriangleNum();
+	void SetType(GLuint primitive) { m_primitiveType = primitive; }
+	GLuint GetType() { return m_primitiveType; }
 	bool NeedUpdate() { return m_update; }
 	void ClearUpdate() { m_update = false; }
 	void Update() { m_update = true; }
 protected:
 	bool m_update;
-	GLuint m_drawType;
 	StoreType m_storeType;
 	std::vector<glm::vec3> m_color;
 	std::vector<glm::vec3> m_position;
 	std::vector<glm::vec3> m_normal;
 	std::vector<Vertex> m_vertex;
-
+	GLuint m_primitiveType;
 	std::vector<int> m_index;
+	BDB m_bdb;
 	
 };
 

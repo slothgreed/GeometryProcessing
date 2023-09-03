@@ -1,16 +1,25 @@
 #include "PointCloudNode.h"
 #include "PointCloud.h"
-PointCloudNode::PointCloudNode(std::unique_ptr<PointCloud>&& pPrimitive)
-	:m_pShader(std::make_unique<SimpleShader>())
+#include "KDTree.h"
+#include "KDTreeNanoFlann.h"
+
+PointCloudNode::PointCloudNode(const string& name, std::shared_ptr<PointCloud>& pPrimitive)
+	:RenderNode(name)
 {
 	m_pPointCloud = std::move(pPrimitive);
-	m_pShader->Build();
+	m_pShader = dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShader::Type::VertexColor));
+	m_algorithm[ALGORITHM_KDTREE] = new KDTreeNanoFlann(this, 3);
+	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(this, 3);
+
 	BuildGLBuffer();
 }
 
 PointCloudNode::~PointCloudNode()
 {
-
+	for (auto& algorithm : m_algorithm) {
+		delete algorithm.second;
+		algorithm.second = nullptr;
+	}
 }
 
 void PointCloudNode::BuildGLBuffer()
@@ -24,7 +33,7 @@ void PointCloudNode::BuildGLBuffer()
 	m_pColorBuffer->Create(m_pPointCloud->Color());
 	m_pPointCloud->ClearUpdate();
 }
-const std::unique_ptr<PointCloud>& PointCloudNode::GetData() const
+const std::shared_ptr<PointCloud>& PointCloudNode::GetData() const
 { 
 	return m_pPointCloud;
 }
@@ -37,7 +46,12 @@ void PointCloudNode::UpdateRenderData()
 	BuildGLBuffer();
 }
 
-
+void PointCloudNode::ShowUI()
+{
+	for (auto& algorithm : m_algorithm) {
+		algorithm.second->ShowUI();
+	}
+}
 void PointCloudNode::DrawData(const mat4x4& proj, const mat4x4& view)
 {
 	UpdateRenderData();

@@ -9,13 +9,20 @@
 class IShader
 {
 public:
+
+	enum class Type
+	{
+		Simple,
+		VertexColor
+	};
+
 	IShader();
 	virtual ~IShader();
 
 	void Build();
 	virtual void Use();
 	void Delete();
-
+	virtual Type GetType() = 0;
 	virtual std::string GetVertexPath() = 0;
 	virtual std::string GetFragmentPath() = 0;
 	virtual void GetUniformLocation() = 0;

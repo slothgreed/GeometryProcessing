@@ -82,4 +82,24 @@ private:
 
 };
 
+class Axis : public Primitive
+{
+public:
+	Axis();
+	~Axis();
+
+private:
+	void Build();
+};
+
+class Circle : public Primitive
+{
+public:
+	Circle(float radius, const vec3& center);
+	~Circle();
+
+private:
+	void Build(float radius, const vec3& center);
+};
+
 #endif PRIMITIVE_H

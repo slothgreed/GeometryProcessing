@@ -170,8 +170,10 @@
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="KDTree.cpp" />
+    <ClCompile Include="KDTreeNanoFlann.cpp" />
     <ClCompile Include="KMeansAlgorithm.cpp" />
     <ClCompile Include="PointCloud.cpp" />
+    <ClCompile Include="VertexColorShader.cpp" />
     <ClCompile Include="Primitives.cpp" />
     <ClCompile Include="PointCloudApp.cpp" />
     <ClCompile Include="GLBuffer.cpp" />
@@ -185,6 +187,7 @@
     <ClCompile Include="PrimitiveNode.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RenderNode.cpp" />
+    <ClCompile Include="ShaderTable.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="MatrixTexture.cpp" />
@@ -204,8 +207,10 @@
     <ClInclude Include="CameraController.h" />
     <ClInclude Include="FileUtility.h" />
     <ClInclude Include="KDTree.h" />
+    <ClInclude Include="KDTreeNanoFlann.h" />
     <ClInclude Include="KMeansAlgorithm.h" />
     <ClInclude Include="PointCloud.h" />
+    <ClInclude Include="VertexColorShader.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="PointCloudApp.h" />
     <ClInclude Include="GLBuffer.h" />
@@ -220,6 +225,8 @@
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RenderNode.h" />
+    <ClInclude Include="RenderResource.h" />
+    <ClInclude Include="ShaderTable.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="SimpleShader.h" />

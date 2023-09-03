@@ -23,7 +23,7 @@ Cube::Cube(const vec3& min, const vec3& max)
 
 
 	CalcNormal();
-	m_drawType = GL_TRIANGLES;
+	m_primitiveType = GL_TRIANGLES;
 }
 
 void Cube::AddIndex(int index, int vertex0, int vertex1, int vertex2, int vertex3)
@@ -81,7 +81,7 @@ Cone::Cone(float _radius, float _height, int _partition)
 	}
 
 	CalcNormal();
-	m_drawType = GL_TRIANGLES;
+	m_primitiveType = GL_TRIANGLES;
 }
 
 Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
@@ -158,7 +158,7 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 
 	CalcNormal();
 
-	m_drawType = GL_TRIANGLES;
+	m_primitiveType = GL_TRIANGLES;
 }
 
 
@@ -216,7 +216,7 @@ Sphere::Sphere(float _radius, int _slices, int _stacks) :
 		}
 	}
 
-	m_drawType = GL_TRIANGLES;
+	m_primitiveType = GL_TRIANGLES;
 }
 
 Torus::Torus(float _inRad, float _outRad, int _nsides, int _rings)
@@ -258,7 +258,7 @@ Torus::Torus(float _inRad, float _outRad, int _nsides, int _rings)
 		}
 	}
 
-	m_drawType = GL_TRIANGLES;
+	m_primitiveType = GL_TRIANGLES;
 }
 
 Triangle::Triangle()
@@ -281,5 +281,70 @@ void Triangle::Build()
 	m_index.push_back(0);
 	m_index.push_back(1);
 	m_index.push_back(2);
-	m_drawType = GL_TRIANGLES;
+	m_primitiveType = GL_TRIANGLES;
+}
+
+Axis::Axis()
+{
+	Build();
+}
+
+Axis::~Axis()
+{
+}
+
+void Axis::Build()
+{
+	m_position.push_back(glm::vec3(0.0, 0.0, 0.0));
+	m_position.push_back(glm::vec3(100.0, 0.0, 0.0));
+
+	m_position.push_back(glm::vec3(0.0, 0.0, 0.0));
+	m_position.push_back(glm::vec3(0.0, 100.0, 0.0));
+
+	m_position.push_back(glm::vec3(0.0, 0.0, 0.0));
+	m_position.push_back(glm::vec3(0.0, 0.0, 100.0));
+
+
+	m_color.push_back(glm::vec3(1.0, 0.0, 0.0));
+	m_color.push_back(glm::vec3(1.0, 0.0, 0.0));
+
+	m_color.push_back(glm::vec3(0.0, 1.0, 0.0));
+	m_color.push_back(glm::vec3(0.0, 1.0, 0.0));
+
+	m_color.push_back(glm::vec3(0.0, 0.0, 1.0));
+	m_color.push_back(glm::vec3(0.0, 0.0, 1.0));
+
+	m_index.push_back(0); m_index.push_back(1);
+	m_index.push_back(2); m_index.push_back(3);
+	m_index.push_back(4); m_index.push_back(5);
+
+	m_primitiveType = GL_LINES;
+}
+
+Circle::Circle(float radius, const vec3& center)
+{
+	Build(radius, center);
+}
+
+Circle::~Circle()
+{
+}
+
+void Circle::Build(float radius, const vec3& center)
+{
+	for (int i = 0; i < 360; i++) {
+		auto angle0 = (i / (float)360) * 3.14159f * 2.0f;
+		auto angle1 = ((i + 1) / (float)360) * 3.14159f * 2.0f;
+		m_position.push_back(vec3(
+			radius * cosf(angle0),
+			radius * sinf(angle0),
+			0.0f) + center);
+
+		m_position.push_back(vec3(
+			radius * cosf(angle1),
+			radius * sinf(angle1),
+			0.0f) + center);
+	}
+
+	m_primitiveType = GL_LINES;
 }

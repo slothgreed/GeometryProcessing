@@ -128,6 +128,15 @@
     <ClCompile Include="Camera.cpp">
       <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderTable.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexColorShader.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="KDTreeNanoFlann.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -228,6 +237,18 @@
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>ソース ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderTable.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderResource.h">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexColorShader.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="KDTreeNanoFlann.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

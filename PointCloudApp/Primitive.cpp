@@ -3,18 +3,18 @@
 Primitive::Primitive()
 {
 	m_update = true;
-	m_drawType = GL_NONE;
+	m_primitiveType = GL_NONE;
 	m_storeType = StoreType::Array;
 }
 
 GLuint Primitive::GetDrawType()
 {
-	if (m_drawType == GL_NONE)
+	if (m_primitiveType == GL_NONE)
 	{
 		assert(0);
 		return GL_POINTS;
 	}
-	return m_drawType;
+	return m_primitiveType;
 }
 
 void Primitive::Multi(const mat4x4& matrix)
@@ -91,7 +91,7 @@ void Primitive::Convert(Primitive::StoreType type)
 std::shared_ptr<Primitive> Primitive::Clone()
 {
 	auto instance = make_shared<Primitive>();
-	instance->m_drawType = m_drawType;
+	instance->m_primitiveType = m_primitiveType;
 	instance->m_storeType = m_storeType;
 
 	instance->m_position = m_position;
@@ -102,15 +102,18 @@ std::shared_ptr<Primitive> Primitive::Clone()
 	return instance;
 }
 
-BDB Primitive::CreateBDB() const
+const BDB& Primitive::GetBDB()
 {
-	BDB bdb;
-	for (const auto& p : m_position)
-	{
-		bdb.Add(p);
+	if (m_bdb.IsActive()) {
+		return m_bdb;
 	}
 
-	return bdb;
+	for (const auto& p : m_position)
+	{
+		m_bdb.Add(p);
+	}
+
+	return m_bdb;
 }
 int Primitive::GetTriangleNum()
 {

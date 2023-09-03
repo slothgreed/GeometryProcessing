@@ -18,11 +18,12 @@
 #include "Primitive.h"
 #include "KMeansAlgorithm.h"
 #include "Utility.h"
-#include "KDTree.h"
+#include "Primitives.h"
+#include "PrimitiveNode.h"
 #include <Eigen/Core>
 
 PointCloudApp* m_instance;
-PointCloudApp* Application()
+PointCloudApp* PointCloudApp::Application()
 {
 	return m_instance;
 }
@@ -31,12 +32,12 @@ void ScrollCallBack(GLFWwindow* window, double x, double y)
 	MouseInput input;
 	input.SetWheel((int)y);
 	input.SetEvent(MY_MOUSE_EVENT::MOUSE_EVENT_WHEEL);
-	Application()->ProcessMouseEvent(input);
+	PointCloudApp::Application()->ProcessMouseEvent(input);
 }
 
 void WindowSizeCallBack(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
+	PointCloudApp::Application()->ResizeEvent(width, height);
 }
 
 void CursorPosCallBack(GLFWwindow* window, double xpos, double ypos)
@@ -72,7 +73,7 @@ void CursorPosCallBack(GLFWwindow* window, double xpos, double ypos)
 		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT);
 	}
 
-	Application()->ProcessMouseEvent(input);
+	PointCloudApp::Application()->ProcessMouseEvent(input);
 }
 
 void MouseButtonCallBack(GLFWwindow* window, int button, int action, int mods)
@@ -110,9 +111,16 @@ void MouseButtonCallBack(GLFWwindow* window, int button, int action, int mods)
 		input.SetRelease(mouseButton);
 	}
 
-	Application()->ProcessMouseEvent(input);
+	PointCloudApp::Application()->ProcessMouseEvent(input);
 }
 
+void PointCloudApp::ResizeEvent(int width, int height)
+{
+	glViewport(0, 0, width, height);
+	if (m_pCamera) {
+		m_pCamera->SetAspect(width / (float)height);
+	}
+}
 void PointCloudApp::ProcessMouseEvent(const MouseInput& input)
 {
 	m_pMouse->ApplyMouseInput(input);
@@ -152,41 +160,48 @@ void PointCloudApp::Execute()
 	m_instance = this;
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();
-	m_pCamera->Perspective(45, 1, 0.1, 10000);
-	m_pCamera->LookAt(vec3(0, 0, 1), vec3(0, 0, 0), vec3(0, 1, 0));
+	m_pResource = std::make_unique<RenderResource>();
+	m_pResource->Build();
 
+	m_pCamera->SetPerspective(45, 1, 0.1, 10000);
+	m_pCamera->SetLookAt(vec3(0, 0, -1), vec3(0, 0, 0), vec3(0, 1, 0));
 	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
 	glfwSetCursorPosCallback(window, CursorPosCallBack);
 	glfwSetMouseButtonCallback(window, MouseButtonCallBack);
 	glfwSetScrollCallback(window, ScrollCallBack);	
 	glfwSetWindowSizeCallback(window, WindowSizeCallBack);
 	glfwSwapInterval(0);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-	//primitives.push_back(std::unique_ptr<PointCloud>(PointCloud::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
-	//auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
+	//primitives.push_back(std::shared_ptr<PointCloud>(PointCloud::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
-	//auto pPointCloud = std::unique_ptr<PointCloud>(PointCloud::Create2D(100, vec2(0, 0), vec2(100, 100)));
 
-	auto pPointCloud = (std::unique_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_100.xyz")));
-	//pPointCloud->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\Source\\PointCloud\\random_100.xyz");
+	//auto pPointCloud = std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz"));
 	
+	//auto pRandom = std::shared_ptr<PointCloud>(PointCloud::Create2D(10, vec2(0, 0), vec2(100, 100)));
+	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
+
+
 	std::vector<vec3> color(pPointCloud->Position().size(), vec3(1.0f, 1.0f, 1.0f));
 	pPointCloud->SetColor(std::move(color));
 	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
 	//kmeans.Execute();
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
 	BDB bdb;
-	bdb.Apply(pPointCloud->CreateBDB());
+	bdb.Apply(pPointCloud->GetBDB());
 
-	auto pNode = std::make_shared<PointCloudNode>(std::move(pPointCloud));
-	m_algorithm[ALGORITHM_KDTREE] = new KDTree(pNode, 2);
-	
-	
+	m_pRoot = std::make_unique<RenderNode>("Root");
+
+	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(pNode, 2);
+
+	std::shared_ptr<Primitive> pAxis = std::make_shared<Axis>();
+	m_pRoot->SetNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	m_pRoot->SetNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 	m_pCamera->FitToBDB(bdb);
 	
 	
@@ -209,7 +224,7 @@ void PointCloudApp::Execute()
 		profiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		pNode->Draw(m_pCamera->Projection(),m_pCamera->ViewMatrix());
+		m_pRoot->Draw(m_pCamera->Projection(), m_pCamera->ViewMatrix());
 
 		profiler.Stop();
 		//profiler.Output();
@@ -218,9 +233,8 @@ void PointCloudApp::Execute()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		for (auto& algorithm : m_algorithm) {
-			algorithm.second->ShowUI();
-		}
+		m_pRoot->ShowUIData();
+
 		ImGui::Render();
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -238,9 +252,6 @@ void PointCloudApp::Execute()
 
 void PointCloudApp::Finalize()
 {
-	for (auto& algorithm : m_algorithm) {
-		delete algorithm.second;
-		algorithm.second = nullptr;
-	}
+	m_pRoot.reset();
 	glfwTerminate();
 }
