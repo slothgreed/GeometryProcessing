@@ -17,6 +17,6 @@ void RenderNode::Draw(const mat4x4& proj, const mat4x4& view)
 	DrawData(proj, view);
 
 	for (auto& data : m_child) {
-		data.second->DrawData(proj, view);
+		data.second->Draw(proj, view);
 	}
 }

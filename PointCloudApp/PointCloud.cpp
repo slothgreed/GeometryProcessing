@@ -117,6 +117,13 @@ PointCloud* PointCloud::Create2D(int positionNum, const glm::vec2& min, const gl
 
 	return pInstance;
 }
+
+void  PointCloud::To2D()
+{
+	for (int i = 0; i < m_position.size(); i++) {
+		m_position[i].z = 0.0f;
+	}
+}
 void PointCloud::LoadBin(const std::string& name)
 {
 	KI::FileReader reader;

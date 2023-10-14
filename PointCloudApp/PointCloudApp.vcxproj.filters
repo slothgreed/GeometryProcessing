@@ -137,6 +137,12 @@
     <ClCompile Include="KDTreeNanoFlann.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="Harris3D.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="AlphaShape.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -248,6 +254,12 @@
       <Filter>ソース ファイル\GL\Shader</Filter>
     </ClInclude>
     <ClInclude Include="KDTreeNanoFlann.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="Harris3D.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="AlphaShape.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>

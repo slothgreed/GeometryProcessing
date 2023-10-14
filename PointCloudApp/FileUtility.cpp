@@ -1,6 +1,5 @@
 #include "FileUtility.h"
 #include <filesystem>
-
 namespace KI
 {
 FileUtility::FileUtility()

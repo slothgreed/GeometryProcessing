@@ -12,6 +12,8 @@ public:
 	void SetColor(std::vector<glm::vec3>&& color) { m_color = std::move(color); }
 	const std::string& GetFileName() { return m_filePath; }
 	static PointCloud* Create2D(int poositionNum, const glm::vec2& min, const glm::vec2& max);
+	void To2D();
+
 	void OutputText(const std::string& name);
 	void OutputBinary(const std::string& name);
 private:

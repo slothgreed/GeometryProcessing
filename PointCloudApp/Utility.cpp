@@ -63,20 +63,23 @@ vec3 ColorUtility::CreatePrimary(int index)
 
 	return vec3(0, 0, 0);
 }
-
-vec3 ColorUtility::CreatePseudo(unsigned int value, unsigned int maxValue)
+vec3 ColorUtility::CreatePseudo(float value, float minValue, float maxValue)
 {
 	if (g_RGB.size() == 0) { InitializePseudoColor(); }
-	
+
 	if (maxValue < value) {
 		return g_RGB[255];
 	}
-	if (0 > value) {
+	if (0 > value || (maxValue - minValue) == 0) {
 		return g_RGB[0];
 	}
 
-	float scale = 255 * (value) / maxValue;
+	float scale = 255 * (value - minValue) / (maxValue - minValue);
 	return g_RGB[(int)scale];
+}
+vec3 ColorUtility::CreatePseudo(unsigned int value, unsigned int maxValue)
+{
+	return CreatePseudo(value, 0, maxValue);
 }
 
 void ColorUtility::InitializePseudoColor()

@@ -2,15 +2,21 @@
 #include "PointCloud.h"
 #include "KDTree.h"
 #include "KDTreeNanoFlann.h"
-
+#include "Utility.h"
+#include "Harris3D.h"
+#include "AlphaShape.h"
+#include <Eigen/SVD>
+#include <Eigen/Core>
 PointCloudNode::PointCloudNode(const string& name, std::shared_ptr<PointCloud>& pPrimitive)
 	:RenderNode(name)
 {
 	m_pPointCloud = std::move(pPrimitive);
 	m_pShader = dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShader::Type::VertexColor));
 	m_algorithm[ALGORITHM_KDTREE] = new KDTreeNanoFlann(this, 3);
+	m_algorithm[ALGORITHM_HARRIS3D] = new Harris3D(this);
+	m_algorithm[ALGORITHM_ALPHASHAPE] = new AlphaShape2D(this);
 	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(this, 3);
-
+	m_normal = m_pPointCloud->Normal();
 	BuildGLBuffer();
 }
 
@@ -45,11 +51,90 @@ void PointCloudNode::UpdateRenderData()
 {
 	BuildGLBuffer();
 }
+const std::vector<vec3>& PointCloudNode::GetNormal()
+{
+	ComputeNormal();
+	return m_normal;
+}
 
+const std::vector<int>& PointCloudNode::GetNeighbor(int index)
+{
+	ComputeNeighbor(10);
+
+	return m_neighbor[index];
+}
 void PointCloudNode::ShowUI()
 {
 	for (auto& algorithm : m_algorithm) {
 		algorithm.second->ShowUI();
+	}
+
+	if (ImGui::Button("ShowNormal")) {
+		ShowNormal();
+	}
+
+	if (ImGui::Button("ReverseNormal")) {
+		auto normal = m_pPointCloud->Color();
+		for (int i = 0; i < normal.size(); i++) {
+			normal[i] = -normal[i];
+		}
+		m_pPointCloud->SetColor(std::move(normal));
+		m_pPointCloud->Update();
+	}
+}
+void PointCloudNode::ComputeNormal()
+{
+	if (m_normal.size() != 0) { return; }
+	ComputeNeighbor(10);
+	m_normal.resize(m_pPointCloud->Position().size());
+	for (size_t i = 0; i < m_neighbor.size(); i++) {
+		const auto& pos = m_pPointCloud->Position()[i];
+		Eigen::MatrixXf matrix(3, m_neighbor[i].size());
+		for (size_t j = 0; j < m_neighbor[i].size(); j++) {
+			vec3 center = m_pPointCloud->Position()[m_neighbor[i][j]] - pos;
+			matrix(0, j) = center.x;
+			matrix(1, j) = center.y;
+			matrix(2, j) = center.z;
+		}
+
+		Eigen::JacobiSVD<Eigen::MatrixXf> svd(matrix, Eigen::ComputeThinU);
+		Eigen::Vector3f normal = svd.matrixU().col(2);
+		m_normal[i][0] = normal(0);
+		m_normal[i][1] = normal(1);
+		m_normal[i][2] = normal(2);
+		m_normal[i] = glm::normalize(m_normal[i]);
+	}
+}
+void PointCloudNode::ShowNormal()
+{
+	ComputeNormal();
+	auto normal = m_pPointCloud->Normal();
+	m_pPointCloud->SetColor(std::move(normal));
+	m_pPointCloud->Update();
+}
+void PointCloudNode::ComputeNeighbor(float radius)
+{
+	if (m_neighbor.size() != 0) { return; }
+	KDTreeNanoFlann* pFlann = (KDTreeNanoFlann*)m_algorithm[ALGORITHM_KDTREE];
+	pFlann->Execute();
+	m_neighbor.resize(m_pPointCloud->Position().size());
+	for (size_t i = 0; i < m_pPointCloud->Position().size(); i++) {
+		m_neighbor[i] = pFlann->GetRadiusNeighbor(m_pPointCloud->Position()[i], radius);
+	}
+}
+
+void PointCloudNode::ComputeTangent()
+{
+	ComputeNormal();
+	if (m_tangentX.size() == 0) { return; }
+	for (int i = 0; i < m_normal.size(); i++) {
+		vec3 test(1, 0, 0);
+		if (std::fabs(glm::dot(test, m_normal[i])) > 0.9f) {
+			test = vec3(0, 1, 0);
+		}
+
+		m_tangentX.push_back(glm::normalize(glm::cross(test, m_normal[i])));
+		m_tangentY.push_back(glm::normalize(glm::cross(m_tangentX[i], m_normal[i])));
 	}
 }
 void PointCloudNode::DrawData(const mat4x4& proj, const mat4x4& view)

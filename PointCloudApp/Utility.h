@@ -37,6 +37,7 @@ public:
 	static vec3 CreateRandom();
 	static vec3 CreatePrimary(int index); // å¥êF
 	static vec3 CreatePseudo(unsigned int value, unsigned int maxValue);
+	static vec3 CreatePseudo(float value, float minValue, float maxValue);
 private:
 	static void InitializePseudoColor();
 };

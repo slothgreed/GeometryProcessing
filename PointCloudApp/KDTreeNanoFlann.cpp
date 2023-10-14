@@ -9,8 +9,8 @@
 struct Vector3Adaptor
 {
 	std::vector<vec3> rawPoints;
-	inline uint32_t kdtree_get_point_count() const { return rawPoints.size(); }
-	inline float kdtree_get_pt(uint32_t idx, int32_t dim) const { return rawPoints[idx][dim]; }
+	inline int kdtree_get_point_count() const { return rawPoints.size(); }
+	inline float kdtree_get_pt(int idx, int dim) const { return rawPoints[idx][dim]; }
 	template<class BBOX>
 	bool kdtree_get_bbox(BBOX& bb) const { return false; }
 };
@@ -27,25 +27,25 @@ public:
 	~NanoFlannImpl() {};
 
 	typedef nanoflann::KDTreeSingleIndexAdaptor<
-		nanoflann::L2_Simple_Adaptor<float, Vector3Adaptor>, Vector3Adaptor, 3>
+		nanoflann::L2_Simple_Adaptor<float, Vector3Adaptor, float, int>, Vector3Adaptor, 3, int>
 		KDTree_T;
 
 
-	std::vector<uint32_t> Nearest(const vec3 query, size_t k)
+	std::vector<int> Nearest(const vec3& query, size_t k)
 	{
-		std::vector<uint32_t> outInds(k);
+		std::vector<int> outInds(k);
 		std::vector<float> outDistSq(k);
 		tree.knnSearch(&query[0], k, &outInds[0], &outDistSq[0]);
 		return outInds;
 	}
 
-	std::vector<uint32_t> RadiusSearch(const vec3 query, double rad)
+	std::vector<int> RadiusSearch(const vec3& query, float rad)
 	{
 		double radSq = rad * rad;
-		std::vector<nanoflann::ResultItem<uint32_t, float>> outPairs;
+		std::vector<nanoflann::ResultItem<int, float>> outPairs;
 		tree.radiusSearch(&query[0], radSq, outPairs, nanoflann::SearchParameters());
 
-		std::vector<uint32_t> outInds(outPairs.size());
+		std::vector<int> outInds(outPairs.size());
 		for (size_t i = 0; i < outInds.size(); i++) {
 			outInds[i] = outPairs[i].first;
 		}
@@ -69,10 +69,14 @@ KDTreeNanoFlann::~KDTreeNanoFlann()
 
 void KDTreeNanoFlann::Execute()
 {
-	if (m_pImpl) {
-		delete m_pImpl;
+	if (!m_pImpl) {
+		m_pImpl = new NanoFlannImpl(m_pPointCloud);
 	}
-	m_pImpl = new NanoFlannImpl(m_pPointCloud);
+}
+std::vector<int> KDTreeNanoFlann::GetRadiusNeighbor(const vec3& query, float rad)
+{
+	auto pNanoFlann = (NanoFlannImpl*)m_pImpl;
+	return pNanoFlann->RadiusSearch(query, rad);
 }
 
 

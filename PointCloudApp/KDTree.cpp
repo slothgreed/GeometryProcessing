@@ -1,7 +1,6 @@
 #include "KDTree.h"
 #include "PointCloud.h"
 #include "Utility.h"
-#include "FileUtility.h"
 #include "PointCloudNode.h"
 #include "PrimitiveNode.h"
 #include "Primitives.h"

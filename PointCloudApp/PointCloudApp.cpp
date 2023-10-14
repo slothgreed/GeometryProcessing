@@ -173,11 +173,13 @@ void PointCloudApp::Execute()
 	glfwSwapInterval(0);
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-	//primitives.push_back(std::shared_ptr<PointCloud>(PointCloud::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
 	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	pPointCloud->Multi(glm::rotate(-90.0f, vec3(1, 0, 0)));
+	pPointCloud->To2D();
 	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
 
@@ -197,8 +199,6 @@ void PointCloudApp::Execute()
 
 	m_pRoot = std::make_unique<RenderNode>("Root");
 
-	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(pNode, 2);
-
 	std::shared_ptr<Primitive> pAxis = std::make_shared<Axis>();
 	m_pRoot->SetNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
 	m_pRoot->SetNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
@@ -210,6 +210,7 @@ void PointCloudApp::Execute()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);	// GLenum mode
 	glPointSize(5.0f);
+	glLineWidth(5.0f);
 	Profile profiler;
 
 	ImGui::CreateContext();
