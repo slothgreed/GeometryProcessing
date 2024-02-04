@@ -35,14 +35,13 @@ void VertexColorShader::SetModel(const mat4x4& value)
 	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
 }
 
-void VertexColorShader::SetupVertexAttribute()
+void VertexColorShader::SetPosition(GLBuffer* pPosition)
 {
-	glEnableVertexAttribArray(ATTRIB_POSITION);
-	glVertexAttribFormat(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0);
-	OUTPUT_GLERROR;
-
-	glEnableVertexAttribArray(ATTRIB_NORMAL);
-	glVertexAttribFormat(ATTRIB_NORMAL, 3, GL_FLOAT, GL_FALSE, 0);
-	OUTPUT_GLERROR;
+	SetVertexAttribute(ATTRIB_POSITION, pPosition);
 }
+void VertexColorShader::SetColor(GLBuffer* pColor)
+{
+	SetVertexAttribute(ATTRIB_COLOR, pColor);
+}
+
 

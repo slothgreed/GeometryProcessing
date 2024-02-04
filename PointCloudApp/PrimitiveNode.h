@@ -18,7 +18,7 @@ private:
 	void BuildGLBuffer();
 	void UpdateRenderData();
 	glm::vec3 m_color;
-	std::shared_ptr<IShader> m_pShader;
+	std::shared_ptr<IShadingShader> m_pShader;
 
 	std::shared_ptr<Primitive> m_pPrimitive;
 	std::unique_ptr<GLBuffer> m_pPositionBuffer;

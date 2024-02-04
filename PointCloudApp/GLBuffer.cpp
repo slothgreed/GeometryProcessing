@@ -1,8 +1,7 @@
 #include "GLBuffer.h"
-GLBuffer::GLBuffer(GLenum type)
-	:m_type(type),
-	m_id(0),
-	m_size(0)
+GLBuffer::GLBuffer()
+	: m_handle(0)
+	, m_memorySize(0)
 {
 }
 
@@ -11,66 +10,119 @@ GLBuffer::~GLBuffer()
 	Delete();
 }
 
-void GLBuffer::Create(int size, int sizeofData)
+void GLBuffer::Create(DATA_TYPE dataType, int size, int sizeofData, const void* data)
 {
 	Delete();
-	glCreateBuffers(1, &m_id);
-	glNamedBufferData(m_id, size * sizeofData, nullptr, GL_STATIC_DRAW);
-	m_size = size * sizeofData;
+	glCreateBuffers(1, &m_handle);
+	glNamedBufferData(m_handle, size * sizeofData, data, GL_STATIC_DRAW);
+	m_dataType = dataType;
+	m_num = size;
+	m_memorySize = size * sizeofData;
+	m_sizeOfData = sizeofData;
+}
+
+void GLBuffer::Create(int size, int sizeofData)
+{
+	Create(DATA_UNKNOWN, size, sizeofData, NULL);
+}
+
+void GLBuffer::Create(const std::vector<glm::vec2>& value)
+{
+	Create(DATA_FLOAT, value.size(), sizeof(glm::vec2), value.data());
 }
 
 void GLBuffer::Create(const std::vector<glm::vec3>& value)
 {
-	Delete();
-	glCreateBuffers(1, &m_id);
-	glNamedBufferData(m_id, value.size() * sizeof(glm::vec3), value.data(), GL_STATIC_DRAW);
-	m_size = value.size();
-	OUTPUT_GLERROR;
+	Create(DATA_FLOAT, value.size(), sizeof(glm::vec3), value.data());
 }
 
-void GLBuffer::Create(const std::vector<int>& value)
+void GLBuffer::Create(const std::vector<glm::vec4>& value)
 {
-	Delete();
-	glCreateBuffers(1, &m_id);
-	glNamedBufferData(m_id , value.size() * sizeof(int), value.data(), GL_STATIC_DRAW);
-	m_size = value.size();
-	OUTPUT_GLERROR;
+	Create(DATA_FLOAT, value.size(), sizeof(glm::vec4), value.data());
+}
+
+
+void GLBuffer::Create(const std::vector<unsigned int>& value)
+{
+	Create(DATA_UINT, value.size(), sizeof(unsigned int), value.data());
+}
+
+void GLBuffer::Create(const std::vector<float>& value)
+{
+	Create(DATA_FLOAT, value.size(), sizeof(float), value.data());
 }
 
 void GLBuffer::Create(const std::vector<mat4x4>& value)
 {
-	Delete();
-	glCreateBuffers(1, &m_id);
-	glNamedBufferData(m_id, value.size() * sizeof(mat4x4), value.data(), GL_STATIC_DRAW);
-	OUTPUT_GLERROR;
+	Create(DATA_FLOAT, value.size(), sizeof(mat4x4), value.data());
 }
 
-void GLBuffer::Delete() 
+void GLBuffer::Delete()
 {
-	if (m_id != 0)
-	{
-		glDeleteBuffers(1, &m_id);
-		OUTPUT_GLERROR;
-		m_id = 0;
-	}
+	if (m_handle == 0) { return; }
+	glDeleteBuffers(1, &m_handle);
+	OUTPUT_GLERROR;
+	m_handle = 0;
 }
 
 void GLBuffer::BufferSubData(int offset, const std::vector<int>& value)
 {
-	assert(m_id != 0);
-	glNamedBufferSubData(m_id, offset * sizeof(int), value.size() * sizeof(int), value.data());
+	assert(m_handle != 0);
+	glNamedBufferSubData(m_handle, offset * sizeof(int), value.size() * sizeof(int), value.data());
 	OUTPUT_GLERROR;
 }
 
 void GLBuffer::BufferSubData(int offset, const std::vector<glm::vec3>& value)
 {
-	assert(m_id != 0);
-	glNamedBufferSubData(m_id, offset * sizeof(glm::vec3), value.size() * sizeof(glm::vec3), value.data());
+	assert(m_handle != 0);
+	glNamedBufferSubData(m_handle, offset * sizeof(glm::vec3), value.size() * sizeof(glm::vec3), value.data());
 	OUTPUT_GLERROR;
 }
 
-
-int GLBuffer::Size()
+void GLBuffer::BufferSubData(int offset, int size, int sizeofData, const void* data)
 {
-	return m_size;
+	assert(m_handle != 0);
+	glNamedBufferSubData(m_handle, offset * sizeofData, size * sizeofData, data);
+	OUTPUT_GLERROR;
 }
+
+void GLBuffer::GetBufferData(std::vector<int>& value)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(int), value.data());
+	OUTPUT_GLERROR;
+}
+
+void GLBuffer::GetBufferData(std::vector<float>& value)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(float), value.data());
+	OUTPUT_GLERROR;
+}
+
+void GLBuffer::GetBufferData(std::vector<glm::vec3>& value)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(glm::vec3), value.data());
+	OUTPUT_GLERROR;
+}
+
+void GLBuffer::GetBufferData(std::vector<glm::vec4>& value)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(glm::vec4), value.data());
+	OUTPUT_GLERROR;
+}
+
+int GLBuffer::ComponentSize() const
+{
+	if (m_dataType == DATA_FLOAT ||
+		m_dataType == DATA_INT ||
+		m_dataType == DATA_UINT) {
+		return m_sizeOfData / 4;
+	} else {
+		assert(0);
+		return 0;
+	}
+}
+

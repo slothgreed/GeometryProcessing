@@ -36,6 +36,15 @@
     <Filter Include="ソース ファイル\Node">
       <UniqueIdentifier>{6dd7074f-7431-4938-8430-2aa342a2abef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\App">
+      <UniqueIdentifier>{0bde5c8a-34d5-45bc-9b4f-102de57ba7c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\GL\Shader\ComputeShader">
+      <UniqueIdentifier>{34708a4b-061c-4236-8d98-370ac2687b9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Utility\Loader">
+      <UniqueIdentifier>{6c51319b-7d8d-426f-ad4c-fc7090e6f624}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -67,12 +76,6 @@
     </ClCompile>
     <ClCompile Include="GLBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="MatrixTexture.cpp">
-      <Filter>ソース ファイル\GL\Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="PointCloudApp.cpp">
-      <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="FileUtility.cpp">
       <Filter>ソース ファイル\Utility</Filter>
@@ -143,13 +146,43 @@
     <ClCompile Include="AlphaShape.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="PointCloudApp.cpp">
+      <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShaderTest.cpp">
+      <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputePointCloudApp.cpp">
+      <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="GLFWApp.cpp">
+      <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTextureNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShaderSample.cpp">
+      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
+    </ClCompile>
+    <ClCompile Include="PointCloudComputeShader.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameBuffer.cpp">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageLoader.cpp">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="PointCloudIO.cpp">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
       <Filter>ソース ファイル\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixTexture.h">
-      <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="GLBuffer.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
@@ -180,9 +213,6 @@
     </ClInclude>
     <ClInclude Include="FileUtility.h">
       <Filter>ソース ファイル\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="PointCloudApp.h">
-      <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="IAlgorithm.h">
       <Filter>ソース ファイル\Algorithm</Filter>
@@ -261,6 +291,45 @@
     </ClInclude>
     <ClInclude Include="AlphaShape.h">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloudApp.h">
+      <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="TheApp.h">
+      <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShaderTest.h">
+      <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputePointCloudApp.h">
+      <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="GLFWApp.h">
+      <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTextureNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShaderSample.h">
+      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloudComputeShader.h">
+      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameBuffer.h">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTypes.h">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageLoader.h">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloudIO.h">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

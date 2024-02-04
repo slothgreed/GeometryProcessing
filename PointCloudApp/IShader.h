@@ -9,19 +9,38 @@
 class IShader
 {
 public:
+	IShader()
+		: m_programId(0) {};
+	~IShader() {};
+
+	virtual void Build() = 0;
+
+	void Use();
+	void UnUse();
+	void Delete();
+	static GLuint BuildVertexFrag(const std::string& vert, const std::string& frag);
+
+protected:
+	GLuint GetId() const { return m_programId; };
+	GLuint m_programId;
+};
+
+
+class IShadingShader : public IShader
+{
+public:
 
 	enum class Type
 	{
 		Simple,
-		VertexColor
+		VertexColor,
+		Texture,
 	};
 
-	IShader();
-	virtual ~IShader();
+	IShadingShader();
+	virtual ~IShadingShader();
 
-	void Build();
-	virtual void Use();
-	void Delete();
+	virtual void Build();
 	virtual Type GetType() = 0;
 	virtual std::string GetVertexPath() = 0;
 	virtual std::string GetFragmentPath() = 0;
@@ -29,10 +48,46 @@ public:
 	virtual void SetViewProj(const mat4x4& value) = 0;
 	virtual void SetModel(const mat4x4& value) { assert(0); };
 
-protected:
-	GLuint GetId() { return m_programId; };
+	void SetVertexAttribute(int location, GLBuffer* pBuffer);
+	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
+	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
 private:
-	GLuint m_programId;
+
+};
+
+class IComputeShader : public IShader
+{
+public:
+	IComputeShader() {};
+	~IComputeShader() {};
+
+	virtual std::string GetComputePath() = 0;
+	
+	virtual void Build();
+	virtual void GetUniformLocation() = 0;
+
+protected:
+	glm::ivec3 m_dimension;
+private:
+
+};
+
+class Texture;
+class TextureShader : public IShadingShader
+{
+public:
+	TextureShader() {};
+	~TextureShader() {};
+	virtual Type GetType() { return Type::Texture; }
+	virtual void GetUniformLocation();
+	virtual std::string GetVertexPath();
+	virtual std::string GetFragmentPath();
+	virtual void SetViewProj(const mat4x4& value) {};
+	void BindTexture(const Texture& texture);
+	void SetPosition(GLBuffer* pPosition);
+	void SetTexture(GLBuffer* pTexture);
+private:
+	GLuint m_uniform;
 };
 
 

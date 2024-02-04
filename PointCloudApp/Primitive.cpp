@@ -96,6 +96,8 @@ std::shared_ptr<Primitive> Primitive::Clone()
 
 	instance->m_position = m_position;
 	instance->m_normal = m_normal;
+	instance->m_color = m_color;
+	instance->m_texcoord = m_texcoord;
 	instance->m_vertex = m_vertex;
 	
 	instance->m_index = m_index;

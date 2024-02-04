@@ -30,10 +30,12 @@ public:
 	std::vector<glm::vec3>& Normal() { return m_normal; };
 	void SetColor(std::vector<glm::vec3>&& value) { m_color = std::move(value); }
 	std::vector<glm::vec3>& Color() { return m_color; };
+	void SetTexcoord(std::vector<glm::vec2>&& value) { m_texcoord = std::move(value); }
+	std::vector<glm::vec2>& Texcoord() { return m_texcoord; };
 
 	std::vector<Vertex>& GetVertex() { return m_vertex; };
-	void SetIndex(std::vector<int>&& value) { m_index = std::move(value); }
-	std::vector<int>& Index() { return m_index; };
+	void SetIndex(std::vector<unsigned int>&& value) { m_index = std::move(value); }
+	std::vector<unsigned int>& Index() { return m_index; };
 	void Multi(const mat4x4& matrix);
 	void Convert(StoreType type);
 	std::shared_ptr<Primitive> Clone();
@@ -49,9 +51,10 @@ protected:
 	std::vector<glm::vec3> m_color;
 	std::vector<glm::vec3> m_position;
 	std::vector<glm::vec3> m_normal;
+	std::vector<glm::vec2> m_texcoord;
 	std::vector<Vertex> m_vertex;
 	GLuint m_primitiveType;
-	std::vector<int> m_index;
+	std::vector<unsigned int> m_index;
 	BDB m_bdb;
 	
 };

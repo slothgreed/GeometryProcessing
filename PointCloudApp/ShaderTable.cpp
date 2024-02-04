@@ -11,7 +11,7 @@ void ShaderTable::Build()
 	}
 }
 
-shared_ptr<IShader> ShaderTable::Get(IShader::Type type)
+shared_ptr<IShadingShader> ShaderTable::Get(IShadingShader::Type type)
 {
 	return m_pTable[(int)type];
 }

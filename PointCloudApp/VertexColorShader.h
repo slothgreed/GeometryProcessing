@@ -1,7 +1,7 @@
 #ifndef VERTEX_COLOR_SHADER_H
 #define VERTEX_COLOR_SHADER_H
 #include "IShader.h"
-class VertexColorShader : public IShader
+class VertexColorShader : public IShadingShader
 {
 public:
 	VertexColorShader();
@@ -14,14 +14,16 @@ public:
 		NUM
 	};
 
-	virtual IShader::Type GetType() { return IShader::Type::VertexColor; }
+	virtual IShadingShader::Type GetType() { return IShadingShader::Type::VertexColor; }
 	virtual std::string GetVertexPath() override;
 	virtual std::string GetFragmentPath() override;
 
 	virtual void GetUniformLocation() override;
 	virtual void SetViewProj(const mat4x4& value) override;
 	virtual void SetModel(const mat4x4& value) override;
-	virtual void SetupVertexAttribute();
+	void SetPosition(GLBuffer* pPosition);
+	void SetColor(GLBuffer* pColor);
+
 private:
 
 	GLuint m_uniform[UNIFORM::NUM];
@@ -29,4 +31,4 @@ private:
 };
 
 
-#endif POINT_CLOUD_SHADER_H
+#endif VERTEX_COLOR_SHADER_H

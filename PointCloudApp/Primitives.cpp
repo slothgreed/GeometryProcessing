@@ -348,3 +348,29 @@ void Circle::Build(float radius, const vec3& center)
 
 	m_primitiveType = GL_LINES;
 }
+
+RenderPlane::RenderPlane()
+{
+	Build();
+}
+
+void RenderPlane::Build()
+{
+	m_position.resize(4);
+	m_position[0] = vec3(-1.0, -1.0, 0.0);
+	m_position[1] = vec3(1.0, -1.0, 0.0);
+	m_position[2] = vec3(1.0, 1.0, 0.0);
+	m_position[3] = vec3(-1.0, 1.0, 0.0);
+
+	m_texcoord.resize(4);
+	m_texcoord[0] = vec2(0, 0);
+	m_texcoord[1] = vec2(1.0, 0);
+	m_texcoord[2] = vec2(1.0, 1.0);
+	m_texcoord[3] = vec2(0, 1.0);
+
+	m_index.resize(6);
+	m_index[0] = 0;	m_index[1] = 1;	m_index[2] = 2;
+	m_index[3] = 0;	m_index[4] = 2;	m_index[5] = 3;
+
+	m_primitiveType = GL_TRIANGLES;
+}

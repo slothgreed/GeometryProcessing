@@ -1,7 +1,7 @@
 #ifndef SIMPLE_SHADER_H
 #define SIMPLE_SHADER_H
 #include "IShader.h"
-class SimpleShader : public IShader
+class SimpleShader : public IShadingShader
 {
 public:
 	SimpleShader();
@@ -15,7 +15,7 @@ public:
 		NUM
 	};
 
-	virtual IShader::Type GetType() { return IShader::Type::Simple; }
+	virtual IShadingShader::Type GetType() { return IShadingShader::Type::Simple; }
 	virtual std::string GetVertexPath() override;
 	virtual std::string GetFragmentPath() override;
 
@@ -23,7 +23,7 @@ public:
 	void SetViewProj(const mat4x4& value);
 	void SetModel(const mat4x4& value);
 	void SetColor(const vec3& value);
-	virtual void SetupVertexAttribute();
+	virtual void SetupVertexAttribArray(GLBuffer* pBuffer);
 private:
 
 	GLuint m_uniform[UNIFORM::NUM];

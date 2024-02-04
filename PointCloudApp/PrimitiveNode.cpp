@@ -7,7 +7,7 @@ PrimitiveNode::PrimitiveNode(const string& name, shared_ptr<Primitive>& pPrimiti
 	: RenderNode(name)
 	, m_color(color)
 {
-	m_pShader = dynamic_pointer_cast<SimpleShader>(GetResource()->GetShader(IShader::Type::Simple));
+	m_pShader = dynamic_pointer_cast<SimpleShader>(GetResource()->GetShader(IShadingShader::Type::Simple));
 	m_pPrimitive = std::move(pPrimitive);
 	BuildGLBuffer();
 }
@@ -16,7 +16,7 @@ PrimitiveNode::PrimitiveNode(const string& name, shared_ptr<Primitive>& pPrimiti
 	: RenderNode(name)
 {
 	assert(pPrimitive->Color().size());
-	m_pShader = dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShader::Type::VertexColor));
+	m_pShader = dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShadingShader::Type::VertexColor));
 	m_pPrimitive = std::move(pPrimitive);
 	BuildGLBuffer();
 }
@@ -31,16 +31,16 @@ void PrimitiveNode::BuildGLBuffer()
 {
 	if (!m_pPrimitive->NeedUpdate()) { return; }
 
-	m_pPositionBuffer = std::make_unique<GLBuffer>(GL_ARRAY_BUFFER);
+	m_pPositionBuffer = std::make_unique<GLBuffer>();
 	m_pPositionBuffer->Create(m_pPrimitive->Position());
 
 	if (m_pPrimitive->Color().size() != 0) {
-		m_pColorBuffer = std::make_unique<GLBuffer>(GL_ARRAY_BUFFER);
+		m_pColorBuffer = std::make_unique<GLBuffer>();
 		m_pColorBuffer->Create(m_pPrimitive->Color());
 	}
 
 	if (m_pPrimitive->Index().size() != 0) {
-		m_pIndexBuffer = std::make_unique<GLBuffer>(GL_ELEMENT_ARRAY_BUFFER);
+		m_pIndexBuffer = std::make_unique<GLBuffer>();
 		m_pIndexBuffer->Create(m_pPrimitive->Index());
 	}
 	m_pPrimitive->ClearUpdate();
@@ -65,35 +65,24 @@ void PrimitiveNode::DrawData(const mat4x4& proj, const mat4x4& view)
 {
 	UpdateRenderData();
 	m_pShader->Use();
-	if (m_pShader->GetType() == IShader::Type::Simple) {
+	if (m_pShader->GetType() == IShadingShader::Type::Simple) {
 		auto pShader = (SimpleShader*)m_pShader.get();
-		pShader->SetupVertexAttribute();
+		pShader->SetupVertexAttribArray(m_pPositionBuffer.get());
 		pShader->SetViewProj(proj * view);
 		pShader->SetModel(glm::mat4x4(1.0f));
 		pShader->SetColor(m_color);
-		//ATTRIB_POSITION
-		glBindVertexBuffer(0, m_pPositionBuffer->GetId(), 0, sizeof(glm::vec3));
-		OUTPUT_GLERROR;
-	} else 	if (m_pShader->GetType() == IShader::Type::VertexColor) {
+	} else 	if (m_pShader->GetType() == IShadingShader::Type::VertexColor) {
 		auto pShader = (VertexColorShader*)m_pShader.get();
-		pShader->SetupVertexAttribute();
+		pShader->SetPosition(m_pPositionBuffer.get());
+		pShader->SetColor(m_pColorBuffer.get());
+
 		pShader->SetViewProj(proj * view);
 		pShader->SetModel(glm::mat4x4(1.0f));
-		//ATTRIB_POSITION
-		glBindVertexBuffer(0, m_pPositionBuffer->GetId(), 0, sizeof(glm::vec3));
-		OUTPUT_GLERROR;
-
-		//ATTRIB_COLOR
-		glBindVertexBuffer(1, m_pColorBuffer->GetId(), 0, sizeof(glm::vec3));
-		OUTPUT_GLERROR;
 	}
 
 	if (m_pIndexBuffer) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pIndexBuffer->GetId());
-		glDrawElements(m_pPrimitive->GetType(), m_pIndexBuffer->Size(), GL_UNSIGNED_INT, 0);
+		m_pShader->DrawElement(m_pPrimitive->GetType(), m_pIndexBuffer.get());
 	} else {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		glDrawArrays(m_pPrimitive->GetType(), 0, m_pPositionBuffer->Size());
+		m_pShader->DrawArray(m_pPrimitive->GetType(), m_pPositionBuffer.get());
 	}
-	OUTPUT_GLERROR;
 }

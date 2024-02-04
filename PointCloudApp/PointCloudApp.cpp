@@ -13,6 +13,7 @@
 #include "CameraController.h"
 #include "Camera.h"
 #include "Profiler.h"
+#include "PointCloudIO.h"
 #include "PointCloud.h"
 #include "PointCloudNode.h"
 #include "Primitive.h"
@@ -21,98 +22,6 @@
 #include "Primitives.h"
 #include "PrimitiveNode.h"
 #include <Eigen/Core>
-
-PointCloudApp* m_instance;
-PointCloudApp* PointCloudApp::Application()
-{
-	return m_instance;
-}
-void ScrollCallBack(GLFWwindow* window, double x, double y)
-{
-	MouseInput input;
-	input.SetWheel((int)y);
-	input.SetEvent(MY_MOUSE_EVENT::MOUSE_EVENT_WHEEL);
-	PointCloudApp::Application()->ProcessMouseEvent(input);
-}
-
-void WindowSizeCallBack(GLFWwindow* window, int width, int height)
-{
-	PointCloudApp::Application()->ResizeEvent(width, height);
-}
-
-void CursorPosCallBack(GLFWwindow* window, double xpos, double ypos)
-{
-	MouseInput input;
-	input.SetPosition((float)xpos, (float)ypos);
-	input.SetEvent(MY_MOUSE_EVENT::MOUSE_EVENT_MOVE);
-
-	if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
-	{
-		input.SetPress(MY_MOUSE_BUTTON::MOUSE_BUTTON_LEFT);
-	}
-	else
-	{
-		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_LEFT);
-	}
-
-	if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE))
-	{
-		input.SetPress(MY_MOUSE_BUTTON::MOUSE_BUTTON_MIDDLE);
-	}
-	else
-	{
-		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_MIDDLE);
-	}
-
-	if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
-	{
-		input.SetPress(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT);
-	}
-	else
-	{
-		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT);
-	}
-
-	PointCloudApp::Application()->ProcessMouseEvent(input);
-}
-
-void MouseButtonCallBack(GLFWwindow* window, int button, int action, int mods)
-{
-	MY_MOUSE_BUTTON mouseButton;
-	switch (button)
-	{
-	case GLFW_MOUSE_BUTTON_LEFT:
-		mouseButton = MOUSE_BUTTON_LEFT;
-		break;
-	case GLFW_MOUSE_BUTTON_MIDDLE:
-		mouseButton = MOUSE_BUTTON_MIDDLE;
-		break;
-	case GLFW_MOUSE_BUTTON_RIGHT:
-		mouseButton = MOUSE_BUTTON_RIGHT;
-		break;
-	default:
-		break;
-	}
-
-	double posX;
-	double posY;
-	glfwGetCursorPos(window, &posX, &posY);
-
-	MouseInput input;
-	input.SetPosition((float)posX, (float)posY);
-	if (action == GLFW_PRESS)
-	{
-		input.SetEvent(MOUSE_EVENT_DOWN);
-		input.SetPress(mouseButton);
-	}
-	else
-	{
-		input.SetEvent(MOUSE_EVENT_UP);
-		input.SetRelease(mouseButton);
-	}
-
-	PointCloudApp::Application()->ProcessMouseEvent(input);
-}
 
 void PointCloudApp::ResizeEvent(int width, int height)
 {
@@ -137,49 +46,24 @@ void PointCloudApp::ProcessMouseEvent(const MouseInput& input)
 
 void PointCloudApp::Execute()
 {
-	if (glfwInit() == GL_FALSE)
-	{
-		std::cerr << "Can't initilize GLFW" << std::endl;
-		return;
-	}
-
-	GLFWwindow* window = glfwCreateWindow(1024, 768, "PointCloudApp", NULL, NULL);
-	if (window == NULL) {
-		return;
-	}
-	glfwMakeContextCurrent(window); 
-	glewExperimental = true;
-	if (glewInit() != GLEW_OK) {
-		return;
-	}
-
 	Eigen::Matrix3d mat;
 	mat.Random();
 
 
-	m_instance = this;
-	m_pMouse = std::make_unique<Mouse>();
-	m_pCamera = std::make_shared<Camera>();
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 
-	m_pCamera->SetPerspective(45, 1, 0.1, 10000);
-	m_pCamera->SetLookAt(vec3(0, 0, -1), vec3(0, 0, 0), vec3(0, 1, 0));
-	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
-	glfwSetCursorPosCallback(window, CursorPosCallBack);
-	glfwSetMouseButtonCallback(window, MouseButtonCallBack);
-	glfwSetScrollCallback(window, ScrollCallBack);	
-	glfwSetWindowSizeCallback(window, WindowSizeCallBack);
-	glfwSwapInterval(0);
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
-	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
-	pPointCloud->Multi(glm::rotate(-90.0f, vec3(1, 0, 0)));
-	pPointCloud->To2D();
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
+	
+	//pPointCloud->Multi(glm::rotate(-90.0f, vec3(1, 0, 0)));
+	//pPointCloud->To2D();
 	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
 
@@ -214,13 +98,13 @@ void PointCloudApp::Execute()
 	Profile profiler;
 
 	ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	ImGui_ImplOpenGL3_Init("#version 400 core");
 
 	//GLuint VertexArrayID;
 	//glGenVertexArrays(1, &VertexArrayID);
 	//glBindVertexArray(VertexArrayID);
-	while (glfwWindowShouldClose(window) == GL_FALSE)
+	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
 		profiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -230,19 +114,19 @@ void PointCloudApp::Execute()
 		profiler.Stop();
 		//profiler.Output();
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		//ImGui_ImplOpenGL3_NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
+		//ImGui::NewFrame();
 
-		m_pRoot->ShowUIData();
+		//m_pRoot->ShowUIData();
 
-		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//ImGui::Render();
+		//int display_w, display_h;
+		//glfwGetFramebufferSize(m_window, &display_w, &display_h);
+		//glViewport(0, 0, display_w, display_h);
+		//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(m_window);
 
 		glfwWaitEvents();
 		OUTPUT_GLERROR;

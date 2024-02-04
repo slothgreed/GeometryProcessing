@@ -67,6 +67,7 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 		errorLog = nullptr;
 	}
 
+	OUTPUT_GLERROR;
 	return programId;
 }
 void ShaderUtility::LoadFromFile(const std::string& filePath, std::string& contents)
@@ -77,4 +78,30 @@ void ShaderUtility::LoadFromFile(const std::string& filePath, std::string& conte
 	{
 		contents += line + "\n";
 	}
+}
+
+GLuint ShaderUtility::LinkCompute(GLuint computeId)
+{
+	GLuint programId = glCreateProgram();
+	glAttachShader(programId, computeId);
+	glLinkProgram(programId);
+	GLint links;
+	GLint result;
+	glGetProgramiv(programId, GL_LINK_STATUS, &result);
+	if (result == GL_FALSE) {
+		GLint maxLength = 0;
+		// The maxLength includes the NULL character
+		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &maxLength);
+
+		GLchar* errorLog = new GLchar[maxLength];
+		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
+		assert(0);
+		delete errorLog;
+		errorLog = nullptr;
+	}
+
+	glDetachShader(programId, computeId);
+	OUTPUT_GLERROR;
+
+	return programId;
 }

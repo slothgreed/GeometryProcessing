@@ -1,0 +1,43 @@
+#include "RenderTextureNode.h"
+RenderTextureNode::RenderTextureNode(const string& name, const std::shared_ptr<Texture>& pTexture)
+	:RenderNode(name)
+	,m_pTexture(pTexture)
+{
+}
+
+
+void RenderTextureNode::DrawData(const mat4x4& proj, const mat4x4& view)
+{
+	glEnable(GL_TEXTURE_2D);
+
+	BuildGLBuffer();
+	m_pShader->Use();
+	OUTPUT_GLERROR;
+	m_pShader->BindTexture(*m_pTexture);
+	m_pShader->SetPosition(m_pPositionBuffer.get());
+	m_pShader->SetTexture(m_pTexcoordBuffer.get());
+	m_pShader->DrawElement(m_pPrimitive.GetType(), m_pIndexBuffer.get());
+	OUTPUT_GLERROR;
+
+}
+
+void RenderTextureNode::BuildGLBuffer()
+{
+	new TextureShader();
+	if (m_pPositionBuffer) { return; }
+	m_pPositionBuffer = std::make_unique<GLBuffer>();
+	m_pPositionBuffer->Create(m_pPrimitive.Position());
+
+	m_pTexcoordBuffer = std::make_unique<GLBuffer>();
+	m_pTexcoordBuffer->Create(m_pPrimitive.Texcoord());
+
+	m_pIndexBuffer = std::make_unique<GLBuffer>();
+	m_pIndexBuffer->Create(m_pPrimitive.Index());
+	
+	m_pShader = std::make_unique<TextureShader>();
+	m_pShader->Build();
+	
+}
+void RenderTextureNode::UpdateRenderData()
+{
+}

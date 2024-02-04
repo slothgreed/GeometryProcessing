@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
@@ -150,7 +150,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
@@ -173,12 +173,22 @@
     <ClCompile Include="AlphaShape.cpp" />
     <ClCompile Include="BDB.cpp" />
     <ClCompile Include="CameraController.cpp" />
+    <ClCompile Include="ComputePointCloudApp.cpp" />
+    <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="GLFWApp.cpp" />
+    <ClCompile Include="ImageLoader.cpp" />
+    <ClCompile Include="PointCloudComputeShader.cpp" />
+    <ClCompile Include="PointCloudIO.cpp" />
+    <ClCompile Include="RenderTextureNode.cpp" />
+    <ClCompile Include="ComputeShaderSample.cpp" />
+    <ClCompile Include="ComputeShaderTest.cpp" />
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="Harris3D.cpp" />
     <ClCompile Include="KDTree.cpp" />
     <ClCompile Include="KDTreeNanoFlann.cpp" />
     <ClCompile Include="KMeansAlgorithm.cpp" />
     <ClCompile Include="PointCloud.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexColorShader.cpp" />
     <ClCompile Include="Primitives.cpp" />
     <ClCompile Include="PointCloudApp.cpp" />
@@ -196,7 +206,6 @@
     <ClCompile Include="ShaderTable.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
-    <ClCompile Include="MatrixTexture.cpp" />
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -209,6 +218,16 @@
     <ClInclude Include="..\extlibs\imgui\imstb_textedit.h" />
     <ClInclude Include="..\extlibs\imgui\imstb_truetype.h" />
     <ClInclude Include="AlphaShape.h" />
+    <ClInclude Include="ComputePointCloudApp.h" />
+    <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="GLFWApp.h" />
+    <ClInclude Include="GLTypes.h" />
+    <ClInclude Include="ImageLoader.h" />
+    <ClInclude Include="PointCloudComputeShader.h" />
+    <ClInclude Include="PointCloudIO.h" />
+    <ClInclude Include="RenderTextureNode.h" />
+    <ClInclude Include="ComputeShaderSample.h" />
+    <ClInclude Include="ComputeShaderTest.h" />
     <ClInclude Include="Harris3D.h" />
     <ClInclude Include="IAlgorithm.h" />
     <ClInclude Include="BDB.h" />
@@ -218,6 +237,8 @@
     <ClInclude Include="KDTreeNanoFlann.h" />
     <ClInclude Include="KMeansAlgorithm.h" />
     <ClInclude Include="PointCloud.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TheApp.h" />
     <ClInclude Include="VertexColorShader.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="PointCloudApp.h" />
@@ -238,7 +259,6 @@
     <ClInclude Include="Utility.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="SimpleShader.h" />
-    <ClInclude Include="MatrixTexture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

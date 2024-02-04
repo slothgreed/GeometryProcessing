@@ -208,7 +208,7 @@ KDTree::Node* KDTree::FindNode(Node* pNode, int depth, const vec3& target)
 
 void AddPartition2DPosition(
 	std::vector<glm::vec3>& position, 
-	std::vector<int>& index,
+	std::vector<unsigned int>& index,
 	const BDB& bdb)
 {
 	int current = position.size();
@@ -221,7 +221,7 @@ void AddPartition2DPosition(
 	index.push_back(current++);	index.push_back(current);
 	index.push_back(current++);	index.push_back(position.size() - 4);
 }
-void KDTree::CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, std::vector<vec3>& position, std::vector<int>& indexes)
+void KDTree::CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, std::vector<vec3>& position, std::vector<unsigned int>& indexes)
 {
 	if (!pNode) { return; } if (maxDepth == depth) { return; }
 	const auto& pos = pNode->GetPosition(m_pPointCloud);
@@ -248,7 +248,7 @@ shared_ptr<PrimitiveNode> KDTree::CreatePartition2D(const string& name, int maxD
 {
 	auto pPrimitive = std::make_shared<Primitive>();
 	std::vector<glm::vec3> position;
-	std::vector<int> indexes;
+	std::vector<unsigned int> indexes;
 	const auto& bdb = m_pPointCloud->GetData()->GetBDB();
 
 	CreatePartition2D(m_root, 0, maxDepth, bdb, position, indexes);

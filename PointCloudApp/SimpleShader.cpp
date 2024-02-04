@@ -13,11 +13,11 @@ SimpleShader::~SimpleShader()
 
 std::string SimpleShader::GetVertexPath()
 {
-	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.vert";
+	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.vert";
 }
 std::string SimpleShader::GetFragmentPath()
 {
-	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.frag";
+	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.frag";
 }
 void SimpleShader::GetUniformLocation()
 {
@@ -40,10 +40,11 @@ void SimpleShader::SetColor(const vec3& value)
 {
 	glUniform3fv(m_uniform[UNIFORM::COLOR], 1, &value[0]);
 }
-void SimpleShader::SetupVertexAttribute()
+void SimpleShader::SetupVertexAttribArray(GLBuffer* pBuffer)
 {
 	glEnableVertexAttribArray(ATTRIB_POSITION);
-	glVertexAttribFormat(ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribFormat(ATTRIB_POSITION, pBuffer->ComponentSize(),pBuffer->DataType(), GL_FALSE, 0);
+	glBindVertexBuffer(0, pBuffer->Handle(), 0, pBuffer->SizeOfData());
 	OUTPUT_GLERROR;
 }
 

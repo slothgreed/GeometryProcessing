@@ -1,0 +1,127 @@
+#include <iostream>
+#include "GLFWApp.h"
+#include "MouseInput.h"
+GLFWApp* g_instance;
+
+GLFWApp* GLFWApp::Application()
+{
+	return g_instance;
+}
+void ScrollCallBack(GLFWwindow* window, double x, double y)
+{
+	MouseInput input;
+	input.SetWheel((int)y);
+	input.SetEvent(MY_MOUSE_EVENT::MOUSE_EVENT_WHEEL);
+	g_instance->ProcessMouseEvent(input);
+}
+
+void WindowSizeCallBack(GLFWwindow* window, int width, int height)
+{
+	g_instance->ResizeEvent(width, height);
+}
+
+void CursorPosCallBack(GLFWwindow* window, double xpos, double ypos)
+{
+	MouseInput input;
+	input.SetPosition((float)xpos, (float)ypos);
+	input.SetEvent(MY_MOUSE_EVENT::MOUSE_EVENT_MOVE);
+
+	if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
+		input.SetPress(MY_MOUSE_BUTTON::MOUSE_BUTTON_LEFT);
+	} else {
+		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_LEFT);
+	}
+
+	if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE)) {
+		input.SetPress(MY_MOUSE_BUTTON::MOUSE_BUTTON_MIDDLE);
+	} else {
+		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_MIDDLE);
+	}
+
+	if (GLFW_PRESS == glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
+		input.SetPress(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT);
+	} else {
+		input.SetRelease(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT);
+	}
+
+	g_instance->ProcessMouseEvent(input);
+}
+
+void MouseButtonCallBack(GLFWwindow* window, int button, int action, int mods)
+{
+	MY_MOUSE_BUTTON mouseButton;
+	switch (button) {
+	case GLFW_MOUSE_BUTTON_LEFT:
+		mouseButton = MOUSE_BUTTON_LEFT;
+		break;
+	case GLFW_MOUSE_BUTTON_MIDDLE:
+		mouseButton = MOUSE_BUTTON_MIDDLE;
+		break;
+	case GLFW_MOUSE_BUTTON_RIGHT:
+		mouseButton = MOUSE_BUTTON_RIGHT;
+		break;
+	default:
+		break;
+	}
+
+	double posX;
+	double posY;
+	glfwGetCursorPos(window, &posX, &posY);
+
+	MouseInput input;
+	input.SetPosition((float)posX, (float)posY);
+	if (action == GLFW_PRESS) {
+		input.SetEvent(MOUSE_EVENT_DOWN);
+		input.SetPress(mouseButton);
+	} else {
+		input.SetEvent(MOUSE_EVENT_UP);
+		input.SetRelease(mouseButton);
+	}
+
+	g_instance->ProcessMouseEvent(input);
+}
+
+
+void GLFWApp::Initialize()
+{
+	if (glfwInit() == GL_FALSE) {
+		std::cerr << "Can't initilize GLFW" << std::endl;
+		return;
+	}
+
+
+	m_window = glfwCreateWindow(1024, 768, "PointCloudApp", NULL, NULL);
+	if (m_window == NULL) {
+		return;
+	}
+	glfwMakeContextCurrent(m_window);
+	glewExperimental = true;
+	if (glewInit() != GLEW_OK) {
+		return;
+	}
+
+	g_instance = this;
+	glfwSetCursorPosCallback(m_window, CursorPosCallBack);
+	glfwSetMouseButtonCallback(m_window, MouseButtonCallBack);
+	glfwSetScrollCallback(m_window, ScrollCallBack);
+	glfwSetWindowSizeCallback(m_window, WindowSizeCallBack);
+	glfwSwapInterval(0);
+
+	m_pMouse = std::make_unique<Mouse>();
+	m_pCamera = std::make_shared<Camera>();
+	m_pCamera->SetPerspective(45, 1, 0.1, 10000);
+	m_pCamera->SetLookAt(vec3(0, 0, -1), vec3(0, 0, 0), vec3(0, 1, 0));
+	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
+
+}
+
+void GLFWApp::Execute()
+{
+
+}
+
+void GLFWApp::Finalize()
+{
+	g_instance = NULL;
+	glfwTerminate();
+}

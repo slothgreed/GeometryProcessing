@@ -2,7 +2,7 @@
 #include "PointCloudApp.h"
 RenderResource* RenderNode::GetResource()
 {
-	return PointCloudApp::Application()->GetResource();
+	return GLFWApp::Application()->GetResource();
 }
 void RenderNode::ShowUIData()
 {

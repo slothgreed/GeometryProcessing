@@ -51,7 +51,7 @@ private:
 	Node* Build(int left, int right, int depth);
 	void Delete();
 	shared_ptr<PrimitiveNode> CreatePartition2D(const string& name, int maxDepth);
-	void CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, std::vector<vec3>& position, std::vector<int>& indexes);
+	void CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, std::vector<vec3>& position, std::vector<unsigned int>& indexes);
 	std::vector<int> m_index;
 	PointCloudNode* m_pPointCloud;
 	Node* m_root;

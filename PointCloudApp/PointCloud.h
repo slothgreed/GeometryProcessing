@@ -4,22 +4,16 @@
 class PointCloud : public Primitive
 {
 public:
-
+	friend class PointCloudIO;
 	PointCloud();
 	~PointCloud();
-	static PointCloud* Load(const std::string& name);
-
 	void SetColor(std::vector<glm::vec3>&& color) { m_color = std::move(color); }
-	const std::string& GetFileName() { return m_filePath; }
-	static PointCloud* Create2D(int poositionNum, const glm::vec2& min, const glm::vec2& max);
+	const std::string& GetFileName() const { return m_filePath; }
 	void To2D();
-
-	void OutputText(const std::string& name);
-	void OutputBinary(const std::string& name);
+	std::vector<glm::vec4> CreatePosition4f();
+	std::vector<glm::vec4> CreateColor4f();
 private:
-	void LoadBin(const std::string& name);
-	void LoadXYZ(const std::string& name);
-	void LoadPCD(const std::string& name);
+
 	std::string m_filePath;
 	std::vector<float> m_curvature;
 };

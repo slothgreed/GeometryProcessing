@@ -102,4 +102,15 @@ private:
 	void Build(float radius, const vec3& center);
 };
 
+class RenderPlane : public Primitive
+{
+public:
+	RenderPlane();
+	~RenderPlane() {};
+
+private:
+	void Build();
+};
+
+
 #endif PRIMITIVE_H
