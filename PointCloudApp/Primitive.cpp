@@ -88,9 +88,9 @@ void Primitive::Convert(Primitive::StoreType type)
 	
 }
 
-std::shared_ptr<Primitive> Primitive::Clone()
+Shared<Primitive> Primitive::Clone()
 {
-	auto instance = make_shared<Primitive>();
+	auto instance = std::make_shared<Primitive>();
 	instance->m_primitiveType = m_primitiveType;
 	instance->m_storeType = m_storeType;
 

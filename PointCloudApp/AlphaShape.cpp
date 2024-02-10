@@ -59,7 +59,7 @@ void AlphaShape2D::ShowUI()
     if (ImGui::SliderFloat("Alpha", &m_ui.alpha, 0.0f, 80.0f, "%lf")) {
         Execute(); 
         auto pPoint = std::make_shared<Primitive>();
-        std::vector<vec3> pos(m_edges.size() * 2);
+        Vector<vec3> pos(m_edges.size() * 2);
         int i = 0;
         for (const auto& edge : m_edges) {
             pos[i++] = edge.begin;

@@ -15,7 +15,7 @@ public:
 	void ResizeEvent(int width, int height);
 
 private:
-	std::shared_ptr<Texture2D> m_pColorTexture;
+	Shared<Texture2D> m_pColorTexture;
 };
 
 

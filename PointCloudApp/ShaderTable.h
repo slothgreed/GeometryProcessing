@@ -9,10 +9,10 @@ public:
 
 	void Build();
 
-	shared_ptr<IShadingShader> Get(IShadingShader::Type type);
+	Shared<IShadingShader> Get(IShadingShader::Type type);
 	
 private:
-	std::vector<shared_ptr<IShadingShader>> m_pTable;
+	Vector<Shared<IShadingShader>> m_pTable;
 };
 
 #endif SHADER_TABLE_H

@@ -21,7 +21,7 @@ public:
 	Printf() {};
 	~Printf() {};
 
-	static void Vec3(const string& name, const vec3& value, bool newLine = true);
+	static void Vec3(const String& name, const vec3& value, bool newLine = true);
 
 private:
 

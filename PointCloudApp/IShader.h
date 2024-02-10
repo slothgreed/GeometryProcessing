@@ -18,7 +18,7 @@ public:
 	void Use();
 	void UnUse();
 	void Delete();
-	static GLuint BuildVertexFrag(const std::string& vert, const std::string& frag);
+	static GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 protected:
 	GLuint GetId() const { return m_programId; };
@@ -42,8 +42,8 @@ public:
 
 	virtual void Build();
 	virtual Type GetType() = 0;
-	virtual std::string GetVertexPath() = 0;
-	virtual std::string GetFragmentPath() = 0;
+	virtual String GetVertexPath() = 0;
+	virtual String GetFragmentPath() = 0;
 	virtual void GetUniformLocation() = 0;
 	virtual void SetViewProj(const mat4x4& value) = 0;
 	virtual void SetModel(const mat4x4& value) { assert(0); };
@@ -61,7 +61,7 @@ public:
 	IComputeShader() {};
 	~IComputeShader() {};
 
-	virtual std::string GetComputePath() = 0;
+	virtual String GetComputePath() = 0;
 	
 	virtual void Build();
 	virtual void GetUniformLocation() = 0;
@@ -80,8 +80,8 @@ public:
 	~TextureShader() {};
 	virtual Type GetType() { return Type::Texture; }
 	virtual void GetUniformLocation();
-	virtual std::string GetVertexPath();
-	virtual std::string GetFragmentPath();
+	virtual String GetVertexPath();
+	virtual String GetFragmentPath();
 	virtual void SetViewProj(const mat4x4& value) {};
 	void BindTexture(const Texture& texture);
 	void SetPosition(GLBuffer* pPosition);

@@ -6,18 +6,17 @@
 #include "PointCloud.h"
 
 
-void PointCloudIO::LoadPCD(PointCloud* pPointCloud, const std::string& name)
+void PointCloudIO::LoadPCD(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileReader reader;
 	reader.Open(name);
-	std::string contents;
+	String contents;
 	int line = -1;
 	int index = 0;
 	while (reader.ReadLine(contents)) {
 		line++;
 		if (line == 2) {
 			auto split = KI::FileUtility::Split(contents, ' ');
-			split.size();
 		}
 		if (line == 9) {
 			auto split = KI::FileUtility::Split(contents, ' ');
@@ -49,11 +48,11 @@ void PointCloudIO::LoadPCD(PointCloud* pPointCloud, const std::string& name)
 	}
 }
 
-void PointCloudIO::LoadXYZ(PointCloud* pPointCloud, const std::string& name)
+void PointCloudIO::LoadXYZ(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileReader reader;
 	reader.Open(name);
-	std::string contents;
+	String contents;
 	int line = -1;
 	int index = 0;
 	while (reader.ReadLine(contents)) {
@@ -65,7 +64,7 @@ void PointCloudIO::LoadXYZ(PointCloud* pPointCloud, const std::string& name)
 	}
 }
 
-PointCloud* PointCloudIO::Load(const std::string& name)
+PointCloud* PointCloudIO::Load(const String& name)
 {
 	auto pInstance = new PointCloud();
 	auto ext = KI::FileUtility::GetExtension(name);
@@ -109,7 +108,7 @@ PointCloud* PointCloudIO::Create2D(int positionNum, const glm::vec2& min, const 
 	return pInstance;
 }
 
-void PointCloudIO::LoadBin(PointCloud* pPointCloud, const std::string& name)
+void PointCloudIO::LoadBin(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileReader reader;
 	reader.Open(name, true);
@@ -134,7 +133,7 @@ void PointCloudIO::LoadBin(PointCloud* pPointCloud, const std::string& name)
 
 	reader.Close();
 }
-void PointCloudIO::OutputText(PointCloud* pPointCloud, const std::string& name)
+void PointCloudIO::OutputText(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileWriter writer;
 	writer.Open(name);
@@ -156,7 +155,7 @@ void PointCloudIO::OutputText(PointCloud* pPointCloud, const std::string& name)
 // Format 
 // Position Num, norm, color, etc.
 // Position Num, 3, -1 etc. if not exist = 0 else other.
-void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const std::string& name)
+void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileWriter writer;
 	writer.Open(name, true);

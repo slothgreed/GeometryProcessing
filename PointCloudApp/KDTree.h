@@ -18,7 +18,7 @@ public:
 
 	virtual void Execute();
 	bool Executed() { return m_index.size() != 0; }
-	std::vector<vec3> CreateLevelColor(int target);
+	Vector<vec3> CreateLevelColor(int target);
 	virtual void ShowUI();
 private:
 
@@ -46,13 +46,13 @@ private:
 
 	void FindNearest(Node* pNode, int depth, const vec3& target, ResultNearest& result);
 	Node* FindNode(Node* pNode, int depth, const vec3& target);
-	void CreateLevelColor(Node* pNode, std::vector<vec3>& color, int depth, int target);
-	void SetLevelColor(Node* pNode, std::vector<vec3>& color, const vec3& col, int depth);
+	void CreateLevelColor(Node* pNode, Vector<vec3>& color, int depth, int target);
+	void SetLevelColor(Node* pNode, Vector<vec3>& color, const vec3& col, int depth);
 	Node* Build(int left, int right, int depth);
 	void Delete();
-	shared_ptr<PrimitiveNode> CreatePartition2D(const string& name, int maxDepth);
-	void CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, std::vector<vec3>& position, std::vector<unsigned int>& indexes);
-	std::vector<int> m_index;
+	Shared<PrimitiveNode> CreatePartition2D(const String& name, int maxDepth);
+	void CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, Vector<vec3>& position, Vector<unsigned int>& indexes);
+	Vector<int> m_index;
 	PointCloudNode* m_pPointCloud;
 	Node* m_root;
 	int m_dimension;

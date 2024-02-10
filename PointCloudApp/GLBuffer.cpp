@@ -26,33 +26,33 @@ void GLBuffer::Create(int size, int sizeofData)
 	Create(DATA_UNKNOWN, size, sizeofData, NULL);
 }
 
-void GLBuffer::Create(const std::vector<glm::vec2>& value)
+void GLBuffer::Create(const Vector<glm::vec2>& value)
 {
 	Create(DATA_FLOAT, value.size(), sizeof(glm::vec2), value.data());
 }
 
-void GLBuffer::Create(const std::vector<glm::vec3>& value)
+void GLBuffer::Create(const Vector<glm::vec3>& value)
 {
 	Create(DATA_FLOAT, value.size(), sizeof(glm::vec3), value.data());
 }
 
-void GLBuffer::Create(const std::vector<glm::vec4>& value)
+void GLBuffer::Create(const Vector<glm::vec4>& value)
 {
 	Create(DATA_FLOAT, value.size(), sizeof(glm::vec4), value.data());
 }
 
 
-void GLBuffer::Create(const std::vector<unsigned int>& value)
+void GLBuffer::Create(const Vector<unsigned int>& value)
 {
 	Create(DATA_UINT, value.size(), sizeof(unsigned int), value.data());
 }
 
-void GLBuffer::Create(const std::vector<float>& value)
+void GLBuffer::Create(const Vector<float>& value)
 {
 	Create(DATA_FLOAT, value.size(), sizeof(float), value.data());
 }
 
-void GLBuffer::Create(const std::vector<mat4x4>& value)
+void GLBuffer::Create(const Vector<mat4x4>& value)
 {
 	Create(DATA_FLOAT, value.size(), sizeof(mat4x4), value.data());
 }
@@ -65,14 +65,14 @@ void GLBuffer::Delete()
 	m_handle = 0;
 }
 
-void GLBuffer::BufferSubData(int offset, const std::vector<int>& value)
+void GLBuffer::BufferSubData(int offset, const Vector<int>& value)
 {
 	assert(m_handle != 0);
 	glNamedBufferSubData(m_handle, offset * sizeof(int), value.size() * sizeof(int), value.data());
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::BufferSubData(int offset, const std::vector<glm::vec3>& value)
+void GLBuffer::BufferSubData(int offset, const Vector<glm::vec3>& value)
 {
 	assert(m_handle != 0);
 	glNamedBufferSubData(m_handle, offset * sizeof(glm::vec3), value.size() * sizeof(glm::vec3), value.data());
@@ -86,28 +86,28 @@ void GLBuffer::BufferSubData(int offset, int size, int sizeofData, const void* d
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::GetBufferData(std::vector<int>& value)
+void GLBuffer::GetBufferData(Vector<int>& value)
 {
 	assert(m_handle != 0);
 	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(int), value.data());
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::GetBufferData(std::vector<float>& value)
+void GLBuffer::GetBufferData(Vector<float>& value)
 {
 	assert(m_handle != 0);
 	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(float), value.data());
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::GetBufferData(std::vector<glm::vec3>& value)
+void GLBuffer::GetBufferData(Vector<glm::vec3>& value)
 {
 	assert(m_handle != 0);
 	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(glm::vec3), value.data());
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::GetBufferData(std::vector<glm::vec4>& value)
+void GLBuffer::GetBufferData(Vector<glm::vec4>& value)
 {
 	assert(m_handle != 0);
 	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(glm::vec4), value.data());

@@ -20,7 +20,7 @@ public:
 protected:
 	GLFWwindow* m_window;
 	std::unique_ptr<Mouse> m_pMouse;
-	std::shared_ptr<Camera> m_pCamera;
+	Shared<Camera> m_pCamera;
 	std::unique_ptr<CameraController> m_pCameraController;
 	std::unique_ptr<RenderResource> m_pResource;
 };

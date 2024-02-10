@@ -173,10 +173,13 @@
     <ClCompile Include="FrameBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
-    <ClCompile Include="ImageLoader.cpp">
+    <ClCompile Include="TextureLoader.cpp">
       <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClCompile>
     <ClCompile Include="PointCloudIO.cpp">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTFLoader.cpp">
       <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClCompile>
   </ItemGroup>
@@ -325,10 +328,13 @@
     <ClInclude Include="GLTypes.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="ImageLoader.h">
+    <ClInclude Include="TextureLoader.h">
       <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClInclude>
     <ClInclude Include="PointCloudIO.h">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFLoader.h">
       <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClInclude>
   </ItemGroup>

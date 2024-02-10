@@ -21,6 +21,8 @@
 #include "Utility.h"
 #include "Primitives.h"
 #include "PrimitiveNode.h"
+#include "TextureLoader.h"
+#include "RenderTextureNode.h"
 #include <Eigen/Core>
 
 void PointCloudApp::ResizeEvent(int width, int height)
@@ -55,25 +57,25 @@ void PointCloudApp::Execute()
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
+	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
 	
 	//pPointCloud->Multi(glm::rotate(-90.0f, vec3(1, 0, 0)));
 	//pPointCloud->To2D();
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
 
-	//auto pPointCloud = std::shared_ptr<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz"));
+	//auto pPointCloud = Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz"));
 	
-	//auto pRandom = std::shared_ptr<PointCloud>(PointCloud::Create2D(10, vec2(0, 0), vec2(100, 100)));
+	//auto pRandom = Shared<PointCloud>(PointCloud::Create2D(10, vec2(0, 0), vec2(100, 100)));
 	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
 
 
-	std::vector<vec3> color(pPointCloud->Position().size(), vec3(1.0f, 1.0f, 1.0f));
+	Vector<vec3> color(pPointCloud->Position().size(), vec3(1.0f, 1.0f, 1.0f));
 	pPointCloud->SetColor(std::move(color));
 	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
 	//kmeans.Execute();
@@ -83,7 +85,7 @@ void PointCloudApp::Execute()
 
 	m_pRoot = std::make_unique<RenderNode>("Root");
 
-	std::shared_ptr<Primitive> pAxis = std::make_shared<Axis>();
+	Shared<Primitive> pAxis = std::make_shared<Axis>();
 	m_pRoot->SetNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
 	m_pRoot->SetNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 	m_pCamera->FitToBDB(bdb);
@@ -93,7 +95,7 @@ void PointCloudApp::Execute()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);	// GLenum mode
-	glPointSize(5.0f);
+	//glPointSize(5.0f);
 	glLineWidth(5.0f);
 	Profile profiler;
 

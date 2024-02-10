@@ -7,7 +7,7 @@
 #include "AlphaShape.h"
 #include <Eigen/SVD>
 #include <Eigen/Core>
-PointCloudNode::PointCloudNode(const string& name, std::shared_ptr<PointCloud>& pPrimitive)
+PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitive)
 	:RenderNode(name)
 {
 	m_pPointCloud = std::move(pPrimitive);
@@ -39,7 +39,7 @@ void PointCloudNode::BuildGLBuffer()
 	m_pColorBuffer->Create(m_pPointCloud->Color());
 	m_pPointCloud->ClearUpdate();
 }
-const std::shared_ptr<PointCloud>& PointCloudNode::GetData() const
+const Shared<PointCloud>& PointCloudNode::GetData() const
 { 
 	return m_pPointCloud;
 }
@@ -51,13 +51,13 @@ void PointCloudNode::UpdateRenderData()
 {
 	BuildGLBuffer();
 }
-const std::vector<vec3>& PointCloudNode::GetNormal()
+const Vector<vec3>& PointCloudNode::GetNormal()
 {
 	ComputeNormal();
 	return m_normal;
 }
 
-const std::vector<int>& PointCloudNode::GetNeighbor(int index)
+const Vector<int>& PointCloudNode::GetNeighbor(int index)
 {
 	ComputeNeighbor(10);
 

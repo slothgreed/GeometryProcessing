@@ -12,7 +12,7 @@ public:
 	virtual void Execute();
 	virtual void ShowUI();
 private:
-	std::vector<float> m_result;
+	Vector<float> m_result;
 	PointCloudNode* m_pPointCloud;
 	float m_max;
 	float m_min;

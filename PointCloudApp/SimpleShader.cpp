@@ -11,11 +11,11 @@ SimpleShader::~SimpleShader()
 	Delete();
 }
 
-std::string SimpleShader::GetVertexPath()
+String SimpleShader::GetVertexPath()
 {
 	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.vert";
 }
-std::string SimpleShader::GetFragmentPath()
+String SimpleShader::GetFragmentPath()
 {
 	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.frag";
 }

@@ -93,7 +93,7 @@ void KDTree::ShowUI()
 			pPoint->SetType(GL_LINES);
 			m_pPointCloud->SetNode(std::make_shared<PrimitiveNode>("Line" + std::to_string(i), pPoint, ColorUtility::CreatePrimary(i)));
 
-			std::shared_ptr<Primitive> pCircle = std::make_shared<Circle>(glm::length(target - ret), target);
+			Shared<Primitive> pCircle = std::make_shared<Circle>(glm::length(target - ret), target);
 			m_pPointCloud->SetNode(std::make_shared<PrimitiveNode>("Range" + std::to_string(i), pCircle, ColorUtility::CreatePrimary(i)));
 			Printf::Vec3(std::to_string(i), target);
 		}
@@ -207,8 +207,8 @@ KDTree::Node* KDTree::FindNode(Node* pNode, int depth, const vec3& target)
 }
 
 void AddPartition2DPosition(
-	std::vector<glm::vec3>& position, 
-	std::vector<unsigned int>& index,
+	Vector<glm::vec3>& position, 
+	Vector<unsigned int>& index,
 	const BDB& bdb)
 {
 	int current = position.size();
@@ -221,7 +221,7 @@ void AddPartition2DPosition(
 	index.push_back(current++);	index.push_back(current);
 	index.push_back(current++);	index.push_back(position.size() - 4);
 }
-void KDTree::CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, std::vector<vec3>& position, std::vector<unsigned int>& indexes)
+void KDTree::CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, Vector<vec3>& position, Vector<unsigned int>& indexes)
 {
 	if (!pNode) { return; } if (maxDepth == depth) { return; }
 	const auto& pos = pNode->GetPosition(m_pPointCloud);
@@ -244,11 +244,11 @@ void KDTree::CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& 
 	CreatePartition2D(pNode->pLeft, depth + 1, maxDepth, leftBDB, position, indexes);
 	CreatePartition2D(pNode->pRight, depth + 1, maxDepth, rightBDB, position, indexes);
 }
-shared_ptr<PrimitiveNode> KDTree::CreatePartition2D(const string& name, int maxDepth)
+Shared<PrimitiveNode> KDTree::CreatePartition2D(const String& name, int maxDepth)
 {
 	auto pPrimitive = std::make_shared<Primitive>();
-	std::vector<glm::vec3> position;
-	std::vector<unsigned int> indexes;
+	Vector<glm::vec3> position;
+	Vector<unsigned int> indexes;
 	const auto& bdb = m_pPointCloud->GetData()->GetBDB();
 
 	CreatePartition2D(m_root, 0, maxDepth, bdb, position, indexes);
@@ -258,14 +258,14 @@ shared_ptr<PrimitiveNode> KDTree::CreatePartition2D(const string& name, int maxD
 	pPrimitive->SetType(GL_LINES);
 	return make_shared<PrimitiveNode>(name, pPrimitive, vec3(1, 0, 0));
 }
-void KDTree::SetLevelColor(Node* pNode, std::vector<vec3>& color, const vec3& col, int depth)
+void KDTree::SetLevelColor(Node* pNode, Vector<vec3>& color, const vec3& col, int depth)
 {
 	if (!pNode) { return; }
 	color[pNode->index] = col;
 	SetLevelColor(pNode->pLeft, color, col, depth + 1);
 	SetLevelColor(pNode->pRight, color, col, depth + 1);
 }
-void KDTree::CreateLevelColor(Node* pNode, std::vector<vec3>& color, int depth, int target)
+void KDTree::CreateLevelColor(Node* pNode, Vector<vec3>& color, int depth, int target)
 {
 	if (!pNode) { return; }
 	if (depth == target) {
@@ -276,9 +276,9 @@ void KDTree::CreateLevelColor(Node* pNode, std::vector<vec3>& color, int depth, 
 	CreateLevelColor(pNode->pRight, color, depth + 1, target);
 }
 
-std::vector<vec3> KDTree::CreateLevelColor(int target)
+Vector<vec3> KDTree::CreateLevelColor(int target)
 {
-	std::vector<vec3> color(m_index.size());
+	Vector<vec3> color(m_index.size());
 	CreateLevelColor(m_root, color, 0, target);
 	return color;
 }

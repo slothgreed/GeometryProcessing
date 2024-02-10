@@ -1,9 +1,9 @@
 #include "Utility.h"
 #include "Random.h"
 #include "FileUtility.h"
-std::vector<vec3> g_RGB;
+Vector<vec3> g_RGB;
 
-void Printf::Vec3(const string& name, const vec3& value, bool newLine)
+void Printf::Vec3(const String& name, const vec3& value, bool newLine)
 {
 	if (newLine) {
 		printf((name + ":%lf,%lf,%lf\n").data(), value.x, value.y, value.z);

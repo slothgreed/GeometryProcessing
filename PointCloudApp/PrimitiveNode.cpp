@@ -3,7 +3,7 @@
 #include "VertexColorShader.h"
 #include "SimpleShader.h"
 
-PrimitiveNode::PrimitiveNode(const string& name, shared_ptr<Primitive>& pPrimitive, const glm::vec3& color)
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const glm::vec3& color)
 	: RenderNode(name)
 	, m_color(color)
 {
@@ -12,7 +12,7 @@ PrimitiveNode::PrimitiveNode(const string& name, shared_ptr<Primitive>& pPrimiti
 	BuildGLBuffer();
 }
 
-PrimitiveNode::PrimitiveNode(const string& name, shared_ptr<Primitive>& pPrimitive)
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive)
 	: RenderNode(name)
 {
 	assert(pPrimitive->Color().size());
@@ -47,7 +47,7 @@ void PrimitiveNode::BuildGLBuffer()
 
 
 }
-const std::shared_ptr<Primitive>& PrimitiveNode::GetData() const
+const Shared<Primitive>& PrimitiveNode::GetData() const
 {
 	return m_pPrimitive;
 }

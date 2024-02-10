@@ -10,7 +10,7 @@ ShaderUtility::~ShaderUtility()
 
 }
 
-GLuint ShaderUtility::Compile(const std::string& code, GLuint shaderType)
+GLuint ShaderUtility::Compile(const String& code, GLuint shaderType)
 {
 	GLuint id = glCreateShader(shaderType);
 
@@ -70,10 +70,10 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 	OUTPUT_GLERROR;
 	return programId;
 }
-void ShaderUtility::LoadFromFile(const std::string& filePath, std::string& contents)
+void ShaderUtility::LoadFromFile(const String& filePath, String& contents)
 {
-	ifstream ifs(filePath);
-	string line;
+	std::ifstream ifs(filePath);
+	String line;
 	while ((getline(ifs, line)))
 	{
 		contents += line + "\n";

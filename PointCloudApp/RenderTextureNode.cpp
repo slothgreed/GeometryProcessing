@@ -1,5 +1,5 @@
 #include "RenderTextureNode.h"
-RenderTextureNode::RenderTextureNode(const string& name, const std::shared_ptr<Texture>& pTexture)
+RenderTextureNode::RenderTextureNode(const String& name, const Shared<Texture>& pTexture)
 	:RenderNode(name)
 	,m_pTexture(pTexture)
 {
@@ -23,7 +23,6 @@ void RenderTextureNode::DrawData(const mat4x4& proj, const mat4x4& view)
 
 void RenderTextureNode::BuildGLBuffer()
 {
-	new TextureShader();
 	if (m_pPositionBuffer) { return; }
 	m_pPositionBuffer = std::make_unique<GLBuffer>();
 	m_pPositionBuffer->Create(m_pPrimitive.Position());
@@ -34,9 +33,10 @@ void RenderTextureNode::BuildGLBuffer()
 	m_pIndexBuffer = std::make_unique<GLBuffer>();
 	m_pIndexBuffer->Create(m_pPrimitive.Index());
 	
-	m_pShader = std::make_unique<TextureShader>();
+	//m_pShader = dynamic_pointer_cast<TextureShader>(GetResource()->GetShader(IShadingShader::Type::Texture));
+	m_pShader = std::make_shared<TextureShader>();
 	m_pShader->Build();
-	
+
 }
 void RenderTextureNode::UpdateRenderData()
 {

@@ -62,10 +62,10 @@ void KMeansAlgorithm::Calculate(const Seeds& seed, Clusters& result, Seeds& newS
 	}
 
 }
-std::vector<vec3> KMeansAlgorithm::CreateClusterColor()
+Vector<vec3> KMeansAlgorithm::CreateClusterColor()
 {
 	auto seedColor = CreateSeedColor();
-	std::vector<vec3> color(m_pointCloud->Position().size());
+	Vector<vec3> color(m_pointCloud->Position().size());
 	for (int i = 0; i < m_result.size(); i++)
 	{
 		for (int j = 0; j < m_result[i].size(); j++)
@@ -76,9 +76,9 @@ std::vector<vec3> KMeansAlgorithm::CreateClusterColor()
 
 	return color;
 }
-std::vector<vec3> KMeansAlgorithm::CreateSeedColor()
+Vector<vec3> KMeansAlgorithm::CreateSeedColor()
 {
-	std::vector<vec3> seedColor(m_clusterNum);
+	Vector<vec3> seedColor(m_clusterNum);
 	for (int i = 0; i < seedColor.size(); i++)
 	{
 		seedColor[i] = ColorUtility::CreateRandom();

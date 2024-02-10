@@ -7,7 +7,7 @@ class KMeansAlgorithm : public IAlgorithm
 {
 public:
 
-	KMeansAlgorithm(const std::shared_ptr<PointCloud>& pointCloud, int clusterNum, int iterateNum)
+	KMeansAlgorithm(const Shared<PointCloud>& pointCloud, int clusterNum, int iterateNum)
 		:m_pointCloud(pointCloud)
 		,m_clusterNum(clusterNum)
 		,m_iterateNum(iterateNum)
@@ -16,15 +16,15 @@ public:
 
 	virtual void Execute();
 
-	std::vector<vec3> CreateClusterColor();
-	std::vector<vec3> CreateSeedColor();
-	std::vector<std::vector<int>>&& GetResult() { return std::move(m_result); }
+	Vector<vec3> CreateClusterColor();
+	Vector<vec3> CreateSeedColor();
+	Vector<Vector<int>>&& GetResult() { return std::move(m_result); }
 private:
-	typedef std::vector<vec3> Seeds;
-	typedef std::vector<std::vector<int>> Clusters;
+	typedef Vector<vec3> Seeds;
+	typedef Vector<Vector<int>> Clusters;
 	Seeds CreateInitSeed();
 	void Calculate(const Seeds& seed, Clusters& result, Seeds& newSeed);
-	std::shared_ptr<PointCloud> m_pointCloud;
+	Shared<PointCloud> m_pointCloud;
 	int m_clusterNum;
 	int m_iterateNum;
 	Clusters m_result;

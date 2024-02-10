@@ -7,7 +7,7 @@ public:
 	TextureLoader();
 	~TextureLoader();
 
-	static Texture* Load(const std::string& name);
+	static Texture* Load(const String& name);
 private:
 
 };

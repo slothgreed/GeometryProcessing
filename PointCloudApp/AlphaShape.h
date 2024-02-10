@@ -35,7 +35,7 @@ private:
 	};
 
 	UI m_ui;
-	std::vector<Edge> m_edges;
+	Vector<Edge> m_edges;
 	PointCloudNode* m_pPointCloud;
 	float m_alpha;
 };

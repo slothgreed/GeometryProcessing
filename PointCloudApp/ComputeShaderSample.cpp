@@ -11,12 +11,12 @@ SimpleComputeShader::~SimpleComputeShader()
 	Delete();
 }
 
-std::string SimpleComputeShader::GetComputePath()
+String SimpleComputeShader::GetComputePath()
 {
 	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\simple.comp";
 }
 
-void SimpleComputeShader::Execute(const std::vector<float>& in, std::vector<float>& out)
+void SimpleComputeShader::Execute(const Vector<float>& in, Vector<float>& out)
 {
 	auto buffer = std::make_unique<GLBuffer>();
 	buffer->Create(in);
@@ -38,11 +38,11 @@ void SimpleComputeShader::GetUniformLocation()
 	m_uniform = glGetUniformLocation(m_programId, "u_elementSize");
 }
 
-std::string CreateTextureComputeShader::GetComputePath()
+String CreateTextureComputeShader::GetComputePath()
 {
 	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\texture.comp";
 }
-void CreateTextureComputeShader::Execute(const std::shared_ptr<Texture>& pTexture)
+void CreateTextureComputeShader::Execute(const Shared<Texture>& pTexture)
 {
 	pTexture->Bind();
 	Use();

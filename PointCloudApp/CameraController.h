@@ -6,7 +6,7 @@
 class CameraController
 {
 public:
-	CameraController(const std::shared_ptr<Camera>& pCamera) :m_pCamera(pCamera),m_ZoomRatio(0.1f) {};
+	CameraController(const Shared<Camera>& pCamera) :m_pCamera(pCamera),m_ZoomRatio(0.1f) {};
 	~CameraController() {};
 	bool Move(const Mouse& mouse);
 	bool Wheel(const Mouse&  mouse);
@@ -16,7 +16,7 @@ private:
 	void Translate(const vec2& move);
 	float m_ZoomRatio;
 
-	std::shared_ptr<Camera> m_pCamera;
+	Shared<Camera> m_pCamera;
 
 };
 

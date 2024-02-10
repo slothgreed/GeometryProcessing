@@ -22,16 +22,21 @@ void main()
 		gl_WorkGroupID.x * workGroupSize + 
 		gl_WorkGroupID.y * gl_NumWorkGroups.x * workGroupSize + 
 		gl_LocalInvocationIndex;
-	
+
+
 	vec4 pos = u_VP * position[globalID];
-	//pos = position[globalID];
 	pos.xyz = pos.xyz / pos.w;
 
-	if(pos.w <= 0.0 || pos.x < -1.0 || pos.x > 1.0 || pos.y < -1.0 || pos.y > 1.0){
+	
+	if(	pos.w <= 0.0 || 
+		pos.x < -1.0 || 
+		pos.x > 1.0 || 
+		pos.y < -1.0 || 
+		pos.y > 1.0){
 		return;
 	}
-	
-	ivec2 uImageSize = imageSize(outImage);
-	ivec2 pixelCoords = ivec2((pos.xy * 0.5 + 0.5) * uImageSize);
-	imageStore(outImage, pixelCoords, color[globalID]);
+	imageStore(
+	outImage, 
+	ivec2((pos.xy * 0.5 + 0.5) * imageSize(outImage)),
+	position[globalID]);
 } 

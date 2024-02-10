@@ -18,13 +18,13 @@ public:
 	FileUtility();
 	~FileUtility();
 
-	static bool IsExist(const string& filePath);
-	static bool Load(const string& filePath, string& contents);
-	static bool Load(const string& filePath, vector<string>& contents);
-	static string GetExtension(const string& filePath);
-	static void GetDirectoryPath(const string& filePath, string& directoryPath);
-	static bool CheckExtension(const string& filePath, const string& ext);
-	static std::vector<std::string> Split(const std::string& str, char del);
+	static bool IsExist(const String& filePath);
+	static bool Load(const String& filePath, String& contents);
+	static bool Load(const String& filePath, Vector<String>& contents);
+	static String GetExtension(const String& filePath);
+	static void GetDirectoryPath(const String& filePath, String& directoryPath);
+	static bool CheckExtension(const String& filePath, const String& ext);
+	static Vector<String> Split(const String& str, char del);
 
 private:
 
@@ -36,8 +36,8 @@ public:
 	FileWriter();
 	~FileWriter();
 
-	bool Open(const std::string& filePath, bool binary = false);
-	void Write(const std::string& contents, bool endl = false);
+	bool Open(const String& filePath, bool binary = false);
+	void Write(const String& contents, bool endl = false);
 	void WriteBinary(void* contents, Format format, bool endl = false);
 	void Close();
 private:
@@ -50,9 +50,9 @@ public:
 	FileReader();
 	~FileReader();
 
-	bool Open(const std::string& filePath, bool binary = false);
-	bool ReadLine(std::string& contents);
-	void ReadAll(std::string& contents);
+	bool Open(const String& filePath, bool binary = false);
+	bool ReadLine(String& contents);
+	void ReadAll(String& contents);
 	int ReadInt();
 	float ReadFloat();
 	vec2 ReadVec2();

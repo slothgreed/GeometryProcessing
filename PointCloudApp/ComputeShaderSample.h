@@ -8,9 +8,9 @@ public:
 	SimpleComputeShader();
 	~SimpleComputeShader();
 
-	virtual std::string GetComputePath() override;
+	virtual String GetComputePath() override;
 
-	void Execute(const std::vector<float>& in, std::vector<float>& out);
+	void Execute(const Vector<float>& in, Vector<float>& out);
 	virtual void GetUniformLocation() override;
 private:
 	int m_elementSize;
@@ -23,8 +23,8 @@ public:
 	CreateTextureComputeShader() {};
 	~CreateTextureComputeShader() {};
 
-	virtual std::string GetComputePath() override;
-	void Execute(const std::shared_ptr<Texture>& pTexture);
+	virtual String GetComputePath() override;
+	void Execute(const Shared<Texture>& pTexture);
 	virtual void GetUniformLocation() override;
 private:
 

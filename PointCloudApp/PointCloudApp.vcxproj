@@ -42,13 +42,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -110,8 +110,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,8 +151,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -176,7 +178,8 @@
     <ClCompile Include="ComputePointCloudApp.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="GLFWApp.cpp" />
-    <ClCompile Include="ImageLoader.cpp" />
+    <ClCompile Include="GLTFLoader.cpp" />
+    <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudComputeShader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
     <ClCompile Include="RenderTextureNode.cpp" />
@@ -221,8 +224,9 @@
     <ClInclude Include="ComputePointCloudApp.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GLFWApp.h" />
+    <ClInclude Include="GLTFLoader.h" />
     <ClInclude Include="GLTypes.h" />
-    <ClInclude Include="ImageLoader.h" />
+    <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudComputeShader.h" />
     <ClInclude Include="PointCloudIO.h" />
     <ClInclude Include="RenderTextureNode.h" />

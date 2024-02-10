@@ -30,13 +30,13 @@ void ComputeShaderTest::Initialize()
 
 void ComputeShaderTest::Execute()
 {
-	std::vector<float> in(10000000);
+	Vector<float> in(10000000);
 	std::fill(in.begin(), in.end(), 0);
 	auto shader = std::make_unique<SimpleComputeShader>();
 	shader->Build();
 
 
-	std::vector<float> out;
+	Vector<float> out;
 	shader->Execute(in, out);
 
 

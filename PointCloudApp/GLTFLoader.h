@@ -29,7 +29,7 @@ public:
 	GLTFLoader() {};
 	~GLTFLoader() {};
 
-	static RenderNode* Load(const std::string& name);
+	static RenderNode* Load(const String& name);
 private:
 
 };

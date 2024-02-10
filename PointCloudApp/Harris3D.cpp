@@ -82,7 +82,7 @@ void Harris3D::ShowUI()
 {
 	if (ImGui::Button("ShowCorner:Harris3D")) {
 		if (m_result.size() == 0) { Execute(); }
-		std::vector<vec3> color(m_result.size(), vec3(1, 1, 1));
+		Vector<vec3> color(m_result.size(), vec3(1, 1, 1));
 		for (int i = 0; i < m_result.size(); i++) {
 			if (m_result[i] < -0.01) {
 				color[i] = vec3(1, 0, 0);

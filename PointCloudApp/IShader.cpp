@@ -22,7 +22,7 @@ void IShader::Delete()
 	}
 }
 
-GLuint IShader::BuildVertexFrag(const std::string& vert, const std::string& frag)
+GLuint IShader::BuildVertexFrag(const String& vert, const String& frag)
 {
 	GLuint vertexId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER);
 	GLuint fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER);
@@ -70,11 +70,11 @@ IShadingShader::~IShadingShader()
 
 void IShadingShader::Build()
 {
-	string vertexPath = GetVertexPath();
-	string fragPath = GetFragmentPath();
+	String vertexPath = GetVertexPath();
+	String fragPath = GetFragmentPath();
 
-	string vertexCode;
-	string fragCode;
+	String vertexCode;
+	String fragCode;
 	ShaderUtility::LoadFromFile(vertexPath, vertexCode);
 	ShaderUtility::LoadFromFile(fragPath, fragCode);
 
@@ -87,8 +87,8 @@ void IShadingShader::Build()
 
 void IComputeShader::Build()
 {
-	string computePath = GetComputePath();
-	string computeCode;
+	String computePath = GetComputePath();
+	String computeCode;
 	ShaderUtility::LoadFromFile(computePath, computeCode);
 	GLuint computeId = ShaderUtility::Compile(computeCode, GL_COMPUTE_SHADER);
 
@@ -99,11 +99,11 @@ void IComputeShader::Build()
 }
 
 
-std::string TextureShader::GetVertexPath()
+String TextureShader::GetVertexPath()
 {
 	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\texture.vert";
 }
-std::string TextureShader::GetFragmentPath()
+String TextureShader::GetFragmentPath()
 {
 	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\texture.frag";
 }

@@ -2,7 +2,7 @@
 #include "PointCloud.h"
 #include "GLBuffer.h"
 #include "Texture.h"
-PointCloudComputeShader::PointCloudComputeShader(const std::shared_ptr<PointCloud>& pPointCloud)
+PointCloudComputeShader::PointCloudComputeShader(const Shared<PointCloud>& pPointCloud)
 	:m_pPointCloud(pPointCloud)
 {
 	Initialize();
@@ -12,7 +12,7 @@ PointCloudComputeShader::~PointCloudComputeShader()
 {
 }
 
-std::string PointCloudComputeShader::GetComputePath()
+String PointCloudComputeShader::GetComputePath()
 {
 	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\pointcloud.comp";
 
@@ -31,7 +31,7 @@ void PointCloudComputeShader::Initialize()
 
 }
 
-void PointCloudComputeShader::Execute(const mat4x4& proj, const mat4x4& view, const std::shared_ptr<Texture2D>& pColorBuffer, const std::shared_ptr<Texture2D>& pDepthBuffer)
+void PointCloudComputeShader::Execute(const mat4x4& proj, const mat4x4& view, const Shared<Texture2D>& pColorBuffer, const Shared<Texture2D>& pDepthBuffer)
 {
 	pColorBuffer->Clear(0);
 	if (pDepthBuffer) {
@@ -45,7 +45,7 @@ void PointCloudComputeShader::Execute(const mat4x4& proj, const mat4x4& view, co
 	}
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_pPointBuffer->Handle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_pColorBuffer->Handle());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_pColorBuffer->Handle());
 
 	mat4x4 vp = proj * view;
 	glUniformMatrix4fv(m_uniformVP, 1, GL_FALSE, &vp[0][0]);

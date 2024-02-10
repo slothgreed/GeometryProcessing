@@ -1,5 +1,6 @@
 #include "BDB.h"
 #include <algorithm>
+using namespace std;
 BDB::BDB()
 {
 	Set(vec3(numeric_limits<float>::infinity()),

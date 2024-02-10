@@ -10,7 +10,7 @@ TextureLoader::~TextureLoader()
 {
 }
 
-Texture* TextureLoader::Load(const std::string& name)
+Texture* TextureLoader::Load(const String& name)
 {
 	auto pTexture = new Texture2D();
 	int x, y, n;

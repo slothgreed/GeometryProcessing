@@ -11,11 +11,11 @@ VertexColorShader::~VertexColorShader()
 	Delete();
 }
 
-std::string VertexColorShader::GetVertexPath()
+String VertexColorShader::GetVertexPath()
 {
 	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\vertexcolor.vert";
 }
-std::string VertexColorShader::GetFragmentPath()
+String VertexColorShader::GetFragmentPath()
 {
 	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\vertexcolor.frag";
 }

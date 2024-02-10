@@ -10,7 +10,7 @@ FileUtility::~FileUtility()
 {
 }
 
-bool FileUtility::Load(const string& filePath, string& contents)
+bool FileUtility::Load(const String& filePath, String& contents)
 {
 	if (IsExist(filePath))
 	{
@@ -18,7 +18,7 @@ bool FileUtility::Load(const string& filePath, string& contents)
 	}
 
 	std::ifstream ifs(filePath);
-	std::string line;
+	String line;
 	while ((getline(ifs, line)))
 	{
 		contents += line + "\n";
@@ -28,15 +28,15 @@ bool FileUtility::Load(const string& filePath, string& contents)
 }
 
 
-bool FileUtility::Load(const string& filePath, vector<string>& lines)
+bool FileUtility::Load(const String& filePath, Vector<String>& lines)
 {
 	if (IsExist(filePath) == false)
 	{
 		return false;
 	}
 
-	ifstream ifs(filePath);
-	string line;
+	std::ifstream ifs(filePath);
+	String line;
 	while ((getline(ifs, line)))
 	{
 		lines.push_back(line);
@@ -46,27 +46,27 @@ bool FileUtility::Load(const string& filePath, vector<string>& lines)
 }
 
 
-bool FileUtility::IsExist(const string& filePath)
+bool FileUtility::IsExist(const String& filePath)
 {
-	ifstream fs(filePath);
+	std::ifstream fs(filePath);
 	return fs.is_open();
 }
 
-string FileUtility::GetExtension(const string& filePath)
+String FileUtility::GetExtension(const String& filePath)
 {
 	int index = (int)filePath.find_last_of(".");
 	return filePath.substr(index, filePath.size() - index);
 }
 
-void FileUtility::GetDirectoryPath(const string& filePath, string& directoryPath)
+void FileUtility::GetDirectoryPath(const String& filePath, String& directoryPath)
 {
 	int index = (int)filePath.find_last_of("\\");
 	//directoryPath = filePath.substr(index, filePath.size() - index);
 	directoryPath = filePath.substr(0, index + 1);
 }
-bool FileUtility::CheckExtension(const string& filePath, const string& ext)
+bool FileUtility::CheckExtension(const String& filePath, const String& ext)
 {
-	string extname = GetExtension(filePath);
+	String extname = GetExtension(filePath);
 
 	if (extname == ext)
 	{
@@ -78,22 +78,22 @@ bool FileUtility::CheckExtension(const string& filePath, const string& ext)
 	}
 }
 
-std::vector<std::string> FileUtility::Split(const std::string& str, char del)
+Vector<String> FileUtility::Split(const String& str, char del)
 {
 	int first = 0;
 	int last = str.find_first_of(del);
 
-	std::vector<std::string> result;
+	Vector<String> result;
 
 	while (first < str.size()) {
-		std::string subStr(str, first, last - first);
+		String subStr(str, first, last - first);
 
 		result.push_back(subStr);
 
 		first = last + 1;
 		last = str.find_first_of(del, first);
 
-		if (last == std::string::npos) {
+		if (last == String::npos) {
 			last = str.size();
 		}
 	}
@@ -110,7 +110,7 @@ FileWriter::~FileWriter()
 	Close();
 }
 
-bool FileWriter::Open(const std::string& filePath, bool binary)
+bool FileWriter::Open(const String& filePath, bool binary)
 {
 	//if (FileUtility::IsExist(filePath))
 	//{
@@ -126,7 +126,7 @@ bool FileWriter::Open(const std::string& filePath, bool binary)
 	return true;
 }
 
-void FileWriter::Write(const std::string& contents, bool endl)
+void FileWriter::Write(const String& contents, bool endl)
 {
 	assert(m_fileStream.is_open());
 	m_fileStream << contents.data();
@@ -179,7 +179,7 @@ FileReader::~FileReader()
 	Close();
 }
 
-bool FileReader::Open(const std::string& filePath, bool binary)
+bool FileReader::Open(const String& filePath, bool binary)
 {
 	//if (FileUtility::IsExist(filePath))
 	//{
@@ -187,7 +187,7 @@ bool FileReader::Open(const std::string& filePath, bool binary)
 	//}
 
 	if (binary) {
-		m_fileStream.open(filePath.data(), std::ios::in | ios::binary);
+		m_fileStream.open(filePath.data(), std::ios::in | std::ios::binary);
 	}
 	else {
 		m_fileStream.open(filePath.data(), std::ios::in);
@@ -195,12 +195,12 @@ bool FileReader::Open(const std::string& filePath, bool binary)
 	return true;
 }
 
-void FileReader::ReadAll(std::string& contents)
+void FileReader::ReadAll(String& contents)
 {
-	contents = std::string(std::istreambuf_iterator<char>(m_fileStream), {});
+	contents = String(std::istreambuf_iterator<char>(m_fileStream), {});
 }
 
-bool FileReader::ReadLine(std::string& contents)
+bool FileReader::ReadLine(String& contents)
 {
 	if (getline(m_fileStream, contents)) {
 		return true;

@@ -7,12 +7,11 @@
 #include <glm/gtx/transform.hpp>
 
 #include <algorithm>
-#include <string>
+#include <String>
 #include <vector>
 #include <memory>
 #include <unordered_map>
 
-using namespace std;
 using namespace glm;
 
 
@@ -33,7 +32,9 @@ enum MY_MOUSE_EVENT
 	MOUSE_EVENT_MOVE
 };
 
-
+template <typename T> using Shared= std::shared_ptr<T>;
+template <typename T> using Vector = std::vector<T>;
+using String = std::string;
 void getError();
 
 #define OUTPUT_GLERROR getError();

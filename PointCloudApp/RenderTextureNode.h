@@ -7,7 +7,7 @@
 class RenderTextureNode : public RenderNode
 {
 public:
-	RenderTextureNode(const string& name, const std::shared_ptr<Texture>& pTexture);
+	RenderTextureNode(const String& name, const Shared<Texture>& pTexture);
 	~RenderTextureNode() {};
 
 	void DrawData(const mat4x4& proj, const mat4x4& view);
@@ -15,8 +15,8 @@ public:
 private:
 	void BuildGLBuffer();
 	void UpdateRenderData();
-	std::shared_ptr<TextureShader> m_pShader;
-	std::shared_ptr<Texture> m_pTexture;
+	Shared<TextureShader> m_pShader;
+	Shared<Texture> m_pTexture;
 	RenderPlane m_pPrimitive;
 	std::unique_ptr<GLBuffer> m_pPositionBuffer;
 	std::unique_ptr<GLBuffer> m_pTexcoordBuffer;

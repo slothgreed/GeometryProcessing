@@ -28,17 +28,17 @@ void ComputePointCloudApp::ResizeEvent(int width, int height)
 void ComputePointCloudApp::Execute()
 {
 	m_pColorTexture = std::make_shared<Texture2D>();
-	m_pColorTexture->Build(512,512);
+	m_pColorTexture->Build(512, 512);
 
 	//CreateTextureComputeShader shader;
 	//shader.Build();
 	//shader.Execute(pTexture);
 
-	//auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
-	//auto pPointCloud = std::shared_ptr<PointCloud>(PointCloudIO::Create2D(1000, vec2(-100, -100), vec2(100, 100)));
-	//auto pPointCloud = std::shared_ptr<PointCloud>(PointCloudIO::Create2D(100, vec2(-100, -100), vec2(100, 100)));
-	auto pPointCloud = (std::shared_ptr<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
-	//std::vector<vec3> color(pPointCloud->Position().size(), vec3(0.0f, 1.0f, 1.0f));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
+	//auto pPointCloud = Shared<PointCloud>(PointCloudIO::Create2D(1000, vec2(-100, -100), vec2(100, 100)));
+	//auto pPointCloud = Shared<PointCloud>(PointCloudIO::Create2D(100, vec2(-100, -100), vec2(100, 100)));
+	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
+	Vector<vec3> color(pPointCloud->Position().size(), vec3(0.0f, 1.0f, 1.0f));
 	//pPointCloud->SetColor(std::move(color));
 	BDB bdb;
 	bdb.Apply(pPointCloud->GetBDB());
