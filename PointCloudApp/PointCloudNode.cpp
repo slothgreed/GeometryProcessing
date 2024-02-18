@@ -7,11 +7,14 @@
 #include "AlphaShape.h"
 #include <Eigen/SVD>
 #include <Eigen/Core>
+namespace KI
+{
+
 PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitive)
 	:RenderNode(name)
 {
 	m_pPointCloud = std::move(pPrimitive);
-	m_pShader = dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShadingShader::Type::VertexColor));
+	m_pShader = std::dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShadingShader::Type::VertexColor));
 	m_algorithm[ALGORITHM_KDTREE] = new KDTreeNanoFlann(this, 3);
 	m_algorithm[ALGORITHM_HARRIS3D] = new Harris3D(this);
 	m_algorithm[ALGORITHM_ALPHASHAPE] = new AlphaShape2D(this);
@@ -51,7 +54,7 @@ void PointCloudNode::UpdateRenderData()
 {
 	BuildGLBuffer();
 }
-const Vector<vec3>& PointCloudNode::GetNormal()
+const Vector<Vector3>& PointCloudNode::GetNormal()
 {
 	ComputeNormal();
 	return m_normal;
@@ -91,7 +94,7 @@ void PointCloudNode::ComputeNormal()
 		const auto& pos = m_pPointCloud->Position()[i];
 		Eigen::MatrixXf matrix(3, m_neighbor[i].size());
 		for (size_t j = 0; j < m_neighbor[i].size(); j++) {
-			vec3 center = m_pPointCloud->Position()[m_neighbor[i][j]] - pos;
+			Vector3 center = m_pPointCloud->Position()[m_neighbor[i][j]] - pos;
 			matrix(0, j) = center.x;
 			matrix(1, j) = center.y;
 			matrix(2, j) = center.z;
@@ -128,22 +131,23 @@ void PointCloudNode::ComputeTangent()
 	ComputeNormal();
 	if (m_tangentX.size() == 0) { return; }
 	for (int i = 0; i < m_normal.size(); i++) {
-		vec3 test(1, 0, 0);
+		Vector3 test(1, 0, 0);
 		if (std::fabs(glm::dot(test, m_normal[i])) > 0.9f) {
-			test = vec3(0, 1, 0);
+			test = Vector3(0, 1, 0);
 		}
 
 		m_tangentX.push_back(glm::normalize(glm::cross(test, m_normal[i])));
 		m_tangentY.push_back(glm::normalize(glm::cross(m_tangentX[i], m_normal[i])));
 	}
 }
-void PointCloudNode::DrawData(const mat4x4& proj, const mat4x4& view)
+void PointCloudNode::DrawData(const Matrix4x4& proj, const Matrix4x4& view)
 {
 	UpdateRenderData();
 	m_pShader->Use();
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetColor(m_pColorBuffer.get());
 	m_pShader->SetViewProj(proj * view);
-	m_pShader->SetModel(glm::mat4x4(1.0f));
+	m_pShader->SetModel(Matrix4x4(1.0f));
 	m_pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
+}
 }

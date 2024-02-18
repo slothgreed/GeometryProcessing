@@ -1,13 +1,14 @@
 #include "PrimitiveNode.h"
 #include "PointCloud.h"
-#include "VertexColorShader.h"
 #include "SimpleShader.h"
+namespace KI
+{
 
-PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const glm::vec3& color)
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Vector3& color)
 	: RenderNode(name)
 	, m_color(color)
 {
-	m_pShader = dynamic_pointer_cast<SimpleShader>(GetResource()->GetShader(IShadingShader::Type::Simple));
+	m_pShader = std::dynamic_pointer_cast<SimpleShader>(GetResource()->GetShader(IShadingShader::Type::Simple));
 	m_pPrimitive = std::move(pPrimitive);
 	BuildGLBuffer();
 }
@@ -16,7 +17,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive)
 	: RenderNode(name)
 {
 	assert(pPrimitive->Color().size());
-	m_pShader = dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShadingShader::Type::VertexColor));
+	m_pShader = std::dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShadingShader::Type::VertexColor));
 	m_pPrimitive = std::move(pPrimitive);
 	BuildGLBuffer();
 }
@@ -61,15 +62,15 @@ void PrimitiveNode::UpdateRenderData()
 }
 
 
-void PrimitiveNode::DrawData(const mat4x4& proj, const mat4x4& view)
+void PrimitiveNode::DrawData(const Matrix4x4& proj, const Matrix4x4& view)
 {
 	UpdateRenderData();
 	m_pShader->Use();
 	if (m_pShader->GetType() == IShadingShader::Type::Simple) {
 		auto pShader = (SimpleShader*)m_pShader.get();
-		pShader->SetupVertexAttribArray(m_pPositionBuffer.get());
+		pShader->SetPosition(m_pPositionBuffer.get());
 		pShader->SetViewProj(proj * view);
-		pShader->SetModel(glm::mat4x4(1.0f));
+		pShader->SetModel(Matrix4x4(1.0f));
 		pShader->SetColor(m_color);
 	} else 	if (m_pShader->GetType() == IShadingShader::Type::VertexColor) {
 		auto pShader = (VertexColorShader*)m_pShader.get();
@@ -77,7 +78,7 @@ void PrimitiveNode::DrawData(const mat4x4& proj, const mat4x4& view)
 		pShader->SetColor(m_pColorBuffer.get());
 
 		pShader->SetViewProj(proj * view);
-		pShader->SetModel(glm::mat4x4(1.0f));
+		pShader->SetModel(Matrix4x4(1.0f));
 	}
 
 	if (m_pIndexBuffer) {
@@ -85,4 +86,5 @@ void PrimitiveNode::DrawData(const mat4x4& proj, const mat4x4& view)
 	} else {
 		m_pShader->DrawArray(m_pPrimitive->GetType(), m_pPositionBuffer.get());
 	}
+}
 }

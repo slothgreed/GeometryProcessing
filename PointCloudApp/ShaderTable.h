@@ -1,6 +1,9 @@
 #ifndef SHADER_TABLE_H
 #define SHADER_TABLE_H
 #include "IShader.h"
+namespace KI
+{
+
 class ShaderTable
 {
 public:
@@ -14,5 +17,6 @@ public:
 private:
 	Vector<Shared<IShadingShader>> m_pTable;
 };
+}
 
 #endif SHADER_TABLE_H

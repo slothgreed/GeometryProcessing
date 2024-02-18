@@ -5,7 +5,8 @@
 #include <string>
 #include "PointCloud.h"
 
-
+namespace KI
+{
 void PointCloudIO::LoadPCD(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileReader reader;
@@ -59,8 +60,8 @@ void PointCloudIO::LoadXYZ(PointCloud* pPointCloud, const String& name)
 		auto line = KI::FileUtility::Split(contents, ' ');
 		assert(line.size() == 7);
 
-		pPointCloud->m_position.push_back(vec3(std::stof(line[0]), std::stof(line[1]), std::stof(line[2])));
-		pPointCloud->m_color.push_back(vec3(std::stof(line[4]) / 255.0, std::stof(line[5]) / 255.0, std::stof(line[6]) / 255.0));
+		pPointCloud->m_position.push_back(Vector3(std::stof(line[0]), std::stof(line[1]), std::stof(line[2])));
+		pPointCloud->m_color.push_back(Vector3(std::stof(line[4]) / 255.0, std::stof(line[5]) / 255.0, std::stof(line[6]) / 255.0));
 	}
 }
 
@@ -98,7 +99,7 @@ PointCloud* PointCloudIO::Create2D(int positionNum, const glm::vec2& min, const 
 {
 	auto pInstance = new PointCloud();
 	pInstance->m_position.resize(positionNum);
-	pInstance->m_normal.resize(positionNum, vec3(0));	// FileIO用に作っている。
+	pInstance->m_normal.resize(positionNum, Vector3(0));	// FileIO用に作っている。
 	for (int i = 0; i < positionNum; i++) {
 		pInstance->m_position[i].x = Gaccho::rnd(min.x, max.x) / 100.0f;
 		pInstance->m_position[i].y = Gaccho::rnd(min.y, max.y) / 100.0f;
@@ -182,3 +183,4 @@ void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const String& name)
 	writer.Close();
 }
 
+}

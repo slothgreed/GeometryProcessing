@@ -1,5 +1,7 @@
 #include "Primitive.h"
 #include "BDB.h"
+namespace KI
+{
 Primitive::Primitive()
 {
 	m_update = true;
@@ -7,7 +9,7 @@ Primitive::Primitive()
 	m_storeType = StoreType::Array;
 }
 
-GLuint Primitive::GetDrawType()
+GLuint Primitive::GetDrawType() const
 {
 	if (m_primitiveType == GL_NONE)
 	{
@@ -17,7 +19,7 @@ GLuint Primitive::GetDrawType()
 	return m_primitiveType;
 }
 
-void Primitive::Multi(const mat4x4& matrix)
+void Primitive::Multi(const Matrix4x4& matrix)
 {
 	if (m_storeType == StoreType::Array)
 	{
@@ -40,9 +42,9 @@ void Primitive::CalcNormal()
 	m_normal.resize(m_position.size());
 	for (int i = 0; i < m_position.size(); i ++)
 	{
-		if (m_position[i] == vec3(0))
+		if (m_position[i] == Vector3(0))
 		{
-			m_normal[i] = vec3(0);
+			m_normal[i] = Vector3(0);
 		}
 		else
 		{
@@ -127,4 +129,5 @@ int Primitive::GetTriangleNum()
 	{
 		return m_position.size() / 3;
 	}
+}
 }

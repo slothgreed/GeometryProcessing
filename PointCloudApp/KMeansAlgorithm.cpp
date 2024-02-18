@@ -3,6 +3,8 @@
 #include "Utility.h"
 #include "PointCloud.h"
 #include <numeric>
+namespace KI
+{
 void KMeansAlgorithm::Execute()
 {
 	Clusters group;
@@ -62,10 +64,10 @@ void KMeansAlgorithm::Calculate(const Seeds& seed, Clusters& result, Seeds& newS
 	}
 
 }
-Vector<vec3> KMeansAlgorithm::CreateClusterColor()
+Vector<Vector3> KMeansAlgorithm::CreateClusterColor()
 {
 	auto seedColor = CreateSeedColor();
-	Vector<vec3> color(m_pointCloud->Position().size());
+	Vector<Vector3> color(m_pointCloud->Position().size());
 	for (int i = 0; i < m_result.size(); i++)
 	{
 		for (int j = 0; j < m_result[i].size(); j++)
@@ -76,13 +78,14 @@ Vector<vec3> KMeansAlgorithm::CreateClusterColor()
 
 	return color;
 }
-Vector<vec3> KMeansAlgorithm::CreateSeedColor()
+Vector<Vector3> KMeansAlgorithm::CreateSeedColor()
 {
-	Vector<vec3> seedColor(m_clusterNum);
+	Vector<Vector3> seedColor(m_clusterNum);
 	for (int i = 0; i < seedColor.size(); i++)
 	{
 		seedColor[i] = ColorUtility::CreateRandom();
 	}
 
 	return seedColor;
+}
 }

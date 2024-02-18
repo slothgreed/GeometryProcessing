@@ -2,11 +2,13 @@
 #define PROFILE_H
 #include <windows.h>
 
-class Profile
+namespace KI
+{
+class CPUProfiler
 {
 public:
-	Profile();
-	~Profile();
+	CPUProfiler();
+	~CPUProfiler();
 
 	void Start();
 	void Stop();
@@ -17,5 +19,20 @@ private:
 	LARGE_INTEGER m_end;
 
 };
+
+class GPUProfiler
+{
+public:
+	GPUProfiler(const String& name);
+	~GPUProfiler();
+
+	void Start();
+	void Stop();
+private:
+	String m_name;
+	GLuint m_handle;
+};
+
+}
 
 #endif PROFILE_H

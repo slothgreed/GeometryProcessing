@@ -2,7 +2,8 @@
 #define KD_TREE
 #include "IAlgorithm.h"
 #include "FileUtility.h"
-
+namespace KI
+{
 class PointCloudNode;
 class PrimitiveNode;
 class BDB;
@@ -18,7 +19,7 @@ public:
 
 	virtual void Execute();
 	bool Executed() { return m_index.size() != 0; }
-	Vector<vec3> CreateLevelColor(int target);
+	Vector<Vector3> CreateLevelColor(int target);
 	virtual void ShowUI();
 private:
 
@@ -29,7 +30,7 @@ private:
 		int index;
 		Node();
 		~Node();
-		const vec3& GetPosition(PointCloudNode* pPointCloud);
+		const Vector3& GetPosition(PointCloudNode* pPointCloud);
 	};
 
 	struct ResultNearest
@@ -44,14 +45,14 @@ private:
 		Node* pArea;
 	};
 
-	void FindNearest(Node* pNode, int depth, const vec3& target, ResultNearest& result);
-	Node* FindNode(Node* pNode, int depth, const vec3& target);
-	void CreateLevelColor(Node* pNode, Vector<vec3>& color, int depth, int target);
-	void SetLevelColor(Node* pNode, Vector<vec3>& color, const vec3& col, int depth);
+	void FindNearest(Node* pNode, int depth, const Vector3& target, ResultNearest& result);
+	Node* FindNode(Node* pNode, int depth, const Vector3& target);
+	void CreateLevelColor(Node* pNode, Vector<Vector3>& color, int depth, int target);
+	void SetLevelColor(Node* pNode, Vector<Vector3>& color, const Vector3& col, int depth);
 	Node* Build(int left, int right, int depth);
 	void Delete();
 	Shared<PrimitiveNode> CreatePartition2D(const String& name, int maxDepth);
-	void CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, Vector<vec3>& position, Vector<unsigned int>& indexes);
+	void CreatePartition2D(Node* pNode, int depth, int maxDepth, const BDB& bdb, Vector<Vector3>& position, Vector<unsigned int>& indexes);
 	Vector<int> m_index;
 	PointCloudNode* m_pPointCloud;
 	Node* m_root;
@@ -65,5 +66,6 @@ private:
 
 	UI m_ui;
 };
+}
 
 #endif KD_TREE

@@ -3,6 +3,9 @@
 #include "TheApp.h"
 #include "RenderResource.h"
 #include "CameraController.h"
+namespace KI
+{
+
 class GLFWApp : public TheApp
 {
 public:
@@ -19,10 +22,11 @@ public:
 	RenderResource* GetResource() { return m_pResource.get(); }
 protected:
 	GLFWwindow* m_window;
-	std::unique_ptr<Mouse> m_pMouse;
+	Unique<Mouse> m_pMouse;
 	Shared<Camera> m_pCamera;
-	std::unique_ptr<CameraController> m_pCameraController;
-	std::unique_ptr<RenderResource> m_pResource;
+	Unique<CameraController> m_pCameraController;
+	Unique<RenderResource> m_pResource;
 };
+}
 
 #endif // GRAPHICS_APP_H

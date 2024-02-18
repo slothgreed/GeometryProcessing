@@ -2,6 +2,9 @@
 #define RENDER_RESOURCE_H
 #include "ShaderTable.h"
 
+namespace KI
+{
+
 class RenderResource
 {
 public:
@@ -14,5 +17,6 @@ public:
 private:
 	ShaderTable m_pShaderTable;
 };
+}
 
 #endif RENDER_RESOURCE_H

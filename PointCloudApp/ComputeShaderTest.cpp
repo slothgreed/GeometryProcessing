@@ -2,6 +2,8 @@
 #include "ComputeShaderTest.h"
 #include "GLBuffer.h"
 #include "ComputeShaderSample.h"
+namespace KI
+{
 ComputeShaderTest::ComputeShaderTest()
 {
 }
@@ -44,4 +46,5 @@ void ComputeShaderTest::Execute()
 void ComputeShaderTest::Finalize()
 {
 	glfwTerminate();
+}
 }

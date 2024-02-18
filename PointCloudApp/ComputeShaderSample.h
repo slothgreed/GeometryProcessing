@@ -1,6 +1,8 @@
 #ifndef COMPUTE_SHADER_SAMPLE_H
 #define COMPUTE_SHADER_SAMPLE_H
 #include "IShader.h"
+namespace KI
+{
 
 class SimpleComputeShader : public IComputeShader
 {
@@ -29,6 +31,6 @@ public:
 private:
 
 };
-
+}
 
 #endif COMPUTE_SHADER_H

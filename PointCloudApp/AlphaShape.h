@@ -1,6 +1,8 @@
 #ifndef ALPHA_SHAPE_H
 #define ALPHA_SHAPE_H
 #include "IAlgorithm.h"
+namespace KI
+{
 class PointCloudNode;
 class AlphaShape2D : public IAlgorithm
 {
@@ -25,13 +27,13 @@ private:
 
 	struct Edge
 	{
-		Edge(const vec3& b, const vec3& e)
+		Edge(const Vector3& b, const Vector3& e)
 			: begin(b)
 			, end(e)
 		{
 		}
-		vec3 begin;
-		vec3 end;
+		Vector3 begin;
+		Vector3 end;
 	};
 
 	UI m_ui;
@@ -39,5 +41,6 @@ private:
 	PointCloudNode* m_pPointCloud;
 	float m_alpha;
 };
+}
 
 #endif ALPHA_SHAPE_H

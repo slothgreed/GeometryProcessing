@@ -112,13 +112,14 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64;E:\develop\Microsoft\glTF-SDK\Built\Out\v141\x64\Debug\GLTFSDK</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;GLTFSDK.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,14 +155,15 @@
       <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64;E:\develop\Microsoft\glTF-SDK\Built\Out\v141\x64\Release\GLTFSDK</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;GLTFSDK.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -179,6 +181,9 @@
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="GLFWApp.cpp" />
     <ClCompile Include="GLTFLoader.cpp" />
+    <ClCompile Include="GLTFShader.cpp" />
+    <ClCompile Include="GLTFStruct.cpp" />
+    <ClCompile Include="GLUtility.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudComputeShader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
@@ -192,7 +197,6 @@
     <ClCompile Include="KMeansAlgorithm.cpp" />
     <ClCompile Include="PointCloud.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="VertexColorShader.cpp" />
     <ClCompile Include="Primitives.cpp" />
     <ClCompile Include="PointCloudApp.cpp" />
     <ClCompile Include="GLBuffer.cpp" />
@@ -225,7 +229,10 @@
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GLFWApp.h" />
     <ClInclude Include="GLTFLoader.h" />
+    <ClInclude Include="GLTFShader.h" />
+    <ClInclude Include="GLTFStruct.h" />
     <ClInclude Include="GLTypes.h" />
+    <ClInclude Include="GLUtility.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudComputeShader.h" />
     <ClInclude Include="PointCloudIO.h" />
@@ -243,7 +250,6 @@
     <ClInclude Include="PointCloud.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TheApp.h" />
-    <ClInclude Include="VertexColorShader.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="PointCloudApp.h" />
     <ClInclude Include="GLBuffer.h" />

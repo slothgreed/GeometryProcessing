@@ -1,6 +1,9 @@
 #ifndef SHADER_UTILITY_H
 #define SHADER_UTILITY_H
 
+namespace KI
+{
+
 class ShaderUtility
 {
 public:
@@ -14,6 +17,7 @@ public:
 private:
 
 };
+}
 
 
 #endif

@@ -3,6 +3,9 @@
 #include "GLFWApp.h"
 #include "CameraController.h"
 
+namespace KI
+{
+
 class Texture2D;
 class ComputePointCloudApp : public GLFWApp
 {
@@ -18,5 +21,6 @@ private:
 	Shared<Texture2D> m_pColorTexture;
 };
 
+}
 
 #endif COMPUTE_POINT_CLOUD_APP_H

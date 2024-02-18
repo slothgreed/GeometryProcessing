@@ -7,7 +7,8 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
-
+namespace KI
+{
 Harris3D::Harris3D(PointCloudNode* pointCloud)
 	:m_pPointCloud(pointCloud)
 {
@@ -82,14 +83,15 @@ void Harris3D::ShowUI()
 {
 	if (ImGui::Button("ShowCorner:Harris3D")) {
 		if (m_result.size() == 0) { Execute(); }
-		Vector<vec3> color(m_result.size(), vec3(1, 1, 1));
+		Vector<Vector3> color(m_result.size(), Vector3(1, 1, 1));
 		for (int i = 0; i < m_result.size(); i++) {
 			if (m_result[i] < -0.01) {
-				color[i] = vec3(1, 0, 0);
+				color[i] = Vector3(1, 0, 0);
 			}
 		}
 
 		m_pPointCloud->GetData()->SetColor(std::move(color));
 		m_pPointCloud->GetData()->Update();
 	}
+}
 }

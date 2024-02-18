@@ -1,5 +1,9 @@
 #ifndef TEXTURE_H
 #define	TEXTURE_H
+#include "GLTypes.h"
+namespace KI
+{
+
 class Texture
 {
 public:
@@ -7,6 +11,7 @@ public:
 	~Texture();
 	void Bind();
 	void Delete();
+	virtual TEXTURE_TYPE Type() const = 0;
 	GLuint Handle() const { return m_handle; }
 	const vec2& Size() const { return m_size; }
 protected:
@@ -19,6 +24,7 @@ class TextureBuffer : public Texture
 public:
 	TextureBuffer();
 	~TextureBuffer();
+	virtual TEXTURE_TYPE Type() const { return TEXTURE_BUFFER; }
 	void Bind(int matrixId);
 private:
 };
@@ -29,6 +35,8 @@ public:
 	Texture2D();
 	~Texture2D() {};
 
+	virtual TEXTURE_TYPE Type() const { return TEXTURE_2D; }
+
 	void Build(int width, int height);
 	void Build(int width, int height, unsigned char* data);
 
@@ -38,6 +46,7 @@ public:
 private:
 
 };
+}
 
 
 #endif TEXTURE_H

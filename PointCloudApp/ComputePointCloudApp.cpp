@@ -7,6 +7,9 @@
 #include "PointCloud.h"
 #include "PointCloudComputeShader.h"
 #include "MouseInput.h"
+namespace KI
+{
+
 void ComputePointCloudApp::ProcessMouseEvent(const MouseInput& input)
 {
 	m_pMouse->ApplyMouseInput(input);
@@ -38,7 +41,7 @@ void ComputePointCloudApp::Execute()
 	//auto pPointCloud = Shared<PointCloud>(PointCloudIO::Create2D(1000, vec2(-100, -100), vec2(100, 100)));
 	//auto pPointCloud = Shared<PointCloud>(PointCloudIO::Create2D(100, vec2(-100, -100), vec2(100, 100)));
 	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
-	Vector<vec3> color(pPointCloud->Position().size(), vec3(0.0f, 1.0f, 1.0f));
+	Vector<Vector3> color(pPointCloud->Position().size(), Vector3(0.0f, 1.0f, 1.0f));
 	//pPointCloud->SetColor(std::move(color));
 	BDB bdb;
 	bdb.Apply(pPointCloud->GetBDB());
@@ -51,7 +54,7 @@ void ComputePointCloudApp::Execute()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		pShader->Execute(m_pCamera->Projection(), m_pCamera->ViewMatrix(), m_pColorTexture, nullptr);
-		pNode->Draw(glm::mat4x4(), glm::mat4x4());
+		pNode->Draw(Matrix4x4(), Matrix4x4());
 
 		glfwSwapBuffers(m_window);
 
@@ -60,3 +63,4 @@ void ComputePointCloudApp::Execute()
 	}
 }
 
+}

@@ -1,17 +1,19 @@
 #include "BDB.h"
 #include <algorithm>
 using namespace std;
+namespace KI
+{
 BDB::BDB()
 {
-	Set(vec3(numeric_limits<float>::infinity()),
-		vec3(-numeric_limits<float>::infinity()));
+	Set(Vector3(numeric_limits<float>::infinity()),
+		Vector3(-numeric_limits<float>::infinity()));
 }
 
 BDB::~BDB()
 {
 }
 
-BDB::BDB(const vec3& min, const vec3& max)
+BDB::BDB(const Vector3& min, const Vector3& max)
 {
 	Set(min, max);
 }
@@ -19,7 +21,7 @@ bool BDB::IsActive() const
 {
 	return m_min.x != numeric_limits<float>::infinity();
 }
-void BDB::Apply(const vec3& position)
+void BDB::Apply(const Vector3& position)
 {
 	m_min.x = glm::min(m_min.x, position.x);
 	m_min.y = glm::min(m_min.y, position.y);
@@ -45,7 +47,7 @@ void BDB::Apply(const BDB& bdb)
 	Set(m_min, m_max);
 }
 
-void BDB::Add(const vec3& pos)
+void BDB::Add(const Vector3& pos)
 {
 	if (pos.x < m_min.x) { m_min.x = pos.x; }
 	if (pos.y < m_min.y) { m_min.y = pos.y; }
@@ -55,21 +57,22 @@ void BDB::Add(const vec3& pos)
 	if (pos.y > m_max.y) { m_max.y = pos.y; }
 	if (pos.z > m_max.z) { m_max.z = pos.z; }
 	
-	m_center = vec3(
+	m_center = Vector3(
 		(m_min.x + m_max.x) * 0.5,
 		(m_min.y + m_max.y) * 0.5,
 		(m_min.z + m_max.z) * 0.5
 	);
 }
-void BDB::Set(vec3 min, vec3 max)
+void BDB::Set(Vector3 min, Vector3 max)
 {
 	m_min = min;
 	m_max = max;
-	m_center = vec3(
+	m_center = Vector3(
 		(m_min.x + m_max.x) * 0.5,
 		(m_min.y + m_max.y) * 0.5,
 		(m_min.z + m_max.z) * 0.5
 	);
 
+}
 }
 

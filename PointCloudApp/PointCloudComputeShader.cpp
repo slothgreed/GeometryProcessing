@@ -2,6 +2,10 @@
 #include "PointCloud.h"
 #include "GLBuffer.h"
 #include "Texture.h"
+
+namespace KI
+{
+
 PointCloudComputeShader::PointCloudComputeShader(const Shared<PointCloud>& pPointCloud)
 	:m_pPointCloud(pPointCloud)
 {
@@ -31,7 +35,7 @@ void PointCloudComputeShader::Initialize()
 
 }
 
-void PointCloudComputeShader::Execute(const mat4x4& proj, const mat4x4& view, const Shared<Texture2D>& pColorBuffer, const Shared<Texture2D>& pDepthBuffer)
+void PointCloudComputeShader::Execute(const Matrix4x4& proj, const Matrix4x4& view, const Shared<Texture2D>& pColorBuffer, const Shared<Texture2D>& pDepthBuffer)
 {
 	pColorBuffer->Clear(0);
 	if (pDepthBuffer) {
@@ -47,10 +51,11 @@ void PointCloudComputeShader::Execute(const mat4x4& proj, const mat4x4& view, co
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_pPointBuffer->Handle());
 	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_pColorBuffer->Handle());
 
-	mat4x4 vp = proj * view;
+	Matrix4x4 vp = proj * view;
 	glUniformMatrix4fv(m_uniformVP, 1, GL_FALSE, &vp[0][0]);
 	glDispatchCompute(m_pPointCloud->Position().size(), 1, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	OUTPUT_GLERROR;
 	UnUse();
+}
 }

@@ -1,6 +1,8 @@
 #ifndef COMPUTE_SHADER_TEST_H
 #define	COMPUTE_SHADER_TEST_H
 #include "TheApp.h"
+namespace KI
+{
 class ComputeShaderTest : public TheApp
 {
 public:
@@ -12,5 +14,5 @@ public:
 private:
 
 };
-
+}
 #endif // COMPUTE_SHADER_TEST_H

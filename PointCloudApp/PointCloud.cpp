@@ -2,6 +2,9 @@
 #include "FileUtility.h"
 #include "Random.h"
 #include <iostream>
+namespace KI
+{
+
 PointCloud::PointCloud()
 {
 }
@@ -41,4 +44,5 @@ Vector<glm::vec4> PointCloud::CreateColor4f()
 	}
 
 	return color;
+}
 }

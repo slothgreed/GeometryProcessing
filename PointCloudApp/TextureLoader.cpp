@@ -2,6 +2,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "Texture.h"
+namespace KI
+{
 TextureLoader::TextureLoader()
 {
 }
@@ -19,3 +21,4 @@ Texture* TextureLoader::Load(const String& name)
 	return pTexture;
 }
 
+}

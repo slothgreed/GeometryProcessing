@@ -1,24 +1,27 @@
 #ifndef BOUNDING_BOX_H
 #define BOUNDING_BOX_H
+namespace KI
+{
 class BDB
 {
 public:
 	BDB();
-	BDB(const vec3& min, const vec3& max);
+	BDB(const Vector3& min, const Vector3& max);
 	~BDB();
 	bool IsActive() const;
-	void Add(const vec3& pos);
-	void Set(vec3 min, vec3 max);
-	void Apply(const vec3& position);
+	void Add(const Vector3& pos);
+	void Set(Vector3 min, Vector3 max);
+	void Apply(const Vector3& position);
 	void Apply(const BDB& bdb);
-	const vec3& Min() const { return m_min; }
-	const vec3& Max() const { return m_max; }
-	const vec3& Center() const { return m_center; }
+	const Vector3& Min() const { return m_min; }
+	const Vector3& Max() const { return m_max; }
+	const Vector3& Center() const { return m_center; }
 
 private:
-	vec3 m_min;
-	vec3 m_max;
-	vec3 m_center;
+	Vector3 m_min;
+	Vector3 m_max;
+	Vector3 m_center;
 	
 };
+}
 #endif BOUNDING_BOX_H

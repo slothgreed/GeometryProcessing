@@ -1,6 +1,7 @@
 #include "CameraController.h"
 #include "Camera.h"
-
+namespace KI
+{
 bool CameraController::Move(const Mouse& mouse)
 {
 	if (mouse.Press(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT))
@@ -37,10 +38,10 @@ bool CameraController::Wheel(const Mouse&  mouse)
 
 void CameraController::Zoom(float ratio)
 {
-	vec3 eyeDirect = m_pCamera->Direction();
+	Vector3 eyeDirect = m_pCamera->Direction();
 	float len = m_pCamera->LookAtDistance() * ratio;
 
-	vec3 newEye = eyeDirect * len + m_pCamera->Center();
+	Vector3 newEye = eyeDirect * len + m_pCamera->Center();
 
 	m_pCamera->SetLookAt(newEye, m_pCamera->Center(), m_pCamera->Up());
 }
@@ -52,9 +53,10 @@ void CameraController::Rotate(const vec2& move)
 
 void CameraController::Translate(const vec2& move)
 {
-	vec3 xDir = m_pCamera->XDirection() * move.x;
-	vec3 yDir = m_pCamera->YDirection() * move.y;
-	vec3 eye = m_pCamera->Eye() + xDir + yDir;
-	vec3 center = m_pCamera->Center() + xDir + yDir;
+	Vector3 xDir = m_pCamera->XDirection() * move.x;
+	Vector3 yDir = m_pCamera->YDirection() * move.y;
+	Vector3 eye = m_pCamera->Eye() + xDir + yDir;
+	Vector3 center = m_pCamera->Center() + xDir + yDir;
 	m_pCamera->SetLookAt(eye, center, m_pCamera->Up());
+}
 }

@@ -1,5 +1,6 @@
 #ifndef GLTF_LOADER_H
 #define GLTF_LOADER_H
+#include "GLTFStruct.h"
 class RenderNode;
 namespace Microsoft
 {
@@ -11,12 +12,16 @@ namespace Microsoft
 		class GLTFResourceReader;
 	}
 }
+
+namespace KI
+{
+
 class GLTFDocument
 {
 public:
 	GLTFDocument();
 	~GLTFDocument();
-	const Microsoft::glTF::Document& GetDocument();
+	const Microsoft::glTF::Document& GetDocument() const;
 	void SetDocument(Microsoft::glTF::Document&& document);
 private:
 	class Impl;
@@ -31,8 +36,12 @@ public:
 
 	static RenderNode* Load(const String& name);
 private:
-
+	static Vector<GLTFMaterial> LoadMaterial(const Microsoft::glTF::Document* pDocument, const Vector<Shared<Texture>>& textures);
+	static Vector<GLTFMesh> LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument);
+	static Vector<Shared<Texture>> LoadTexture(const String& directory, const Microsoft::glTF::Document* pDocument);
 };
+}
+
 
 #endif GLTF_LOADER_H
 

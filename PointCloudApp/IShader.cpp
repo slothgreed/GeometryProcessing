@@ -1,7 +1,12 @@
 #include "IShader.h"
 #include "ShaderUtility.h"
 #include "Texture.h"
-
+namespace KI
+{
+IShader::~IShader()
+{
+	Delete();
+}
 void IShader::Use()
 {
 	assert(m_programId != 0);
@@ -16,10 +21,11 @@ void IShader::UnUse()
 }
 void IShader::Delete()
 {
-	if (m_programId != 0) {
-		glDeleteProgram(m_programId);
-		m_programId = 0;
+	if (m_programId == 0) {
+		return;
 	}
+	glDeleteProgram(m_programId);
+	m_programId = 0;
 }
 
 GLuint IShader::BuildVertexFrag(const String& vert, const String& frag)
@@ -34,15 +40,20 @@ GLuint IShader::BuildVertexFrag(const String& vert, const String& frag)
 	return programId;
 }
 
-void IShadingShader::SetVertexAttribute(int location, GLBuffer* pBuffer)
-{
-	glEnableVertexAttribArray(location);
-	glVertexAttribFormat(location, pBuffer->ComponentSize(), pBuffer->DataType(), GL_FALSE, 0);
-	OUTPUT_GLERROR;
 
-	glBindVertexBuffer(location, pBuffer->Handle(), 0, pBuffer->SizeOfData());
-	OUTPUT_GLERROR;
+void IShadingShader::SetVertexFormat(const VertexFormats& formats)
+{
+	for (const auto& format : formats) {
+		SetVertexFormat(format);
+	}
 }
+
+void IShadingShader::SetVertexFormat(const VertexFormat& format)
+{
+	glEnableVertexAttribArray(format.location);
+	glVertexAttribFormat(format.location, format.componentSize, format.type, format.normalized, format.offset);
+}
+
 void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
@@ -127,12 +138,20 @@ void TextureShader::BindTexture(const Texture& texture)
 void TextureShader::SetPosition(GLBuffer* pPosition)
 {
 	static const int ATTRIBUTE_POSITION = 0;
-	SetVertexAttribute(ATTRIBUTE_POSITION, pPosition);
+	SetVertexFormat(VertexFormat(ATTRIBUTE_POSITION, pPosition));
+
+	glBindVertexBuffer(ATTRIBUTE_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	OUTPUT_GLERROR;
 }
 
 void TextureShader::SetTexture(GLBuffer* pTexture)
 {
 	static const int ATTRIBUTE_TEXCOORD = 1;
-	SetVertexAttribute(ATTRIBUTE_TEXCOORD, pTexture);
+	SetVertexFormat(VertexFormat(ATTRIBUTE_TEXCOORD, pTexture));
+
+	glBindVertexBuffer(ATTRIBUTE_TEXCOORD, pTexture->Handle(), 0, pTexture->SizeOfData());
+	OUTPUT_GLERROR;
+
+}
 
 }

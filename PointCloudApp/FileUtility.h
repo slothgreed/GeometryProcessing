@@ -22,7 +22,7 @@ public:
 	static bool Load(const String& filePath, String& contents);
 	static bool Load(const String& filePath, Vector<String>& contents);
 	static String GetExtension(const String& filePath);
-	static void GetDirectoryPath(const String& filePath, String& directoryPath);
+	static String GetDirectoryPath(const String& filePath);
 	static bool CheckExtension(const String& filePath, const String& ext);
 	static Vector<String> Split(const String& str, char del);
 
@@ -56,7 +56,7 @@ public:
 	int ReadInt();
 	float ReadFloat();
 	vec2 ReadVec2();
-	vec3 ReadVec3();
+	Vector3 ReadVec3();
 	vec4 ReadVec4();
 	bool EndOfFile();
 	void Close();

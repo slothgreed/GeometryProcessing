@@ -45,6 +45,9 @@
     <Filter Include="ソース ファイル\Utility\Loader">
       <UniqueIdentifier>{6c51319b-7d8d-426f-ad4c-fc7090e6f624}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Utility\GLTF">
+      <UniqueIdentifier>{d0dd84a3-36d7-42b5-adf4-dc124e8949ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -134,9 +137,6 @@
     <ClCompile Include="ShaderTable.cpp">
       <Filter>ソース ファイル\GL\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="VertexColorShader.cpp">
-      <Filter>ソース ファイル\GL\Shader</Filter>
-    </ClCompile>
     <ClCompile Include="KDTreeNanoFlann.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
@@ -180,7 +180,16 @@
       <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClCompile>
     <ClCompile Include="GLTFLoader.cpp">
-      <Filter>ソース ファイル\Utility\Loader</Filter>
+      <Filter>ソース ファイル\Utility\GLTF</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTFStruct.cpp">
+      <Filter>ソース ファイル\Utility\GLTF</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTFShader.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="GLUtility.cpp">
+      <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -283,9 +292,6 @@
     <ClInclude Include="RenderResource.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="VertexColorShader.h">
-      <Filter>ソース ファイル\GL\Shader</Filter>
-    </ClInclude>
     <ClInclude Include="KDTreeNanoFlann.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
@@ -335,7 +341,16 @@
       <Filter>ソース ファイル\Utility\Loader</Filter>
     </ClInclude>
     <ClInclude Include="GLTFLoader.h">
-      <Filter>ソース ファイル\Utility\Loader</Filter>
+      <Filter>ソース ファイル\Utility\GLTF</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFStruct.h">
+      <Filter>ソース ファイル\Utility\GLTF</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFShader.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="GLUtility.h">
+      <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,8 @@
 #include "RenderNode.h"
 #include "PointCloudApp.h"
+namespace KI
+{
+
 RenderResource* RenderNode::GetResource()
 {
 	return GLFWApp::Application()->GetResource();
@@ -12,11 +15,12 @@ void RenderNode::ShowUIData()
 		data.second->ShowUI();
 	}
 }
-void RenderNode::Draw(const mat4x4& proj, const mat4x4& view)
+void RenderNode::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 {
 	DrawData(proj, view);
 
 	for (auto& data : m_child) {
 		data.second->Draw(proj, view);
 	}
+}
 }

@@ -1,5 +1,7 @@
 #ifndef POINT_CLOUD_IO
 #define POINT_CLOUD_IO
+namespace KI
+{
 class PointCloud;
 class PointCloudIO
 {
@@ -19,5 +21,5 @@ private:
 	static void LoadPCD(PointCloud* pPointCloud, const String& name);
 };
 
-
+}
 #endif POINT_CLOUD_IO

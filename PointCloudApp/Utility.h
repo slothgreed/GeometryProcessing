@@ -1,6 +1,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
-
+namespace KI
+{
 class Random
 {
 public:
@@ -8,8 +9,8 @@ public:
 	~Random() {};
 
 	static int Int(float min, float max);
-	static vec3 Vec3(float min, float max);
-	static vec3 Vec3(const vec3& min, const vec3& max);
+	static Vector3 Vec3(float min, float max);
+	static Vector3 Vec3(const Vector3& min, const Vector3& max);
 
 private:
 
@@ -21,7 +22,7 @@ public:
 	Printf() {};
 	~Printf() {};
 
-	static void Vec3(const String& name, const vec3& value, bool newLine = true);
+	static void Vec3(const String& name, const Vector3& value, bool newLine = true);
 
 private:
 
@@ -34,12 +35,12 @@ public:
 	ColorUtility() {};
 	~ColorUtility() {};
 
-	static vec3 CreateRandom();
-	static vec3 CreatePrimary(int index); // å¥êF
-	static vec3 CreatePseudo(unsigned int value, unsigned int maxValue);
-	static vec3 CreatePseudo(float value, float minValue, float maxValue);
+	static Vector3 CreateRandom();
+	static Vector3 CreatePrimary(int index); // å¥êF
+	static Vector3 CreatePseudo(unsigned int value, unsigned int maxValue);
+	static Vector3 CreatePseudo(float value, float minValue, float maxValue);
 private:
 	static void InitializePseudoColor();
 };
-
+}
 #endif UTILITY_H

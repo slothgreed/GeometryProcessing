@@ -23,8 +23,11 @@
 #include "PrimitiveNode.h"
 #include "TextureLoader.h"
 #include "RenderTextureNode.h"
+#include "GLTFLoader.h"
+#include "GLUtility.h"
 #include <Eigen/Core>
-
+namespace KI
+{
 void PointCloudApp::ResizeEvent(int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -55,8 +58,11 @@ void PointCloudApp::Execute()
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	m_pRoot = std::make_unique<RenderNode>("Root");
 
+	auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf");
+	//auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf");
+	m_pRoot->AddNode(std::shared_ptr<RenderNode>(pGLTF));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
@@ -64,7 +70,7 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
 	
-	//pPointCloud->Multi(glm::rotate(-90.0f, vec3(1, 0, 0)));
+	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
 	//pPointCloud->To2D();
 	//auto pPointCloud = (Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
@@ -75,7 +81,7 @@ void PointCloudApp::Execute()
 	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
 
 
-	Vector<vec3> color(pPointCloud->Position().size(), vec3(1.0f, 1.0f, 1.0f));
+	Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
 	pPointCloud->SetColor(std::move(color));
 	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
 	//kmeans.Execute();
@@ -83,38 +89,42 @@ void PointCloudApp::Execute()
 	BDB bdb;
 	bdb.Apply(pPointCloud->GetBDB());
 
-	m_pRoot = std::make_unique<RenderNode>("Root");
 
 	Shared<Primitive> pAxis = std::make_shared<Axis>();
-	m_pRoot->SetNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
-	m_pRoot->SetNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 	m_pCamera->FitToBDB(bdb);
 	
 	
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);	// GLenum mode
 	//glPointSize(5.0f);
 	glLineWidth(5.0f);
-	Profile profiler;
+	CPUProfiler cpuProfiler;
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	ImGui_ImplOpenGL3_Init("#version 400 core");
+
+	GPUProfiler render = GPUProfiler("Render");
 
 	//GLuint VertexArrayID;
 	//glGenVertexArrays(1, &VertexArrayID);
 	//glBindVertexArray(VertexArrayID);
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
-		profiler.Start();
+		cpuProfiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		render.Start();
 		m_pRoot->Draw(m_pCamera->Projection(), m_pCamera->ViewMatrix());
+		render.Stop();
 
-		profiler.Stop();
-		//profiler.Output();
+		cpuProfiler.Stop();
+		cpuProfiler.Output();
 
 		//ImGui_ImplOpenGL3_NewFrame();
 		//ImGui_ImplGlfw_NewFrame();
@@ -141,4 +151,5 @@ void PointCloudApp::Finalize()
 {
 	m_pRoot.reset();
 	glfwTerminate();
+}
 }

@@ -1,17 +1,19 @@
 #include "Primitives.h"
-Cube::Cube(const vec3& min, const vec3& max)
+namespace KI
+{
+Cube::Cube(const Vector3& min, const Vector3& max)
 	:m_min(min), m_max(max)
 {
 	m_position.resize(8);
 	m_position[0] = (m_min);
-	m_position[1] = (vec3(m_max.x, m_min.y, m_min.z));
-	m_position[2] = (vec3(m_max.x, m_max.y, m_min.z));
-	m_position[3] = (vec3(m_min.x, m_max.y, m_min.z));
+	m_position[1] = (Vector3(m_max.x, m_min.y, m_min.z));
+	m_position[2] = (Vector3(m_max.x, m_max.y, m_min.z));
+	m_position[3] = (Vector3(m_min.x, m_max.y, m_min.z));
 
-	m_position[4] = (vec3(m_min.x, m_min.y, m_max.z));
-	m_position[5] = (vec3(m_max.x, m_min.y, m_max.z));
+	m_position[4] = (Vector3(m_min.x, m_min.y, m_max.z));
+	m_position[5] = (Vector3(m_max.x, m_min.y, m_max.z));
 	m_position[6] = (m_max);
-	m_position[7] = (vec3(m_min.x, m_max.y, m_max.z));
+	m_position[7] = (Vector3(m_min.x, m_max.y, m_max.z));
 
 	m_index.resize(36);
 	AddIndex(0, 0, 3, 2, 1);
@@ -38,8 +40,8 @@ Cone::Cone(float _radius, float _height, int _partition)
 	, height(_height)
 	, partition(_partition)
 {
-	m_position.push_back(vec3(0, height, 0));
-	m_position.push_back(vec3(0, 0, 0));
+	m_position.push_back(Vector3(0, height, 0));
+	m_position.push_back(Vector3(0, 0, 0));
 
 	float rad = 2 * pi<float>() / partition;
 	float theta = 0;
@@ -48,7 +50,7 @@ Cone::Cone(float _radius, float _height, int _partition)
 	for (int i = 0; i <= partition; i++)
 	{
 		float x = -(i * rad);
-		m_position.push_back(vec3(
+		m_position.push_back(Vector3(
 			radius * sin(y) * cos(x),
 			radius * cos(y),
 			radius * sin(y) * sin(x)
@@ -90,8 +92,8 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 	, height(_height)
 	, slices(_slices)
 {
-	m_position.push_back(vec3(0, 0, 0));
-	m_position.push_back(vec3(0, height, 0));
+	m_position.push_back(Vector3(0, 0, 0));
+	m_position.push_back(Vector3(0, height, 0));
 
 	float sliceStep = 2 * glm::pi<float>() / slices;
 	float angle = 0;
@@ -103,12 +105,12 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 		float xPos = cosAngle * baseRad;
 		float yPos = 0;
 		float zPos = sinAngle * baseRad;
-		m_position.push_back(vec3(xPos, yPos, zPos));
+		m_position.push_back(Vector3(xPos, yPos, zPos));
 
 		xPos = cosAngle * topRad;
 		yPos = height;
 		zPos = sinAngle * topRad;
-		m_position.push_back(vec3(xPos, yPos, zPos));
+		m_position.push_back(Vector3(xPos, yPos, zPos));
 	}
 
 	// íÍñ í∏ì_ => è„ñ í∏ì_ÇÃèáÇ≈çÏê¨
@@ -178,12 +180,12 @@ Sphere::Sphere(float _radius, int _slices, int _stacks) :
 		for (int j = 0; j <= slices; j++)
 		{
 			float sectorAngle = j * sliceStep;
-			m_position.push_back(vec3(
+			m_position.push_back(Vector3(
 				xy * cosf(sectorAngle),
 				xy * sinf(sectorAngle),
 				radius * sinf(stackAngle)));
 
-			m_normal.push_back(vec3(
+			m_normal.push_back(Vector3(
 				m_position[m_position.size() - 1].x * lengthInvert,
 				m_position[m_position.size() - 1].y * lengthInvert,
 				m_position[m_position.size() - 1].z * lengthInvert));
@@ -239,11 +241,11 @@ Torus::Torus(float _inRad, float _outRad, int _nsides, int _rings)
 			float tx = (rr * inRad + outRad) * (float)cos(tr);
 			float ty = ry * inRad;
 			float tz = (rr * inRad + outRad) * (float)sin(tr);
-			m_position.push_back(vec3(tx, ty, tz));
+			m_position.push_back(Vector3(tx, ty, tz));
 
 			float rx = rr * (float)cos(tr);
 			float rz = rr * (float)sin(tr);
-			m_normal.push_back(vec3(rx, ry, rz));
+			m_normal.push_back(Vector3(rx, ry, rz));
 
 			if (i != nsides && j != rings) {
 				int index = (rings + 1) * i + j;
@@ -272,12 +274,12 @@ Triangle::~Triangle()
 
 void Triangle::Build()
 {
-	m_position.push_back(glm::vec3(-0.5, -0.5, 0.0));
-	m_position.push_back(glm::vec3(0.5, -0.5, 0.0));
-	m_position.push_back(glm::vec3(0.25, 0.5, 0.0));
-	m_normal.push_back(glm::vec3(0.0, 0.0, 1.0));
-	m_normal.push_back(glm::vec3(0.0, 0.0, 1.0));
-	m_normal.push_back(glm::vec3(0.0, 0.0, 1.0));
+	m_position.push_back(Vector3(-0.5, -0.5, 0.0));
+	m_position.push_back(Vector3(0.5, -0.5, 0.0));
+	m_position.push_back(Vector3(0.25, 0.5, 0.0));
+	m_normal.push_back(Vector3(0.0, 0.0, 1.0));
+	m_normal.push_back(Vector3(0.0, 0.0, 1.0));
+	m_normal.push_back(Vector3(0.0, 0.0, 1.0));
 	m_index.push_back(0);
 	m_index.push_back(1);
 	m_index.push_back(2);
@@ -295,24 +297,24 @@ Axis::~Axis()
 
 void Axis::Build()
 {
-	m_position.push_back(glm::vec3(0.0, 0.0, 0.0));
-	m_position.push_back(glm::vec3(100.0, 0.0, 0.0));
+	m_position.push_back(Vector3(0.0, 0.0, 0.0));
+	m_position.push_back(Vector3(100.0, 0.0, 0.0));
 
-	m_position.push_back(glm::vec3(0.0, 0.0, 0.0));
-	m_position.push_back(glm::vec3(0.0, 100.0, 0.0));
+	m_position.push_back(Vector3(0.0, 0.0, 0.0));
+	m_position.push_back(Vector3(0.0, 100.0, 0.0));
 
-	m_position.push_back(glm::vec3(0.0, 0.0, 0.0));
-	m_position.push_back(glm::vec3(0.0, 0.0, 100.0));
+	m_position.push_back(Vector3(0.0, 0.0, 0.0));
+	m_position.push_back(Vector3(0.0, 0.0, 100.0));
 
 
-	m_color.push_back(glm::vec3(1.0, 0.0, 0.0));
-	m_color.push_back(glm::vec3(1.0, 0.0, 0.0));
+	m_color.push_back(Vector3(1.0, 0.0, 0.0));
+	m_color.push_back(Vector3(1.0, 0.0, 0.0));
 
-	m_color.push_back(glm::vec3(0.0, 1.0, 0.0));
-	m_color.push_back(glm::vec3(0.0, 1.0, 0.0));
+	m_color.push_back(Vector3(0.0, 1.0, 0.0));
+	m_color.push_back(Vector3(0.0, 1.0, 0.0));
 
-	m_color.push_back(glm::vec3(0.0, 0.0, 1.0));
-	m_color.push_back(glm::vec3(0.0, 0.0, 1.0));
+	m_color.push_back(Vector3(0.0, 0.0, 1.0));
+	m_color.push_back(Vector3(0.0, 0.0, 1.0));
 
 	m_index.push_back(0); m_index.push_back(1);
 	m_index.push_back(2); m_index.push_back(3);
@@ -321,7 +323,7 @@ void Axis::Build()
 	m_primitiveType = GL_LINES;
 }
 
-Circle::Circle(float radius, const vec3& center)
+Circle::Circle(float radius, const Vector3& center)
 {
 	Build(radius, center);
 }
@@ -330,17 +332,17 @@ Circle::~Circle()
 {
 }
 
-void Circle::Build(float radius, const vec3& center)
+void Circle::Build(float radius, const Vector3& center)
 {
 	for (int i = 0; i < 360; i++) {
 		auto angle0 = (i / (float)360) * 3.14159f * 2.0f;
 		auto angle1 = ((i + 1) / (float)360) * 3.14159f * 2.0f;
-		m_position.push_back(vec3(
+		m_position.push_back(Vector3(
 			radius * cosf(angle0),
 			radius * sinf(angle0),
 			0.0f) + center);
 
-		m_position.push_back(vec3(
+		m_position.push_back(Vector3(
 			radius * cosf(angle1),
 			radius * sinf(angle1),
 			0.0f) + center);
@@ -357,10 +359,10 @@ RenderPlane::RenderPlane()
 void RenderPlane::Build()
 {
 	m_position.resize(4);
-	m_position[0] = vec3(-1.0, -1.0, 0.0);
-	m_position[1] = vec3(1.0, -1.0, 0.0);
-	m_position[2] = vec3(1.0, 1.0, 0.0);
-	m_position[3] = vec3(-1.0, 1.0, 0.0);
+	m_position[0] = Vector3(-1.0, -1.0, 0.0);
+	m_position[1] = Vector3(1.0, -1.0, 0.0);
+	m_position[2] = Vector3(1.0, 1.0, 0.0);
+	m_position[3] = Vector3(-1.0, 1.0, 0.0);
 
 	m_texcoord.resize(4);
 	m_texcoord[0] = vec2(0, 1.0);
@@ -373,4 +375,5 @@ void RenderPlane::Build()
 	m_index[3] = 0;	m_index[4] = 2;	m_index[5] = 3;
 
 	m_primitiveType = GL_TRIANGLES;
+}
 }

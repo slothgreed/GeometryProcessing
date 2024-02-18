@@ -1,5 +1,8 @@
 #include "Texture.h"
 
+namespace KI
+{
+
 Texture::Texture()
 {
 
@@ -74,4 +77,5 @@ void Texture2D::Build(int width, int height, unsigned char* data)
 	m_size.y = height;
 	OUTPUT_GLERROR;
 
+}
 }

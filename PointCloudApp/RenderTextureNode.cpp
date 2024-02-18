@@ -1,4 +1,7 @@
 #include "RenderTextureNode.h"
+namespace KI
+{
+
 RenderTextureNode::RenderTextureNode(const String& name, const Shared<Texture>& pTexture)
 	:RenderNode(name)
 	,m_pTexture(pTexture)
@@ -6,7 +9,7 @@ RenderTextureNode::RenderTextureNode(const String& name, const Shared<Texture>& 
 }
 
 
-void RenderTextureNode::DrawData(const mat4x4& proj, const mat4x4& view)
+void RenderTextureNode::DrawData(const Matrix4x4& proj, const Matrix4x4& view)
 {
 	glEnable(GL_TEXTURE_2D);
 
@@ -40,4 +43,5 @@ void RenderTextureNode::BuildGLBuffer()
 }
 void RenderTextureNode::UpdateRenderData()
 {
+}
 }

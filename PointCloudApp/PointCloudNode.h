@@ -1,8 +1,10 @@
 #ifndef POINT_CLOUD_NODE_H
 #define POINT_CLOUD_NODE_H
-#include "VertexColorShader.h"
 #include "RenderNode.h"
+#include "SimpleShader.h"
 #include "IAlgorithm.h"
+namespace KI
+{
 
 class PointCloud;
 class PointCloudNode : public RenderNode
@@ -13,9 +15,9 @@ public:
 
 	const Shared<PointCloud>& GetData() const;
 	void UpdateData();
-	void DrawData(const mat4x4& proj, const mat4x4& view);
+	void DrawData(const Matrix4x4& proj, const Matrix4x4& view);
 	virtual void ShowUI();
-	const Vector<vec3>& GetNormal();
+	const Vector<Vector3>& GetNormal();
 	const Vector<int>& GetNeighbor(int index);
 private:
 	void ComputeNormal();
@@ -24,17 +26,17 @@ private:
 	void ComputeTangent();
 	void BuildGLBuffer();
 	void UpdateRenderData();
-	Vector<vec3> m_normal;
-	Vector<vec3> m_tangentX;
-	Vector<vec3> m_tangentY;
+	Vector<Vector3> m_normal;
+	Vector<Vector3> m_tangentX;
+	Vector<Vector3> m_tangentY;
 	std::unordered_map<ALGORITHM_TYPE, IAlgorithm*> m_algorithm;
 	Shared<VertexColorShader> m_pShader;
 	Shared<PointCloud> m_pPointCloud;
 	Vector<Vector<int>> m_neighbor;
-	std::unique_ptr<GLBuffer> m_pPositionBuffer;
-	std::unique_ptr<GLBuffer> m_pColorBuffer;
+	Unique<GLBuffer> m_pPositionBuffer;
+	Unique<GLBuffer> m_pColorBuffer;
 };
 
-
+}
 
 #endif POINT_CLOUD_NODE_H

@@ -1,6 +1,8 @@
 #include "ShaderTable.h"
 #include "SimpleShader.h"
-#include "VertexColorShader.h"
+namespace KI
+{
+
 void ShaderTable::Build()
 {
 	m_pTable.push_back(std::make_shared<SimpleShader>());
@@ -15,4 +17,5 @@ void ShaderTable::Build()
 Shared<IShadingShader> ShaderTable::Get(IShadingShader::Type type)
 {
 	return m_pTable[(int)type];
+}
 }

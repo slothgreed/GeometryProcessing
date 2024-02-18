@@ -1,5 +1,8 @@
 #include "ComputeShaderSample.h"
 #include "Texture.h"
+namespace KI
+{
+
 SimpleComputeShader::SimpleComputeShader()
 {
 	m_elementSize = 0;
@@ -8,7 +11,6 @@ SimpleComputeShader::SimpleComputeShader()
 
 SimpleComputeShader::~SimpleComputeShader()
 {
-	Delete();
 }
 
 String SimpleComputeShader::GetComputePath()
@@ -59,4 +61,5 @@ void CreateTextureComputeShader::Execute(const Shared<Texture>& pTexture)
 void CreateTextureComputeShader::GetUniformLocation()
 {
 
+}
 }

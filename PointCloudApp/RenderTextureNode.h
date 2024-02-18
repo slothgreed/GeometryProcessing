@@ -4,13 +4,16 @@
 #include "IShader.h"
 #include "Primitives.h"
 #include "Texture.h"
+namespace KI
+{
+
 class RenderTextureNode : public RenderNode
 {
 public:
 	RenderTextureNode(const String& name, const Shared<Texture>& pTexture);
 	~RenderTextureNode() {};
 
-	void DrawData(const mat4x4& proj, const mat4x4& view);
+	void DrawData(const Matrix4x4& proj, const Matrix4x4& view);
 
 private:
 	void BuildGLBuffer();
@@ -18,9 +21,11 @@ private:
 	Shared<TextureShader> m_pShader;
 	Shared<Texture> m_pTexture;
 	RenderPlane m_pPrimitive;
-	std::unique_ptr<GLBuffer> m_pPositionBuffer;
-	std::unique_ptr<GLBuffer> m_pTexcoordBuffer;
-	std::unique_ptr<GLBuffer> m_pIndexBuffer;
+	Unique<GLBuffer> m_pPositionBuffer;
+	Unique<GLBuffer> m_pTexcoordBuffer;
+	Unique<GLBuffer> m_pIndexBuffer;
 };
+
+}
 
 #endif RENDER_TEXTURE_NODE_H

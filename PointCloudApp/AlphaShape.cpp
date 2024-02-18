@@ -4,6 +4,8 @@
 #include "PointCloud.h"
 #include "Utility.h"
 #include "glm/gtx/norm.hpp"
+namespace KI
+{
 AlphaShape2D::AlphaShape2D(PointCloudNode* pPointCloud)
 	:m_pPointCloud(pPointCloud)
     ,m_alpha(1.0f)
@@ -32,7 +34,7 @@ void AlphaShape2D::Execute()
             alphaDist *= alphaDist;
             alphaDist = std::sqrtf(alpha_2 - alphaDist);
 
-            vec3 diff = vec3(alphaDist * (points[i].y - points[j].y) / dist, alphaDist * (points[j].x - points[i].x) / dist, 0.0f);
+            Vector3 diff = Vector3(alphaDist * (points[i].y - points[j].y) / dist, alphaDist * (points[j].x - points[i].x) / dist, 0.0f);
             auto mid = (points[i] + points[j]) * 0.5f;
             auto center1 = mid + diff;
             auto center2 = mid - diff;
@@ -59,7 +61,7 @@ void AlphaShape2D::ShowUI()
     if (ImGui::SliderFloat("Alpha", &m_ui.alpha, 0.0f, 80.0f, "%lf")) {
         Execute(); 
         auto pPoint = std::make_shared<Primitive>();
-        Vector<vec3> pos(m_edges.size() * 2);
+        Vector<Vector3> pos(m_edges.size() * 2);
         int i = 0;
         for (const auto& edge : m_edges) {
             pos[i++] = edge.begin;
@@ -67,6 +69,7 @@ void AlphaShape2D::ShowUI()
         }
         pPoint->SetPosition(std::move(pos));
         pPoint->SetType(GL_LINES);
-        m_pPointCloud->SetNode(std::make_shared<PrimitiveNode>("AlphaLine", pPoint, ColorUtility::CreatePrimary(4)));
+        m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("AlphaLine", pPoint, ColorUtility::CreatePrimary(4)));
     }
+}
 }

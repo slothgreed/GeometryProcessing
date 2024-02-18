@@ -1,5 +1,7 @@
 #ifndef TEXTURE_LOADER_H
 #define TEXTURE_LOADER_H
+namespace KI
+{
 class Texture;
 class TextureLoader
 {
@@ -11,6 +13,6 @@ public:
 private:
 
 };
-
+}
 #endif TEXTURE_LOADER_H
 

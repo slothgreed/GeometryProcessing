@@ -1,5 +1,8 @@
 #include "Mouse.h"
 #include "MouseInput.h"
+namespace KI
+{
+
 Mouse::Mouse()
 {
 }
@@ -35,4 +38,5 @@ void Mouse::ApplyMouseInput(const MouseInput& input)
 	}
 
 	m_delta = m_current - m_before;
+}
 }

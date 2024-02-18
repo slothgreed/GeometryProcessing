@@ -1,4 +1,6 @@
 #include "pch.h"
+namespace KI
+{
 
 void getError()
 {
@@ -9,4 +11,6 @@ void getError()
 		assert(0);
 	}
 #endif
+}
+
 }

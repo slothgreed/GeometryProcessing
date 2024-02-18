@@ -1,6 +1,9 @@
 #ifndef MOUSE_H
 #define MOUSE_H
 
+namespace KI
+{
+
 class MouseInput;
 class Mouse
 {
@@ -25,4 +28,6 @@ private:
 	MY_MOUSE_BUTTON m_press;
 	int m_wheel;
 };
+}
+
 #endif MOUSE_H

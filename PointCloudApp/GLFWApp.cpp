@@ -1,6 +1,9 @@
 #include <iostream>
 #include "GLFWApp.h"
 #include "MouseInput.h"
+namespace KI
+{
+
 GLFWApp* g_instance;
 
 GLFWApp* GLFWApp::Application()
@@ -110,7 +113,7 @@ void GLFWApp::Initialize()
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();
 	m_pCamera->SetPerspective(45, 1, 0.1, 10000);
-	m_pCamera->SetLookAt(vec3(0, 0, -1), vec3(0, 0, 0), vec3(0, 1, 0));
+	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
 
 }
@@ -124,4 +127,5 @@ void GLFWApp::Finalize()
 {
 	g_instance = NULL;
 	glfwTerminate();
+}
 }

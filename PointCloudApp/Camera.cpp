@@ -1,10 +1,12 @@
 #include "Camera.h"
+namespace KI
+{
 Camera::Camera()
 {
 	m_theta = 0;
 	m_phi = 0;
 }
-void Camera::SetLookAt(const vec3& eye, const vec3& center, const vec3& up)
+void Camera::SetLookAt(const Vector3& eye, const Vector3& center, const Vector3& up)
 {
 	m_View = glm::lookAt(eye, center, up);
 	m_eye = eye;
@@ -14,23 +16,23 @@ void Camera::SetLookAt(const vec3& eye, const vec3& center, const vec3& up)
 	m_distance = glm::length(m_eye - m_center);
 }
 
-void Camera::SetProject(mat4x4 proj)
+void Camera::SetProject(Matrix4x4 proj)
 {
 	m_Project = proj;
 }
 
-vec3 Camera::XDirection()
+Vector3 Camera::XDirection()
 {
-	return vec3(m_View[0].x, m_View[1].x, m_View[2].x);
+	return Vector3(m_View[0].x, m_View[1].x, m_View[2].x);
 }
 
-vec3 Camera::YDirection()
+Vector3 Camera::YDirection()
 {
-	return vec3(m_View[0].y, m_View[1].y, m_View[2].y);
+	return Vector3(m_View[0].y, m_View[1].y, m_View[2].y);
 }
-vec3 Camera::ZDirection()
+Vector3 Camera::ZDirection()
 {
-	return vec3(m_View[0].z, m_View[1].z, m_View[2].z);
+	return Vector3(m_View[0].z, m_View[1].z, m_View[2].z);
 }
 void Camera::SetPerspective(float fov, float aspect, float _near, float _far)
 {
@@ -41,7 +43,7 @@ void Camera::SetPerspective(float fov, float aspect, float _near, float _far)
 	m_far = _far;
 }
 
-void Camera::SphericalToCartesian(float radius, float x, float y, vec3& result)
+void Camera::SphericalToCartesian(float radius, float x, float y, Vector3& result)
 {
 	result.x = radius * sin(y) * cos(x);
 	result.y = radius * cos(y);
@@ -53,7 +55,7 @@ void Camera::MoveWithSpherical(const vec2& move)
 	SetTheta(move.x);
 	SetPhi(move.y);
 
-	vec3 sphericalPos;
+	Vector3 sphericalPos;
 	SphericalToCartesian(1.0f, glm::radians(Theta()), glm::radians(Phi()), sphericalPos);
 	sphericalPos = glm::normalize(sphericalPos);
 	sphericalPos *= LookAtDistance();
@@ -98,8 +100,8 @@ void Camera::FitToBDB(const BDB& bdb)
 	float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(m_fov / 2.0);
 	lookAtDistance *= 1.2f / m_aspect;
 
-	vec3 eyeDirection = glm::normalize(Eye() - Center());
-	vec3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
+	Vector3 eyeDirection = glm::normalize(Eye() - Center());
+	Vector3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
 
 	SetLookAt(newPosition, bdb.Center(), Up());
 }
@@ -108,5 +110,5 @@ void Camera::FitToBDB(const BDB& bdb)
 void Camera::SetAspect(float aspect)
 {
 	SetPerspective(m_fov, aspect, m_near, m_far);
-	
+}
 }

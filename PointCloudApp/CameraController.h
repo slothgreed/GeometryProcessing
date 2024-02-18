@@ -3,6 +3,8 @@
 
 #include "Camera.h"
 #include "Mouse.h"
+namespace KI
+{
 class CameraController
 {
 public:
@@ -19,5 +21,5 @@ private:
 	Shared<Camera> m_pCamera;
 
 };
-
+}
 #endif CAMERA_CONTROLLER_H

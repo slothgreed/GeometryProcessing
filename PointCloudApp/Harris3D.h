@@ -1,6 +1,8 @@
 #ifndef HARRIS3D_TREE
 #define HARRIS3D_TREE
 #include "IAlgorithm.h"
+namespace KI
+{
 class PointCloudNode;
 class Harris3D : public IAlgorithm
 {
@@ -17,5 +19,5 @@ private:
 	float m_max;
 	float m_min;
 };
-
+}
 #endif HARRIS3D_TREE

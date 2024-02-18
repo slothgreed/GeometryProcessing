@@ -58,11 +58,11 @@ String FileUtility::GetExtension(const String& filePath)
 	return filePath.substr(index, filePath.size() - index);
 }
 
-void FileUtility::GetDirectoryPath(const String& filePath, String& directoryPath)
+String FileUtility::GetDirectoryPath(const String& filePath)
 {
 	int index = (int)filePath.find_last_of("\\");
 	//directoryPath = filePath.substr(index, filePath.size() - index);
-	directoryPath = filePath.substr(0, index + 1);
+	return filePath.substr(0, index + 1);
 }
 bool FileUtility::CheckExtension(const String& filePath, const String& ext)
 {
@@ -147,7 +147,7 @@ void FileWriter::WriteBinary(void* contents, Format format, bool endl)
 		m_fileStream.write((char*)contents, sizeof(vec2));
 		break;
 	case KI::Format::VEC3:
-		m_fileStream.write((char*)contents, sizeof(vec3));
+		m_fileStream.write((char*)contents, sizeof(Vector3));
 		break;
 	case KI::Format::VEC4:
 		m_fileStream.write((char*)contents, sizeof(vec4));
@@ -231,11 +231,11 @@ vec2 FileReader::ReadVec2()
 	m_fileStream.read((char*)&data, sizeof(vec2));
 	return data;
 }
-vec3 FileReader::ReadVec3()
+Vector3 FileReader::ReadVec3()
 {
 	assert(m_fileStream.is_open());
-	vec3 data;
-	m_fileStream.read((char*)&data, sizeof(vec3));
+	Vector3 data;
+	m_fileStream.read((char*)&data, sizeof(Vector3));
 	return data;
 }
 vec4 FileReader::ReadVec4()

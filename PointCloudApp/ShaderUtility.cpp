@@ -1,6 +1,8 @@
 #include "ShaderUtility.h"
 #include <filesystem>
 #include <fstream>
+namespace KI
+{
 ShaderUtility::ShaderUtility()
 {
 
@@ -30,7 +32,7 @@ GLuint ShaderUtility::Compile(const String& code, GLuint shaderType)
 		GLchar* errorLog = new GLchar[maxLength];
 		glGetShaderInfoLog(id, maxLength, &maxLength, errorLog);
 		assert(0);
-		delete errorLog;
+		delete[] errorLog;
 		errorLog = nullptr;
 	}
 
@@ -104,4 +106,5 @@ GLuint ShaderUtility::LinkCompute(GLuint computeId)
 	OUTPUT_GLERROR;
 
 	return programId;
+}
 }

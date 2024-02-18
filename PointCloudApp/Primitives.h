@@ -1,15 +1,17 @@
 #ifndef PRIMITIVE_H
 #define PRIMITIVE_H
 #include "Primitive.h"
+namespace KI
+{
 class Cube : public Primitive
 {
 public:
-	Cube(const vec3& min, const vec3& max);
+	Cube(const Vector3& min, const Vector3& max);
 	~Cube() {};
 
 private:
-	vec3 m_min;
-	vec3 m_max;
+	Vector3 m_min;
+	Vector3 m_max;
 
 	void AddIndex(int index, int vertex0, int vertex1, int vertex2, int vertex3);
 
@@ -95,11 +97,11 @@ private:
 class Circle : public Primitive
 {
 public:
-	Circle(float radius, const vec3& center);
+	Circle(float radius, const Vector3& center);
 	~Circle();
 
 private:
-	void Build(float radius, const vec3& center);
+	void Build(float radius, const Vector3& center);
 };
 
 class RenderPlane : public Primitive
@@ -111,6 +113,6 @@ public:
 private:
 	void Build();
 };
-
+}
 
 #endif PRIMITIVE_H

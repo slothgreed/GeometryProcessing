@@ -1,4 +1,6 @@
 #include "GLBuffer.h"
+namespace KI
+{
 GLBuffer::GLBuffer()
 	: m_handle(0)
 	, m_memorySize(0)
@@ -31,9 +33,14 @@ void GLBuffer::Create(const Vector<glm::vec2>& value)
 	Create(DATA_FLOAT, value.size(), sizeof(glm::vec2), value.data());
 }
 
-void GLBuffer::Create(const Vector<glm::vec3>& value)
+void GLBuffer::Create(const Vector<Vector3>& value)
 {
-	Create(DATA_FLOAT, value.size(), sizeof(glm::vec3), value.data());
+	Create(DATA_FLOAT, value.size(), sizeof(Vector3), value.data());
+}
+
+void GLBuffer::Create(const Vector<unsigned short>& value)
+{
+	Create(DATA_USHORT, value.size(), sizeof(unsigned short), value.data());
 }
 
 void GLBuffer::Create(const Vector<glm::vec4>& value)
@@ -52,9 +59,9 @@ void GLBuffer::Create(const Vector<float>& value)
 	Create(DATA_FLOAT, value.size(), sizeof(float), value.data());
 }
 
-void GLBuffer::Create(const Vector<mat4x4>& value)
+void GLBuffer::Create(const Vector<Matrix4x4>& value)
 {
-	Create(DATA_FLOAT, value.size(), sizeof(mat4x4), value.data());
+	Create(DATA_FLOAT, value.size(), sizeof(Matrix4x4), value.data());
 }
 
 void GLBuffer::Delete()
@@ -72,10 +79,10 @@ void GLBuffer::BufferSubData(int offset, const Vector<int>& value)
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::BufferSubData(int offset, const Vector<glm::vec3>& value)
+void GLBuffer::BufferSubData(int offset, const Vector<Vector3>& value)
 {
 	assert(m_handle != 0);
-	glNamedBufferSubData(m_handle, offset * sizeof(glm::vec3), value.size() * sizeof(glm::vec3), value.data());
+	glNamedBufferSubData(m_handle, offset * sizeof(Vector3), value.size() * sizeof(Vector3), value.data());
 	OUTPUT_GLERROR;
 }
 
@@ -100,10 +107,10 @@ void GLBuffer::GetBufferData(Vector<float>& value)
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::GetBufferData(Vector<glm::vec3>& value)
+void GLBuffer::GetBufferData(Vector<Vector3>& value)
 {
 	assert(m_handle != 0);
-	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(glm::vec3), value.data());
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(Vector3), value.data());
 	OUTPUT_GLERROR;
 }
 
@@ -125,4 +132,4 @@ int GLBuffer::ComponentSize() const
 		return 0;
 	}
 }
-
+}

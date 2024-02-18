@@ -6,19 +6,22 @@
 #define ATTRIB_COLOR   2
 
 #include "GLBuffer.h"
+namespace KI
+{
+
 class IShader
 {
 public:
 	IShader()
 		: m_programId(0) {};
-	~IShader() {};
+	~IShader();
 
 	virtual void Build() = 0;
 
 	void Use();
 	void UnUse();
 	void Delete();
-	static GLuint BuildVertexFrag(const String& vert, const String& frag);
+	GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 protected:
 	GLuint GetId() const { return m_programId; };
@@ -35,6 +38,7 @@ public:
 		Simple,
 		VertexColor,
 		Texture,
+		GLTF
 	};
 
 	IShadingShader();
@@ -45,10 +49,11 @@ public:
 	virtual String GetVertexPath() = 0;
 	virtual String GetFragmentPath() = 0;
 	virtual void GetUniformLocation() = 0;
-	virtual void SetViewProj(const mat4x4& value) = 0;
-	virtual void SetModel(const mat4x4& value) { assert(0); };
+	virtual void SetViewProj(const Matrix4x4& value) = 0;
+	virtual void SetModel(const Matrix4x4& value) { assert(0); };
 
-	void SetVertexAttribute(int location, GLBuffer* pBuffer);
+	void SetVertexFormat(const VertexFormats& format);
+	void SetVertexFormat(const VertexFormat& format);
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
 private:
@@ -82,13 +87,14 @@ public:
 	virtual void GetUniformLocation();
 	virtual String GetVertexPath();
 	virtual String GetFragmentPath();
-	virtual void SetViewProj(const mat4x4& value) {};
+	virtual void SetViewProj(const Matrix4x4& value) {};
 	void BindTexture(const Texture& texture);
 	void SetPosition(GLBuffer* pPosition);
 	void SetTexture(GLBuffer* pTexture);
 private:
 	GLuint m_uniform;
 };
+}
 
 
 #endif ISHADER_H
