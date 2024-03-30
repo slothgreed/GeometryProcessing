@@ -9,12 +9,13 @@ class GLTFShader : public IShadingShader
 {
 public:
 	GLTFShader() {};
-	~GLTFShader() {};
+	virtual ~GLTFShader() {};
 
 	enum UNIFORM
 	{
 		VIEW_PROJ,
 		MODEL,
+		SSBO_INDEX,
 		COLOR_TEXTURE,
 		NORMAL_TEXTURE,
 		ROUGHNESS_TEXTURE,
@@ -26,18 +27,18 @@ public:
 	virtual String GetFragmentPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
 	void SetIndexBuffer(GLBuffer* pBuffer);
-
-	void BindMaterial(const GLTFMaterial& material);
+	void SetMaterialBuffer(const GLBuffer* pBuffer);
+	void BindBufferIndex(int matrix, int material);
 	virtual void GetUniformLocation();
 	virtual void SetViewProj(const Matrix4x4& value);
 	void SetModel(const Matrix4x4& value);
 	void DrawElement(const GLTFPrimitive& primitive, GLuint dataType);
-
-private:
-	GLuint m_uniform[UNIFORM::NUM];
 	void BindBaseColor(const Texture& texture);
 	void BindNormal(const Texture& texture);
 	void BindRoughness(const Texture& texture);
+
+private:
+	GLuint m_uniform[UNIFORM::NUM];
 };
 
 }

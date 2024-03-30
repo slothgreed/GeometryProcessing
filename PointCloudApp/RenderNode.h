@@ -13,11 +13,14 @@ public:
 	RenderResource* GetResource();
 	virtual void ShowUIData();
 	virtual void Draw(const Matrix4x4& proj, const Matrix4x4& view);
+	virtual void Update(float time);
+
 	void RemoveNode(const String& name) { m_child.erase(name); }
 	void AddNode(const Shared<RenderNode>& pNode) { m_child[pNode->m_name] = pNode; }
 protected:
 	virtual void ShowUI() {};
 	virtual void DrawData(const Matrix4x4& proj, const Matrix4x4& view) {};
+	virtual void UpdateData(float time) {};
 private:
 	String m_name;
 	std::unordered_map<String, Shared<RenderNode>> m_child;

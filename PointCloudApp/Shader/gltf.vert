@@ -6,6 +6,7 @@ layout (location = 3) in vec4 tangent;
 
 uniform mat4 u_VP;
 uniform mat4 u_Model;
+uniform ivec2 u_ssboIndex; // (x,y,z,w) = (matrix,material,Hoge,Hoge);
 
 out vec3 f_normal;
 out vec2 f_texcoord;

@@ -60,16 +60,22 @@ void PointCloudApp::Execute()
 
 	m_pRoot = std::make_unique<RenderNode>("Root");
 
-	auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf");
-	//auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf");
-	m_pRoot->AddNode(std::shared_ptr<RenderNode>(pGLTF));
+	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
+	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
+	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\AnimatedCube\\glTF\\AnimatedCube.gltf")));
+
+	//auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf");
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(pGLTF));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
-	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
-	
+	//Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
+	//pPointCloud->SetColor(std::move(color));
+	//m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
 	//pPointCloud->To2D();
 	//auto pPointCloud = (Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
@@ -81,8 +87,6 @@ void PointCloudApp::Execute()
 	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
 
 
-	Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
-	pPointCloud->SetColor(std::move(color));
 	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
 	//kmeans.Execute();
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
@@ -90,8 +94,7 @@ void PointCloudApp::Execute()
 	bdb.Apply(pPointCloud->GetBDB());
 
 
-	Shared<Primitive> pAxis = std::make_shared<Axis>();
-	m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	Shared<Primitive> pAxis = std::make_shared<Axis>(10);
 	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 	m_pCamera->FitToBDB(bdb);
 	
@@ -103,28 +106,32 @@ void PointCloudApp::Execute()
 	glFrontFace(GL_CCW);	// GLenum mode
 	//glPointSize(5.0f);
 	glLineWidth(5.0f);
-	CPUProfiler cpuProfiler;
+	//CPUProfiler cpuProfiler;
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	ImGui_ImplOpenGL3_Init("#version 400 core");
 
 	GPUProfiler render = GPUProfiler("Render");
-
 	//GLuint VertexArrayID;
 	//glGenVertexArrays(1, &VertexArrayID);
 	//glBindVertexArray(VertexArrayID);
+	Timer timer;
+	float m_diff = 0;
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
-		cpuProfiler.Start();
+		//cpuProfiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		render.Start();
+		timer.Begin();
 		m_pRoot->Draw(m_pCamera->Projection(), m_pCamera->ViewMatrix());
+		m_diff += timer.End();
+		m_pRoot->Update(m_diff);
 		render.Stop();
-
-		cpuProfiler.Stop();
-		cpuProfiler.Output();
+		
+		//cpuProfiler.Stop();
+		//cpuProfiler.Output();
 
 		//ImGui_ImplOpenGL3_NewFrame();
 		//ImGui_ImplGlfw_NewFrame();
@@ -140,7 +147,7 @@ void PointCloudApp::Execute()
 
 		glfwSwapBuffers(m_window);
 
-		glfwWaitEvents();
+		glfwPollEvents();
 		OUTPUT_GLERROR;
 	}
 

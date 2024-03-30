@@ -83,6 +83,34 @@ void GLTFDocument::SetDocument(Microsoft::glTF::Document&& document)
     m_pImpl->SetDocument(std::move(document));
 }
 
+
+Matrix4x4 Convert(const Matrix4& matrix)
+{
+    return Matrix4x4(
+        matrix.values[0], matrix.values[1], matrix.values[2], matrix.values[3],
+        matrix.values[4], matrix.values[5], matrix.values[6], matrix.values[7],
+        matrix.values[8], matrix.values[9], matrix.values[10], matrix.values[11],
+        matrix.values[12], matrix.values[13], matrix.values[14], matrix.values[15]);
+}
+
+int ConvertIndex(const std::string& str)
+{
+    if (str.empty()) { return -1; }
+    return StringToInt(str);
+}
+
+
+std::vector<int> ConvertIndex(const std::vector<std::string>& str)
+{
+    std::vector<int> intValue;
+
+    for (size_t i = 0; i < str.size(); i++) {
+        if (str[i].empty()) { continue; }
+        intValue.push_back(StringToInt(str[i]));
+    }
+
+    return intValue;
+}
 RenderNode* GLTFLoader::Load(const String& name)
 {
     
@@ -98,23 +126,106 @@ RenderNode* GLTFLoader::Load(const String& name)
 
     Document document = Deserialize(manifestStream.str());
 
-    auto meshes = LoadMesh(gltfResourceReader.get(), &document);
+    Vector<MeshBuffer> meshBuffer(1);
+    auto meshes = LoadMesh(gltfResourceReader.get(), &document, meshBuffer[0]);
     auto textures = LoadTexture(dirPath, &document);
     auto materials = LoadMaterial(&document, textures);
+    auto root = LoadNode(&document);
+    auto animation = LoadAnimation(gltfResourceReader.get(), &document);
+    auto pScene = new GLTFScene(name);
 
-    auto pNode = new GLTFScene(name);
-    pNode->SetMesh(std::move(meshes));
-    pNode->SetTexture(std::move(textures));
-    pNode->SetMaterial(std::move(materials));
-    return pNode;
+    pScene->SetNode(std::move(root));
+    pScene->SetRoot(ConvertIndex(document.scenes[0].nodes));
+    pScene->SetMeshBuffer(std::move(meshBuffer));
+    pScene->SetMesh(std::move(meshes));
+    pScene->SetTexture(std::move(textures));
+    pScene->SetMaterial(std::move(materials));
+    pScene->SetAnimation(std::move(animation));
+    return pScene;
 }
 
+Vector<GLTFNode> GLTFLoader::LoadNode(const Microsoft::glTF::Document* pDocument)
+{
+    Vector<GLTFNode> nodes(pDocument->nodes.Size());
+
+    for (size_t i = 0; i < pDocument->nodes.Size(); i++) {
+        nodes[i].SetIndex(ConvertIndex(pDocument->nodes[i].id));
+        nodes[i].SetLocalMatrix(Convert(pDocument->nodes[i].matrix));
+        nodes[i].SetMeshId(ConvertIndex(pDocument->nodes[i].meshId));
+        nodes[i].SetChild(ConvertIndex(pDocument->nodes[i].children));
+    }
+
+    return nodes;
+}
 MESH_TYPE ConvertMeshType(MeshMode mode)
 {
     return MESH_TYPE(mode);
 }
 
-Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument)
+GLTFAnimation::Channel::Path ConvertAnimationPathType(TargetPath path)
+{
+    if (path == TARGET_ROTATION) {
+        return GLTFAnimation::Channel::Path::Rotate;
+    } else if (path == TARGET_SCALE) {
+        return GLTFAnimation::Channel::Path::Scale;
+    } else if (path == TARGET_TRANSLATION) {
+        return GLTFAnimation::Channel::Path::Translate;
+    } else if (path == TARGET_WEIGHTS) {
+        return GLTFAnimation::Channel::Path::Weight;
+    } else {
+        assert(0);
+        return GLTFAnimation::Channel::Path::Translate;
+    }
+}
+
+
+Vector<GLTFAnimation> GLTFLoader::LoadAnimation(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument)
+{
+    Vector<GLTFAnimation> animations(pDocument->animations.Size());
+    for (size_t i = 0; i < pDocument->animations.Size(); i++) {
+        const auto& animation = pDocument->animations.Get(i);
+        Vector<GLTFAnimation::Channel> channels(animation.channels.Size());
+        for (size_t j = 0; j < animation.channels.Size(); j++) {
+            const auto& gltfChannel = animation.channels.Get(j);
+            channels[j].sampler = StringToInt(gltfChannel.samplerId);
+            channels[j].node = StringToInt(gltfChannel.target.nodeId);
+            channels[j].path = ConvertAnimationPathType(gltfChannel.target.path);
+        }
+        Vector<GLTFAnimation::Sampler> samplers(animation.samplers.Size());
+        for (size_t j = 0; j < animation.samplers.Size(); j++) {
+            auto& sampler = samplers[j];
+            const auto& gltfSampler = animation.samplers.Get(j);
+            const auto& inputAccessor = pDocument->accessors.Get(StringToInt(gltfSampler.inputAccessorId));
+            const auto& outputAccessor = pDocument->accessors.Get(StringToInt(gltfSampler.outputAccessorId));
+            const auto& output = pResource->ReadFloatData(*pDocument, outputAccessor);
+            sampler.timer = pResource->ReadFloatData(*pDocument, inputAccessor);
+            if (outputAccessor.type == AccessorType::TYPE_VEC3) {
+                sampler.transform.resize(output.size() / 3);
+                for (size_t k = 0; k < sampler.transform.size(); k++) {
+                    sampler.transform[k].x = output[3 * k];
+                    sampler.transform[k].y = output[3 * k + 1];
+                    sampler.transform[k].z = output[3 * k + 2];
+                    sampler.transform[k].w = 1.0;
+                }
+            } else if(outputAccessor.type == AccessorType::TYPE_VEC4) {
+                sampler.transform.resize(output.size() / 4);
+                for (size_t k = 0; k < sampler.transform.size(); k++) {
+                    sampler.transform[k].x = output[4 * k];
+                    sampler.transform[k].y = output[4 * k + 1];
+                    sampler.transform[k].z = output[4 * k + 2];
+                    sampler.transform[k].w = output[4 * k + 3];
+                }
+            } else {
+                assert(0);
+            }
+        }
+        animations[i].SetChannel(std::move(channels));
+        animations[i].SetSampler(std::move(samplers));
+    }
+
+    return animations;
+}
+Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pMeshBuffer)
 {
     Vector<GLTFMesh> meshes(pDocument->meshes.Size());
 
@@ -129,10 +240,14 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     Vector<unsigned short> indexBuffer;
     Vector<Vertex> vertexBuffer;
     size_t vertexOffset = 0;
+    bool hasPosition = false;
+    bool hasNormal = false;
+    bool hasTexcoord = false;
+    bool hasTangent = false;
+    int drawOffset = 0;
     for (size_t i = 0; i < meshes.size(); i++) {
         const auto& gltfMesh = pDocument->meshes.Get(i);
         Vector<GLTFPrimitive> primitives(gltfMesh.primitives.size());
-        int drawOffset = 0;
         for (size_t j = 0; j < primitives.size(); j++) {
             vertexOffset = vertexBuffer.size();
             const auto& indices = pDocument->accessors.Get(gltfMesh.primitives[j].indicesAccessorId);
@@ -164,9 +279,10 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                 } else {
                     assert(0);
                 }
+                hasPosition = true;
             }
 
-            if (gltfMesh.primitives[j].HasAttribute("POSITION")) {
+            if (gltfMesh.primitives[j].HasAttribute("NORMAL")) {
                 const auto& normal = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("NORMAL")->second);
                 if (normal.componentType == GL_FLOAT &&
                     normal.type == AccessorType::TYPE_VEC3) {
@@ -175,6 +291,8 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                 } else {
                     assert(0);
                 }
+
+                hasNormal = true;
             }
             if (gltfMesh.primitives[j].HasAttribute("TEXCOORD_0")) {
                 const auto& texCoord = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("TEXCOORD_0")->second);
@@ -185,6 +303,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                 } else {
                     assert(0);
                 }
+                hasTexcoord = true;
             }
             if (gltfMesh.primitives[j].HasAttribute("TANGENT")) {
                 const auto& tangent = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("TANGENT")->second);
@@ -195,66 +314,83 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                 } else {
                     assert(0);
                 }
+                hasTangent = true;
             }
         }
-
-        auto pIndexBuffer = std::make_unique<GLBuffer>();
-        pIndexBuffer->Create(indexBuffer);
-
-        auto pVertexBuffer = std::make_unique<GLBuffer>();
-        pVertexBuffer->Create(vertexBuffer.size(), sizeof(Vertex));
-        pVertexBuffer->BufferSubData(0, vertexBuffer.size(), sizeof(Vertex), vertexBuffer.data());
-        VertexFormats formats(4);
-
-        formats[0].name = "POSITION";
-        formats[0].location = 0;
-        formats[0].componentSize = 3;
-        formats[0].type = DATA_FLOAT;
-        formats[0].offset = 0;
-
-
-        formats[1].name = "NORMAL";
-        formats[1].location = 1;
-        formats[1].componentSize = 3;
-        formats[1].type = DATA_FLOAT;
-        formats[1].offset = offsetof(Vertex, normal);
-
-        formats[2].name = "TEXCOORD_0";
-        formats[2].location = 2;
-        formats[2].componentSize = 2;
-        formats[2].type = DATA_FLOAT;
-        formats[2].offset = offsetof(Vertex, texcoord);
-
-        formats[3].name = "TANGENT";
-        formats[3].location = 3;
-        formats[3].componentSize = 4;
-        formats[3].type = DATA_FLOAT;
-        formats[3].offset = offsetof(Vertex, tangent);
-
-        meshes[i].SetVertexFormat(std::move(formats));
-        meshes[i].SetVertexBuffer(std::move(pVertexBuffer));
-        meshes[i].SetIndexBuffer(std::move(pIndexBuffer));
         meshes[i].SetPrimitives(std::move(primitives));
+        meshes[i].SetName(gltfMesh.name);
+        meshes[i].SetMeshBufferIndex(0);
     }
+
+    auto pIndexBuffer = std::make_unique<GLBuffer>();
+    pIndexBuffer->Create(indexBuffer);
+
+    auto pVertexBuffer = std::make_unique<GLBuffer>();
+    pVertexBuffer->Create(vertexBuffer.size(), sizeof(Vertex));
+    pVertexBuffer->BufferSubData(0, vertexBuffer.size(), sizeof(Vertex), vertexBuffer.data());
+
+    VertexFormats formats;
+    if (hasPosition) {
+        VertexFormat format;
+        format.name = "POSITION";
+        format.location = formats.size();
+        format.componentSize = 3;
+        format.type = DATA_FLOAT;
+        format.offset = 0;
+        formats.push_back(format);
+    }
+
+    if (hasNormal) {
+        VertexFormat format;
+        format.name = "NORMAL";
+        format.location = formats.size();
+        format.componentSize = 3;
+        format.type = DATA_FLOAT;
+        format.offset = offsetof(Vertex, normal);
+        formats.push_back(format);
+    }
+
+    if (hasTexcoord) {
+        VertexFormat format;
+        format.name = "TEXCOORD_0";
+        format.location = formats.size();
+        format.componentSize = 2;
+        format.type = DATA_FLOAT;
+        format.offset = offsetof(Vertex, texcoord);
+        formats.push_back(format);
+    }
+
+    if (hasTangent) {
+        VertexFormat format;
+        format.name = "TANGENT";
+        format.location = formats.size();
+        format.componentSize = 4;
+        format.type = DATA_FLOAT;
+        format.offset = offsetof(Vertex, tangent);
+        formats.push_back(format);
+    }
+
+    pMeshBuffer.format = formats;
+    pMeshBuffer.pVertex = std::move(pVertexBuffer);
+    pMeshBuffer.pIndex = std::move(pIndexBuffer);
 
     return meshes;
 }
+
 Vector<GLTFMaterial> GLTFLoader::LoadMaterial(const Microsoft::glTF::Document* pDocument, const Vector<Shared<Texture>>& textures)
 {
     Vector<GLTFMaterial> materials(pDocument->materials.Size());
     for (size_t i = 0; i < pDocument->materials.Size(); i++) {
         const auto& material = pDocument->materials.Get(i);
-        materials[i].pbr.baseColor = Vector4(
+        materials[i].baseColor = Vector4(
             material.metallicRoughness.baseColorFactor.r,
             material.metallicRoughness.baseColorFactor.g,
             material.metallicRoughness.baseColorFactor.b,
             material.metallicRoughness.baseColorFactor.a);
-        materials[i].pbr.metalic = material.metallicRoughness.metallicFactor;
-        if (textures.size() != 0) {
-            materials[i].pbr.baseTexture = textures[StringToInt(material.metallicRoughness.baseColorTexture.textureId)];
-            materials[i].normalTexture = textures[StringToInt(material.normalTexture.textureId)];
-            materials[i].pbr.roughnessTexture = textures[StringToInt(material.metallicRoughness.metallicRoughnessTexture.textureId)];
-        }
+        materials[i].metalic = material.metallicRoughness.metallicFactor;
+        materials[i].baseTexture = ConvertIndex(material.metallicRoughness.baseColorTexture.textureId);
+        materials[i].normalTexture = ConvertIndex(material.normalTexture.textureId);
+        materials[i].roughnessTexture = ConvertIndex(material.metallicRoughness.metallicRoughnessTexture.textureId);
         materials[i].normalScale = material.normalTexture.scale;
     }
 

@@ -36,8 +36,12 @@ public:
 
 	static RenderNode* Load(const String& name);
 private:
+
+
+	static Vector<GLTFAnimation> LoadAnimation(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument);
 	static Vector<GLTFMaterial> LoadMaterial(const Microsoft::glTF::Document* pDocument, const Vector<Shared<Texture>>& textures);
-	static Vector<GLTFMesh> LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument);
+	static Vector<GLTFMesh> LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pBuffer);
+	static Vector<GLTFNode> LoadNode(const Microsoft::glTF::Document* pDocument);
 	static Vector<Shared<Texture>> LoadTexture(const String& directory, const Microsoft::glTF::Document* pDocument);
 };
 }

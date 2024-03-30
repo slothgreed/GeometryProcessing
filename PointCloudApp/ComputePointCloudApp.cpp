@@ -7,6 +7,7 @@
 #include "PointCloud.h"
 #include "PointCloudComputeShader.h"
 #include "MouseInput.h"
+#include "Profiler.h"
 namespace KI
 {
 
@@ -41,20 +42,31 @@ void ComputePointCloudApp::Execute()
 	//auto pPointCloud = Shared<PointCloud>(PointCloudIO::Create2D(1000, vec2(-100, -100), vec2(100, 100)));
 	//auto pPointCloud = Shared<PointCloud>(PointCloudIO::Create2D(100, vec2(-100, -100), vec2(100, 100)));
 	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
-	Vector<Vector3> color(pPointCloud->Position().size(), Vector3(0.0f, 1.0f, 1.0f));
-	//pPointCloud->SetColor(std::move(color));
 	BDB bdb;
 	bdb.Apply(pPointCloud->GetBDB());
 	m_pCamera->FitToBDB(bdb);
 
+	int maxCountX, maxCountY, maxCountZ;
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &maxCountX);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &maxCountY);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &maxCountZ);
+
+	int maxSizeX, maxSizeY, maxSizeZ;
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &maxSizeX);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &maxSizeY);
+	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &maxSizeZ);
+
 	auto pShader = std::make_unique<PointCloudComputeShader>(pPointCloud);
 	pShader->Build();
+	GPUProfiler profiler("Render");
 	auto pNode = std::make_unique<RenderTextureNode>("Test", m_pColorTexture);
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		profiler.Start();
 		pShader->Execute(m_pCamera->Projection(), m_pCamera->ViewMatrix(), m_pColorTexture, nullptr);
 		pNode->Draw(Matrix4x4(), Matrix4x4());
+		profiler.Stop();
 
 		glfwSwapBuffers(m_window);
 

@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <GL/GL.h>
 #include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <algorithm>
 #include <String>
@@ -44,6 +44,8 @@ using Matrix4x4 = glm::mat4x4;
 using Vector2 = glm::vec2;
 using Vector3 = glm::vec3;
 using Vector4 = glm::vec4;
+using Quaternion = glm::quat;
+
 inline int StringToInt(const String& str)
 {
 	return std::atoi(str.data());
@@ -53,6 +55,10 @@ inline String IntToString(int value)
 {
 	return std::to_string(value);
 }
+
+
+
+
 void getError();
 
 #define OUTPUT_GLERROR getError();

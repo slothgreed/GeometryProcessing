@@ -24,7 +24,7 @@ public:
 	GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 protected:
-	GLuint GetId() const { return m_programId; };
+	GLuint Handle() const { return m_programId; };
 	GLuint m_programId;
 };
 

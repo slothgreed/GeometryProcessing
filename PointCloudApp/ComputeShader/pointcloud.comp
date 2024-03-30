@@ -1,6 +1,6 @@
 
 #version 430
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D outImage;
 
 layout(std430, binding = 2) buffer posBuffer
@@ -8,11 +8,20 @@ layout(std430, binding = 2) buffer posBuffer
 	vec4 position[];
 };
 
-layout(std430, binding = 3) buffer colBuffer
-{
-	vec4 color[];
-};
 layout(location = 4) uniform mat4 u_VP;
+
+float packColor(vec3 color) {
+    return color.r + color.g * 256.0 + color.b * 256.0 * 256.0;
+}
+
+vec4 unpackColor(float f) {
+    vec3 color;
+	color.b = floor(f / 256.0 / 256.0);
+    color.g = floor((f - color.b * 256.0 * 256.0) / 256.0);
+    color.r = floor(f - color.b * 256.0 * 256.0 - color.g * 256.0);
+    // now we have a vec3 with the 3 components in range [0..255]. Let's normalize it!
+    return vec4(color / 255.0,1.0);
+}
 
 void main()
 {
@@ -22,21 +31,16 @@ void main()
 		gl_WorkGroupID.x * workGroupSize + 
 		gl_WorkGroupID.y * gl_NumWorkGroups.x * workGroupSize + 
 		gl_LocalInvocationIndex;
-
-
-	vec4 pos = u_VP * position[globalID];
+	
+	vec4 modelPos = position[globalID];
+	vec4 pos = u_VP * vec4(modelPos.xyz,1.0);
 	pos.xyz = pos.xyz / pos.w;
 
-	
-	if(	pos.w <= 0.0 || 
-		pos.x < -1.0 || 
-		pos.x > 1.0 || 
-		pos.y < -1.0 || 
-		pos.y > 1.0){
+	if(pos.w <= 0.0 || pos.x < -1.0 || pos.x > 1.0 || pos.y < -1.0 || pos.y > 1.0){
 		return;
 	}
-	imageStore(
-	outImage, 
-	ivec2((pos.xy * 0.5 + 0.5) * imageSize(outImage)),
-	position[globalID]);
+	
+	ivec2 uImageSize = imageSize(outImage);
+	ivec2 pixelCoords = ivec2((pos.xy * 0.5 + 0.5) * uImageSize);
+	imageStore(outImage, pixelCoords, unpackColor(modelPos.w));
 } 

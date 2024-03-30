@@ -19,7 +19,6 @@ private:
 	void Initialize();
 	Shared<PointCloud> m_pPointCloud;
 	Unique<GLBuffer> m_pPointBuffer;
-	Unique<GLBuffer> m_pColorBuffer;
 	GLuint m_uniformVP;
 };
 }

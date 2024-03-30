@@ -286,25 +286,25 @@ void Triangle::Build()
 	m_primitiveType = GL_TRIANGLES;
 }
 
-Axis::Axis()
+Axis::Axis(float size)
 {
-	Build();
+	Build(size);
 }
 
 Axis::~Axis()
 {
 }
 
-void Axis::Build()
+void Axis::Build(float size)
 {
 	m_position.push_back(Vector3(0.0, 0.0, 0.0));
-	m_position.push_back(Vector3(100.0, 0.0, 0.0));
+	m_position.push_back(Vector3(size, 0.0, 0.0));
 
 	m_position.push_back(Vector3(0.0, 0.0, 0.0));
-	m_position.push_back(Vector3(0.0, 100.0, 0.0));
+	m_position.push_back(Vector3(0.0, size, 0.0));
 
 	m_position.push_back(Vector3(0.0, 0.0, 0.0));
-	m_position.push_back(Vector3(0.0, 0.0, 100.0));
+	m_position.push_back(Vector3(0.0, 0.0, size));
 
 
 	m_color.push_back(Vector3(1.0, 0.0, 0.0));

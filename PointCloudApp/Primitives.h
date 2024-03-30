@@ -87,11 +87,11 @@ private:
 class Axis : public Primitive
 {
 public:
-	Axis();
+	Axis(float size);
 	~Axis();
 
 private:
-	void Build();
+	void Build(float size);
 };
 
 class Circle : public Primitive

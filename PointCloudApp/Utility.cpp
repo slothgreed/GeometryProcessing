@@ -115,4 +115,22 @@ void ColorUtility::InitializePseudoColor()
 		}
 	}
 }
+
+unsigned int ColorUtility::PackColor3f(const Vector3& value)
+{
+	unsigned int color = 0;
+	color |= ((int)(value.x * 255) & 255) << 16;
+	color |= ((int)(value.y * 255) & 255) << 8;
+	color |= ((int)(value.z * 255) & 255);
+	return color;
+}
+Vector3 ColorUtility::UnPackColor3f(unsigned int value)
+{
+	Vector3 color;
+	color.x = (value >> 16) & 255 / 255;
+	color.y = (value >> 8) & 255 / 255;
+	color.z = (value) & 255 / 255;
+	return color;
+}
+
 }

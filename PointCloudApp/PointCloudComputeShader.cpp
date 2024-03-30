@@ -28,11 +28,7 @@ void PointCloudComputeShader::GetUniformLocation()
 void PointCloudComputeShader::Initialize()
 {
 	m_pPointBuffer = std::make_unique<GLBuffer>();
-	m_pPointBuffer->Create(m_pPointCloud->CreatePosition4f());
-
-	m_pColorBuffer = std::make_unique<GLBuffer>();
-	m_pColorBuffer->Create(m_pPointCloud->CreateColor4f());
-
+	m_pPointBuffer->Create(m_pPointCloud->CreatePositionColor4f());
 }
 
 void PointCloudComputeShader::Execute(const Matrix4x4& proj, const Matrix4x4& view, const Shared<Texture2D>& pColorBuffer, const Shared<Texture2D>& pDepthBuffer)
@@ -49,11 +45,10 @@ void PointCloudComputeShader::Execute(const Matrix4x4& proj, const Matrix4x4& vi
 	}
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_pPointBuffer->Handle());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_pColorBuffer->Handle());
 
 	Matrix4x4 vp = proj * view;
 	glUniformMatrix4fv(m_uniformVP, 1, GL_FALSE, &vp[0][0]);
-	glDispatchCompute(m_pPointCloud->Position().size(), 1, 1);
+	glDispatchCompute(m_pPointCloud->Position().size() /1024, 1, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	OUTPUT_GLERROR;
 	UnUse();

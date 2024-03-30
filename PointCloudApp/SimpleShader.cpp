@@ -23,9 +23,9 @@ String SimpleShader::GetFragmentPath()
 }
 void SimpleShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(GetId(), "u_VP");
-	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(GetId(), "u_Model");
-	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(GetId(), "u_Color");
+	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
+	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
+	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
 }
 
 void SimpleShader::SetViewProj(const Matrix4x4& value)
@@ -65,8 +65,8 @@ String VertexColorShader::GetFragmentPath()
 }
 void VertexColorShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(GetId(), "u_VP");
-	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(GetId(), "u_Model");
+	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
+	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
 
 void VertexColorShader::SetViewProj(const Matrix4x4& value)

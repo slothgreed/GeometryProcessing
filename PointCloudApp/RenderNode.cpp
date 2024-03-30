@@ -23,4 +23,13 @@ void RenderNode::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 		data.second->Draw(proj, view);
 	}
 }
+
+void RenderNode::Update(float time)
+{
+	UpdateData(time);
+
+	for (auto& data : m_child) {
+		data.second->Update(time);
+	}
+}
 }

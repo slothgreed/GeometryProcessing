@@ -1,6 +1,7 @@
 #ifndef PROFILE_H
 #define PROFILE_H
 #include <windows.h>
+#include <chrono>
 
 namespace KI
 {
@@ -31,6 +32,19 @@ public:
 private:
 	String m_name;
 	GLuint m_handle;
+};
+
+class Timer
+{
+public:
+	Timer() :m_diff(0.0f) {}
+	~Timer() {}
+
+	void Begin();
+	float End();
+private:
+	std::chrono::steady_clock::time_point m_begin;
+	float m_diff;
 };
 
 }

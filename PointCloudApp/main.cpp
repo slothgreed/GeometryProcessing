@@ -5,7 +5,7 @@
 int main()
 {
 	//ComputeShaderTest app;
-	//ComputePointCloudApp app;
+	//KI::ComputePointCloudApp app;
 	KI::PointCloudApp app;
 	app.Initialize();
 	app.Execute();

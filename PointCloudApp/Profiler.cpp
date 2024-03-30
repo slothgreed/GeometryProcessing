@@ -56,4 +56,17 @@ void GPUProfiler::Stop()
 	printf(m_name.data());
 	printf("%lf mili second \n", (double)nanoTime / 1000000);
 }
+
+
+void Timer::Begin()
+{
+	m_begin = std::chrono::high_resolution_clock::now();
+}
+
+float Timer::End()
+{
+	auto end = std::chrono::high_resolution_clock::now();
+	return std::chrono::duration<double, std::milli>(end - m_begin).count() / 1000;
+}
+
 }

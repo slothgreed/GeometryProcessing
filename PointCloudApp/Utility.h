@@ -39,6 +39,8 @@ public:
 	static Vector3 CreatePrimary(int index); // å¥êF
 	static Vector3 CreatePseudo(unsigned int value, unsigned int maxValue);
 	static Vector3 CreatePseudo(float value, float minValue, float maxValue);
+	static unsigned int PackColor3f(const Vector3& value);
+	static Vector3 UnPackColor3f(unsigned int value);
 private:
 	static void InitializePseudoColor();
 };
