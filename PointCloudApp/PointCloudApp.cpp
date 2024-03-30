@@ -74,7 +74,10 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
 	//Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
 	//pPointCloud->SetColor(std::move(color));
-	//m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	BDB bdb;
+	bdb.Apply(pPointCloud->GetBDB());
+
+	m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
 
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
 	//pPointCloud->To2D();
@@ -90,9 +93,7 @@ void PointCloudApp::Execute()
 	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
 	//kmeans.Execute();
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
-	BDB bdb;
-	bdb.Apply(pPointCloud->GetBDB());
-
+	
 
 	Shared<Primitive> pAxis = std::make_shared<Axis>(10);
 	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
