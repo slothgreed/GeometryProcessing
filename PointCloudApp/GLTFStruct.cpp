@@ -1,4 +1,5 @@
 #include "GLTFStruct.h"
+#include "Utility.h"
 #include "Texture.h"
 #include "GLTFLoader.h"
 #include <GLTFSDK/GLTF.h>
@@ -8,9 +9,43 @@
 #include "GLTFShader.h"
 #include "GLBuffer.h"
 #include "GLUtility.h"
+#include "GLTFSceneUpdater.h"
 namespace KI
 {
+GLTFScene::~GLTFScene()
+{
+	if (m_pMaterials) {
+		delete m_pMaterials;
+		m_pMaterials = nullptr;
+	}
 
+	if (m_pMatrixGpuUpdater) {
+		delete m_pMatrixGpuUpdater;
+		m_pMatrixGpuUpdater = nullptr;
+	}
+
+	if (m_pNodeBuffer) {
+		delete m_pNodeBuffer;
+		m_pNodeBuffer = nullptr;
+	}
+}
+void GLTFScene::Initialize()
+{
+	m_nodeBufferObject = CreateNodeBufferObject(m_nodes, m_skins);
+	if (m_pNodeBuffer == nullptr) {
+		m_pNodeBuffer = new GLBuffer();
+		m_pNodeBuffer->Create(DATA_UNKNOWN, m_nodeBufferObject.size(), sizeof(GLTFNodeBufferObject), m_nodeBufferObject.data());
+	}
+
+	//m_pMatrixGpuUpdater = new GLTFSceneMatrixUpdaterOnGpu();
+	//if (m_pMatrixGpuUpdater) {
+	//	m_pMatrixGpuUpdater->Initialize(m_nodes);
+	//	m_pMatrixGpuUpdater->Execute(m_pNodeBuffer);
+	//}
+
+
+	UpdateMatrix();
+}
 void GLTFScene::CreateMaterialBuffer()
 {
 	if (m_pMaterials != nullptr) { return; }
@@ -18,6 +53,7 @@ void GLTFScene::CreateMaterialBuffer()
 	m_pMaterials->Create(m_material.size(), sizeof(GLTFMaterial));
 	m_pMaterials->BufferSubData(0, m_material.size(), sizeof(GLTFMaterial), m_material.data());
 }
+
 void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 {
 	if (!m_pShader) {
@@ -27,9 +63,9 @@ void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 	}
 	m_pShader->Use();
 	m_pShader->SetViewProj(proj * view);
+	m_pShader->SetNodeBuffer(m_pNodeBuffer);
 	m_pShader->SetMaterialBuffer(m_pMaterials);
 	for (const auto& node : m_nodes) {
-		m_pShader->SetModel(node.GetMatrix());
 		if (node.GetMeshId() == -1) { continue; }
 		const auto& mesh = m_meshes[node.GetMeshId()];
 		if (mesh.GetBufferIndex() == -1) { continue; }
@@ -37,7 +73,7 @@ void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 		m_pShader->SetVertexBuffer(meshBuffer.pVertex.get(), meshBuffer.format);
 		m_pShader->SetIndexBuffer(meshBuffer.pIndex.get());
 		for (const auto& primitive : mesh.GetPrimitives()) {
-			m_pShader->BindBufferIndex(0, primitive.materialIndex);
+			m_pShader->BindBufferIndex(node.GetIndex(), primitive.materialIndex);
 			const auto& material = m_material[primitive.materialIndex];
 			if (material.baseTexture != -1) {
 				m_pShader->BindBaseColor(*m_texture[material.baseTexture]);
@@ -56,7 +92,6 @@ void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 	}
 }
 
-
 Matrix4x4 CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vector3& translate)
 {
 	Matrix4x4 matrix(1.0);
@@ -71,13 +106,29 @@ bool InTime(float begin, float end, float time)
 	return begin < time && time < end;
 }
 
-void GLTFScene::UpdateMatrix(int index, const Matrix4x4& mat)
+void GLTFScene::UpdateMatrixRecursive(int index, const Matrix4x4& mat)
 {
 	auto& node = m_nodes[index];
 	node.SetMatrix(mat * node.GetLocalMatrix());
 	for (const auto& child : node.GetChild()) {
-		UpdateMatrix(child, node.GetMatrix());
+		UpdateMatrixRecursive(child, node.GetMatrix());
 	}
+}
+
+Vector<GLTFNodeBufferObject> GLTFScene::CreateNodeBufferObject(const Vector<GLTFNode>& nodes, Vector<GLTFSkin>& skins)
+{
+	Vector<GLTFNodeBufferObject> bufferObject(nodes.size());
+	for (size_t i = 0; i < nodes.size(); i++) {
+		bufferObject[i].localMatrix = nodes[i].GetLocalMatrix();
+		bufferObject[i].matrix = nodes[i].GetMatrix();
+		if (nodes[i].GetSkinId() >= 0) {
+			bufferObject[i].jointCount = skins[nodes[i].GetSkinId()].GetJointNodeIndex().size();
+		} else {
+			bufferObject[i].jointCount = -1;
+		}
+	}
+
+	return bufferObject;
 }
 
 void GLTFScene::UpdateData(float time)
@@ -114,13 +165,24 @@ void GLTFScene::UpdateData(float time)
 			}
 
 			m_nodes[channel.node].SetLocalMatrix(CreateMatrix(scale, rotate, translate));
-			Printf(m_nodes[channel.node].GetLocalMatrix());
-		}
-
-		for (int i = 0; i < m_roots.size(); i++) {
-			UpdateMatrix(m_roots[i], m_nodes[m_roots[i]].GetLocalMatrix());
 		}
 	}
+	UpdateMatrix();
 }
 
+void GLTFScene::UpdateMatrix()
+{
+	if (m_pMatrixGpuUpdater) {
+		m_nodeBufferObject = CreateNodeBufferObject(m_nodes, m_skins);
+		m_pNodeBuffer->BufferSubData(0, m_nodeBufferObject.size(), sizeof(GLTFNodeBufferObject), m_nodeBufferObject.data());
+		m_pMatrixGpuUpdater->Execute(m_pNodeBuffer);
+	} else {
+		for (int i = 0; i < m_roots.size(); i++) {
+ 			UpdateMatrixRecursive(m_roots[i], Matrix4x4(1));
+		}
+
+		m_nodeBufferObject = CreateNodeBufferObject(m_nodes, m_skins);
+		m_pNodeBuffer->BufferSubData(0, m_nodeBufferObject.size(), sizeof(GLTFNodeBufferObject), m_nodeBufferObject.data());
+	}
+}
 }

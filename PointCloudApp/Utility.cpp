@@ -13,6 +13,26 @@ void Printf::Vec3(const String& name, const Vector3& value, bool newLine)
 		printf((name + ":%lf,%lf,%lf").data(), value.x, value.y, value.z);
 	}
 }
+
+void Printf::Vec4(const String& name, const Vector4& value, bool newLine)
+{
+	if (newLine) {
+		printf((name + ":%lf,%lf,%lf%lf\n").data(), value.x, value.y, value.z, value.w);
+	} else {
+		printf((name + ":%lf,%lf,%lf%lf").data(), value.x, value.y, value.z, value.w);
+	}
+}
+
+void Printf::Mat4(const String& name, const Matrix4x4& mat, bool newLine)
+{
+	printf(
+		"%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n",
+		mat[0][0], mat[0][1], mat[0][2], mat[0][3],
+		mat[1][0], mat[1][1], mat[1][2], mat[1][3],
+		mat[2][0], mat[2][1], mat[2][2], mat[2][3],
+		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+}
+
 Vector3 Random::Vec3(float min, float max)
 {
 	Vector3 value;

@@ -21,9 +21,11 @@ public:
 	void Use();
 	void UnUse();
 	void Delete();
+	virtual Vector<String> GetHeaderPath() { return Vector<String>(); }
 	GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 protected:
+	String LoadHeaderCode();
 	GLuint Handle() const { return m_programId; };
 	GLuint m_programId;
 };
@@ -67,9 +69,9 @@ public:
 	~IComputeShader() {};
 
 	virtual String GetComputePath() = 0;
-	
-	virtual void Build();
 	virtual void GetUniformLocation() = 0;
+
+	virtual void Build();
 
 protected:
 	glm::ivec3 m_dimension;

@@ -121,6 +121,13 @@ void GLBuffer::GetBufferData(Vector<glm::vec4>& value)
 	OUTPUT_GLERROR;
 }
 
+void GLBuffer::GetBufferData(void* value, int memorySize)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, memorySize, value);
+	OUTPUT_GLERROR;
+}
+
 int GLBuffer::ComponentSize() const
 {
 	if (m_dataType == DATA_FLOAT ||

@@ -56,6 +56,17 @@ inline String IntToString(int value)
 	return std::to_string(value);
 }
 
+namespace glmUtil
+{
+	const float eps = 0.0001f;
+	inline bool iszero(const Vector3& value)
+	{
+		return 
+			-eps < value.x && value.x < eps &&
+			-eps < value.y && value.y < eps &&
+			-eps < value.z && value.z < eps;
+	}
+}
 
 
 

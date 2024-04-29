@@ -23,15 +23,16 @@ public:
 	};
 
 	virtual IShadingShader::Type GetType() { return IShadingShader::Type::GLTF; }
+	virtual Vector<String> GetHeaderPath() override;
 	virtual String GetVertexPath() override;
 	virtual String GetFragmentPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
 	void SetIndexBuffer(GLBuffer* pBuffer);
+	void SetNodeBuffer(const GLBuffer* pBuffer);
 	void SetMaterialBuffer(const GLBuffer* pBuffer);
 	void BindBufferIndex(int matrix, int material);
 	virtual void GetUniformLocation();
 	virtual void SetViewProj(const Matrix4x4& value);
-	void SetModel(const Matrix4x4& value);
 	void DrawElement(const GLTFPrimitive& primitive, GLuint dataType);
 	void BindBaseColor(const Texture& texture);
 	void BindNormal(const Texture& texture);

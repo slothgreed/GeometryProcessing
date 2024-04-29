@@ -37,7 +37,7 @@ public:
 	static RenderNode* Load(const String& name);
 private:
 
-
+	static Vector<GLTFSkin> LoadSkin(const Microsoft::glTF::Document* pDocument, const Microsoft::glTF::GLTFResourceReader* pResource);
 	static Vector<GLTFAnimation> LoadAnimation(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument);
 	static Vector<GLTFMaterial> LoadMaterial(const Microsoft::glTF::Document* pDocument, const Vector<Shared<Texture>>& textures);
 	static Vector<GLTFMesh> LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pBuffer);

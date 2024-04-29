@@ -28,6 +28,19 @@ void IShader::Delete()
 	m_programId = 0;
 }
 
+String IShader::LoadHeaderCode()
+{
+	auto header = GetHeaderPath();
+	String headerCode;
+	for (size_t i = 0; i < header.size(); i++) {
+		String code;
+		ShaderUtility::LoadFromFile(header[i], code);
+		headerCode += code;
+	}
+
+	return headerCode;
+}
+
 GLuint IShader::BuildVertexFrag(const String& vert, const String& frag)
 {
 	GLuint vertexId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER);
@@ -81,14 +94,20 @@ IShadingShader::~IShadingShader()
 
 void IShadingShader::Build()
 {
+
+	auto headerCode = LoadHeaderCode();
 	String vertexPath = GetVertexPath();
 	String fragPath = GetFragmentPath();
+
+	
 
 	String vertexCode;
 	String fragCode;
 	ShaderUtility::LoadFromFile(vertexPath, vertexCode);
 	ShaderUtility::LoadFromFile(fragPath, fragCode);
 
+	vertexCode = headerCode + vertexCode;
+	fragCode = headerCode + fragCode;
 	m_programId = IShader::BuildVertexFrag(vertexCode, fragCode);
 
 
@@ -98,10 +117,11 @@ void IShadingShader::Build()
 
 void IComputeShader::Build()
 {
+	auto headerCode = LoadHeaderCode();
 	String computePath = GetComputePath();
 	String computeCode;
 	ShaderUtility::LoadFromFile(computePath, computeCode);
-	GLuint computeId = ShaderUtility::Compile(computeCode, GL_COMPUTE_SHADER);
+	GLuint computeId = ShaderUtility::Compile(headerCode + computeCode, GL_COMPUTE_SHADER);
 
 	m_programId = ShaderUtility::LinkCompute(computeId);
 

@@ -18,7 +18,6 @@ inline Matrix4x4 CreateRotateMatrix(const Vector4& vec)
 	return glm::mat4_cast(CreateQuart(vec));
 }
 
-void Printf(const Matrix4x4& matrix);
 }
 
 

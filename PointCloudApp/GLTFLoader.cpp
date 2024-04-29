@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
-
+#include "Utility.h"
 #include "TextureLoader.h"
 #include "FileUtility.h"
 using namespace Microsoft::glTF;
@@ -127,35 +127,67 @@ RenderNode* GLTFLoader::Load(const String& name)
     Document document = Deserialize(manifestStream.str());
 
     Vector<MeshBuffer> meshBuffer(1);
+    Unique<GLBuffer> matrixBuffer;
     auto meshes = LoadMesh(gltfResourceReader.get(), &document, meshBuffer[0]);
     auto textures = LoadTexture(dirPath, &document);
     auto materials = LoadMaterial(&document, textures);
     auto root = LoadNode(&document);
     auto animation = LoadAnimation(gltfResourceReader.get(), &document);
+    auto skins = LoadSkin(&document, gltfResourceReader.get());
     auto pScene = new GLTFScene(name);
 
-    pScene->SetNode(std::move(root));
-    pScene->SetRoot(ConvertIndex(document.scenes[0].nodes));
     pScene->SetMeshBuffer(std::move(meshBuffer));
+    pScene->SetNode(std::move(root));
+    pScene->SetSkin(std::move(skins));
+    pScene->SetRoot(ConvertIndex(document.scenes[0].nodes));
     pScene->SetMesh(std::move(meshes));
     pScene->SetTexture(std::move(textures));
     pScene->SetMaterial(std::move(materials));
     pScene->SetAnimation(std::move(animation));
+    pScene->Initialize();
     return pScene;
 }
 
 Vector<GLTFNode> GLTFLoader::LoadNode(const Microsoft::glTF::Document* pDocument)
 {
     Vector<GLTFNode> nodes(pDocument->nodes.Size());
-
     for (size_t i = 0; i < pDocument->nodes.Size(); i++) {
         nodes[i].SetIndex(ConvertIndex(pDocument->nodes[i].id));
         nodes[i].SetLocalMatrix(Convert(pDocument->nodes[i].matrix));
+        nodes[i].SetSkinId(ConvertIndex(pDocument->nodes[i].skinId));
         nodes[i].SetMeshId(ConvertIndex(pDocument->nodes[i].meshId));
         nodes[i].SetChild(ConvertIndex(pDocument->nodes[i].children));
     }
 
     return nodes;
+}
+
+
+Vector<GLTFSkin> GLTFLoader::LoadSkin(const Microsoft::glTF::Document* pDocument, const Microsoft::glTF::GLTFResourceReader* pResource)
+{
+    Vector<GLTFSkin> skins;
+    for (size_t i = 0; i < pDocument->skins.Size(); i++) {
+        const auto& gltfSkin = pDocument->skins[i];
+        GLTFSkin skin;
+        skin.SetName(gltfSkin.name);
+        skin.SetRootSkeleton(StringToInt(gltfSkin.skeletonId));
+        Vector<int> joints(gltfSkin.jointIds.size());
+        for (size_t i = 0; i < gltfSkin.jointIds.size(); i++) {
+            joints[i] = StringToInt(gltfSkin.jointIds[i]);
+        }
+
+        int inverseBindMatrices =  StringToInt(gltfSkin.inverseBindMatricesAccessorId);
+        if (inverseBindMatrices > -1) {
+            const auto& accessor = pDocument->accessors[inverseBindMatrices];
+            const auto& bufferView = pDocument->bufferViews[StringToInt(accessor.bufferViewId)];
+            auto matrix = pResource->ReadBinaryData<glm::mat4x4>(*pDocument, bufferView);
+            skin.SetInverseBindMatrix(std::move(matrix));
+        }
+        skin.SetJointNodeIndex(std::move(joints));
+        skins.push_back(std::move(skin));
+    }
+
+    return skins;
 }
 MESH_TYPE ConvertMeshType(MeshMode mode)
 {
@@ -235,6 +267,8 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         Vector3 normal;
         Vector2 texcoord;
         Vector4 tangent;
+        Vector4 joint;
+        Vector4 weight;
     };
 
     Vector<unsigned short> indexBuffer;
@@ -244,6 +278,8 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     bool hasNormal = false;
     bool hasTexcoord = false;
     bool hasTangent = false;
+    bool hasJoint = false;
+    bool hasWeight = false;
     int drawOffset = 0;
     for (size_t i = 0; i < meshes.size(); i++) {
         const auto& gltfMesh = pDocument->meshes.Get(i);
@@ -269,8 +305,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
 
             if (gltfMesh.primitives[j].HasAttribute("POSITION")) {
                 const auto& position = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("POSITION")->second);
-                if (position.componentType == GL_FLOAT &&
-                    position.type == AccessorType::TYPE_VEC3) {
+                if (position.componentType == GL_FLOAT && position.type == AccessorType::TYPE_VEC3) {
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, position);
                     vertexBuffer.resize(vertexBuffer.size() + binary.size() / 3);
                     for (size_t k = 0; 3 * k < binary.size(); k++) {
@@ -284,8 +319,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
 
             if (gltfMesh.primitives[j].HasAttribute("NORMAL")) {
                 const auto& normal = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("NORMAL")->second);
-                if (normal.componentType == GL_FLOAT &&
-                    normal.type == AccessorType::TYPE_VEC3) {
+                if (normal.componentType == GL_FLOAT && normal.type == AccessorType::TYPE_VEC3) {
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, normal);
                     for (size_t k = 0; 3 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].normal = Vector3(binary[3 * k], binary[3 * k + 1], binary[3 * k + 2]); }
                 } else {
@@ -296,8 +330,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
             }
             if (gltfMesh.primitives[j].HasAttribute("TEXCOORD_0")) {
                 const auto& texCoord = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("TEXCOORD_0")->second);
-                if (texCoord.componentType == GL_FLOAT &&
-                    texCoord.type == AccessorType::TYPE_VEC2) {
+                if (texCoord.componentType == GL_FLOAT && texCoord.type == AccessorType::TYPE_VEC2) {
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, texCoord);
                     for (size_t k = 0; 2 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].texcoord = Vector2(binary[2 * k], binary[2 * k + 1]); }
                 } else {
@@ -307,14 +340,35 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
             }
             if (gltfMesh.primitives[j].HasAttribute("TANGENT")) {
                 const auto& tangent = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("TANGENT")->second);
-                if (tangent.componentType == GL_FLOAT &&
-                    tangent.type == AccessorType::TYPE_VEC4) {
+                if (tangent.componentType == GL_FLOAT && tangent.type == AccessorType::TYPE_VEC4) {
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, tangent);
                     for (size_t k = 0; 4 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].tangent = Vector4(binary[4 * k], binary[4 * k + 1], binary[4 * k + 2], binary[4 * k + 3]); }
                 } else {
                     assert(0);
                 }
                 hasTangent = true;
+            }
+
+            if (gltfMesh.primitives[j].HasAttribute("JOINTS_0")) {
+                const auto& joint = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("JOINTS_0")->second);
+                if (joint.componentType == COMPONENT_UNSIGNED_SHORT && joint.type == AccessorType::TYPE_VEC4) {
+                    const auto& binary = pResource->ReadBinaryData<unsigned short>(*pDocument, joint);
+                    for (size_t k = 0; 4 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].joint = Vector4(binary[4 * k], binary[4 * k + 1], binary[4 * k + 2], binary[4 * k + 3]); }
+                } else {
+                    assert(0);
+                }
+                hasJoint = true;
+            }
+
+            if (gltfMesh.primitives[j].HasAttribute("WEIGHTS_0")) {
+                const auto& weight = pDocument->accessors.Get(gltfMesh.primitives[j].attributes.find("WEIGHTS_0")->second);
+                if (weight.componentType == GL_FLOAT && weight.type == AccessorType::TYPE_VEC4) {
+                    const auto& binary = pResource->ReadBinaryData<float>(*pDocument, weight);
+                    for (size_t k = 0; 4 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].weight = Vector4(binary[4 * k], binary[4 * k + 1], binary[4 * k + 2], binary[4 * k + 3]); }
+                } else {
+                    assert(0);
+                }
+                hasWeight = true;
             }
         }
         meshes[i].SetPrimitives(std::move(primitives));
@@ -369,6 +423,28 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.offset = offsetof(Vertex, tangent);
         formats.push_back(format);
     }
+
+
+    if (hasJoint) {
+        VertexFormat format;
+        format.name = "JOINT";
+        format.location = formats.size();
+        format.componentSize = 4;
+        format.type = DATA_FLOAT;
+        format.offset = offsetof(Vertex, joint);
+        formats.push_back(format);
+    }
+
+    if (hasWeight) {
+        VertexFormat format;
+        format.name = "WEIGHT";
+        format.location = formats.size();
+        format.componentSize = 4;
+        format.type = DATA_FLOAT;
+        format.offset = offsetof(Vertex, weight);
+        formats.push_back(format);
+    }
+
 
     pMeshBuffer.format = formats;
     pMeshBuffer.pVertex = std::move(pVertexBuffer);

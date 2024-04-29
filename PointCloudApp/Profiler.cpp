@@ -53,8 +53,8 @@ void GPUProfiler::Stop()
 	GLuint64EXT nanoTime = 0;
 	glGetQueryObjectui64vEXT(m_handle, GL_QUERY_RESULT, &nanoTime);
 
-	printf(m_name.data());
-	printf("%lf mili second \n", (double)nanoTime / 1000000);
+	//printf(m_name.data());
+	//printf("%lf mili second \n", (double)nanoTime / 1000000);
 }
 
 

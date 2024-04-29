@@ -60,9 +60,9 @@ void PointCloudApp::Execute()
 
 	m_pRoot = std::make_unique<RenderNode>("Root");
 
-	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
 	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
-	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\AnimatedCube\\glTF\\AnimatedCube.gltf")));
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf")));
 
 	//auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf");
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(pGLTF));
@@ -70,14 +70,17 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	/*
 	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
 	//Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
 	//pPointCloud->SetColor(std::move(color));
 	BDB bdb;
 	bdb.Apply(pPointCloud->GetBDB());
+	m_pCamera->FitToBDB(bdb);
 
 	m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	*/
 
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
 	//pPointCloud->To2D();
@@ -95,9 +98,8 @@ void PointCloudApp::Execute()
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
 	
 
-	Shared<Primitive> pAxis = std::make_shared<Axis>(10);
+	Shared<Primitive> pAxis = std::make_shared<Axis>(5);
 	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-	m_pCamera->FitToBDB(bdb);
 	
 	
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -129,6 +131,7 @@ void PointCloudApp::Execute()
 		m_pRoot->Draw(m_pCamera->Projection(), m_pCamera->ViewMatrix());
 		m_diff += timer.End();
 		m_pRoot->Update(m_diff);
+		if (m_diff > 4.0) { m_diff = 0.0f; }
 		render.Stop();
 		
 		//cpuProfiler.Stop();

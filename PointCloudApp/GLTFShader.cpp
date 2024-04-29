@@ -3,6 +3,13 @@
 #include "Texture.h"
 namespace KI
 {
+Vector<String> GLTFShader::GetHeaderPath()
+{
+	Vector<String> path;
+	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	return path;
+}
+
 
 String GLTFShader::GetVertexPath()
 {
@@ -61,9 +68,9 @@ void GLTFShader::SetMaterialBuffer(const GLBuffer* pBuffer)
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, pBuffer->Handle());
 }
 
-void GLTFShader::SetModel(const Matrix4x4& value)
+void GLTFShader::SetNodeBuffer(const GLBuffer* pBuffer)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, pBuffer->Handle());
 }
 void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)
 {

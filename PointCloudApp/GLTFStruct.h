@@ -14,12 +14,38 @@ namespace Microsoft
 namespace KI
 {
 class GLTFDocument;
+class GLTFSkin
+{
+public:
+	GLTFSkin()
+		: m_rootSkeleton(0)
+		, m_inverseBindMatrix(0){}
+	~GLTFSkin() {};
+	void SetName(const String& name) { m_name = name; }
+	void SetRootSkeleton(int value) { m_rootSkeleton = value; }
+	void SetInverseBindMatrix(Vector<Matrix4x4>&& matrix) { m_inverseBindMatrix = matrix; }
+	void SetJointNodeIndex(Vector<int>&& node) { m_nodeIndex = std::move(node); }
+	const Vector<int>& GetJointNodeIndex() const { return m_nodeIndex; }
+private:
+	String m_name;
+	int m_rootSkeleton;
+	Vector<Matrix4x4> m_inverseBindMatrix;
+	Vector<int> m_nodeIndex;
+};
 
+struct GLTFNodeBufferObject
+{
+	Matrix4x4 matrix;
+	Matrix4x4 localMatrix;
+	int jointCount;
+	float padding[31];
+};
 class GLTFNode
 {
 public:
 	GLTFNode()
-		: m_index()
+		: m_index(-1)
+		, m_skinId(-1)
 		, m_meshId(-1)
 		, m_localMatrix(Matrix4x4(1.0f))
 		, m_matrix(Matrix4x4(1.0f)){ };
@@ -29,6 +55,8 @@ public:
 	const Matrix4x4& GetLocalMatrix() const { return m_localMatrix; }
 	void SetMatrix(const Matrix4x4& matrix) { m_matrix = matrix; }
 	void SetMeshId(int id) { m_meshId = id; }
+	void SetSkinId(int id) { m_skinId = id; }
+	int GetSkinId() const { return m_skinId; }
 	int GetMeshId() const { return m_meshId; }
 	int GetIndex() const { return m_index; }
 	const Matrix4x4& GetMatrix() const { return m_matrix; }
@@ -36,6 +64,7 @@ public:
 	void SetChild(Vector<int>&& child) { m_child = child; }
 
 protected:
+	int m_skinId;
 	Matrix4x4 m_localMatrix;
 	Matrix4x4 m_matrix;
 	int m_meshId;
@@ -55,16 +84,16 @@ struct GLTFMaterial
 		Mask,
 	};
 
-	Vector4 baseColor;
-	int baseTexture;
-	float metalic;
-	int roughnessTexture;
-	int normalTexture;
-	float normalScale;
-	float alphaCuttoff;
-	int alphaMode;
-	bool doubleSided;
-	float padding[9];  //36
+	Vector4 baseColor;	// 16
+	int baseTexture;	// 20
+	float metalic;		// 24
+	int roughnessTexture;// 28
+	int normalTexture;	// 32
+	float normalScale;	// 36
+	float alphaCuttoff;	// 40
+	int alphaMode;		// 44
+	int doubleSided;	// 48
+	float padding[52];  // 256 
 };
 
 struct GLTFPrimitive
@@ -155,28 +184,36 @@ private:
 };
 
 
+
 class GLTFShader;
+class GLTFSceneMatrixUpdaterOnGpu;
 class GLTFScene : public RenderNode
 {
 public:
 	GLTFScene(const String& name) 
 		: RenderNode(name)
 		, m_pShader(nullptr)
-		, m_pMaterials(nullptr) {};
-	~GLTFScene() {};
+		, m_pNodeBuffer(nullptr)
+		, m_pMaterials(nullptr)
+		, m_pMatrixGpuUpdater(nullptr){};
+	~GLTFScene();
 
+	void Initialize();
 	void SetNode(Vector<GLTFNode>&& node) { m_nodes = std::move(node); };
 	void SetRoot(Vector<int>&& root) { m_roots = std::move(root); }
 	void SetMaterial(Vector<GLTFMaterial>&& value) { m_material = std::move(value); }
 	void SetTexture(Vector<Shared<Texture>>&& value) { m_texture = std::move(value); }
 	void SetMeshBuffer(Vector<MeshBuffer>&& buffer) { m_meshBuffer = std::move(buffer); }
+	void SetSkin(Vector<GLTFSkin>&& value) { m_skins = std::move(value); }
 	void SetMesh(Vector<GLTFMesh>&& value) { m_meshes = std::move(value); }
 	void SetAnimation(Vector<GLTFAnimation>&& animation) { m_animation = std::move(animation); }
 	virtual void Draw(const Matrix4x4& proj, const Matrix4x4& view);
 protected:
 	virtual void UpdateData(float time);
 private:
-	void UpdateMatrix(int index, const Matrix4x4& mat);
+	Vector<GLTFNodeBufferObject> CreateNodeBufferObject(const Vector<GLTFNode>& nodes, Vector<GLTFSkin>& skins);
+	void UpdateMatrix();
+	void UpdateMatrixRecursive(int index, const Matrix4x4& mat);
 
 	void CreateMaterialBuffer();
 	GLTFShader* m_pShader;
@@ -188,6 +225,10 @@ private:
 	Vector<GLTFMesh> m_meshes;
 	Vector<GLTFNode> m_nodes;
 	Vector<GLTFAnimation> m_animation;
+	Vector<GLTFSkin> m_skins;
+	Vector<GLTFNodeBufferObject> m_nodeBufferObject;
+	GLBuffer* m_pNodeBuffer;
+	GLTFSceneMatrixUpdaterOnGpu* m_pMatrixGpuUpdater;
 };
 }
 #endif KI_GLTF_STRUCT_H
