@@ -33,16 +33,17 @@ private:
 	Vector<int> m_nodeIndex;
 };
 
-struct GLTFNodeBufferObject
-{
-	Matrix4x4 matrix;
-	Matrix4x4 localMatrix;
-	int jointCount;
-	float padding[31];
-};
 class GLTFNode
 {
 public:
+	struct GpuObject
+	{
+		Matrix4x4 matrix;
+		Matrix4x4 localMatrix;
+		int jointCount;
+		float padding[31];
+	};
+
 	GLTFNode()
 		: m_index(-1)
 		, m_skinId(-1)
@@ -63,7 +64,12 @@ public:
 	const Vector<int>& GetChild() const { return m_child; }
 	void SetChild(Vector<int>&& child) { m_child = child; }
 
+	static Vector<GLTFNode::GpuObject> CreateGpuObject(const Vector<GLTFNode>& nodes, const Vector<GLTFSkin>& skins);
+	static void UpdateMatrix(const Vector<int>& roots, Vector<GLTFNode>& nodes);
+	static Matrix4x4 CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vector3& translate);
+
 protected:
+	static void UpdateMatrixRecursive(Vector<GLTFNode>& nodes, int index, const Matrix4x4& matrix);
 	int m_skinId;
 	Matrix4x4 m_localMatrix;
 	Matrix4x4 m_matrix;
@@ -178,6 +184,8 @@ public:
 
 	const Vector<Sampler>& GetSamplers() const { return m_samplers; }
 	const Vector<Channel>& GetChannels() const { return m_chennels; }
+
+	static void Update(const Vector<GLTFAnimation>& animations, Vector<GLTFNode>& nodes, float time);
 private:
 	Vector<Sampler> m_samplers;
 	Vector<Channel> m_chennels;
@@ -211,24 +219,32 @@ public:
 protected:
 	virtual void UpdateData(float time);
 private:
-	Vector<GLTFNodeBufferObject> CreateNodeBufferObject(const Vector<GLTFNode>& nodes, Vector<GLTFSkin>& skins);
 	void UpdateMatrix();
-	void UpdateMatrixRecursive(int index, const Matrix4x4& mat);
 
 	void CreateMaterialBuffer();
 	GLTFShader* m_pShader;
 	GLBuffer* m_pMaterials;
-	Vector<int> m_roots;
-	Vector<GLTFMaterial> m_material;
-	Vector<Shared<Texture>> m_texture;
-	Vector<MeshBuffer> m_meshBuffer;
-	Vector<GLTFMesh> m_meshes;
-	Vector<GLTFNode> m_nodes;
-	Vector<GLTFAnimation> m_animation;
-	Vector<GLTFSkin> m_skins;
-	Vector<GLTFNodeBufferObject> m_nodeBufferObject;
 	GLBuffer* m_pNodeBuffer;
+	Vector<MeshBuffer> m_meshBuffer;
+
+
 	GLTFSceneMatrixUpdaterOnGpu* m_pMatrixGpuUpdater;
+
+	Vector<int> m_roots;
+	Vector<Shared<Texture>> m_texture;
+	Vector<GLTFMaterial> m_material;
+	Vector<GLTFNode> m_nodes;
+	Vector<GLTFSkin> m_skins;
+	Vector<GLTFMesh> m_meshes;
+	Vector<GLTFAnimation> m_animation;
+
+	struct GpuObject
+	{
+		Vector<GLTFNode::GpuObject> node;
+	};
+
+	GpuObject m_gpu;
+
 };
 }
 #endif KI_GLTF_STRUCT_H

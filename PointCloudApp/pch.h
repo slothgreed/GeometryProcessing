@@ -73,7 +73,7 @@ namespace glmUtil
 void getError();
 
 #define OUTPUT_GLERROR getError();
-
+#define RELEASE_INSTANCE(x) if(x) { delete x; x = nullptr;}
 }
 
 #endif  PCH_H

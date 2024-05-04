@@ -29,9 +29,18 @@ public:
 	void Create(const Vector<float>& value);
 	void Create(int size, int sizeofData);
 	void Create(DATA_TYPE dataType, int size, int sizeofData, const void* data);
+	template <typename T> void Create(const Vector<T>& value)
+	{
+		Create(value.size(), sizeof(T));
+	}
 	void BufferSubData(int offset, const Vector<int>& value);
 	void BufferSubData(int offset, int size, int sizeofData, const void* data);
 	void BufferSubData(int offset, const Vector<Vector3>& value);
+	template <typename T>
+	void BufferSubData(int offset, const Vector<T>& value)
+	{
+		BufferSubData(DATA_UNKNOWN, value.size(), sizeof(T), value.data());
+	}
 	void GetBufferData(Vector<int>& value);
 	void GetBufferData(Vector<float>& value);
 	void GetBufferData(Vector<Vector3>& value);

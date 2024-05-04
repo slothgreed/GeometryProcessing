@@ -14,27 +14,16 @@ namespace KI
 {
 GLTFScene::~GLTFScene()
 {
-	if (m_pMaterials) {
-		delete m_pMaterials;
-		m_pMaterials = nullptr;
-	}
-
-	if (m_pMatrixGpuUpdater) {
-		delete m_pMatrixGpuUpdater;
-		m_pMatrixGpuUpdater = nullptr;
-	}
-
-	if (m_pNodeBuffer) {
-		delete m_pNodeBuffer;
-		m_pNodeBuffer = nullptr;
-	}
+	RELEASE_INSTANCE(m_pMaterials);
+	RELEASE_INSTANCE(m_pMatrixGpuUpdater);
+	RELEASE_INSTANCE(m_pNodeBuffer);
 }
 void GLTFScene::Initialize()
 {
-	m_nodeBufferObject = CreateNodeBufferObject(m_nodes, m_skins);
 	if (m_pNodeBuffer == nullptr) {
 		m_pNodeBuffer = new GLBuffer();
-		m_pNodeBuffer->Create(DATA_UNKNOWN, m_nodeBufferObject.size(), sizeof(GLTFNodeBufferObject), m_nodeBufferObject.data());
+		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
+		m_pNodeBuffer->Create<GLTFNode::GpuObject>(m_gpu.node);
 	}
 
 	//m_pMatrixGpuUpdater = new GLTFSceneMatrixUpdaterOnGpu();
@@ -50,8 +39,8 @@ void GLTFScene::CreateMaterialBuffer()
 {
 	if (m_pMaterials != nullptr) { return; }
 	m_pMaterials = new GLBuffer();
-	m_pMaterials->Create(m_material.size(), sizeof(GLTFMaterial));
-	m_pMaterials->BufferSubData(0, m_material.size(), sizeof(GLTFMaterial), m_material.data());
+	m_pMaterials->Create<GLTFMaterial>(m_material);
+	m_pMaterials->BufferSubData<GLTFMaterial>(0, m_material);
 }
 
 void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
@@ -92,7 +81,7 @@ void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 	}
 }
 
-Matrix4x4 CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vector3& translate)
+Matrix4x4 GLTFNode::CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vector3& translate)
 {
 	Matrix4x4 matrix(1.0);
 	matrix *= glm::scale(matrix, scale);
@@ -101,23 +90,24 @@ Matrix4x4 CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vect
 	return matrix;
 }
 
-bool InTime(float begin, float end, float time)
+void GLTFNode::UpdateMatrix(const Vector<int>& roots, Vector<GLTFNode>& nodes)
 {
-	return begin < time && time < end;
-}
-
-void GLTFScene::UpdateMatrixRecursive(int index, const Matrix4x4& mat)
-{
-	auto& node = m_nodes[index];
-	node.SetMatrix(mat * node.GetLocalMatrix());
-	for (const auto& child : node.GetChild()) {
-		UpdateMatrixRecursive(child, node.GetMatrix());
+	for (int i = 0; i < roots.size(); i++) {
+		UpdateMatrixRecursive(nodes, roots[i], Matrix4x4(1));
 	}
 }
 
-Vector<GLTFNodeBufferObject> GLTFScene::CreateNodeBufferObject(const Vector<GLTFNode>& nodes, Vector<GLTFSkin>& skins)
+void GLTFNode::UpdateMatrixRecursive(Vector<GLTFNode>& nodes, int index, const Matrix4x4& matrix)
 {
-	Vector<GLTFNodeBufferObject> bufferObject(nodes.size());
+	auto& node = nodes[index];
+	node.SetMatrix(matrix * node.GetLocalMatrix());
+	for (const auto& child : node.GetChild()) {
+		UpdateMatrixRecursive(nodes, child, node.GetMatrix());
+	}
+}
+Vector<GLTFNode::GpuObject> GLTFNode::CreateGpuObject(const Vector<GLTFNode>& nodes, const Vector<GLTFSkin>& skins)
+{
+	Vector<GLTFNode::GpuObject> bufferObject(nodes.size());
 	for (size_t i = 0; i < nodes.size(); i++) {
 		bufferObject[i].localMatrix = nodes[i].GetLocalMatrix();
 		bufferObject[i].matrix = nodes[i].GetMatrix();
@@ -131,58 +121,66 @@ Vector<GLTFNodeBufferObject> GLTFScene::CreateNodeBufferObject(const Vector<GLTF
 	return bufferObject;
 }
 
-void GLTFScene::UpdateData(float time)
+
+bool InTime(float begin, float end, float time)
 {
-	for (const auto& animation : m_animation) {
+	return begin < time && time < end;
+}
+
+void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFNode>& nodes, float time)
+{
+	for (const auto& animation : animations) {
 		for (size_t i = 0; i < animation.GetChannels().size(); i++) {
 			const auto& channel = animation.GetChannels()[i];
 			const auto& sampler = animation.GetSamplers()[channel.sampler];
-			Vector4 translate = Vector4();
-			Vector3 scale = Vector3(1.0);
-			Matrix4x4 rotate = Matrix4x4(1.0);
+			auto translate = Vector4();
+			auto scale = Vector3(1.0);
+			auto rotate = Matrix4x4(1.0);
 			for (size_t j = 0; j < sampler.timer.size() - 1; j++) {
 				if (!InTime(sampler.timer[j], sampler.timer[j + 1], time)) { continue; }
 				float u = std::max(0.0f, time - sampler.timer[j]) / (sampler.timer[j + 1] - sampler.timer[j]);
 				if (u > 1.0f) continue;
 				switch (channel.path) {
-				case GLTFAnimation::Channel::Path::Translate:
+				case Channel::Path::Translate:
 					translate = glm::mix(sampler.transform[j], sampler.transform[j + 1], u);
 					break;
-				case GLTFAnimation::Channel::Path::Scale:
+				case Channel::Path::Scale:
 					scale = glm::mix(sampler.transform[j], sampler.transform[j + 1], u);
 					break;
-				case GLTFAnimation::Channel::Path::Rotate:
+				case Channel::Path::Rotate:
 					rotate = glm::mat4_cast(glm::normalize(glm::slerp(
 						CreateQuart(sampler.transform[j]),
 						CreateQuart(sampler.transform[j + 1]),
 						u)));
 					break;
-				case GLTFAnimation::Channel::Path::Weight:
+				case Channel::Path::Weight:
 					break;
 				default:
 					break;
 				}
 			}
 
-			m_nodes[channel.node].SetLocalMatrix(CreateMatrix(scale, rotate, translate));
+			nodes[channel.node].SetLocalMatrix(GLTFNode::CreateMatrix(scale, rotate, translate));
 		}
 	}
+}
+
+void GLTFScene::UpdateData(float time)
+{
+	GLTFAnimation::Update(m_animation, m_nodes, time);
 	UpdateMatrix();
 }
 
 void GLTFScene::UpdateMatrix()
 {
 	if (m_pMatrixGpuUpdater) {
-		m_nodeBufferObject = CreateNodeBufferObject(m_nodes, m_skins);
-		m_pNodeBuffer->BufferSubData(0, m_nodeBufferObject.size(), sizeof(GLTFNodeBufferObject), m_nodeBufferObject.data());
+		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
+		m_pNodeBuffer->BufferSubData<GLTFNode::GpuObject>(0, m_gpu.node);
 		m_pMatrixGpuUpdater->Execute(m_pNodeBuffer);
 	} else {
-		for (int i = 0; i < m_roots.size(); i++) {
- 			UpdateMatrixRecursive(m_roots[i], Matrix4x4(1));
-		}
-
-		m_nodeBufferObject = CreateNodeBufferObject(m_nodes, m_skins);
-		m_pNodeBuffer->BufferSubData(0, m_nodeBufferObject.size(), sizeof(GLTFNodeBufferObject), m_nodeBufferObject.data());
+		GLTFNode::UpdateMatrix(m_roots, m_nodes);
+		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
+		m_pNodeBuffer->BufferSubData<GLTFNode::GpuObject>(0, m_gpu.node);
 	}
 }
 }

@@ -380,8 +380,8 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     pIndexBuffer->Create(indexBuffer);
 
     auto pVertexBuffer = std::make_unique<GLBuffer>();
-    pVertexBuffer->Create(vertexBuffer.size(), sizeof(Vertex));
-    pVertexBuffer->BufferSubData(0, vertexBuffer.size(), sizeof(Vertex), vertexBuffer.data());
+    pVertexBuffer->Create<Vertex>(vertexBuffer);
+    pVertexBuffer->BufferSubData<Vertex>(0, vertexBuffer);
 
     VertexFormats formats;
     if (hasPosition) {
