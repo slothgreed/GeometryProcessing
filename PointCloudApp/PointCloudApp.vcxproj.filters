@@ -194,6 +194,9 @@
     <ClCompile Include="GLTFSceneUpdater.cpp">
       <Filter>ソース ファイル\Utility\GLTF</Filter>
     </ClCompile>
+    <ClCompile Include="GLTFScene.cpp">
+      <Filter>ソース ファイル\Utility\GLTF</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -356,6 +359,9 @@
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
     <ClInclude Include="GLTFSceneUpdater.h">
+      <Filter>ソース ファイル\Utility\GLTF</Filter>
+    </ClInclude>
+    <ClInclude Include="GLTFScene.h">
       <Filter>ソース ファイル\Utility\GLTF</Filter>
     </ClInclude>
   </ItemGroup>

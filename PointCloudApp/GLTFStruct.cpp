@@ -6,88 +6,79 @@
 #include <GLTFSDK/GLTFResourceReader.h>
 #include <GLTFSDK/GLBResourceReader.h>
 #include <GLTFSDK/Deserialize.h>
-#include "GLTFShader.h"
-#include "GLBuffer.h"
 #include "GLUtility.h"
-#include "GLTFSceneUpdater.h"
 namespace KI
 {
-GLTFScene::~GLTFScene()
+
+GLTFSkin::GpuObject GLTFSkin::CreateGpuObject(const Vector<GLTFSkin>& skins)
 {
-	RELEASE_INSTANCE(m_pMaterials);
-	RELEASE_INSTANCE(m_pMatrixGpuUpdater);
-	RELEASE_INSTANCE(m_pNodeBuffer);
-}
-void GLTFScene::Initialize()
-{
-	if (m_pNodeBuffer == nullptr) {
-		m_pNodeBuffer = new GLBuffer();
-		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
-		m_pNodeBuffer->Create<GLTFNode::GpuObject>(m_gpu.node);
-	}
-
-	//m_pMatrixGpuUpdater = new GLTFSceneMatrixUpdaterOnGpu();
-	//if (m_pMatrixGpuUpdater) {
-	//	m_pMatrixGpuUpdater->Initialize(m_nodes);
-	//	m_pMatrixGpuUpdater->Execute(m_pNodeBuffer);
-	//}
-
-
-	UpdateMatrix();
-}
-void GLTFScene::CreateMaterialBuffer()
-{
-	if (m_pMaterials != nullptr) { return; }
-	m_pMaterials = new GLBuffer();
-	m_pMaterials->Create<GLTFMaterial>(m_material);
-	m_pMaterials->BufferSubData<GLTFMaterial>(0, m_material);
-}
-
-void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
-{
-	if (!m_pShader) {
-		m_pShader = new GLTFShader();
-		m_pShader->Build();
-		CreateMaterialBuffer();
-	}
-	m_pShader->Use();
-	m_pShader->SetViewProj(proj * view);
-	m_pShader->SetNodeBuffer(m_pNodeBuffer);
-	m_pShader->SetMaterialBuffer(m_pMaterials);
-	for (const auto& node : m_nodes) {
-		if (node.GetMeshId() == -1) { continue; }
-		const auto& mesh = m_meshes[node.GetMeshId()];
-		if (mesh.GetBufferIndex() == -1) { continue; }
-		const auto& meshBuffer = m_meshBuffer[mesh.GetBufferIndex()];
-		m_pShader->SetVertexBuffer(meshBuffer.pVertex.get(), meshBuffer.format);
-		m_pShader->SetIndexBuffer(meshBuffer.pIndex.get());
-		for (const auto& primitive : mesh.GetPrimitives()) {
-			m_pShader->BindBufferIndex(node.GetIndex(), primitive.materialIndex);
-			const auto& material = m_material[primitive.materialIndex];
-			if (material.baseTexture != -1) {
-				m_pShader->BindBaseColor(*m_texture[material.baseTexture]);
-			}
-
-			if (material.normalTexture != -1) {
-				m_pShader->BindNormal(*m_texture[material.normalTexture]);
-			}
-
-			if (material.roughnessTexture != -1) {
-				m_pShader->BindRoughness(*m_texture[material.roughnessTexture]);
-			}
-			
-			m_pShader->DrawElement(primitive, meshBuffer.pIndex->DataType());
+	assert(skins.size() == 1);
+	std::vector<float> memory(CalcGpuMemorySize(skins) /4);
+	int offset = 0;
+	for (const auto& skin : skins) {
+		{
+			float skeleton = skin.m_rootSkeleton;
+			memcpy(&memory[offset], &skeleton, sizeof(float));
+			offset += 1;
 		}
+
+		{
+			float size = (float)skin.m_jointNodeIndex.size();
+			memcpy(&memory[offset], &size, sizeof(float));
+			offset += 1;
+		}
+
+		for (size_t i = 0; i < skin.m_jointNodeIndex.size(); i++) {
+			{
+				float joint = skin.m_jointNodeIndex[i];
+				memcpy(&memory[offset], &joint, sizeof(float));
+				offset += 1;
+			}
+	
+			{
+				memcpy(&memory[offset], &skin.m_inverseBindMatrix[i], sizeof(Matrix4x4));
+				offset += 16;
+			}
+
+			{
+				memcpy(&memory[offset], &skin.m_jointMatrix[i],sizeof(Matrix4x4));
+				offset += 16;
+			}
+
+		}
+
 	}
+
+	GLTFSkin::GpuObject gpu;
+	gpu.data = std::move(memory);
+	return gpu;
 }
 
+int GLTFSkin::CalcGpuMemorySize(const Vector<GLTFSkin>& skins)
+{
+	int memorySize = 0;
+	for (const auto& skin : skins) {
+		memorySize += sizeof(float);	// rootIndex;
+		memorySize += sizeof(float);	// jointSize;
+		memorySize += skin.m_jointNodeIndex.size() * sizeof(float);
+		memorySize += skin.m_inverseBindMatrix.size() * sizeof(Matrix4x4);
+		memorySize += skin.m_jointMatrix.size() * sizeof(Matrix4x4);
+	}
+
+	return memorySize;
+}
 Matrix4x4 GLTFNode::CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vector3& translate)
 {
 	Matrix4x4 matrix(1.0);
-	matrix *= glm::scale(matrix, scale);
+	matrix = glm::translate(matrix, translate);
 	matrix *= rotate;
-	matrix *= glm::translate(matrix, translate);
+	matrix = glm::scale(matrix, scale);
 	return matrix;
+}
+
+Matrix4x4 GLTFNode::CreateLocalMatrix() const
+{
+	return m_baseMatrix * CreateMatrix(m_scale, m_rotate, m_translate);
 }
 
 void GLTFNode::UpdateMatrix(const Vector<int>& roots, Vector<GLTFNode>& nodes)
@@ -109,22 +100,45 @@ Vector<GLTFNode::GpuObject> GLTFNode::CreateGpuObject(const Vector<GLTFNode>& no
 {
 	Vector<GLTFNode::GpuObject> bufferObject(nodes.size());
 	for (size_t i = 0; i < nodes.size(); i++) {
+		bufferObject[i].scale = Vector4(nodes[i].GetScale(), 0.0f);
+		bufferObject[i].translate = Vector4(nodes[i].GetTranslate(), 0.0f);
+		bufferObject[i].rotate = nodes[i].GetRotate();
 		bufferObject[i].localMatrix = nodes[i].GetLocalMatrix();
 		bufferObject[i].matrix = nodes[i].GetMatrix();
-		if (nodes[i].GetSkinId() >= 0) {
-			bufferObject[i].jointCount = skins[nodes[i].GetSkinId()].GetJointNodeIndex().size();
-		} else {
-			bufferObject[i].jointCount = -1;
-		}
+		bufferObject[i].skinId = nodes[i].GetSkinId();
 	}
 
 	return bufferObject;
 }
 
-
 bool InTime(float begin, float end, float time)
 {
-	return begin < time && time < end;
+	return begin < time && time <= end;
+}
+
+Vector<GLTFAnimation::SamplerGpuObject> GLTFAnimation::CreateSamplerGpuObject()
+{
+	Vector<GLTFAnimation::SamplerGpuObject> gpus;
+	for (const auto& sampler : m_samplers) {
+		assert(sampler.timer.size() == sampler.transform.size());
+		GLTFAnimation::SamplerGpuObject gpu;
+		gpu.data.resize(sampler.timer.size() * 5 + 1);
+		gpu.data[0] = sampler.timer.size();
+		for (size_t i = 0; i < sampler.timer.size(); i++) {
+			gpu.data[5 * i + 1] = sampler.timer[i];
+			gpu.data[5 * i + 2] = sampler.transform[i].x;
+			gpu.data[5 * i + 3] = sampler.transform[i].y;
+			gpu.data[5 * i + 4] = sampler.transform[i].z;
+			gpu.data[5 * i + 5] = sampler.transform[i].w;
+		}
+		gpus.push_back(std::move(gpu));
+	}
+
+	return gpus;
+}
+Vector<GLTFAnimation::ChannelGpuObject> GLTFAnimation::CreateChannelGpuObject()
+{
+	return m_chennels;
 }
 
 void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFNode>& nodes, float time)
@@ -140,18 +154,23 @@ void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFN
 				if (!InTime(sampler.timer[j], sampler.timer[j + 1], time)) { continue; }
 				float u = std::max(0.0f, time - sampler.timer[j]) / (sampler.timer[j + 1] - sampler.timer[j]);
 				if (u > 1.0f) continue;
+				if (channel.node == 1) {
+					int a = 0;
+				}
 				switch (channel.path) {
 				case Channel::Path::Translate:
-					translate = glm::mix(sampler.transform[j], sampler.transform[j + 1], u);
+					nodes[channel.node].SetTranslate(
+						glm::mix(sampler.transform[j], sampler.transform[j + 1], u));
 					break;
 				case Channel::Path::Scale:
-					scale = glm::mix(sampler.transform[j], sampler.transform[j + 1], u);
+					nodes[channel.node].SetScale(
+						scale = glm::mix(sampler.transform[j], sampler.transform[j + 1], u));
 					break;
 				case Channel::Path::Rotate:
-					rotate = glm::mat4_cast(glm::normalize(glm::slerp(
+					nodes[channel.node].SetRotate(glm::mat4_cast(glm::normalize(glm::slerp(
 						CreateQuart(sampler.transform[j]),
 						CreateQuart(sampler.transform[j + 1]),
-						u)));
+						u))));
 					break;
 				case Channel::Path::Weight:
 					break;
@@ -159,28 +178,20 @@ void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFN
 					break;
 				}
 			}
-
-			nodes[channel.node].SetLocalMatrix(GLTFNode::CreateMatrix(scale, rotate, translate));
 		}
 	}
 }
 
-void GLTFScene::UpdateData(float time)
+void GLTFSkin::Update(Vector<GLTFSkin>& skins, const Vector<GLTFNode>& nodes)
 {
-	GLTFAnimation::Update(m_animation, m_nodes, time);
-	UpdateMatrix();
-}
-
-void GLTFScene::UpdateMatrix()
-{
-	if (m_pMatrixGpuUpdater) {
-		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
-		m_pNodeBuffer->BufferSubData<GLTFNode::GpuObject>(0, m_gpu.node);
-		m_pMatrixGpuUpdater->Execute(m_pNodeBuffer);
-	} else {
-		GLTFNode::UpdateMatrix(m_roots, m_nodes);
-		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
-		m_pNodeBuffer->BufferSubData<GLTFNode::GpuObject>(0, m_gpu.node);
+	for (auto& node : nodes) {
+		if (node.GetSkinId() < 0) continue;
+		auto& skin = skins[node.GetSkinId()];
+		auto invMat = glm::inverse(node.GetMatrix());
+		for (size_t i = 0; i < skin.m_jointNodeIndex.size(); i++) {
+			const auto& jointNode = nodes[skin.m_jointNodeIndex[i]];
+			skin.m_jointMatrix[i] = invMat * jointNode.GetMatrix() * skin.m_inverseBindMatrix[i];
+		}
 	}
 }
 }

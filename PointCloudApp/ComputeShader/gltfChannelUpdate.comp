@@ -1,0 +1,64 @@
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+uniform float u_Timer;
+
+layout(std430, binding = 3) buffer Node
+{
+	GLTFNode nodes[];
+};
+
+layout(std430, binding = 4) buffer Channels
+{
+	GLTFChannel channels[];
+};
+
+layout(std430, binding = 5) buffer Samplers
+{
+	GLTFSampler samplers[];
+};
+
+
+bool InTime(float begin, float end, float time)
+{
+	return begin < time && time < end;
+}
+
+void main()
+{
+	int channelIndex = int(gl_GlobalInvocationID.x);
+		
+	GLTFChannel channel = channels[channelIndex];
+	GLTFSampler sampler = samplers[channel.sampler];
+	vec4 translate = vec4(0.0);
+	vec4 scale = vec4(1.0);
+	mat4 rotate = mat4(1.0);
+	for (int j = 0; j < sampler.size - 1; j++) {
+		float timer0 = GetSamplerTimer(sampler,j);
+		float timer1 = GetSamplerTimer(sampler,j + 1);
+
+		if (!InTime(timer0, timer1, u_Timer)) { continue; }
+		float u = max(0.0f, u_Timer - timer0) / (timer1 - timer0);
+		if (u > 1.0f) continue;
+		vec4 transform0 = GetSamplerTransform(sampler,j);
+		vec4 transform1 = GetSamplerTransform(sampler,j + 1);
+		if (channel.path == CHANNEL_PATH_TRANSLATE)
+		{
+			translate = mix(transform0,transform1, u);
+		} 
+		else if(channel.path == CHANNEL_PATH_SCALE)
+		{
+			scale = mix(transform0, transform1, u);
+		}
+		else if(channel.path == CHANNEL_PATH_ROTATE)
+		{
+			rotate = QuartToMat4(normalize(slerp(transform0, transform1, u)));
+		}
+	}
+	
+	mat4 matrix = mat4(1);
+	matrix *= ScaleToMat4(scale);
+	matrix *= rotate;
+	matrix *= TranslateToMat4(translate);
+	nodes[channel.node].localMatrix = matrix;
+} 

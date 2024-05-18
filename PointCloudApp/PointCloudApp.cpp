@@ -61,8 +61,11 @@ void PointCloudApp::Execute()
 	m_pRoot = std::make_unique<RenderNode>("Root");
 
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
-	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf")));
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\RiggedSimple\\glTF\\RiggedSimple.gltf")));
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\RiggedFigure\\glTF\\RiggedFigure.gltf")));
+	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\CesiumMan\\glTF\\CesiumMan.gltf")));
+	m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf")));
 
 	//auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf");
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(pGLTF));
@@ -98,8 +101,8 @@ void PointCloudApp::Execute()
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
 	
 
-	Shared<Primitive> pAxis = std::make_shared<Axis>(5);
-	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	//Shared<Primitive> pAxis = std::make_shared<Axis>(5);
+	//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 	
 	
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -109,7 +112,7 @@ void PointCloudApp::Execute()
 	glFrontFace(GL_CCW);	// GLenum mode
 	//glPointSize(5.0f);
 	glLineWidth(5.0f);
-	//CPUProfiler cpuProfiler;
+	CPUProfiler cpuProfiler;
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
@@ -123,19 +126,19 @@ void PointCloudApp::Execute()
 	float m_diff = 0;
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
-		//cpuProfiler.Start();
+		cpuProfiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		render.Start();
 		timer.Begin();
 		m_pRoot->Draw(m_pCamera->Projection(), m_pCamera->ViewMatrix());
-		m_diff += timer.End();
+		m_diff += timer.End() * 50;
 		m_pRoot->Update(m_diff);
-		if (m_diff > 4.0) { m_diff = 0.0f; }
+		if (m_diff > 10.0) { m_diff = 0.0f; }
 		render.Stop();
 		
-		//cpuProfiler.Stop();
-		//cpuProfiler.Output();
+		cpuProfiler.Stop();
+		cpuProfiler.Output();
 
 		//ImGui_ImplOpenGL3_NewFrame();
 		//ImGui_ImplGlfw_NewFrame();

@@ -9,6 +9,21 @@
 namespace KI
 {
 
+enum SHADER_PROGRAM
+{
+	SHADER_PROGRAM_VERTEX,
+	SHADER_PROGRAM_GEOM,
+	SHADER_PROGRAM_FRAG,
+	SHADER_PROGRAM_COMPUTE
+};
+
+struct ShaderPath
+{
+	Vector<String> header;
+	std::unordered_map<SHADER_PROGRAM, String> shader;
+};
+
+
 class IShader
 {
 public:

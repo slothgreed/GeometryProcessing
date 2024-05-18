@@ -30,10 +30,13 @@ private:
 	class Shader : public IComputeShader
 	{
 	public:
+		Shader()
+			:m_uniformMaxLevel(0)
+		{
+		}
 		virtual Vector<String> GetHeaderPath();
 		virtual String GetComputePath();
 		virtual void GetUniformLocation();
-	public:
 		void Execute(GLBuffer* pMapBuffer, GLBuffer* pNodeBuffer, int maxLevel);
 	private:
 
@@ -44,20 +47,63 @@ private:
 
 };
 
-
-class GLTFSceneMatrixUpdaterOnCpu
+class GLTFChannelUpdaterOnGpu
 {
 public:
-	GLTFSceneMatrixUpdaterOnCpu()
-		:m_pNodeBuffer(nullptr)
-	{
-	};
-	~GLTFSceneMatrixUpdaterOnCpu();
+	GLTFChannelUpdaterOnGpu() : m_pShader(nullptr) {};
+	~GLTFChannelUpdaterOnGpu() {};
 
-	void Initialize(const Vector<GLTFNode>& nodes, Vector<GLTFSkin>& skins);
+	void Execute(GLBuffer* pNodeBuffer, GLBuffer* pChannelBuffer, GLBuffer* pSamplerBuffer, float timer);
 private:
-	GLBuffer* m_pNodeBuffer;
+
+	class Shader : public IComputeShader
+	{
+	public:
+		Shader() :
+			m_uniformTimer(0) {};
+		~Shader() {};
+
+		virtual Vector<String> GetHeaderPath();
+		virtual String GetComputePath();
+		virtual void GetUniformLocation();
+		void Execute(GLBuffer* pNodeBuffer, GLBuffer* pChannelBuffer, GLBuffer* pSamplerBuffer, float timer);
+	private:
+		GLuint m_uniformTimer;
+	};
+
+	Shader* m_pShader;
 };
+
+class GLTFSkinUpdaterOnGpu
+{
+public:
+	GLTFSkinUpdaterOnGpu()
+		: m_pShader(nullptr)
+	{
+	}
+	~GLTFSkinUpdaterOnGpu() {};
+
+	void Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer, int jointNum);
+	class Shader : public IComputeShader
+	{
+	public:
+		Shader() {};
+		virtual ~Shader() {};
+
+		virtual Vector<String> GetHeaderPath();
+		virtual String GetComputePath();
+		virtual void GetUniformLocation() {};
+
+		void Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer, int jointNum);
+	private:
+
+	};
+
+private:
+	Shader* m_pShader;
+};
+
+
 }
 
 #endif KI_GLTF_SCENE_UPDATER_H

@@ -74,6 +74,8 @@ void getError();
 
 #define OUTPUT_GLERROR getError();
 #define RELEASE_INSTANCE(x) if(x) { delete x; x = nullptr;}
+#define RELEASE_VECTOR(x) for(size_t i = 0; i < x.size(); i++) if(x[i]) { delete x[i];} x.clear();
+
 }
 
 #endif  PCH_H

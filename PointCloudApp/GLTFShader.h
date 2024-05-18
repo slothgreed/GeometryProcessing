@@ -27,6 +27,7 @@ public:
 	virtual String GetVertexPath() override;
 	virtual String GetFragmentPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
+	void SetSkinBuffer(const GLBuffer* pBuffer);
 	void SetIndexBuffer(GLBuffer* pBuffer);
 	void SetNodeBuffer(const GLBuffer* pBuffer);
 	void SetMaterialBuffer(const GLBuffer* pBuffer);

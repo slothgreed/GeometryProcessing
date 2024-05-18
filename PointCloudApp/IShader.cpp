@@ -65,6 +65,7 @@ void IShadingShader::SetVertexFormat(const VertexFormat& format)
 {
 	glEnableVertexAttribArray(format.location);
 	glVertexAttribFormat(format.location, format.componentSize, format.type, format.normalized, format.offset);
+	glVertexAttribBinding(format.location, 0);
 }
 
 void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)

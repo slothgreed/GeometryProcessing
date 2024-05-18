@@ -9,6 +9,7 @@
 #include "Utility.h"
 #include "TextureLoader.h"
 #include "FileUtility.h"
+#include "GLTFScene.h"
 using namespace Microsoft::glTF;
 
 // The glTF SDK is decoupled from all file I/O by the IStreamReader (and IStreamWriter)
@@ -93,6 +94,17 @@ Matrix4x4 Convert(const Matrix4& matrix)
         matrix.values[12], matrix.values[13], matrix.values[14], matrix.values[15]);
 }
 
+Vector3 Convert(const Microsoft::glTF::Vector3& value)
+{
+    return Vector3(value.x, value.y, value.z);
+}
+
+
+Matrix4x4 Convert(const Microsoft::glTF::Quaternion& value)
+{
+    return glm::toMat4(glm::qua(value.x, value.y, value.z, value.w));
+}
+
 int ConvertIndex(const std::string& str)
 {
     if (str.empty()) { return -1; }
@@ -153,7 +165,10 @@ Vector<GLTFNode> GLTFLoader::LoadNode(const Microsoft::glTF::Document* pDocument
     Vector<GLTFNode> nodes(pDocument->nodes.Size());
     for (size_t i = 0; i < pDocument->nodes.Size(); i++) {
         nodes[i].SetIndex(ConvertIndex(pDocument->nodes[i].id));
-        nodes[i].SetLocalMatrix(Convert(pDocument->nodes[i].matrix));
+        nodes[i].SetRotate(Convert(pDocument->nodes[i].rotation));
+        nodes[i].SetScale(Convert(pDocument->nodes[i].scale));
+        nodes[i].SetTranslate(Convert(pDocument->nodes[i].translation));
+        nodes[i].SetBaseMatrix(Convert(pDocument->nodes[i].matrix));
         nodes[i].SetSkinId(ConvertIndex(pDocument->nodes[i].skinId));
         nodes[i].SetMeshId(ConvertIndex(pDocument->nodes[i].meshId));
         nodes[i].SetChild(ConvertIndex(pDocument->nodes[i].children));
@@ -175,6 +190,7 @@ Vector<GLTFSkin> GLTFLoader::LoadSkin(const Microsoft::glTF::Document* pDocument
         for (size_t i = 0; i < gltfSkin.jointIds.size(); i++) {
             joints[i] = StringToInt(gltfSkin.jointIds[i]);
         }
+        skin.SetJointNodeIndex(std::move(joints));
 
         int inverseBindMatrices =  StringToInt(gltfSkin.inverseBindMatricesAccessorId);
         if (inverseBindMatrices > -1) {
@@ -183,7 +199,6 @@ Vector<GLTFSkin> GLTFLoader::LoadSkin(const Microsoft::glTF::Document* pDocument
             auto matrix = pResource->ReadBinaryData<glm::mat4x4>(*pDocument, bufferView);
             skin.SetInverseBindMatrix(std::move(matrix));
         }
-        skin.SetJointNodeIndex(std::move(joints));
         skins.push_back(std::move(skin));
     }
 
@@ -381,13 +396,12 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
 
     auto pVertexBuffer = std::make_unique<GLBuffer>();
     pVertexBuffer->Create<Vertex>(vertexBuffer);
-    pVertexBuffer->BufferSubData<Vertex>(0, vertexBuffer);
 
     VertexFormats formats;
     if (hasPosition) {
         VertexFormat format;
         format.name = "POSITION";
-        format.location = formats.size();
+        format.location = 0;
         format.componentSize = 3;
         format.type = DATA_FLOAT;
         format.offset = 0;
@@ -397,7 +411,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     if (hasNormal) {
         VertexFormat format;
         format.name = "NORMAL";
-        format.location = formats.size();
+        format.location = 1;
         format.componentSize = 3;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, normal);
@@ -407,7 +421,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     if (hasTexcoord) {
         VertexFormat format;
         format.name = "TEXCOORD_0";
-        format.location = formats.size();
+        format.location = 2;
         format.componentSize = 2;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, texcoord);
@@ -417,7 +431,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     if (hasTangent) {
         VertexFormat format;
         format.name = "TANGENT";
-        format.location = formats.size();
+        format.location = 3;
         format.componentSize = 4;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, tangent);
@@ -428,7 +442,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     if (hasJoint) {
         VertexFormat format;
         format.name = "JOINT";
-        format.location = formats.size();
+        format.location = 4;
         format.componentSize = 4;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, joint);
@@ -438,7 +452,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     if (hasWeight) {
         VertexFormat format;
         format.name = "WEIGHT";
-        format.location = formats.size();
+        format.location = 5;
         format.componentSize = 4;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, weight);

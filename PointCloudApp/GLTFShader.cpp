@@ -6,6 +6,7 @@ namespace KI
 Vector<String> GLTFShader::GetHeaderPath()
 {
 	Vector<String> path;
+	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
 	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
 	return path;
 }
@@ -72,6 +73,12 @@ void GLTFShader::SetNodeBuffer(const GLBuffer* pBuffer)
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, pBuffer->Handle());
 }
+
+void GLTFShader::SetSkinBuffer(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, pBuffer->Handle());
+}
+
 void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)
 {
 	glDrawElementsBaseVertex(primitive.meshType, primitive.drawNum, dataType, (void*)primitive.drawOffset, primitive.baseVertex);
@@ -87,10 +94,6 @@ void GLTFShader::SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format)
 	for (const auto& f : format) {
 		SetVertexFormat(f);
 	}
-	glVertexAttribBinding(0, 0);
-	glVertexAttribBinding(1, 0);
-	glVertexAttribBinding(2, 0);
-	glVertexAttribBinding(3, 0);
 }
 void GLTFShader::SetIndexBuffer(GLBuffer* pBuffer)
 {

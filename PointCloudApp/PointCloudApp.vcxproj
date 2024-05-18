@@ -181,6 +181,7 @@
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="GLFWApp.cpp" />
     <ClCompile Include="GLTFLoader.cpp" />
+    <ClCompile Include="GLTFScene.cpp" />
     <ClCompile Include="GLTFSceneUpdater.cpp" />
     <ClCompile Include="GLTFShader.cpp" />
     <ClCompile Include="GLTFStruct.cpp" />
@@ -230,6 +231,7 @@
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GLFWApp.h" />
     <ClInclude Include="GLTFLoader.h" />
+    <ClInclude Include="GLTFScene.h" />
     <ClInclude Include="GLTFSceneUpdater.h" />
     <ClInclude Include="GLTFShader.h" />
     <ClInclude Include="GLTFStruct.h" />
