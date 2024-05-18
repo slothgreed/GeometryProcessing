@@ -19,8 +19,7 @@ public:
 	};
 
 	virtual IShadingShader::Type GetType() { return IShadingShader::Type::Simple; }
-	virtual String GetVertexPath() override;
-	virtual String GetFragmentPath() override;
+	virtual ShaderPath GetShaderPath() override;
 
 	void GetUniformLocation();
 	void SetViewProj(const Matrix4x4& value);
@@ -46,8 +45,7 @@ public:
 	};
 
 	virtual IShadingShader::Type GetType() { return IShadingShader::Type::VertexColor; }
-	virtual String GetVertexPath() override;
-	virtual String GetFragmentPath() override;
+	virtual ShaderPath GetShaderPath() override;
 
 	virtual void GetUniformLocation() override;
 	virtual void SetViewProj(const Matrix4x4& value) override;

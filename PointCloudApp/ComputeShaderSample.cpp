@@ -13,9 +13,11 @@ SimpleComputeShader::~SimpleComputeShader()
 {
 }
 
-String SimpleComputeShader::GetComputePath()
+ShaderPath SimpleComputeShader::GetShaderPath()
 {
-	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\simple.comp";
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\simple.comp";
+	return path;
 }
 
 void SimpleComputeShader::Execute(const Vector<float>& in, Vector<float>& out)
@@ -40,9 +42,11 @@ void SimpleComputeShader::GetUniformLocation()
 	m_uniform = glGetUniformLocation(m_programId, "u_elementSize");
 }
 
-String CreateTextureComputeShader::GetComputePath()
+ShaderPath CreateTextureComputeShader::GetShaderPath()
 {
-	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\texture.comp";
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\texture.comp";
+	return path;
 }
 void CreateTextureComputeShader::Execute(const Shared<Texture>& pTexture)
 {

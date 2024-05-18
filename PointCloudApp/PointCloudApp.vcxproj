@@ -186,6 +186,7 @@
     <ClCompile Include="GLTFShader.cpp" />
     <ClCompile Include="GLTFStruct.cpp" />
     <ClCompile Include="GLUtility.cpp" />
+    <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudComputeShader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
@@ -237,6 +238,7 @@
     <ClInclude Include="GLTFStruct.h" />
     <ClInclude Include="GLTypes.h" />
     <ClInclude Include="GLUtility.h" />
+    <ClInclude Include="MeshShaderTest.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudComputeShader.h" />
     <ClInclude Include="PointCloudIO.h" />

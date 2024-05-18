@@ -34,8 +34,7 @@ private:
 			:m_uniformMaxLevel(0)
 		{
 		}
-		virtual Vector<String> GetHeaderPath();
-		virtual String GetComputePath();
+		virtual ShaderPath GetShaderPath();
 		virtual void GetUniformLocation();
 		void Execute(GLBuffer* pMapBuffer, GLBuffer* pNodeBuffer, int maxLevel);
 	private:
@@ -63,8 +62,7 @@ private:
 			m_uniformTimer(0) {};
 		~Shader() {};
 
-		virtual Vector<String> GetHeaderPath();
-		virtual String GetComputePath();
+		virtual ShaderPath GetShaderPath();
 		virtual void GetUniformLocation();
 		void Execute(GLBuffer* pNodeBuffer, GLBuffer* pChannelBuffer, GLBuffer* pSamplerBuffer, float timer);
 	private:
@@ -90,8 +88,7 @@ public:
 		Shader() {};
 		virtual ~Shader() {};
 
-		virtual Vector<String> GetHeaderPath();
-		virtual String GetComputePath();
+		virtual ShaderPath GetShaderPath();
 		virtual void GetUniformLocation() {};
 
 		void Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer, int jointNum);

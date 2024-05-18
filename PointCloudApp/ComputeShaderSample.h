@@ -10,7 +10,7 @@ public:
 	SimpleComputeShader();
 	~SimpleComputeShader();
 
-	virtual String GetComputePath() override;
+	virtual ShaderPath GetShaderPath() override;
 
 	void Execute(const Vector<float>& in, Vector<float>& out);
 	virtual void GetUniformLocation() override;
@@ -25,7 +25,7 @@ public:
 	CreateTextureComputeShader() {};
 	~CreateTextureComputeShader() {};
 
-	virtual String GetComputePath() override;
+	virtual ShaderPath GetShaderPath() override;
 	void Execute(const Shared<Texture>& pTexture);
 	virtual void GetUniformLocation() override;
 private:

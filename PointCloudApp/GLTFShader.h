@@ -23,9 +23,7 @@ public:
 	};
 
 	virtual IShadingShader::Type GetType() { return IShadingShader::Type::GLTF; }
-	virtual Vector<String> GetHeaderPath() override;
-	virtual String GetVertexPath() override;
-	virtual String GetFragmentPath() override;
+	virtual ShaderPath GetShaderPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
 	void SetSkinBuffer(const GLBuffer* pBuffer);
 	void SetIndexBuffer(GLBuffer* pBuffer);

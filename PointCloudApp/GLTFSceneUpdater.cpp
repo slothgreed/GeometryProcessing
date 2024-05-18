@@ -89,17 +89,13 @@ void GLTFSceneMatrixUpdaterOnGpu::Shader::Execute(GLBuffer* pMapBuffer, GLBuffer
 	UnUse();
 }
 
-Vector<String> GLTFSceneMatrixUpdaterOnGpu::Shader::GetHeaderPath()
+ShaderPath GLTFSceneMatrixUpdaterOnGpu::Shader::GetShaderPath()
 {
-	Vector<String> path;
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	ShaderPath path;
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfMatrixUpdate.comp";
 	return path;
-}
-
-String GLTFSceneMatrixUpdaterOnGpu::Shader::GetComputePath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfMatrixUpdate.comp";
 }
 
 void GLTFSceneMatrixUpdaterOnGpu::Shader::GetUniformLocation()
@@ -117,19 +113,14 @@ void GLTFChannelUpdaterOnGpu::Execute(GLBuffer* pNodeBuffer, GLBuffer* pChannelB
 
 	m_pShader->Execute(pNodeBuffer, pChannelBuffer, pSamplerBuffer, timer);
 }
-Vector<String> GLTFChannelUpdaterOnGpu::Shader::GetHeaderPath()
+ShaderPath GLTFChannelUpdaterOnGpu::Shader::GetShaderPath()
 {
-	Vector<String> path;
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\quart.h");
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	ShaderPath path;
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\quart.h");
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfChannelUpdate.comp";
 	return path;
-
-}
-
-String GLTFChannelUpdaterOnGpu::Shader::GetComputePath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfChannelUpdate.comp";
 }
 
 void GLTFChannelUpdaterOnGpu::Shader::GetUniformLocation()
@@ -165,19 +156,14 @@ void GLTFSkinUpdaterOnGpu::Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer,
 	m_pShader->Execute(pNodeBuffer, pSkinBuffer, jointNum);
 }
 
-Vector<String> GLTFSkinUpdaterOnGpu::Shader::GetHeaderPath()
+ShaderPath GLTFSkinUpdaterOnGpu::Shader::GetShaderPath()
 {
-	Vector<String> path;
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\quart.h");
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	ShaderPath path;
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\quart.h");
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfSkinUpdate.comp";
 	return path;
-
-}
-
-String GLTFSkinUpdaterOnGpu::Shader::GetComputePath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfSkinUpdate.comp";
 }
 
 void GLTFSkinUpdaterOnGpu::Shader::Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer, int jointNum)

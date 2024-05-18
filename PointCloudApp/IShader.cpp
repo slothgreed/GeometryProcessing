@@ -28,9 +28,8 @@ void IShader::Delete()
 	m_programId = 0;
 }
 
-String IShader::LoadHeaderCode()
+String IShader::LoadHeaderCode(const Vector<String>& header)
 {
-	auto header = GetHeaderPath();
 	String headerCode;
 	for (size_t i = 0; i < header.size(); i++) {
 		String code;
@@ -95,17 +94,13 @@ IShadingShader::~IShadingShader()
 
 void IShadingShader::Build()
 {
-
-	auto headerCode = LoadHeaderCode();
-	String vertexPath = GetVertexPath();
-	String fragPath = GetFragmentPath();
-
-	
+	auto shaderPath = GetShaderPath();
+	auto headerCode = LoadHeaderCode(shaderPath.header);
 
 	String vertexCode;
 	String fragCode;
-	ShaderUtility::LoadFromFile(vertexPath, vertexCode);
-	ShaderUtility::LoadFromFile(fragPath, fragCode);
+	ShaderUtility::LoadFromFile(shaderPath.shader[SHADER_PROGRAM_VERTEX], vertexCode);
+	ShaderUtility::LoadFromFile(shaderPath.shader[SHADER_PROGRAM_FRAG], fragCode);
 
 	vertexCode = headerCode + vertexCode;
 	fragCode = headerCode + fragCode;
@@ -118,10 +113,10 @@ void IShadingShader::Build()
 
 void IComputeShader::Build()
 {
-	auto headerCode = LoadHeaderCode();
-	String computePath = GetComputePath();
+	auto shaderPath = GetShaderPath();
+	auto headerCode = LoadHeaderCode(shaderPath.header);
 	String computeCode;
-	ShaderUtility::LoadFromFile(computePath, computeCode);
+	ShaderUtility::LoadFromFile(shaderPath.shader[SHADER_PROGRAM_COMPUTE], computeCode);
 	GLuint computeId = ShaderUtility::Compile(headerCode + computeCode, GL_COMPUTE_SHADER);
 
 	m_programId = ShaderUtility::LinkCompute(computeId);
@@ -131,13 +126,13 @@ void IComputeShader::Build()
 }
 
 
-String TextureShader::GetVertexPath()
+ShaderPath TextureShader::GetShaderPath()
 {
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\texture.vert";
-}
-String TextureShader::GetFragmentPath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\texture.frag";
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_VERTEX] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\texture.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\texture.frag";
+
+	return path;
 }
 
 

@@ -12,7 +12,7 @@ public:
 	PointCloudComputeShader(const Shared<PointCloud>& pPointCloud);
 	~PointCloudComputeShader();
 
-	virtual String GetComputePath();
+	virtual ShaderPath GetShaderPath();
 	virtual void GetUniformLocation();
 	virtual void Execute(const Matrix4x4& proj, const Matrix4x4& view, const Shared<Texture2D>& pTexture, const Shared<Texture2D>& pDepthBuffer);
 private:

@@ -13,13 +13,12 @@ SimpleShader::~SimpleShader()
 {
 }
 
-String SimpleShader::GetVertexPath()
+ShaderPath SimpleShader::GetShaderPath()
 {
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.vert";
-}
-String SimpleShader::GetFragmentPath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.frag";
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_VERTEX] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\simple.frag";
+	return path;
 }
 void SimpleShader::GetUniformLocation()
 {
@@ -55,13 +54,12 @@ VertexColorShader::~VertexColorShader()
 {
 }
 
-String VertexColorShader::GetVertexPath()
+ShaderPath VertexColorShader::GetShaderPath()
 {
-	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\vertexcolor.vert";
-}
-String VertexColorShader::GetFragmentPath()
-{
-	return  "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\vertexcolor.frag";
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_VERTEX] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\vertexcolor.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\vertexcolor.frag";
+	return path;
 }
 void VertexColorShader::GetUniformLocation()
 {

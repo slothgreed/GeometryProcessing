@@ -16,11 +16,14 @@ PointCloudComputeShader::~PointCloudComputeShader()
 {
 }
 
-String PointCloudComputeShader::GetComputePath()
+ShaderPath PointCloudComputeShader::GetShaderPath()
 {
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\pointcloud.comp";
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\pointcloud.comp";
 
+	return path;
 }
+
 void PointCloudComputeShader::GetUniformLocation()
 {
 	m_uniformVP = glGetUniformLocation(m_programId, "u_VP");

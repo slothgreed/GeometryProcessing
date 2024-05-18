@@ -3,22 +3,16 @@
 #include "Texture.h"
 namespace KI
 {
-Vector<String> GLTFShader::GetHeaderPath()
+
+ShaderPath GLTFShader::GetShaderPath()
 {
-	Vector<String> path;
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	ShaderPath path;
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
+	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
+	path.shader[SHADER_PROGRAM_VERTEX] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.frag";
+
 	return path;
-}
-
-
-String GLTFShader::GetVertexPath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.vert";
-}
-String GLTFShader::GetFragmentPath()
-{
-	return "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.frag";
 }
 
 void GLTFShader::BindBaseColor(const Texture& texture)

@@ -32,15 +32,15 @@ public:
 	~IShader();
 
 	virtual void Build() = 0;
+	virtual ShaderPath GetShaderPath() = 0;
 
 	void Use();
 	void UnUse();
 	void Delete();
-	virtual Vector<String> GetHeaderPath() { return Vector<String>(); }
 	GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 protected:
-	String LoadHeaderCode();
+	String LoadHeaderCode(const Vector<String>& header);
 	GLuint Handle() const { return m_programId; };
 	GLuint m_programId;
 };
@@ -63,8 +63,6 @@ public:
 
 	virtual void Build();
 	virtual Type GetType() = 0;
-	virtual String GetVertexPath() = 0;
-	virtual String GetFragmentPath() = 0;
 	virtual void GetUniformLocation() = 0;
 	virtual void SetViewProj(const Matrix4x4& value) = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
@@ -83,7 +81,6 @@ public:
 	IComputeShader() {};
 	~IComputeShader() {};
 
-	virtual String GetComputePath() = 0;
 	virtual void GetUniformLocation() = 0;
 
 	virtual void Build();
@@ -101,9 +98,8 @@ public:
 	TextureShader() {};
 	~TextureShader() {};
 	virtual Type GetType() { return Type::Texture; }
+	virtual ShaderPath GetShaderPath();
 	virtual void GetUniformLocation();
-	virtual String GetVertexPath();
-	virtual String GetFragmentPath();
 	virtual void SetViewProj(const Matrix4x4& value) {};
 	void BindTexture(const Texture& texture);
 	void SetPosition(GLBuffer* pPosition);
