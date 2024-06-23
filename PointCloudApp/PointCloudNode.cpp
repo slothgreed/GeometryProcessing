@@ -146,7 +146,7 @@ void PointCloudNode::DrawNode(const DrawContext& context)
 	pShader->Use();
 	pShader->SetPosition(m_pPositionBuffer.get());
 	pShader->SetColor(m_pColorBuffer.get());
-	pShader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
+	pShader->SetCamera(context.gpuCamera);
 	pShader->SetModel(Matrix4x4(1.0f));
 	pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
 }

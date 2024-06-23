@@ -16,20 +16,21 @@ SimpleShader::~SimpleShader()
 ShaderPath SimpleShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.header.push_back("version.h");
+	path.header.push_back("common.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "simple.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "simple.frag";
 	return path;
 }
 void SimpleShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
 }
 
-void SimpleShader::SetViewProj(const Matrix4x4& value)
+void SimpleShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
 }
 
 void SimpleShader::SetModel(const Matrix4x4& value)
@@ -69,9 +70,9 @@ void VertexColorShader::GetUniformLocation()
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
 
-void VertexColorShader::SetViewProj(const Matrix4x4& value)
+void VertexColorShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
 }
 
 void VertexColorShader::SetModel(const Matrix4x4& value)
@@ -104,13 +105,12 @@ ShaderPath PrimitiveColorShader::GetShaderPath()
 }
 void PrimitiveColorShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
 
-void PrimitiveColorShader::SetViewProj(const Matrix4x4& value)
+void PrimitiveColorShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
 }
 
 void PrimitiveColorShader::SetModel(const Matrix4x4& value)

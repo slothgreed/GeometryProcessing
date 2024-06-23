@@ -40,9 +40,9 @@ public:
 		CreateFace();
 	}
 
-	unsigned int GetFaceNum() const { return m_faceToEdge.size(); }
-	unsigned int GetPositionNum() const { return m_position.size(); }
-	unsigned int GetEdgeNum() const { return m_halfEdge.size(); }
+	size_t GetFaceNum() const { return m_faceToEdge.size(); }
+	size_t GetPositionNum() const { return m_position.size(); }
+	size_t GetEdgeNum() const { return m_halfEdge.size(); }
 	const Vector<Vector3>& GetPosition() { return m_position; }
 	const Vector3& GetBegin(int edgeIndex) const;
 	const Vector3& GetEnd(int edgeIndex) const;

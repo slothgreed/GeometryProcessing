@@ -13,7 +13,6 @@ public:
 
 	enum UNIFORM
 	{
-		VIEW_PROJ,
 		MODEL,
 		SSBO_INDEX,
 		COLOR_TEXTURE,
@@ -31,7 +30,7 @@ public:
 	void SetMaterialBuffer(const GLBuffer* pBuffer);
 	void BindBufferIndex(int matrix, int material);
 	virtual void GetUniformLocation();
-	virtual void SetViewProj(const Matrix4x4& value);
+	virtual void SetCamera(const GLBuffer* pBuffer);
 	void DrawElement(const GLTFPrimitive& primitive, GLuint dataType);
 	void BindBaseColor(const Texture& texture);
 	void BindNormal(const Texture& texture);

@@ -45,7 +45,6 @@ void GLTFShader::BindBufferIndex(int matrix, int material)
 
 void GLTFShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 	m_uniform[UNIFORM::SSBO_INDEX] = glGetUniformLocation(Handle(), "u_ssboIndex");
 	m_uniform[UNIFORM::COLOR_TEXTURE] = glGetUniformLocation(Handle(), "u_colorTexture");
@@ -53,9 +52,9 @@ void GLTFShader::GetUniformLocation()
 	m_uniform[UNIFORM::ROUGHNESS_TEXTURE] = glGetUniformLocation(Handle(), "u_roughnessTexture");
 }
 
-void GLTFShader::SetViewProj(const Matrix4x4& value)
+void GLTFShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
 }
 
 void GLTFShader::SetModel(const Matrix4x4& value)

@@ -55,7 +55,6 @@ public:
 
 	virtual void Build();
 	virtual void GetUniformLocation() = 0;
-	virtual void SetViewProj(const Matrix4x4& value) = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
 
 	void SetVertexFormat(const VertexFormats& format);
@@ -105,7 +104,7 @@ public:
 	~TextureShader() {};
 	virtual ShaderPath GetShaderPath();
 	virtual void GetUniformLocation();
-	virtual void SetViewProj(const Matrix4x4& value) {};
+	virtual void SetCamera(const GLBuffer* pBuffer) {};
 	void BindTexture(const Texture& texture);
 	void SetPosition(GLBuffer* pPosition);
 	void SetTexture(GLBuffer* pTexture);

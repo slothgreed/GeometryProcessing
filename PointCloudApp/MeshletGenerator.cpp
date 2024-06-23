@@ -16,13 +16,13 @@ ShaderPath MeshletShader::GetShaderPath()
 
 void MeshletShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
 
-void MeshletShader::SetViewProj(const Matrix4x4& value)
+void MeshletShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	OUTPUT_GLERROR;
 }
 
 void MeshletShader::SetModel(const Matrix4x4& value)
@@ -32,19 +32,19 @@ void MeshletShader::SetModel(const Matrix4x4& value)
 
 void MeshletShader::SetPosition(GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pBuffer->Handle());
 	OUTPUT_GLERROR;
 }
 
 void MeshletShader::SetMeshlet(GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pBuffer->Handle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, pBuffer->Handle());
 	OUTPUT_GLERROR;
 }
 
 void MeshletShader::SetIndex(GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, pBuffer->Handle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, pBuffer->Handle());
 	OUTPUT_GLERROR;
 }
 

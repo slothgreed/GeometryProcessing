@@ -5,6 +5,11 @@ layout (location = 3) in vec4 tangent;
 layout (location = 4) in vec4 joint;
 layout (location = 5) in vec4 weight;
 
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
 
 layout(std430, binding = 4) buffer NodeBuffer
 {
@@ -42,9 +47,9 @@ void main()
 			weight.w * GetJointMatrix(skins,0,int(joint.w));
 
 
-		gl_Position = u_VP * u_Model * nodes[u_ssboIndex.x].matrix * skinMatrix * vec4(position.x, position.y, position.z, 1.0);
+		gl_Position = camera.VP * u_Model * nodes[u_ssboIndex.x].matrix * skinMatrix * vec4(position.x, position.y, position.z, 1.0);
 	} else 	{
-		gl_Position = u_VP * u_Model * nodes[u_ssboIndex.x].matrix * vec4(position.x, position.y, position.z, 1.0);
+		gl_Position = camera.VP * u_Model * nodes[u_ssboIndex.x].matrix * vec4(position.x, position.y, position.z, 1.0);
 	}
 	f_normal = normal;
 	f_texcoord = texcoord;

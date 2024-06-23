@@ -17,9 +17,9 @@ struct DrawContext
 		, pShaderTable(nullptr)
 	{
 	}
-	DrawContext(const Camera* _pCamera, const GLBuffer* gpuCamera)
+	DrawContext(const Camera* _pCamera, const GLBuffer* _gpuCamera)
 		: pCamera(_pCamera)
-		, gpuCamera(nullptr)
+		, gpuCamera(_gpuCamera)
 		, pShaderTable(nullptr){}
 	const Camera* pCamera;
 	const GLBuffer* gpuCamera;

@@ -63,8 +63,8 @@ void MeshShaderTest::Finalize()
 ShaderPath MeshShaderTest::TriangleShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.shader[SHADER_PROGRAM_MESH] = "trianglemesh.mesh";
-	path.shader[SHADER_PROGRAM_FRAG] = "trianglemesh.frag";
+	path.shader[SHADER_PROGRAM_MESH] = "sample\\trianglemesh.mesh";
+	path.shader[SHADER_PROGRAM_FRAG] = "sample\\trianglemesh.frag";
 	return path;
 }
 

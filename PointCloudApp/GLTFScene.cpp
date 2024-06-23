@@ -93,7 +93,7 @@ void GLTFScene::DrawNode(const DrawContext& context)
 		CreateMaterialBuffer();
 	}
 	m_pShader->Use();
-	m_pShader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
+	m_pShader->SetCamera(context.gpuCamera);
 	m_pShader->SetModel(GetMatrix());
 	m_pShader->SetNodeBuffer(m_gpu.nodeBuffer);
 	m_pShader->SetMaterialBuffer(m_gpu.materialBuffer);

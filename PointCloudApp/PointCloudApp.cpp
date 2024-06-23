@@ -104,8 +104,8 @@ void PointCloudApp::Execute()
 	auto pResource = std::make_unique<RenderResource>();
 	pResource->Build();
 
-	m_pRoot = std::make_unique<RenderNode>("Root");
 	BDB bdb;
+	m_pRoot = std::make_unique<RenderNode>("Root");
 	m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
 	//m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>() / 2, Vector3(0, 1, 0)));
 	bdb.Add(m_pRoot->GetBoundBox());
@@ -155,28 +155,26 @@ void PointCloudApp::Execute()
 	//Shared<Primitive> pAxis = std::make_shared<Axis>(5000);
 	//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 
-	/*
-	{
-		Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));
-		Vector<Vector3> color(pCube->GetTriangleNum());
-		int index = 0;
-		while (index < color.size()) {
-			color[index] = ColorUtility::CreatePrimary(index);
-			color[index +1] = ColorUtility::CreatePrimary(index);
-			index += 2;
-		}
-		pCube->SetColor(std::move(color));
-		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Cube", pCube));
-	}
-	*/
-
 	//{
-	//	String path = "E:\\cgModel\\bunny6000.half";
-	//	auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
-	//	auto node = std::make_shared<HalfEdgeNode>(path, data);
-	//	node->SetMatrix(glmUtil::CreateScale(0.1f));
-	//	m_pRoot->AddNode(node);
+	//	Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));
+	//	Vector<Vector3> color(pCube->GetTriangleNum());
+	//	int index = 0;
+	//	while (index < color.size()) {
+	//		color[index] = ColorUtility::CreatePrimary(index);
+	//		color[index +1] = ColorUtility::CreatePrimary(index);
+	//		index += 2;
+	//	}
+	//	pCube->SetColor(std::move(color));
+	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Cube", pCube));
 	//}
+
+	{
+		String path = "E:\\cgModel\\bunny6000.half";
+		auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
+		auto node = std::make_shared<HalfEdgeNode>(path, data);
+		node->SetMatrix(glmUtil::CreateScale(0.1f));
+		m_pRoot->AddNode(node);
+	}
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glEnable(GL_DEPTH_TEST);

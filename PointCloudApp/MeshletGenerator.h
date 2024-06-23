@@ -26,14 +26,13 @@ public:
 	~MeshletShader() {};
 	enum UNIFORM
 	{
-		VIEW_PROJ,
 		MODEL,
 		NUM
 	};
 
 	virtual ShaderPath GetShaderPath();
 	void GetUniformLocation();
-	void SetViewProj(const Matrix4x4& value);
+	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
 	void SetPosition(GLBuffer* pBuffer);
 	void SetIndex(GLBuffer* pBuffer);

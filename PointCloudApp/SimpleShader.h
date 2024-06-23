@@ -12,7 +12,6 @@ public:
 
 	enum UNIFORM
 	{
-		VIEW_PROJ,
 		MODEL,
 		COLOR,
 		NUM
@@ -21,7 +20,7 @@ public:
 	virtual ShaderPath GetShaderPath() override;
 
 	void GetUniformLocation();
-	void SetViewProj(const Matrix4x4& value);
+	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
 	void SetColor(const Vector3& value);
 	void SetPosition(GLBuffer* pBuffer);
@@ -46,7 +45,7 @@ public:
 	virtual ShaderPath GetShaderPath() override;
 
 	virtual void GetUniformLocation() override;
-	virtual void SetViewProj(const Matrix4x4& value) override;
+	virtual void SetCamera(const GLBuffer* pBuffer);
 	virtual void SetModel(const Matrix4x4& value) override;
 	void SetPosition(GLBuffer* pPosition);
 	void SetColor(GLBuffer* pColor);
@@ -62,7 +61,6 @@ class PrimitiveColorShader : public IShadingShader
 public:
 	enum UNIFORM
 	{
-		VIEW_PROJ,
 		MODEL,
 		NUM
 	};
@@ -70,7 +68,7 @@ public:
 	~PrimitiveColorShader() {};
 	virtual ShaderPath GetShaderPath() override;
 	virtual void GetUniformLocation() override;
-	virtual void SetViewProj(const Matrix4x4& value) override;
+	virtual void SetCamera(const GLBuffer* pBuffer);
 	virtual void SetModel(const Matrix4x4& value) override;
 	void SetPosition(GLBuffer* pPosition);
 	void SetColor(GLBuffer* pColor);

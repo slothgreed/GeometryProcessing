@@ -9,11 +9,9 @@ class RenderResource
 {
 public:
 	RenderResource()
-	:m_pCamera(nullptr){};
+		: m_pCamera(nullptr){};
 	~RenderResource() {};
-	void Build() {
-		m_pShaderTable.Build();
-	};
+	void Build();
 
 	void Finalize();
 	ShaderTable* GetShaderTable() { return &m_pShaderTable; };

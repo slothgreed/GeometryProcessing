@@ -38,7 +38,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	auto pSimpleShader = context.pShaderTable->GetSimpleShader();
 	pSimpleShader->Use();
 	pSimpleShader->SetPosition(m_pPosition.get());
-	pSimpleShader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
+	pSimpleShader->SetCamera(context.gpuCamera);
 	pSimpleShader->SetModel(Matrix4x4(1.0f));
 	pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
 	if (m_ui.visibleMesh) {
@@ -67,7 +67,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		m_meshletGpu.shader->SetPosition(m_meshletGpu.position.get());
 		m_meshletGpu.shader->SetMeshlet(m_meshletGpu.culster.get());
 		m_meshletGpu.shader->SetIndex(m_meshletGpu.index.get());
-		m_meshletGpu.shader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
+		m_meshletGpu.shader->SetCamera(context.gpuCamera);
 		m_meshletGpu.shader->SetModel(Matrix4x4(1.0f));
 		m_meshletGpu.shader->Draw(0, m_meshletGpu.culster->Num());
 	}

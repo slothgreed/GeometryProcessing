@@ -6,17 +6,22 @@ layout(local_size_x=1) in;
 layout(max_vertices=60, max_primitives=20) out;
 layout(triangles) out;
 
-layout(std430, binding  = 0) buffer posBuffer
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+layout(std430, binding  = 1) buffer posBuffer
 {
 	vec4 position[];
 };
 
-layout(std430, binding  = 1) buffer meshletBuffer
+layout(std430, binding  = 2) buffer meshletBuffer
 {
 	ivec4 meshlet[];
 };
 
-layout(std430, binding  = 2) buffer indexBuffer
+layout(std430, binding  = 3) buffer indexBuffer
 {
 	int index[];
 };
@@ -40,7 +45,6 @@ layout (location = 0) out PerVertexData
   vec4 color;
 } v_out[];
 
-uniform mat4 u_VP;
 uniform mat4 u_Model;
 
 
@@ -52,7 +56,7 @@ void main()
 	int vertexSize = meshlet[globalID].y;
 	int meshletIndex = meshlet[globalID].z;
 	for(int i = 0; i < vertexSize; i++) {
-		gl_MeshVerticesNV[i].gl_Position = u_VP * u_Model * position[index[vertexOffset + i]];
+		gl_MeshVerticesNV[i].gl_Position = camera.VP * u_Model * position[index[vertexOffset + i]];
 		gl_PrimitiveIndicesNV[i] = i;
 		v_out[i].color =  vec4(meshletcolors[meshletIndex%MAX_COLORS], 1.0);
 	}
