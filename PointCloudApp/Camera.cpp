@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "GLBuffer.h"
 namespace KI
 {
 Camera::Camera()
@@ -111,4 +112,5 @@ void Camera::SetAspect(float aspect)
 {
 	SetPerspective(m_fov, aspect, m_near, m_far);
 }
+
 }

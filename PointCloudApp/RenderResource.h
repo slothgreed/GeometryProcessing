@@ -4,17 +4,24 @@
 
 namespace KI
 {
-
+class Camera;
 class RenderResource
 {
 public:
-	RenderResource() {};
+	RenderResource()
+	:m_pCamera(nullptr){};
 	~RenderResource() {};
 	void Build() {
 		m_pShaderTable.Build();
 	};
+
+	void Finalize();
 	ShaderTable* GetShaderTable() { return &m_pShaderTable; };
+	GLBuffer* GetCameraBuffer() { return m_pCamera; }
+
+	void UpdateCamera(const Camera* pCamera);
 private:
+	GLBuffer* m_pCamera;
 	ShaderTable m_pShaderTable;
 };
 }

@@ -53,7 +53,7 @@ void ComputeShaderTest::Finalize()
 ShaderPath ComputeShaderTest::Shader::GetShaderPath()
 {
 	ShaderPath path;
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\simple.comp";
+	path.shader[SHADER_PROGRAM_COMPUTE] = "sample\\simple.comp";
 	return path;
 }
 

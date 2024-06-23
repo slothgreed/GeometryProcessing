@@ -19,7 +19,7 @@ PointCloudComputeShader::~PointCloudComputeShader()
 ShaderPath PointCloudComputeShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\pointcloud.comp";
+	path.shader[SHADER_PROGRAM_COMPUTE] = "pointcloud.comp";
 
 	return path;
 }

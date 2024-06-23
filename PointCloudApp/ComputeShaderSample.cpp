@@ -8,7 +8,7 @@ namespace KI
 ShaderPath CreateTextureComputeShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\texture.comp";
+	path.shader[SHADER_PROGRAM_COMPUTE] = "sample\\texture.comp";
 	return path;
 }
 void CreateTextureComputeShader::Execute(const Shared<Texture>& pTexture)

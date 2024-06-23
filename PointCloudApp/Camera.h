@@ -3,6 +3,7 @@
 #include "BDB.h"
 namespace KI
 {
+class GLBuffer;
 class Camera
 {
 public:
@@ -32,6 +33,7 @@ public:
 	void FitToBDB(const BDB& bdb);
 
 	void SetAspect(float aspect);
+
 private:
 	void SphericalToCartesian(float radius, float x, float y, Vector3& result);
 	void SetTheta(float value);

@@ -85,7 +85,7 @@ void GLTFScene::CreateMaterialBuffer()
 	m_gpu.materialBuffer->Create<GLTFMaterial>(m_material);
 }
 
-void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
+void GLTFScene::DrawNode(const DrawContext& context)
 {
 	if (!m_pShader) {
 		m_pShader = new GLTFShader();
@@ -93,7 +93,8 @@ void GLTFScene::Draw(const Matrix4x4& proj, const Matrix4x4& view)
 		CreateMaterialBuffer();
 	}
 	m_pShader->Use();
-	m_pShader->SetViewProj(proj * view);
+	m_pShader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
+	m_pShader->SetModel(GetMatrix());
 	m_pShader->SetNodeBuffer(m_gpu.nodeBuffer);
 	m_pShader->SetMaterialBuffer(m_gpu.materialBuffer);
 	if (m_gpu.skinBuffer) {

@@ -19,13 +19,11 @@ public:
 	virtual void ProcessMouseEvent(const MouseInput& input) {};
 	virtual void ResizeEvent(int width, int height) {};
 	static GLFWApp* Application();
-	RenderResource* GetResource() { return m_pResource.get(); }
 protected:
 	GLFWwindow* m_window;
 	Unique<Mouse> m_pMouse;
 	Shared<Camera> m_pCamera;
 	Unique<CameraController> m_pCameraController;
-	Unique<RenderResource> m_pResource;
 };
 }
 

@@ -3,10 +3,6 @@
 namespace KI
 {
 
-RenderResource* RenderNode::GetResource()
-{
-	return GLFWApp::Application()->GetResource();
-}
 void RenderNode::ShowUIData()
 {
 	ShowUI();

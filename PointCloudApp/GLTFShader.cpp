@@ -7,10 +7,10 @@ namespace KI
 ShaderPath GLTFShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
-	path.shader[SHADER_PROGRAM_VERTEX] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.vert";
-	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.frag";
+	path.header.push_back("version.h");
+	path.header.push_back("gltf\\gltf.h");
+	path.shader[SHADER_PROGRAM_VERTEX] = "gltf\\gltf.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "gltf\\gltf.frag";
 
 	return path;
 }
@@ -58,6 +58,10 @@ void GLTFShader::SetViewProj(const Matrix4x4& value)
 	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
 }
 
+void GLTFShader::SetModel(const Matrix4x4& value)
+{
+	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
+}
 void GLTFShader::SetMaterialBuffer(const GLBuffer* pBuffer)
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, pBuffer->Handle());

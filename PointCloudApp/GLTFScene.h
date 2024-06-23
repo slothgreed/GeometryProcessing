@@ -29,7 +29,7 @@ public:
 	void SetSkin(Vector<GLTFSkin>&& value) { m_skins = std::move(value); }
 	void SetMesh(Vector<GLTFMesh>&& value) { m_meshes = std::move(value); }
 	void SetAnimation(Vector<GLTFAnimation>&& animation) { m_animation = std::move(animation); }
-	virtual void Draw(const Matrix4x4& proj, const Matrix4x4& view);
+	virtual void DrawNode(const DrawContext& context);
 protected:
 	virtual void UpdateData(float time);
 private:

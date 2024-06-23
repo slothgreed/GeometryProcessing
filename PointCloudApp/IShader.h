@@ -40,7 +40,7 @@ public:
 	void Delete();
 
 protected:
-	String LoadHeaderCode(const Vector<String>& header);
+	String LoadHeaderCode(const String& localPath, const Vector<String>& header);
 	GLuint Handle() const { return m_programId; };
 	GLuint m_programId;
 };

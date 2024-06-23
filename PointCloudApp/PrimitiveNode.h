@@ -20,9 +20,6 @@ private:
 	void BuildGLBuffer();
 	void UpdateRenderData();
 	Vector3 m_color;
-	Shared<VertexColorShader> m_pVertexColorShader;
-	Shared<PrimitiveColorShader> m_pPrimitiveColorShader;
-	Shared<SimpleShader> m_pSimpleShader;
 
 	Shared<Primitive> m_pPrimitive;
 	Unique<GLBuffer> m_pPositionBuffer;

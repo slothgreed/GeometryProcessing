@@ -92,9 +92,9 @@ void GLTFSceneMatrixUpdaterOnGpu::Shader::Execute(GLBuffer* pMapBuffer, GLBuffer
 ShaderPath GLTFSceneMatrixUpdaterOnGpu::Shader::GetShaderPath()
 {
 	ShaderPath path;
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfMatrixUpdate.comp";
+	path.header.push_back("version.h");
+	path.header.push_back("gltf\\gltf.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "gltf\\gltfMatrixUpdate.comp";
 	return path;
 }
 
@@ -116,10 +116,10 @@ void GLTFChannelUpdaterOnGpu::Execute(GLBuffer* pNodeBuffer, GLBuffer* pChannelB
 ShaderPath GLTFChannelUpdaterOnGpu::Shader::GetShaderPath()
 {
 	ShaderPath path;
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\quart.h");
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfChannelUpdate.comp";
+	path.header.push_back("version.h");
+	path.header.push_back("quart.h");
+	path.header.push_back("gltf\\gltf.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "gltf\\gltfChannelUpdate.comp";
 	return path;
 }
 
@@ -159,10 +159,10 @@ void GLTFSkinUpdaterOnGpu::Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer,
 ShaderPath GLTFSkinUpdaterOnGpu::Shader::GetShaderPath()
 {
 	ShaderPath path;
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\version.h");
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\quart.h");
-	path.header.push_back("E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\gltf.h");
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\gltfSkinUpdate.comp";
+	path.header.push_back("version.h");
+	path.header.push_back("quart.h");
+	path.header.push_back("gltf\\gltf.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "gltf\\gltfSkinUpdate.comp";
 	return path;
 }
 

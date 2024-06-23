@@ -131,7 +131,6 @@ void GLFWApp::Initialize()
 	m_pCamera->SetPerspective(45, 1, 0.1, 10000);
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
-
 }
 
 void GLFWApp::Execute()

@@ -195,6 +195,7 @@
     <ClCompile Include="HalfEdgeNode.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
+    <ClCompile Include="RenderResource.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudComputeShader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />

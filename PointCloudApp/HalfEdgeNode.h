@@ -22,8 +22,6 @@ private:
 	Unique<GLBuffer> m_pPosition;
 	Unique<GLBuffer> m_pFaceIndexBuffer;
 	Unique<GLBuffer> m_pEdgeIndexBuffer;
-	Shared<PrimitiveColorShader> m_pPrimitiveColorShader;
-	Shared<SimpleShader> m_pSimpleShader;
 	Shared<HalfEdgeStruct> m_pHalfEdge;
 	
 	struct MeshletGpu

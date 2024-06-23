@@ -63,8 +63,8 @@ void MeshShaderTest::Finalize()
 ShaderPath MeshShaderTest::TriangleShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.shader[SHADER_PROGRAM_MESH] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\trianglemesh.mesh";
-	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\trianglemesh.frag";
+	path.shader[SHADER_PROGRAM_MESH] = "trianglemesh.mesh";
+	path.shader[SHADER_PROGRAM_FRAG] = "trianglemesh.frag";
 	return path;
 }
 

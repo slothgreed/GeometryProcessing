@@ -56,7 +56,7 @@ void ComputePointCloudApp::Execute()
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &maxSizeY);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &maxSizeZ);
 
-	DrawContext context(nullptr);
+	DrawContext context;
 	auto pShader = std::make_unique<PointCloudComputeShader>(pPointCloud);
 	pShader->Build();
 	GPUProfiler profiler("Render");

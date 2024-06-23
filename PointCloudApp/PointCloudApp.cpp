@@ -101,14 +101,17 @@ struct ScrollingBuffer
 
 void PointCloudApp::Execute()
 {
-	m_pResource = std::make_unique<RenderResource>();
-	m_pResource->Build();
+	auto pResource = std::make_unique<RenderResource>();
+	pResource->Build();
 
 	m_pRoot = std::make_unique<RenderNode>("Root");
 	BDB bdb;
 	m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
+	//m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>() / 2, Vector3(0, 1, 0)));
 	bdb.Add(m_pRoot->GetBoundBox());
-	m_pCamera->SetLookAt(Vector3(0,0,0), Vector3(0,0,10), m_pCamera->Up());
+	
+	m_pCamera->SetLookAt(Vector3(0, 0, 1), Vector3(0, 0, 0), m_pCamera->Up());
+	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf")));
 
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
@@ -149,8 +152,8 @@ void PointCloudApp::Execute()
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
 	
 
-	Shared<Primitive> pAxis = std::make_shared<Axis>(5000);
-	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	//Shared<Primitive> pAxis = std::make_shared<Axis>(5000);
+	//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 
 	/*
 	{
@@ -167,13 +170,13 @@ void PointCloudApp::Execute()
 	}
 	*/
 
-	{
-		String path = "E:\\cgModel\\bunny6000.half";
-		auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
-		auto node = std::make_shared<HalfEdgeNode>(path, data);
-		node->SetMatrix(glmUtil::CreateScale(0.1f));
-		m_pRoot->AddNode(node);
-	}
+	//{
+	//	String path = "E:\\cgModel\\bunny6000.half";
+	//	auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
+	//	auto node = std::make_shared<HalfEdgeNode>(path, data);
+	//	node->SetMatrix(glmUtil::CreateScale(0.1f));
+	//	m_pRoot->AddNode(node);
+	//}
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -197,9 +200,15 @@ void PointCloudApp::Execute()
 	float m_diff = 0;
 
 
-	DrawContext context(m_pCamera.get());
+	DrawContext context(
+		m_pCamera.get(),
+		pResource->GetCameraBuffer());
+	
+	context.pShaderTable = pResource->GetShaderTable();
+
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
+		pResource->UpdateCamera(m_pCamera.get());
 		m_cpuProfiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

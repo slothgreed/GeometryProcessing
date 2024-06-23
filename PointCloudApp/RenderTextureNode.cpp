@@ -15,12 +15,10 @@ void RenderTextureNode::DrawNode(const DrawContext& context)
 
 	BuildGLBuffer();
 	m_pShader->Use();
-	OUTPUT_GLERROR;
 	m_pShader->BindTexture(*m_pTexture);
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetTexture(m_pTexcoordBuffer.get());
 	m_pShader->DrawElement(m_pPrimitive.GetType(), m_pIndexBuffer.get());
-	OUTPUT_GLERROR;
 
 }
 

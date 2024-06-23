@@ -24,6 +24,7 @@ public:
 
 	virtual ShaderPath GetShaderPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
+	void SetModel(const Matrix4x4& value);
 	void SetSkinBuffer(const GLBuffer* pBuffer);
 	void SetIndexBuffer(GLBuffer* pBuffer);
 	void SetNodeBuffer(const GLBuffer* pBuffer);

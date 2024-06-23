@@ -60,5 +60,33 @@ private:
 
 };
 
+
+namespace glmUtil
+{
+	const float eps = 0.0001f;
+	inline bool iszero(const Vector3& value)
+	{
+		return
+			-eps < value.x && value.x < eps &&
+			-eps < value.y && value.y < eps &&
+			-eps < value.z && value.z < eps;
+	}
+
+	inline Matrix4x4 CreateScale(const Vector3& value)
+	{
+		return glm::scale(mat4(1), value);
+	}
+
+	inline Matrix4x4 CreateScale(float value)
+	{
+		return glm::scale(mat4(1), Vector3(value, value, value));
+	}
+
+	inline Matrix4x4 CreateRotate(float rad, const Vector3& axis)
+	{
+		return glm::rotate(glm::mat4(1), rad, axis);
+	}
+
+}
 }
 #endif UTILITY_H

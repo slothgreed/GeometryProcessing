@@ -8,8 +8,8 @@ ShaderPath MeshletShader::GetShaderPath()
 {
 	ShaderPath path;
 
-	path.shader[SHADER_PROGRAM_MESH] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\meshlet.mesh";
-	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\meshlet.frag";
+	path.shader[SHADER_PROGRAM_MESH] = "meshlet.mesh";
+	path.shader[SHADER_PROGRAM_FRAG] = "meshlet.frag";
 
 	return path;
 }

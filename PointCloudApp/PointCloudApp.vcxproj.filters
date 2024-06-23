@@ -230,6 +230,9 @@
     <ClCompile Include="..\extlibs\implot\implot_items.cpp">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClCompile>
+    <ClCompile Include="RenderResource.cpp">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">

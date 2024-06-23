@@ -22,8 +22,6 @@ void HalfEdgeNode::BuildGLBuffer()
 {
 	m_pPosition = std::make_unique<GLBuffer>();
 	m_pPosition->Create(m_pHalfEdge->GetPosition());
-	m_pSimpleShader = GetResource()->GetShaderTable()->GetSimpleShader();
-	m_pPrimitiveColorShader = GetResource()->GetShaderTable()->GetPrimitiveColorShader();
 	m_pFaceIndexBuffer = std::make_unique<GLBuffer>();
 	m_pFaceIndexBuffer->Create(m_pHalfEdge->CreateIndexBufferData());
 
@@ -37,27 +35,29 @@ void HalfEdgeNode::ShowEdge()
 }
 void HalfEdgeNode::DrawNode(const DrawContext& context)
 {
-	m_pSimpleShader->Use();
-	m_pSimpleShader->SetPosition(m_pPosition.get());
-	m_pSimpleShader->SetViewProj(context.m_pCamera->Projection() * context.m_pCamera->ViewMatrix());
-	m_pSimpleShader->SetModel(Matrix4x4(1.0f));
-	m_pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
+	auto pSimpleShader = context.pShaderTable->GetSimpleShader();
+	pSimpleShader->Use();
+	pSimpleShader->SetPosition(m_pPosition.get());
+	pSimpleShader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
+	pSimpleShader->SetModel(Matrix4x4(1.0f));
+	pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
 	if (m_ui.visibleMesh) {
-		m_pSimpleShader->DrawElement(GL_TRIANGLES, m_pFaceIndexBuffer.get());
+		pSimpleShader->DrawElement(GL_TRIANGLES, m_pFaceIndexBuffer.get());
 	}
 
 	if (m_ui.visibleEdge) {
-		m_pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		m_pSimpleShader->DrawElement(GL_LINES, m_pEdgeIndexBuffer.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+		pSimpleShader->DrawElement(GL_LINES, m_pEdgeIndexBuffer.get());
 	}
 
-	//if (m_pPrimitiveColorShader &&  m_meshletGpu.shader) {
-	//	m_pPrimitiveColorShader->Use();
-	//	m_pPrimitiveColorShader->SetPosition(m_meshletGpu.position.get());
-	//	m_pPrimitiveColorShader->SetColor(m_meshletGpu.color.get());
-	//	m_pPrimitiveColorShader->SetViewProj(proj * view);
-	//	m_pPrimitiveColorShader->SetModel(Matrix4x4(1.0f));
-	//	m_pPrimitiveColorShader->DrawElement(GL_TRIANGLES, m_pFaceIndexBuffer.get());
+	auto pPrimitiveColorShader = context.pShaderTable->GetPrimitiveColorShader();
+	//if (pPrimitiveColorShader &&  m_meshletGpu.shader) {
+	//	pPrimitiveColorShader->Use();
+	//	pPrimitiveColorShader->SetPosition(m_meshletGpu.position.get());
+	//	pPrimitiveColorShader->SetColor(m_meshletGpu.color.get());
+	//	pPrimitiveColorShader->SetViewProj(proj * view);
+	//	pPrimitiveColorShader->SetModel(Matrix4x4(1.0f));
+	//	pPrimitiveColorShader->DrawElement(GL_TRIANGLES, m_pFaceIndexBuffer.get());
 	//}
 
 
@@ -67,7 +67,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		m_meshletGpu.shader->SetPosition(m_meshletGpu.position.get());
 		m_meshletGpu.shader->SetMeshlet(m_meshletGpu.culster.get());
 		m_meshletGpu.shader->SetIndex(m_meshletGpu.index.get());
-		m_meshletGpu.shader->SetViewProj(context.m_pCamera->Projection() * context.m_pCamera->ViewMatrix());
+		m_meshletGpu.shader->SetViewProj(context.pCamera->Projection() * context.pCamera->ViewMatrix());
 		m_meshletGpu.shader->SetModel(Matrix4x4(1.0f));
 		m_meshletGpu.shader->Draw(0, m_meshletGpu.culster->Num());
 	}

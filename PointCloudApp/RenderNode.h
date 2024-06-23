@@ -8,14 +8,23 @@
 #include "Camera.h"
 namespace KI
 {
-
+class GLBuffer;
 struct DrawContext
 {
-	DrawContext(Camera* pCamera)
-		:m_pCamera(pCamera)
+	DrawContext()
+		: pCamera(nullptr)
+		, gpuCamera(nullptr)
+		, pShaderTable(nullptr)
 	{
 	}
-	const Camera* m_pCamera;
+	DrawContext(const Camera* _pCamera, const GLBuffer* gpuCamera)
+		: pCamera(_pCamera)
+		, gpuCamera(nullptr)
+		, pShaderTable(nullptr){}
+	const Camera* pCamera;
+	const GLBuffer* gpuCamera;
+	ShaderTable* pShaderTable;
+
 };
 class RenderNode
 {
@@ -24,11 +33,11 @@ public:
 	RenderNode(const String& name, const Matrix4x4& matrix) : m_name(name), m_matrix(matrix) {}
 	virtual ~RenderNode() {};
 
-	RenderResource* GetResource();
 	virtual void ShowUIData();
 	virtual const BDB& GetBoundBox() { return m_bdb; }
 	virtual void Draw(const DrawContext& context);
 	virtual void Update(float time);
+	const Matrix4x4& GetMatrix() const { return m_matrix; }
 	void SetMatrix(const Matrix4x4& mat) { m_matrix = mat; }
 	void SetBoundBox(const BDB& bdb) { m_bdb = bdb; }
 	void RemoveNode(const String& name) { m_child.erase(name); }
