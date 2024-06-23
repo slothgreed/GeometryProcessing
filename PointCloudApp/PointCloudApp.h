@@ -4,6 +4,7 @@
 #include "RenderResource.h"
 #include "RenderNode.h"
 #include "GLFWApp.h"
+#include "Profiler.h"
 namespace KI
 {
 class PointCloudApp : public GLFWApp
@@ -18,6 +19,8 @@ public:
 	virtual void ProcessMouseEvent(const MouseInput& input);
 	virtual void ResizeEvent(int width, int height);
 private:
+	void ShowUI();
+	CPUProfiler m_cpuProfiler;
 	Unique<RenderNode> m_pRoot;
 };
 }

@@ -12,10 +12,9 @@ namespace Microsoft
 		class GLTFResourceReader;
 	}
 }
-
 namespace KI
 {
-
+class BDB;
 class GLTFDocument
 {
 public:
@@ -40,7 +39,7 @@ private:
 	static Vector<GLTFSkin> LoadSkin(const Microsoft::glTF::Document* pDocument, const Microsoft::glTF::GLTFResourceReader* pResource);
 	static Vector<GLTFAnimation> LoadAnimation(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument);
 	static Vector<GLTFMaterial> LoadMaterial(const Microsoft::glTF::Document* pDocument, const Vector<Shared<Texture>>& textures);
-	static Vector<GLTFMesh> LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pBuffer);
+	static Vector<GLTFMesh> LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pBuffer, BDB& bdb);
 	static Vector<GLTFNode> LoadNode(const Microsoft::glTF::Document* pDocument);
 	static Vector<Shared<Texture>> LoadTexture(const String& directory, const Microsoft::glTF::Document* pDocument);
 };

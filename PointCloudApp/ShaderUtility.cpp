@@ -65,7 +65,7 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 		GLchar* errorLog = new GLchar[maxLength];
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
 		assert(0);
-		delete errorLog;
+		delete[] errorLog;
 		errorLog = nullptr;
 	}
 
@@ -98,7 +98,7 @@ GLuint ShaderUtility::LinkCompute(GLuint computeId)
 		GLchar* errorLog = new GLchar[maxLength];
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
 		assert(0);
-		delete errorLog;
+		delete[] errorLog;
 		errorLog = nullptr;
 	}
 

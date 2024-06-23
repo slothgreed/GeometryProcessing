@@ -259,27 +259,27 @@ Shared<PrimitiveNode> KDTree::CreatePartition2D(const String& name, int maxDepth
 	pPrimitive->SetType(GL_LINES);
 	return std::make_shared<PrimitiveNode>(name, pPrimitive, Vector3(1, 0, 0));
 }
-void KDTree::SetLevelColor(Node* pNode, Vector<Vector3>& color, const Vector3& col, int depth)
+void KDTree::SetLevelColor(Node* pNode, Vector<Vector4>& color, const Vector4& col, int depth)
 {
 	if (!pNode) { return; }
 	color[pNode->index] = col;
 	SetLevelColor(pNode->pLeft, color, col, depth + 1);
 	SetLevelColor(pNode->pRight, color, col, depth + 1);
 }
-void KDTree::CreateLevelColor(Node* pNode, Vector<Vector3>& color, int depth, int target)
+void KDTree::CreateLevelColor(Node* pNode, Vector<Vector4>& color, int depth, int target)
 {
 	if (!pNode) { return; }
 	if (depth == target) {
-		SetLevelColor(pNode, color, ColorUtility::CreateRandom(), depth);
+		SetLevelColor(pNode, color, ColorUtility::CreateRandom4(), depth);
 	}
 
 	CreateLevelColor(pNode->pLeft, color, depth + 1, target);
 	CreateLevelColor(pNode->pRight, color, depth + 1, target);
 }
 
-Vector<Vector3> KDTree::CreateLevelColor(int target)
+Vector<Vector4> KDTree::CreateLevelColor(int target)
 {
-	Vector<Vector3> color(m_index.size());
+	Vector<Vector4> color(m_index.size());
 	CreateLevelColor(m_root, color, 0, target);
 	return color;
 }

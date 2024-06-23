@@ -22,8 +22,16 @@ void CPUProfiler::Stop()
 
 void CPUProfiler::Output()
 {
-	double time = static_cast<double>(m_end.QuadPart - m_start.QuadPart) * 1000.0 / m_freq.QuadPart;
-	printf("time %lf[ms]\n", time);
+	printf("time %lf[ms]\n", GetMilli());
+}
+float CPUProfiler::GetFPS()
+{
+	return 1000.0f / GetMilli();
+}
+
+float CPUProfiler::GetMilli()
+{
+	return static_cast<double>(m_end.QuadPart - m_start.QuadPart) * 1000.0 / m_freq.QuadPart;
 }
 
 GPUProfiler::GPUProfiler(const String& name)
@@ -53,17 +61,27 @@ void GPUProfiler::Stop()
 	GLuint64EXT nanoTime = 0;
 	glGetQueryObjectui64vEXT(m_handle, GL_QUERY_RESULT, &nanoTime);
 
+	m_fps = nanoTime / 1000000;
 	//printf(m_name.data());
 	//printf("%lf mili second \n", (double)nanoTime / 1000000);
 }
 
+float GPUProfiler::GetFPS()
+{
+	return m_fps;
+}
 
-void Timer::Begin()
+
+void Timer::Start()
 {
 	m_begin = std::chrono::high_resolution_clock::now();
 }
 
-float Timer::End()
+float Timer::Current()
+{
+	return Stop();
+}
+float Timer::Stop()
 {
 	auto end = std::chrono::high_resolution_clock::now();
 	return std::chrono::duration<double, std::milli>(end - m_begin).count() / 1000;

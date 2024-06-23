@@ -13,7 +13,7 @@ public:
 	void Build() {
 		m_pShaderTable.Build();
 	};
-	Shared<IShadingShader> GetShader(IShadingShader::Type type) { return m_pShaderTable.Get(type); };
+	ShaderTable* GetShaderTable() { return &m_pShaderTable; };
 private:
 	ShaderTable m_pShaderTable;
 };

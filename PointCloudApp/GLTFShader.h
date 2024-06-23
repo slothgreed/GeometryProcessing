@@ -22,7 +22,6 @@ public:
 		NUM
 	};
 
-	virtual IShadingShader::Type GetType() { return IShadingShader::Type::GLTF; }
 	virtual ShaderPath GetShaderPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
 	void SetSkinBuffer(const GLBuffer* pBuffer);

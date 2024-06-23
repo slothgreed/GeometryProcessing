@@ -76,6 +76,7 @@ void GLBuffer::BufferSubData(int offset, const Vector<int>& value)
 {
 	assert(m_handle != 0);
 	glNamedBufferSubData(m_handle, offset * sizeof(int), value.size() * sizeof(int), value.data());
+	m_dataType = DATA_INT;
 	OUTPUT_GLERROR;
 }
 
@@ -83,6 +84,7 @@ void GLBuffer::BufferSubData(int offset, const Vector<Vector3>& value)
 {
 	assert(m_handle != 0);
 	glNamedBufferSubData(m_handle, offset * sizeof(Vector3), value.size() * sizeof(Vector3), value.data());
+	m_dataType = DATA_FLOAT;
 	OUTPUT_GLERROR;
 }
 

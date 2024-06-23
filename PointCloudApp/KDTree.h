@@ -19,7 +19,7 @@ public:
 
 	virtual void Execute();
 	bool Executed() { return m_index.size() != 0; }
-	Vector<Vector3> CreateLevelColor(int target);
+	Vector<Vector4> CreateLevelColor(int target);
 	virtual void ShowUI();
 private:
 
@@ -47,8 +47,8 @@ private:
 
 	void FindNearest(Node* pNode, int depth, const Vector3& target, ResultNearest& result);
 	Node* FindNode(Node* pNode, int depth, const Vector3& target);
-	void CreateLevelColor(Node* pNode, Vector<Vector3>& color, int depth, int target);
-	void SetLevelColor(Node* pNode, Vector<Vector3>& color, const Vector3& col, int depth);
+	void CreateLevelColor(Node* pNode, Vector<Vector4>& color, int depth, int target);
+	void SetLevelColor(Node* pNode, Vector<Vector4>& color, const Vector4& col, int depth);
 	Node* Build(int left, int right, int depth);
 	void Delete();
 	Shared<PrimitiveNode> CreatePartition2D(const String& name, int maxDepth);

@@ -9,7 +9,7 @@ RenderTextureNode::RenderTextureNode(const String& name, const Shared<Texture>& 
 }
 
 
-void RenderTextureNode::DrawData(const Matrix4x4& proj, const Matrix4x4& view)
+void RenderTextureNode::DrawNode(const DrawContext& context)
 {
 	glEnable(GL_TEXTURE_2D);
 

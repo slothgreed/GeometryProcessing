@@ -14,7 +14,7 @@ PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitiv
 	:RenderNode(name)
 {
 	m_pPointCloud = std::move(pPrimitive);
-	m_pShader = std::dynamic_pointer_cast<VertexColorShader>(GetResource()->GetShader(IShadingShader::Type::VertexColor));
+	m_pShader = GetResource()->GetShaderTable()->GetVertexColorShader();
 	m_algorithm[ALGORITHM_KDTREE] = new KDTreeNanoFlann(this, 3);
 	m_algorithm[ALGORITHM_HARRIS3D] = new Harris3D(this);
 	m_algorithm[ALGORITHM_ALPHASHAPE] = new AlphaShape2D(this);
@@ -140,13 +140,13 @@ void PointCloudNode::ComputeTangent()
 		m_tangentY.push_back(glm::normalize(glm::cross(m_tangentX[i], m_normal[i])));
 	}
 }
-void PointCloudNode::DrawData(const Matrix4x4& proj, const Matrix4x4& view)
+void PointCloudNode::DrawNode(const DrawContext& context)
 {
 	UpdateRenderData();
 	m_pShader->Use();
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetColor(m_pColorBuffer.get());
-	m_pShader->SetViewProj(proj * view);
+	m_pShader->SetViewProj(context.m_pCamera->Projection() * context.m_pCamera->ViewMatrix());
 	m_pShader->SetModel(Matrix4x4(1.0f));
 	m_pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
 }

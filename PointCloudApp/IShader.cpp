@@ -40,19 +40,6 @@ String IShader::LoadHeaderCode(const Vector<String>& header)
 	return headerCode;
 }
 
-GLuint IShader::BuildVertexFrag(const String& vert, const String& frag)
-{
-	GLuint vertexId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER);
-	GLuint fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER);
-
-	GLuint programId = ShaderUtility::Link(vertexId, fragId);
-
-	glDeleteShader(vertexId);
-	glDeleteShader(fragId);
-	return programId;
-}
-
-
 void IShadingShader::SetVertexFormat(const VertexFormats& formats)
 {
 	for (const auto& format : formats) {
@@ -104,13 +91,43 @@ void IShadingShader::Build()
 
 	vertexCode = headerCode + vertexCode;
 	fragCode = headerCode + fragCode;
-	m_programId = IShader::BuildVertexFrag(vertexCode, fragCode);
+	m_programId = IShadingShader::BuildVertexFrag(vertexCode, fragCode);
 
 
 	GetUniformLocation();
 	OUTPUT_GLERROR;
 }
 
+GLuint IShadingShader::BuildVertexFrag(const String& vert, const String& frag)
+{
+	GLuint vertexId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER);
+	GLuint fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER);
+
+	GLuint programId = ShaderUtility::Link(vertexId, fragId);
+
+	glDeleteShader(vertexId);
+	glDeleteShader(fragId);
+	return programId;
+}
+
+void IMeshShader::Build()
+{
+	auto shaderPath = GetShaderPath();
+	auto headerCode = LoadHeaderCode(shaderPath.header);
+	String meshCode;
+	String fragCode;
+	ShaderUtility::LoadFromFile(shaderPath.shader[SHADER_PROGRAM_MESH], meshCode);
+	ShaderUtility::LoadFromFile(shaderPath.shader[SHADER_PROGRAM_FRAG], fragCode);
+	GLuint meshId = ShaderUtility::Compile(headerCode + meshCode, GL_MESH_SHADER_NV);
+	GLuint fragId = ShaderUtility::Compile(headerCode + fragCode, GL_FRAGMENT_SHADER);
+
+	m_programId = ShaderUtility::Link(meshId, fragId);
+
+	glDeleteShader(meshId);
+	glDeleteShader(fragId);
+	GetUniformLocation();
+	return;
+}
 void IComputeShader::Build()
 {
 	auto shaderPath = GetShaderPath();

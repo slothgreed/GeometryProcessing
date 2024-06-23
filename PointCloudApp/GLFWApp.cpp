@@ -1,6 +1,7 @@
 #include <iostream>
 #include "GLFWApp.h"
 #include "MouseInput.h"
+#include "GLAPIExt.h"
 namespace KI
 {
 
@@ -92,16 +93,30 @@ void GLFWApp::Initialize()
 		return;
 	}
 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	m_window = glfwCreateWindow(1024, 768, "PointCloudApp", NULL, NULL);
 	if (m_window == NULL) {
 		return;
 	}
+
 	glfwMakeContextCurrent(m_window);
+
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK) {
 		return;
 	}
+
+	if (!GLAPIExt::Initialize()) {
+		return;
+	}
+
+	// OpenGLバージョンとGLSLバージョンの確認
+	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+	std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
 	g_instance = this;
 	glfwSetCursorPosCallback(m_window, CursorPosCallBack);
@@ -109,6 +124,7 @@ void GLFWApp::Initialize()
 	glfwSetScrollCallback(m_window, ScrollCallBack);
 	glfwSetWindowSizeCallback(m_window, WindowSizeCallBack);
 	glfwSwapInterval(0);
+
 
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();

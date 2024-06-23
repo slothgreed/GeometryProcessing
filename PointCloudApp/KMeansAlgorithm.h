@@ -1,33 +1,30 @@
 #ifndef KMEAN_ALGORITHM_H
 #define KMEAN_ALGORITHM_H
-#include "IAlgorithm.h"
 namespace KI
 {
-class PointCloud;
-class KMeansAlgorithm : public IAlgorithm
+class KMeansAlgorithm
 {
 public:
 
-	KMeansAlgorithm(const Shared<PointCloud>& pointCloud, int clusterNum, int iterateNum)
-		:m_pointCloud(pointCloud)
-		,m_clusterNum(clusterNum)
-		,m_iterateNum(iterateNum)
-	{};
+	KMeansAlgorithm()
+		: m_clusterNum(0)
+		, m_positionNum(0)
+	{
+	};
 	~KMeansAlgorithm() {};
 
-	virtual void Execute();
+	void Execute(const Vector<Vector3>& position, int clusterNum, int iterateNum);
 
 	Vector<Vector3> CreateClusterColor();
-	Vector<Vector3> CreateSeedColor();
 	Vector<Vector<int>>&& GetResult() { return std::move(m_result); }
 private:
+	Vector<Vector3> CreateSeedColor();
 	typedef Vector<Vector3> Seeds;
 	typedef Vector<Vector<int>> Clusters;
-	Seeds CreateInitSeed();
-	void Calculate(const Seeds& seed, Clusters& result, Seeds& newSeed);
-	Shared<PointCloud> m_pointCloud;
+	Seeds CreateInitSeed(const Vector<Vector3>& position);
+	void Calculate(const Vector<Vector3>& positions, const Seeds& seed, Clusters& result, Seeds& newSeed);
 	int m_clusterNum;
-	int m_iterateNum;
+	int m_positionNum;
 	Clusters m_result;
 };
 }

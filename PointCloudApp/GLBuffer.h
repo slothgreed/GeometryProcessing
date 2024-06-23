@@ -32,7 +32,7 @@ public:
 
 	template <typename T> void Create(const Vector<T>& value)
 	{
-		Create(value.size(), sizeof(T));
+		Create((int)value.size(), sizeof(T));
 		BufferSubData(0, value);
 	}
 	void BufferSubData(int offset, const Vector<int>& value);
@@ -42,7 +42,7 @@ public:
 	template <typename T>
 	void BufferSubData(int offset, const Vector<T>& value)
 	{
-		BufferSubData(DATA_UNKNOWN, value.size(), sizeof(T), value.data());
+		BufferSubData(DATA_UNKNOWN, (int)value.size(), sizeof(T), value.data());
 	}
 	void GetBufferData(Vector<int>& value);
 	void GetBufferData(Vector<float>& value);

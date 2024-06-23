@@ -5,50 +5,47 @@
 #include <numeric>
 namespace KI
 {
-void KMeansAlgorithm::Execute()
+void KMeansAlgorithm::Execute(const Vector<Vector3>& position, int clusterNum, int iterateNum)
 {
-	Clusters group;
-	auto seeds = CreateInitSeed();
+	m_positionNum = position.size();
+	auto seeds = CreateInitSeed(position);
 
-	for (int i = 0; i < m_iterateNum - 1; i++) 
+	for (int i = 0; i < iterateNum - 1; i++)
 	{
 		Clusters clusters;
 		Seeds newSeeds;
-		Calculate(seeds, clusters, newSeeds);
+		Calculate(position, seeds, clusters, newSeeds);
 		seeds = std::move(newSeeds);
 	}
 
 	Seeds newSeeds;
-	Calculate(seeds, m_result, newSeeds);
+	Calculate(position, seeds, m_result, newSeeds);
 }
 
-KMeansAlgorithm::Seeds KMeansAlgorithm::CreateInitSeed()
+KMeansAlgorithm::Seeds KMeansAlgorithm::CreateInitSeed(const Vector<Vector3>& position)
 {
 	Seeds seeds;
 	seeds.resize(m_clusterNum);
-	int clusterSize = m_pointCloud->Position().size() / (m_clusterNum + 1);
+	int clusterSize = position.size() / (m_clusterNum + 1);
 	int current = 0;
-	for (int i = 0; i < m_clusterNum; i++)
-	{
-		seeds[i] = m_pointCloud->Position().at(i * clusterSize);
+	for (int i = 0; i < m_clusterNum; i++) {
+		seeds[i] = position[i * clusterSize];
 	}
 
 	return seeds;
 }
-void KMeansAlgorithm::Calculate(const Seeds& seed, Clusters& result, Seeds& newSeed)
+
+void KMeansAlgorithm::Calculate(const Vector<Vector3>& positions, const Seeds& seed, Clusters& result, Seeds& newSeed)
 {
 	result.resize(m_clusterNum);
 	newSeed.resize(m_clusterNum);
-	for (int i = 0; i < m_pointCloud->Position().size(); i++)
-	{
-		const auto& position = m_pointCloud->Position().at(i);
+	for (int i = 0; i < positions.size(); i++) {
+		const auto& position = positions[i];
 		float minDist = std::numeric_limits<float>::infinity();
 		int minSeed = 0;
-		for (int j = 0; j < seed.size(); j++)
-		{
+		for (int j = 0; j < seed.size(); j++) {
 			float dist = (float)glm::distance(position, seed[j]);
-			if (dist < minDist)
-			{
+			if (dist < minDist) {
 				minDist = dist;
 				minSeed = j;
 			}
@@ -58,8 +55,7 @@ void KMeansAlgorithm::Calculate(const Seeds& seed, Clusters& result, Seeds& newS
 		result[minSeed].push_back(i);
 	}
 
-	for (int j = 0; j < newSeed.size(); j++)
-	{
+	for (int j = 0; j < newSeed.size(); j++) {
 		newSeed[j] /= result[j].size();
 	}
 
@@ -67,11 +63,9 @@ void KMeansAlgorithm::Calculate(const Seeds& seed, Clusters& result, Seeds& newS
 Vector<Vector3> KMeansAlgorithm::CreateClusterColor()
 {
 	auto seedColor = CreateSeedColor();
-	Vector<Vector3> color(m_pointCloud->Position().size());
-	for (int i = 0; i < m_result.size(); i++)
-	{
-		for (int j = 0; j < m_result[i].size(); j++)
-		{
+	Vector<Vector3> color(m_positionNum);
+	for (int i = 0; i < m_result.size(); i++) {
+		for (int j = 0; j < m_result[i].size(); j++) {
 			color[m_result[i][j]] = seedColor[i];
 		}
 	}

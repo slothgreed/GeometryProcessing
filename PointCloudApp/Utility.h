@@ -38,7 +38,9 @@ public:
 	~ColorUtility() {};
 
 	static Vector3 CreateRandom();
+	static Vector4 CreateRandom4();
 	static Vector3 CreatePrimary(int index); // å¥êF
+	static Vector4 CreatePrimary4(int index);
 	static Vector3 CreatePseudo(unsigned int value, unsigned int maxValue);
 	static Vector3 CreatePseudo(float value, float minValue, float maxValue);
 	static unsigned int PackColor3f(const Vector3& value);
@@ -46,5 +48,17 @@ public:
 private:
 	static void InitializePseudoColor();
 };
+
+class TypeConverter
+{
+public:
+	TypeConverter();
+	~TypeConverter();
+
+	static Vector<Vector4> Convert4f(const Vector<Vector3>& data);
+private:
+
+};
+
 }
 #endif UTILITY_H

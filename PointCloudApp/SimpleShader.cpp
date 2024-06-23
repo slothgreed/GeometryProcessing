@@ -44,6 +44,8 @@ void SimpleShader::SetColor(const Vector3& value)
 void SimpleShader::SetPosition(GLBuffer* pBuffer)
 {
 	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pBuffer));
+	glBindVertexBuffer(ATTRIB_POSITION, pBuffer->Handle(), 0, pBuffer->SizeOfData());
+	OUTPUT_GLERROR;
 }
 
 VertexColorShader::VertexColorShader()
@@ -80,15 +82,49 @@ void VertexColorShader::SetModel(const Matrix4x4& value)
 void VertexColorShader::SetPosition(GLBuffer* pPosition)
 {
 	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pPosition));
-
 	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
 	OUTPUT_GLERROR;
 }
 void VertexColorShader::SetColor(GLBuffer* pColor)
 {
 	SetVertexFormat(VertexFormat(ATTRIB_COLOR, pColor));
-
 	glBindVertexBuffer(ATTRIB_COLOR, pColor->Handle(), 0, pColor->SizeOfData());
+	// 色がおかしいのはglVertexBindingのせい。コメントアウトすると正常になる。
 	OUTPUT_GLERROR;
+}
+
+
+
+ShaderPath PrimitiveColorShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_VERTEX] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\primitivecolor.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\primitivecolor.frag";
+	return path;
+}
+void PrimitiveColorShader::GetUniformLocation()
+{
+	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
+	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
+}
+
+void PrimitiveColorShader::SetViewProj(const Matrix4x4& value)
+{
+	glUniformMatrix4fv(m_uniform[UNIFORM::VIEW_PROJ], 1, GL_FALSE, &value[0][0]);
+}
+
+void PrimitiveColorShader::SetModel(const Matrix4x4& value)
+{
+	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
+}
+void PrimitiveColorShader::SetPosition(GLBuffer* pPosition)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pPosition));
+	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+}
+void PrimitiveColorShader::SetColor(GLBuffer* pColor)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pColor->Handle());
+
 }
 }

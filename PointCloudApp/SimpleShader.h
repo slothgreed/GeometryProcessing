@@ -18,7 +18,6 @@ public:
 		NUM
 	};
 
-	virtual IShadingShader::Type GetType() { return IShadingShader::Type::Simple; }
 	virtual ShaderPath GetShaderPath() override;
 
 	void GetUniformLocation();
@@ -44,7 +43,6 @@ public:
 		NUM
 	};
 
-	virtual IShadingShader::Type GetType() { return IShadingShader::Type::VertexColor; }
 	virtual ShaderPath GetShaderPath() override;
 
 	virtual void GetUniformLocation() override;
@@ -58,5 +56,30 @@ private:
 	GLuint m_uniform[UNIFORM::NUM];
 
 };
+
+class PrimitiveColorShader : public IShadingShader
+{
+public:
+	enum UNIFORM
+	{
+		VIEW_PROJ,
+		MODEL,
+		NUM
+	};
+	PrimitiveColorShader() {};
+	~PrimitiveColorShader() {};
+	virtual ShaderPath GetShaderPath() override;
+	virtual void GetUniformLocation() override;
+	virtual void SetViewProj(const Matrix4x4& value) override;
+	virtual void SetModel(const Matrix4x4& value) override;
+	void SetPosition(GLBuffer* pPosition);
+	void SetColor(GLBuffer* pColor);
+
+private:
+
+	GLuint m_uniform[UNIFORM::NUM];
+
+};
+
 }
 #endif SIMPLE_SHADER_H

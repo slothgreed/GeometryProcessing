@@ -10,7 +10,6 @@ public:
 	friend class PointCloudIO;
 	PointCloud();
 	~PointCloud();
-	void SetColor(Vector<Vector3>&& color) { m_color = std::move(color); }
 	const String& GetFileName() const { return m_filePath; }
 	void To2D();
 	Vector<Vector4> CreatePosition4f();

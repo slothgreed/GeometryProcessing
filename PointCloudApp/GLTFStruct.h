@@ -152,14 +152,14 @@ struct GLTFPrimitive
 {
 	GLTFPrimitive()
 		: materialIndex(0)
-		, meshType(MESH_POINTS)
+		, primitiveType(PRIMITIVE_POINTS)
 		, drawNum(0)
 		, baseVertex(0)
 		, drawOffset(0)
 	{
 	}
 	int materialIndex;
-	MESH_TYPE meshType;
+	PRIMITIVE_TYPE primitiveType;
 	int drawNum;
 	size_t drawOffset;
 	size_t baseVertex;

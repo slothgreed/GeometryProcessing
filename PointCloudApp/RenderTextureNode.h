@@ -13,7 +13,7 @@ public:
 	RenderTextureNode(const String& name, const Shared<Texture>& pTexture);
 	~RenderTextureNode() {};
 
-	void DrawData(const Matrix4x4& proj, const Matrix4x4& view);
+	void DrawNode(const DrawContext& context);
 
 private:
 	void BuildGLBuffer();

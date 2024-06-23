@@ -75,7 +75,7 @@ void GLTFShader::SetSkinBuffer(const GLBuffer* pBuffer)
 
 void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)
 {
-	glDrawElementsBaseVertex(primitive.meshType, primitive.drawNum, dataType, (void*)primitive.drawOffset, primitive.baseVertex);
+	glDrawElementsBaseVertex(primitive.primitiveType, primitive.drawNum, dataType, (void*)primitive.drawOffset, primitive.baseVertex);
 	OUTPUT_GLERROR;
 }
 

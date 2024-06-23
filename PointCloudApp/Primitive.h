@@ -29,15 +29,21 @@ public:
 
 	const Vector<Vector3>& Position() const { return m_position; };
 	const Vector<Vector3>& Normal() const { return m_normal; };
-	const Vector<Vector3>& Color() const { return m_color; };
+	const Vector<Vector4>& Color() const { return m_color; };
 	const Vector<glm::vec2>& Texcoord() const { return m_texcoord; };
 	const Vector<Vertex>& GetVertex() const { return m_vertex; };
 	const Vector<unsigned int>& Index() const { return m_index; };
 
 	void SetPosition(Vector<Vector3>&& value) { m_position = std::move(value); }
 	void SetNormal(Vector<Vector3>&& value) { m_normal = std::move(value); }
-	void SetColor(Vector<Vector3>&& value) { m_color = std::move(value); }
+	void SetColor(Vector<Vector4>&& value) { m_color = std::move(value); }
 	void SetTexcoord(Vector<glm::vec2>&& value) { m_texcoord = std::move(value); }
+	void SetColor(Vector<Vector3>&& color)
+	{
+		for (const auto& c : color) {
+			m_color.push_back(Vector4(c, 1.0));
+		}
+	}
 
 	void SetIndex(Vector<unsigned int>&& value) { m_index = std::move(value); }
 	void Multi(const Matrix4x4& matrix);
@@ -52,7 +58,7 @@ public:
 protected:
 	bool m_update;
 	StoreType m_storeType;
-	Vector<Vector3> m_color;
+	Vector<Vector4> m_color;
 	Vector<Vector3> m_position;
 	Vector<Vector3> m_normal;
 	Vector<glm::vec2> m_texcoord;

@@ -62,6 +62,20 @@ Vector3 ColorUtility::CreateRandom()
 	color.b = Gaccho::rnd(0, 255) / 255.0f;
 	return color;
 }
+
+Vector4 ColorUtility::CreateRandom4()
+{
+	Vector4 color;
+	color.r = Gaccho::rnd(0, 255) / 255.0f;
+	color.g = Gaccho::rnd(0, 255) / 255.0f;
+	color.b = Gaccho::rnd(0, 255) / 255.0f;
+	color.a = 1.0f;
+	return color;
+}
+Vector4 ColorUtility::CreatePrimary4(int index)
+{
+	return Vector4(CreatePrimary(index), 1.0);
+}
 Vector3 ColorUtility::CreatePrimary(int index)
 {
 	if (index > 7) { index %= 7; }
@@ -153,4 +167,18 @@ Vector3 ColorUtility::UnPackColor3f(unsigned int value)
 	return color;
 }
 
+
+Vector<Vector4> TypeConverter::Convert4f(const Vector<Vector3>& data)
+{
+	Vector<Vector4> ret;
+	ret.resize(data.size());
+	for (size_t i = 0; i < ret.size(); i++) {
+		ret[i].x = data[i].x;
+		ret[i].y = data[i].y;
+		ret[i].z = data[i].z;
+		ret[i].w = 1.0f;
+	}
+
+	return ret;
+}
 }

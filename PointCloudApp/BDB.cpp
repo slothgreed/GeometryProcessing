@@ -63,6 +63,12 @@ void BDB::Add(const Vector3& pos)
 		(m_min.z + m_max.z) * 0.5
 	);
 }
+
+void BDB::Add(const BDB& box)
+{
+	Add(box.Max());
+	Add(box.Min());
+}
 void BDB::Set(Vector3 min, Vector3 max)
 {
 	m_min = min;

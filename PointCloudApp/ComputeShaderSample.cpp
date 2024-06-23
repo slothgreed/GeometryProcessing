@@ -3,44 +3,7 @@
 namespace KI
 {
 
-SimpleComputeShader::SimpleComputeShader()
-{
-	m_elementSize = 0;
-	m_dimension = ivec3(256, 1, 1);
-}
 
-SimpleComputeShader::~SimpleComputeShader()
-{
-}
-
-ShaderPath SimpleComputeShader::GetShaderPath()
-{
-	ShaderPath path;
-	path.shader[SHADER_PROGRAM_COMPUTE] = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\ComputeShader\\simple.comp";
-	return path;
-}
-
-void SimpleComputeShader::Execute(const Vector<float>& in, Vector<float>& out)
-{
-	auto buffer = std::make_unique<GLBuffer>();
-	buffer->Create(in);
-
-	Use();
-
-	glUniform1ui(m_uniform, in.size());
-
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, buffer->Handle());
-	glDispatchCompute(m_elementSize / 256 + 1, m_dimension.y, m_dimension.z);
-	UnUse();
-
-	out.resize(in.size());
-	buffer->GetBufferData(out);
-}
-
-void SimpleComputeShader::GetUniformLocation()
-{
-	m_uniform = glGetUniformLocation(m_programId, "u_elementSize");
-}
 
 ShaderPath CreateTextureComputeShader::GetShaderPath()
 {

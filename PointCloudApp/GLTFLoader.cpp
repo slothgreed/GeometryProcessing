@@ -9,6 +9,7 @@
 #include "Utility.h"
 #include "TextureLoader.h"
 #include "FileUtility.h"
+#include "Utility.h"
 #include "GLTFScene.h"
 using namespace Microsoft::glTF;
 
@@ -140,7 +141,8 @@ RenderNode* GLTFLoader::Load(const String& name)
 
     Vector<MeshBuffer> meshBuffer(1);
     Unique<GLBuffer> matrixBuffer;
-    auto meshes = LoadMesh(gltfResourceReader.get(), &document, meshBuffer[0]);
+    BDB bdb;
+    auto meshes = LoadMesh(gltfResourceReader.get(), &document, meshBuffer[0], bdb);
     auto textures = LoadTexture(dirPath, &document);
     auto materials = LoadMaterial(&document, textures);
     auto root = LoadNode(&document);
@@ -148,6 +150,7 @@ RenderNode* GLTFLoader::Load(const String& name)
     auto skins = LoadSkin(&document, gltfResourceReader.get());
     auto pScene = new GLTFScene(name);
 
+    pScene->SetBoundBox(bdb);
     pScene->SetMeshBuffer(std::move(meshBuffer));
     pScene->SetNode(std::move(root));
     pScene->SetSkin(std::move(skins));
@@ -204,9 +207,9 @@ Vector<GLTFSkin> GLTFLoader::LoadSkin(const Microsoft::glTF::Document* pDocument
 
     return skins;
 }
-MESH_TYPE ConvertMeshType(MeshMode mode)
+PRIMITIVE_TYPE ConvertPrimitiveType(MeshMode mode)
 {
-    return MESH_TYPE(mode);
+    return PRIMITIVE_TYPE(mode);
 }
 
 GLTFAnimation::Channel::Path ConvertAnimationPathType(TargetPath path)
@@ -272,7 +275,7 @@ Vector<GLTFAnimation> GLTFLoader::LoadAnimation(const Microsoft::glTF::GLTFResou
 
     return animations;
 }
-Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pMeshBuffer)
+Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader* pResource, const Microsoft::glTF::Document* pDocument, MeshBuffer& pMeshBuffer, BDB& bdb)
 {
     Vector<GLTFMesh> meshes(pDocument->meshes.Size());
 
@@ -302,7 +305,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         for (size_t j = 0; j < primitives.size(); j++) {
             vertexOffset = vertexBuffer.size();
             const auto& indices = pDocument->accessors.Get(gltfMesh.primitives[j].indicesAccessorId);
-            primitives[j].meshType = ConvertMeshType(gltfMesh.primitives[j].mode);
+            primitives[j].primitiveType = ConvertPrimitiveType(gltfMesh.primitives[j].mode);
             primitives[j].materialIndex = StringToInt(gltfMesh.primitives[j].materialId);
             primitives[j].drawNum = indices.count;
             primitives[j].drawOffset = drawOffset * sizeof(unsigned short);
@@ -325,6 +328,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                     vertexBuffer.resize(vertexBuffer.size() + binary.size() / 3);
                     for (size_t k = 0; 3 * k < binary.size(); k++) {
                         vertexBuffer[k + vertexOffset].position = Vector3(binary[3 * k], binary[3 * k + 1], binary[3 * k + 2]);
+                        bdb.Add(vertexBuffer[k + vertexOffset].position);
                     }
                 } else {
                     assert(0);

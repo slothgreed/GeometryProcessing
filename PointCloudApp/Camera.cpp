@@ -97,6 +97,7 @@ void Camera::SetTheta(float value)
 
 void Camera::FitToBDB(const BDB& bdb)
 {
+	if (!bdb.IsActive()) { return; }
 	float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(m_fov / 2.0);
 	lookAtDistance *= 1.2f / m_aspect;
 
@@ -105,7 +106,6 @@ void Camera::FitToBDB(const BDB& bdb)
 
 	SetLookAt(newPosition, bdb.Center(), Up());
 }
-
 
 void Camera::SetAspect(float aspect)
 {

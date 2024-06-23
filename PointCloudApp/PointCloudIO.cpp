@@ -61,7 +61,7 @@ void PointCloudIO::LoadXYZ(PointCloud* pPointCloud, const String& name)
 		assert(line.size() == 7);
 
 		pPointCloud->m_position.push_back(Vector3(std::stof(line[0]), std::stof(line[1]), std::stof(line[2])));
-		pPointCloud->m_color.push_back(Vector3(std::stof(line[4]) / 255.0, std::stof(line[5]) / 255.0, std::stof(line[6]) / 255.0));
+		pPointCloud->m_color.push_back(Vector4(std::stof(line[4]) / 255.0, std::stof(line[5]) / 255.0, std::stof(line[6]) / 255.0, 1.0));
 	}
 }
 
@@ -128,7 +128,7 @@ void PointCloudIO::LoadBin(PointCloud* pPointCloud, const String& name)
 		}
 
 		if (pPointCloud->m_color.size() > 0) {
-			pPointCloud->m_color[i] = reader.ReadVec3();
+			pPointCloud->m_color[i] = Vector4(reader.ReadVec3(),1.0);
 		}
 	}
 

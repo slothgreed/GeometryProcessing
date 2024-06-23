@@ -10,6 +10,7 @@ public:
 	~BDB();
 	bool IsActive() const;
 	void Add(const Vector3& pos);
+	void Add(const BDB& box);
 	void Set(Vector3 min, Vector3 max);
 	void Apply(const Vector3& position);
 	void Apply(const BDB& bdb);

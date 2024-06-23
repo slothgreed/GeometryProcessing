@@ -15,13 +15,14 @@ public:
 
 	const Shared<Primitive>& GetData() const;
 	void UpdateData();
-	void DrawData(const Matrix4x4& proj, const Matrix4x4& view);
-
+	void DrawNode(const DrawContext& context);
 private:
 	void BuildGLBuffer();
 	void UpdateRenderData();
 	Vector3 m_color;
-	Shared<IShadingShader> m_pShader;
+	Shared<VertexColorShader> m_pVertexColorShader;
+	Shared<PrimitiveColorShader> m_pPrimitiveColorShader;
+	Shared<SimpleShader> m_pSimpleShader;
 
 	Shared<Primitive> m_pPrimitive;
 	Unique<GLBuffer> m_pPositionBuffer;

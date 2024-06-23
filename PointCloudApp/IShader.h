@@ -14,6 +14,7 @@ enum SHADER_PROGRAM
 	SHADER_PROGRAM_VERTEX,
 	SHADER_PROGRAM_GEOM,
 	SHADER_PROGRAM_FRAG,
+	SHADER_PROGRAM_MESH,
 	SHADER_PROGRAM_COMPUTE
 };
 
@@ -37,7 +38,6 @@ public:
 	void Use();
 	void UnUse();
 	void Delete();
-	GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 protected:
 	String LoadHeaderCode(const Vector<String>& header);
@@ -50,19 +50,10 @@ class IShadingShader : public IShader
 {
 public:
 
-	enum class Type
-	{
-		Simple,
-		VertexColor,
-		Texture,
-		GLTF
-	};
-
 	IShadingShader();
 	virtual ~IShadingShader();
 
 	virtual void Build();
-	virtual Type GetType() = 0;
 	virtual void GetUniformLocation() = 0;
 	virtual void SetViewProj(const Matrix4x4& value) = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
@@ -72,6 +63,7 @@ public:
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
 private:
+	GLuint BuildVertexFrag(const String& vert, const String& frag);
 
 };
 
@@ -91,13 +83,26 @@ private:
 
 };
 
+class IMeshShader : public IShader
+{
+public:
+	IMeshShader() {};
+	~IMeshShader() {};
+
+	virtual void GetUniformLocation() {};
+	virtual void Build();
+
+private:
+
+};
+
+
 class Texture;
 class TextureShader : public IShadingShader
 {
 public:
 	TextureShader() {};
 	~TextureShader() {};
-	virtual Type GetType() { return Type::Texture; }
 	virtual ShaderPath GetShaderPath();
 	virtual void GetUniformLocation();
 	virtual void SetViewProj(const Matrix4x4& value) {};

@@ -307,14 +307,12 @@ void Axis::Build(float size)
 	m_position.push_back(Vector3(0.0, 0.0, size));
 
 
-	m_color.push_back(Vector3(1.0, 0.0, 0.0));
-	m_color.push_back(Vector3(1.0, 0.0, 0.0));
-
-	m_color.push_back(Vector3(0.0, 1.0, 0.0));
-	m_color.push_back(Vector3(0.0, 1.0, 0.0));
-
-	m_color.push_back(Vector3(0.0, 0.0, 1.0));
-	m_color.push_back(Vector3(0.0, 0.0, 1.0));
+	m_color.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+	m_color.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+	m_color.push_back(Vector4(0.0, 1.0, 0.0, 1.0));
+	m_color.push_back(Vector4(0.0, 1.0, 0.0, 1.0));
+	m_color.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+	m_color.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
 
 	m_index.push_back(0); m_index.push_back(1);
 	m_index.push_back(2); m_index.push_back(3);

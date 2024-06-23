@@ -5,14 +5,15 @@
 #include <GL/GL.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
-
+#include "GLAPIExt.h"
 #include <algorithm>
 #include <String>
 #include <vector>
 #include <memory>
 #include <optional>
+#include <unordered_set>
 #include <unordered_map>
-
+#include <array>
 using namespace glm;
 
 namespace KI
@@ -38,7 +39,7 @@ template <typename T> using Shared= std::shared_ptr<T>;
 template <typename T> using Unique = std::unique_ptr<T>;
 template <typename T> using Vector = std::vector<T>;
 template <typename T> using Optional = std::optional<T>;
-
+template <typename T> using USet = std::unordered_set<T>;
 using String = std::string;
 using Matrix4x4 = glm::mat4x4;
 using Vector2 = glm::vec2;
@@ -66,6 +67,17 @@ namespace glmUtil
 			-eps < value.y && value.y < eps &&
 			-eps < value.z && value.z < eps;
 	}
+
+	inline Matrix4x4 CreateScale(const Vector3& value)
+	{
+		return glm::scale(mat4(1), value);
+	}
+
+	inline Matrix4x4 CreateScale(float value)
+	{
+		return glm::scale(mat4(1), Vector3(value, value, value));
+	}
+
 }
 
 

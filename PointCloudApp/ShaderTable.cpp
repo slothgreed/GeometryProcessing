@@ -5,17 +5,17 @@ namespace KI
 
 void ShaderTable::Build()
 {
-	m_pTable.push_back(std::make_shared<SimpleShader>());
-	m_pTable.push_back(std::make_shared<VertexColorShader>());
-	m_pTable.push_back(std::make_shared<TextureShader>());
+	m_pSimpleShader = std::make_shared<SimpleShader>();
+	m_pSimpleShader->Build();
 
-	for (auto& pTable : m_pTable) {
-		pTable->Build();
-	}
+	m_pVertexColorShader = std::make_shared<VertexColorShader>();
+	m_pVertexColorShader->Build();
+
+	m_pTextureShader = std::make_shared<TextureShader>();
+	m_pTextureShader->Build();
+
+	m_pPrimitiveColorShader = std::make_shared<PrimitiveColorShader>();
+	m_pPrimitiveColorShader->Build();
 }
 
-Shared<IShadingShader> ShaderTable::Get(IShadingShader::Type type)
-{
-	return m_pTable[(int)type];
-}
 }

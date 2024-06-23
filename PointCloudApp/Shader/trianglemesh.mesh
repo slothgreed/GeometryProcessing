@@ -1,0 +1,76 @@
+#version 450
+
+#extension GL_NV_mesh_shader : require
+
+layout(std430, binding  = 0) buffer posBuffer
+{
+	vec4 position[];
+};
+
+layout(std430, binding  = 1) buffer indexBuffer
+{
+	int index[];
+};
+
+
+layout(std430, binding  = 2) buffer meshletBuffer
+{
+	ivec4 meshlet[];
+};
+
+/*
+layout(local_size_x=1) in;
+layout(max_vertices=4, max_primitives=2) out;
+layout(triangles) out;
+
+
+void main()
+{
+	
+    gl_MeshVerticesNV[0].gl_Position = position[0];
+    gl_MeshVerticesNV[1].gl_Position = position[1];
+    gl_MeshVerticesNV[2].gl_Position = position[2];
+    gl_MeshVerticesNV[3].gl_Position = position[3];
+	
+	
+	gl_PrimitiveIndicesNV[0] = index[0];
+	gl_PrimitiveIndicesNV[1] = index[1];
+	gl_PrimitiveIndicesNV[2] = index[2];
+	
+	gl_PrimitiveIndicesNV[3] = index[3];
+	gl_PrimitiveIndicesNV[4] = index[4];
+	gl_PrimitiveIndicesNV[5] = index[5];
+	gl_PrimitiveCountNV = 2;
+
+}
+
+*/
+
+
+
+layout(local_size_x=1) in;
+layout(max_vertices=3, max_primitives=1) out;
+layout(triangles) out;
+
+void main()
+{
+	/*
+	uint globalID = gl_GlobalInvocationID.x;
+	int vertexOffset = meshlet[globalID].x;
+	int vertexSize = meshlet[globalID].y;
+	for(int i = 0; i < vertexSize; i++) {
+		gl_MeshVerticesNV[i].gl_Position = position[index[vertexOffset + i]];
+		gl_PrimitiveIndicesNV[i] = i;
+	}
+	*/
+
+	uint globalID = gl_GlobalInvocationID.x;
+	int vertexOffset = meshlet[globalID].x;
+	int vertexSize = meshlet[globalID].y;
+	for(int i = 0; i < vertexSize; i++) {
+		gl_MeshVerticesNV[i].gl_Position = position[index[vertexOffset + i]];
+		gl_PrimitiveIndicesNV[i] = i;
+	}
+	
+	gl_PrimitiveCountNV = vertexSize / 3;
+}

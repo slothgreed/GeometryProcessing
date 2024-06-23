@@ -4,20 +4,7 @@
 namespace KI
 {
 
-class SimpleComputeShader : public IComputeShader
-{
-public:
-	SimpleComputeShader();
-	~SimpleComputeShader();
 
-	virtual ShaderPath GetShaderPath() override;
-
-	void Execute(const Vector<float>& in, Vector<float>& out);
-	virtual void GetUniformLocation() override;
-private:
-	int m_elementSize;
-	GLuint m_uniform;
-};
 
 class CreateTextureComputeShader : public IComputeShader
 {
