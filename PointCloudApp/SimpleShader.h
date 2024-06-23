@@ -37,7 +37,6 @@ public:
 
 	enum UNIFORM
 	{
-		VIEW_PROJ,
 		MODEL,
 		NUM
 	};

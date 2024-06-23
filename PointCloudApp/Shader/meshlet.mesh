@@ -1,6 +1,4 @@
-#version 450
 
-#extension GL_NV_mesh_shader : require
 
 layout(local_size_x=1) in;
 layout(max_vertices=60, max_primitives=20) out;

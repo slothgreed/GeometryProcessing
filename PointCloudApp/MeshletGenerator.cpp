@@ -7,8 +7,13 @@ namespace KI
 ShaderPath MeshletShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("meshlet.h");
+	path.header.push_back("common.h");
 
+	path.extension[SHADER_PROGRAM_MESH].push_back("#extension GL_NV_mesh_shader : require\n");
 	path.shader[SHADER_PROGRAM_MESH] = "meshlet.mesh";
+	path.extension[SHADER_PROGRAM_FRAG].push_back("#extension GL_NV_fragment_shader_barycentric : enable\n");
 	path.shader[SHADER_PROGRAM_FRAG] = "meshlet.frag";
 
 	return path;

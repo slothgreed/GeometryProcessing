@@ -28,13 +28,12 @@ void IShader::Delete()
 	m_programId = 0;
 }
 
+
 String IShader::LoadHeaderCode(const String& localPath, const Vector<String>& header)
 {
 	String headerCode;
 	for (size_t i = 0; i < header.size(); i++) {
-		String code;
-		ShaderUtility::LoadFromFile(localPath + header[i], code);
-		headerCode += code;
+		headerCode += ShaderUtility::LoadFromFile(localPath + header[i]);
 	}
 
 	return headerCode;
@@ -79,19 +78,30 @@ IShadingShader::~IShadingShader()
 
 }
 
+String Join(const Vector<String>& strs)
+{
+	String ret;
+	for (const auto& extension : strs) {
+		ret += extension;
+	}
+
+	return ret;
+}
 void IShadingShader::Build()
 {
 	auto shaderPath = GetShaderPath();
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
+	
+	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
+	auto vertexEx = Join(shaderPath.extension[SHADER_PROGRAM_VERTEX]);
+	auto vertexCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_VERTEX]);
+	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
+	auto fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
 
-	String vertexCode;
-	String fragCode;
-	ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_VERTEX], vertexCode);
-	ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG], fragCode);
 
-	vertexCode = headerCode + vertexCode;
-	fragCode = headerCode + fragCode;
+	vertexCode = version + vertexEx + headerCode + vertexCode;
+	fragCode = version + fragEx + headerCode + fragCode;
 	m_programId = IShadingShader::BuildVertexFrag(vertexCode, fragCode);
 
 
@@ -115,13 +125,15 @@ void IMeshShader::Build()
 {
 	auto shaderPath = GetShaderPath();
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
+	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
-	String meshCode;
-	String fragCode;
-	ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_MESH], meshCode);
-	ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG], fragCode);
-	GLuint meshId = ShaderUtility::Compile(headerCode + meshCode, GL_MESH_SHADER_NV);
-	GLuint fragId = ShaderUtility::Compile(headerCode + fragCode, GL_FRAGMENT_SHADER);
+
+	auto meshEx = Join(shaderPath.extension[SHADER_PROGRAM_MESH]);
+	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
+	auto meshCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_MESH]);
+	auto fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
+	GLuint meshId = ShaderUtility::Compile(version + meshEx + headerCode + meshCode, GL_MESH_SHADER_NV);
+	GLuint fragId = ShaderUtility::Compile(version + fragEx + headerCode + fragCode, GL_FRAGMENT_SHADER);
 
 	m_programId = ShaderUtility::Link(meshId, fragId);
 
@@ -134,10 +146,12 @@ void IComputeShader::Build()
 {
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto shaderPath = GetShaderPath();
+	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
+	auto computeEx = Join(shaderPath.extension[SHADER_PROGRAM_COMPUTE]);
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
-	String computeCode;
-	ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_COMPUTE], computeCode);
-	GLuint computeId = ShaderUtility::Compile(headerCode + computeCode, GL_COMPUTE_SHADER);
+	auto computeCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_COMPUTE]);
+
+	GLuint computeId = ShaderUtility::Compile(version + computeEx + headerCode + computeCode, GL_COMPUTE_SHADER);
 
 	m_programId = ShaderUtility::LinkCompute(computeId);
 

@@ -20,7 +20,9 @@ enum SHADER_PROGRAM
 
 struct ShaderPath
 {
+	String version;
 	Vector<String> header;
+	std::unordered_map<SHADER_PROGRAM, Vector<String>> extension;
 	std::unordered_map<SHADER_PROGRAM, String> shader;
 };
 

@@ -72,14 +72,18 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 	OUTPUT_GLERROR;
 	return programId;
 }
-void ShaderUtility::LoadFromFile(const String& filePath, String& contents)
+
+String ShaderUtility::LoadFromFile(const String& filePath)
 {
+	String contents;
 	std::ifstream ifs(filePath);
 	String line;
 	while ((getline(ifs, line)))
 	{
 		contents += line + "\n";
 	}
+
+	return contents;
 }
 
 GLuint ShaderUtility::LinkCompute(GLuint computeId)

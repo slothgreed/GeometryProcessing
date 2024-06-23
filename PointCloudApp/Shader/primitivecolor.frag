@@ -1,4 +1,3 @@
-#version 450
 out vec4 FragColor;
 layout(std430, binding = 1) buffer colorBuffer
 {

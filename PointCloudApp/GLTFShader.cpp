@@ -7,7 +7,8 @@ namespace KI
 ShaderPath GLTFShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.header.push_back("version.h");
+	path.version = "version.h";
+	path.header.push_back("common.h");
 	path.header.push_back("gltf\\gltf.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "gltf\\gltf.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "gltf\\gltf.frag";

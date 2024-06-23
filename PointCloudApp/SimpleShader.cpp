@@ -16,7 +16,7 @@ SimpleShader::~SimpleShader()
 ShaderPath SimpleShader::GetShaderPath()
 {
 	ShaderPath path;
-	path.header.push_back("version.h");
+	path.version = "version.h";
 	path.header.push_back("common.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "simple.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "simple.frag";
@@ -60,13 +60,15 @@ VertexColorShader::~VertexColorShader()
 ShaderPath VertexColorShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
 	path.shader[SHADER_PROGRAM_VERTEX] = "vertexcolor.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "vertexcolor.frag";
 	return path;
 }
 void VertexColorShader::GetUniformLocation()
 {
-	m_uniform[UNIFORM::VIEW_PROJ] = glGetUniformLocation(Handle(), "u_VP");
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
 
@@ -99,6 +101,9 @@ void VertexColorShader::SetColor(GLBuffer* pColor)
 ShaderPath PrimitiveColorShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
 	path.shader[SHADER_PROGRAM_VERTEX] = "primitivecolor.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "primitivecolor.frag";
 	return path;
