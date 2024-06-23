@@ -197,6 +197,7 @@ void PointCloudApp::Execute()
 	float m_diff = 0;
 
 
+	DrawContext context(m_pCamera.get());
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
 		m_cpuProfiler.Start();
@@ -204,7 +205,7 @@ void PointCloudApp::Execute()
 
 		render.Start();
 		timer.Start();
-		m_pRoot->Draw(m_pCamera->Projection(), m_pCamera->ViewMatrix());
+		m_pRoot->Draw(context);
 		m_diff += timer.Stop() * 50;
 		m_pRoot->Update(m_diff);
 		if (m_diff > 100000.0) { m_diff = 0.0f; }

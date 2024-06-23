@@ -15,12 +15,12 @@ void RenderNode::ShowUIData()
 		data.second->ShowUI();
 	}
 }
-void RenderNode::Draw(const Matrix4x4& proj, const Matrix4x4& view)
+void RenderNode::Draw(const DrawContext& context)
 {
-	DrawData(proj, view);
+	DrawNode(context);
 
 	for (auto& data : m_child) {
-		data.second->Draw(proj, view);
+		data.second->Draw(context);
 	}
 }
 

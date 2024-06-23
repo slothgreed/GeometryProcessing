@@ -56,6 +56,7 @@ void ComputePointCloudApp::Execute()
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &maxSizeY);
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &maxSizeZ);
 
+	DrawContext context(nullptr);
 	auto pShader = std::make_unique<PointCloudComputeShader>(pPointCloud);
 	pShader->Build();
 	GPUProfiler profiler("Render");
@@ -65,7 +66,7 @@ void ComputePointCloudApp::Execute()
 
 		profiler.Start();
 		pShader->Execute(m_pCamera->Projection(), m_pCamera->ViewMatrix(), m_pColorTexture, nullptr);
-		pNode->Draw(Matrix4x4(), Matrix4x4());
+		pNode->Draw(context);
 		profiler.Stop();
 
 		glfwSwapBuffers(m_window);

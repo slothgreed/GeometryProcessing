@@ -27,7 +27,7 @@ public:
 	RenderResource* GetResource();
 	virtual void ShowUIData();
 	virtual const BDB& GetBoundBox() { return m_bdb; }
-	virtual void Draw(const Matrix4x4& proj, const Matrix4x4& view);
+	virtual void Draw(const DrawContext& context);
 	virtual void Update(float time);
 	void SetMatrix(const Matrix4x4& mat) { m_matrix = mat; }
 	void SetBoundBox(const BDB& bdb) { m_bdb = bdb; }
