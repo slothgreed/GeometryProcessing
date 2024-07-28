@@ -1,7 +1,6 @@
 #include <iostream>
 #include "ComputeShaderTest.h"
 #include "GLBuffer.h"
-#include "ComputeShaderSample.h"
 namespace KI
 {
 ComputeShaderTest::ComputeShaderTest()

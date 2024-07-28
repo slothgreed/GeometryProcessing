@@ -196,11 +196,10 @@
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="RenderResource.cpp" />
+    <ClCompile Include="SkyBoxNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
-    <ClCompile Include="PointCloudComputeShader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
     <ClCompile Include="RenderTextureNode.cpp" />
-    <ClCompile Include="ComputeShaderSample.cpp" />
     <ClCompile Include="ComputeShaderTest.cpp" />
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="Harris3D.cpp" />
@@ -255,11 +254,10 @@
     <ClInclude Include="HalfEdgeNode.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
+    <ClInclude Include="SkyBoxNode.h" />
     <ClInclude Include="TextureLoader.h" />
-    <ClInclude Include="PointCloudComputeShader.h" />
     <ClInclude Include="PointCloudIO.h" />
     <ClInclude Include="RenderTextureNode.h" />
-    <ClInclude Include="ComputeShaderSample.h" />
     <ClInclude Include="ComputeShaderTest.h" />
     <ClInclude Include="Harris3D.h" />
     <ClInclude Include="IAlgorithm.h" />

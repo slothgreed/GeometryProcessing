@@ -1,5 +1,5 @@
 #include "Texture.h"
-
+#include "TextureLoader.h"
 namespace KI
 {
 
@@ -76,6 +76,30 @@ void Texture2D::Build(int width, int height, unsigned char* data)
 	m_size.x = width;
 	m_size.y = height;
 	OUTPUT_GLERROR;
+
+}
+
+CubemapTexture::CubemapTexture()
+{
+	glGenTextures(1, &m_handle);
+	OUTPUT_GLERROR;
+}
+void CubemapTexture::Build(const Vector<String>& path)
+{
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
+
+	for (size_t i = 0; i < path.size(); i++) {
+		auto pixelData  = TextureLoader::LoadData(path[i], 0);
+
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, GL_RGB, pixelData->width, pixelData->height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelData->data);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 }
 }

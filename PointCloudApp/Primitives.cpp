@@ -15,25 +15,19 @@ Cube::Cube(const Vector3& min, const Vector3& max)
 	m_position[6] = (m_max);
 	m_position[7] = (Vector3(m_min.x, m_max.y, m_max.z));
 
-	m_index.resize(36);
-	AddIndex(0, 0, 3, 2, 1);
-	AddIndex(1, 0, 4, 7, 3);
-	AddIndex(2, 4, 5, 6, 7);
-	AddIndex(3, 1, 2, 6, 5);
-	AddIndex(4, 2, 3, 7, 6);
-	AddIndex(5, 1, 5, 4, 0);
+	m_index.clear();
+	AddTriangle(m_index, 0, 3, 2, 1);
+	AddTriangle(m_index, 0, 4, 7, 3);
+	AddTriangle(m_index, 4, 5, 6, 7);
+	AddTriangle(m_index, 1, 2, 6, 5);
+	AddTriangle(m_index, 2, 3, 7, 6);
+	AddTriangle(m_index, 1, 5, 4, 0);
 
 
 	CalcNormal();
 	m_primitiveType = GL_TRIANGLES;
 }
 
-void Cube::AddIndex(int index, int vertex0, int vertex1, int vertex2, int vertex3)
-{
-	index *= 6;
-	m_index[index + 0] = vertex0; m_index[index + 1] = vertex1; m_index[index + 2] = vertex2;
-	m_index[index + 3] = vertex0; m_index[index + 4] = vertex2; m_index[index + 5] = vertex3;
-}
 
 Cone::Cone(float _radius, float _height, int _partition)
 	: radius(_radius)
@@ -371,6 +365,55 @@ void RenderPlane::Build()
 	m_index.resize(6);
 	m_index[0] = 0;	m_index[1] = 1;	m_index[2] = 2;
 	m_index[3] = 0;	m_index[4] = 2;	m_index[5] = 3;
+
+	m_primitiveType = GL_TRIANGLES;
+}
+
+SkyBox::SkyBox()
+{
+	m_position.clear();
+	// positions          
+	m_position.push_back(vec3(-1.0,  1.0, -1.0));
+	m_position.push_back(vec3(-1.0, -1.0, -1.0));
+	m_position.push_back(vec3( 1.0, -1.0, -1.0));
+	m_position.push_back(vec3( 1.0, -1.0, -1.0));
+	m_position.push_back(vec3( 1.0,  1.0, -1.0));
+	m_position.push_back(vec3(-1.0,  1.0, -1.0));
+
+	m_position.push_back(vec3(-1.0, -1.0,  1.0));
+	m_position.push_back(vec3(-1.0, -1.0, -1.0));
+	m_position.push_back(vec3(-1.0,  1.0, -1.0));
+	m_position.push_back(vec3(-1.0,  1.0, -1.0));
+	m_position.push_back(vec3(-1.0,  1.0,  1.0));
+	m_position.push_back(vec3(-1.0, -1.0,  1.0));
+
+	m_position.push_back(vec3(1.0, -1.0, -1.0)); 
+	m_position.push_back(vec3(1.0, -1.0,  1.0)); 
+	m_position.push_back(vec3(1.0,  1.0,  1.0)); 
+	m_position.push_back(vec3(1.0,  1.0,  1.0)); 
+	m_position.push_back(vec3(1.0,  1.0, -1.0)); 
+	m_position.push_back(vec3(1.0, -1.0, -1.0)); 
+
+	m_position.push_back(vec3(-1.0, -1.0,  1.0));
+	m_position.push_back(vec3(-1.0,  1.0,  1.0));
+	m_position.push_back(vec3( 1.0,  1.0,  1.0));
+	m_position.push_back(vec3( 1.0,  1.0,  1.0));
+	m_position.push_back(vec3( 1.0, -1.0,  1.0));
+	m_position.push_back(vec3(-1.0, -1.0,  1.0));
+
+	m_position.push_back(vec3(-1.0,  1.0, -1.0));
+	m_position.push_back(vec3( 1.0,  1.0, -1.0));
+	m_position.push_back(vec3( 1.0,  1.0,  1.0));
+	m_position.push_back(vec3( 1.0,  1.0,  1.0));
+	m_position.push_back(vec3(-1.0,  1.0,  1.0));
+	m_position.push_back(vec3(-1.0,  1.0, -1.0));
+
+	m_position.push_back(vec3(-1.0, -1.0, -1.0));
+	m_position.push_back(vec3(-1.0, -1.0,  1.0));
+	m_position.push_back(vec3( 1.0, -1.0, -1.0));
+	m_position.push_back(vec3( 1.0, -1.0, -1.0));
+	m_position.push_back(vec3(-1.0, -1.0,  1.0));
+	m_position.push_back(vec3( 1.0, -1.0,  1.0));
 
 	m_primitiveType = GL_TRIANGLES;
 }

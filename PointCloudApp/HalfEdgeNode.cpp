@@ -39,7 +39,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	pSimpleShader->Use();
 	pSimpleShader->SetPosition(m_pPosition.get());
 	pSimpleShader->SetCamera(context.gpuCamera);
-	pSimpleShader->SetModel(Matrix4x4(1.0f));
+	pSimpleShader->SetModel(GetMatrix());
 	pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
 	if (m_ui.visibleMesh) {
 		pSimpleShader->DrawElement(GL_TRIANGLES, m_pFaceIndexBuffer.get());

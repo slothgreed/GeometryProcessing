@@ -39,9 +39,6 @@
     <Filter Include="ソース ファイル\App">
       <UniqueIdentifier>{0bde5c8a-34d5-45bc-9b4f-102de57ba7c0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\GL\Shader\ComputeShader">
-      <UniqueIdentifier>{34708a4b-061c-4236-8d98-370ac2687b9f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\Utility\Loader">
       <UniqueIdentifier>{6c51319b-7d8d-426f-ad4c-fc7090e6f624}</UniqueIdentifier>
     </Filter>
@@ -164,9 +161,6 @@
     <ClCompile Include="RenderTextureNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="ComputeShaderSample.cpp">
-      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
-    </ClCompile>
     <ClCompile Include="FrameBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
@@ -190,9 +184,6 @@
     </ClCompile>
     <ClCompile Include="MeshShaderTest.cpp">
       <Filter>ソース ファイル\App</Filter>
-    </ClCompile>
-    <ClCompile Include="PointCloudComputeShader.cpp">
-      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
     </ClCompile>
     <ClCompile Include="GLAPIExt.cpp">
       <Filter>ソース ファイル\GL</Filter>
@@ -232,6 +223,9 @@
     </ClCompile>
     <ClCompile Include="RenderResource.cpp">
       <Filter>ソース ファイル\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBoxNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -358,12 +352,6 @@
     <ClInclude Include="RenderTextureNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="ComputeShaderSample.h">
-      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
-    </ClInclude>
-    <ClInclude Include="PointCloudComputeShader.h">
-      <Filter>ソース ファイル\GL\Shader\ComputeShader</Filter>
-    </ClInclude>
     <ClInclude Include="FrameBuffer.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
@@ -423,6 +411,9 @@
     </ClInclude>
     <ClInclude Include="..\extlibs\implot\implot_internal.h">
       <Filter>ソース ファイル\extlibs</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxNode.h">
+      <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

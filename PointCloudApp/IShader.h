@@ -4,6 +4,7 @@
 #define ATTRIB_POSITION 0
 #define ATTRIB_NORMAL   1
 #define ATTRIB_COLOR   2
+#define ATTRIB_TEXCOORD   2
 
 #include "GLBuffer.h"
 namespace KI
@@ -63,6 +64,7 @@ public:
 	void SetVertexFormat(const VertexFormat& format);
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
+	void DrawArray(GLuint primitiveType, int count);
 private:
 	GLuint BuildVertexFrag(const String& vert, const String& frag);
 

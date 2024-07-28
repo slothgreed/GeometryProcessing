@@ -18,6 +18,11 @@ inline Matrix4x4 CreateRotateMatrix(const Vector4& vec)
 	return glm::mat4_cast(CreateQuart(vec));
 }
 
+inline Matrix4x4 CreateScale(float scale)
+{
+	return glm::scale(glm::mat4x4(1.0), vec3(scale, scale, scale));
+}
+
 }
 
 

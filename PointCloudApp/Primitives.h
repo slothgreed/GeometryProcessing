@@ -13,7 +13,6 @@ private:
 	Vector3 m_min;
 	Vector3 m_max;
 
-	void AddIndex(int index, int vertex0, int vertex1, int vertex2, int vertex3);
 
 };
 
@@ -113,6 +112,16 @@ public:
 private:
 	void Build();
 };
+
+class SkyBox : public Primitive
+{
+public:
+	SkyBox();
+	~SkyBox() {};
+
+private:
+};
+
 }
 
 #endif PRIMITIVE_H

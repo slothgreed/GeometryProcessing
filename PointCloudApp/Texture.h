@@ -46,6 +46,19 @@ public:
 private:
 
 };
+
+class CubemapTexture : public Texture
+{
+public:
+	CubemapTexture();
+	~CubemapTexture() {};
+	virtual TEXTURE_TYPE Type() const { return TEXTURE_CUBE_MAP; }
+
+	void Build(const Vector<String>& path);
+private:
+
+};
+
 }
 
 

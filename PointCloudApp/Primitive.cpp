@@ -130,4 +130,11 @@ int Primitive::GetTriangleNum()
 		return m_position.size() / 3;
 	}
 }
+
+
+void Primitive::AddTriangle(Vector<unsigned int>& index, int vertex0, int vertex1, int vertex2, int vertex3)
+{
+	index.push_back(vertex0); index.push_back(vertex1); index.push_back(vertex2);
+	index.push_back(vertex0); index.push_back(vertex2); index.push_back(vertex3);
+}
 }

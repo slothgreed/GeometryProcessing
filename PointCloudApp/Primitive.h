@@ -55,6 +55,9 @@ public:
 	bool NeedUpdate() const { return m_update; }
 	void ClearUpdate() { m_update = false; }
 	void Update() { m_update = true; }
+
+	static void AddTriangle(Vector<unsigned int>& index, int vertex0, int vertex1, int vertex2, int vertex3);
+
 protected:
 	bool m_update;
 	StoreType m_storeType;

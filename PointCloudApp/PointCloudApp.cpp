@@ -27,6 +27,7 @@
 #include "GLUtility.h"
 #include "HalfEdgeLoader.h"
 #include "HalfEdgeNode.h"
+#include "SkyBoxNode.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -107,10 +108,10 @@ void PointCloudApp::Execute()
 	BDB bdb;
 	m_pRoot = std::make_unique<RenderNode>("Root");
 	m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
-	//m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>() / 2, Vector3(0, 1, 0)));
+	m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>(), Vector3(1, 0, 0)));
 	bdb.Add(m_pRoot->GetBoundBox());
 	
-	m_pCamera->SetLookAt(Vector3(0, 0, 1), Vector3(0, 0, 0), m_pCamera->Up());
+	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
 	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf")));
 
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
@@ -172,7 +173,7 @@ void PointCloudApp::Execute()
 		String path = "E:\\cgModel\\bunny6000.half";
 		auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
 		auto node = std::make_shared<HalfEdgeNode>(path, data);
-		node->SetMatrix(glmUtil::CreateScale(0.1f));
+		node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
 		m_pRoot->AddNode(node);
 	}
 
@@ -204,6 +205,7 @@ void PointCloudApp::Execute()
 	
 	context.pShaderTable = pResource->GetShaderTable();
 
+	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
 		pResource->UpdateCamera(m_pCamera.get());
@@ -212,6 +214,9 @@ void PointCloudApp::Execute()
 
 		render.Start();
 		timer.Start();
+		
+		pSkyBoxNode->Draw(context);
+
 		m_pRoot->Draw(context);
 		m_diff += timer.Stop() * 50;
 		m_pRoot->Update(m_diff);
