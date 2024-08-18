@@ -9,18 +9,24 @@ struct GLTFNode
 	float padding[23];
 } node;
 
+
+
 struct GLTFMaterial
 {
 	vec4 baseColor;
+	vec4 emissiveColor;
 	int baseTexture;
-	float metalic;
-	int roughnessTexture;
+	float metallic;
+	float roughness;
+	int metalRoughnessTexture;
 	int normalTexture;
+	int occlusionTexture;
+	int emissiveTexture;
 	float normalScale;
 	float alphaCuttoff;
 	int alphaMode;
 	int doubleSided;
-	float padding[52];
+	float padding[46];
 };
 
 #define CHANNEL_PATH_TRANSLATE 0

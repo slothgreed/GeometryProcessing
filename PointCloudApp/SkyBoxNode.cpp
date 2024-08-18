@@ -1,6 +1,6 @@
 #include "SkyBoxNode.h"
 #include "Primitives.h"
-#include "GLUtility.h"
+#include "Utility.h"
 namespace KI
 {
 
@@ -97,10 +97,10 @@ void SkyBoxNode::Draw(const DrawContext& context)
 	BuildGLBuffer();
 
 	m_pShader->Use();
-	m_pShader->SetCamera(context.gpuCamera);
+	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetTexture(m_pCubemap.get());
-	m_pShader->SetModel(CreateScale(1000));
+	m_pShader->SetModel(glmUtil::CreateScale(100));
 	m_pShader->DrawArray(m_skybox->GetDrawType(), m_pPositionBuffer->Num());
 }
 

@@ -41,6 +41,7 @@ template <typename T> using Vector = std::vector<T>;
 template <typename T> using Optional = std::optional<T>;
 template <typename T> using USet = std::unordered_set<T>;
 using String = std::string;
+using Matrix3x3 = glm::mat3x3;
 using Matrix4x4 = glm::mat4x4;
 using Vector2 = glm::vec2;
 using Vector3 = glm::vec3;

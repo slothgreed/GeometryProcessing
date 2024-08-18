@@ -24,7 +24,6 @@
 #include "TextureLoader.h"
 #include "RenderTextureNode.h"
 #include "GLTFLoader.h"
-#include "GLUtility.h"
 #include "HalfEdgeLoader.h"
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
@@ -107,13 +106,12 @@ void PointCloudApp::Execute()
 
 	BDB bdb;
 	m_pRoot = std::make_unique<RenderNode>("Root");
-	m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
-	m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>(), Vector3(1, 0, 0)));
+	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
+	//m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>(), Vector3(1, 0, 0)));
 	bdb.Add(m_pRoot->GetBoundBox());
 	
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
 	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf")));
-
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\RiggedSimple\\glTF\\RiggedSimple.gltf")));
@@ -127,14 +125,16 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
+	//
 	/*
-	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
-	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
-	//Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
-	//pPointCloud->SetColor(std::move(color));
-	bdb.Apply(pPointCloud->GetBDB());
-
-	m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	{
+		auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
+		//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
+		//Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
+		//pPointCloud->SetColor(std::move(color));
+		bdb.Apply(pPointCloud->GetBDB());
+		m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	}
 	*/
 
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
@@ -144,6 +144,13 @@ void PointCloudApp::Execute()
 
 	//auto pPointCloud = Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz"));
 	
+	auto pos2D = PointCloud::Create3D(100, Vector3(-10, -10, 0), Vector3(10, 10, 0));
+	auto point2DPrim = std::make_shared<PointCloud>();
+	point2DPrim->SetPosition(std::move(pos2D));
+	point2DPrim->SetType(GL_POINTS);
+	bdb.Apply(point2DPrim->GetBDB());
+	auto pPointCloudNode = std::make_shared<PointCloudNode>("2DPointCloud", point2DPrim);
+	m_pRoot->AddNode(pPointCloudNode);
 	//auto pRandom = Shared<PointCloud>(PointCloud::Create2D(10, vec2(0, 0), vec2(100, 100)));
 	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
 
@@ -170,13 +177,19 @@ void PointCloudApp::Execute()
 	//}
 
 	{
+		auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"));
+		pNode->SetRotateAngle(Vector3(-90, 0, 180));
+		m_pRoot->AddNode(pNode);
+	}
+	/*
+	{
 		String path = "E:\\cgModel\\bunny6000.half";
 		auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
 		auto node = std::make_shared<HalfEdgeNode>(path, data);
 		node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
 		m_pRoot->AddNode(node);
 	}
-
+	*/
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -198,24 +211,26 @@ void PointCloudApp::Execute()
 	Timer timer;
 	float m_diff = 0;
 
-
-	DrawContext context(
-		m_pCamera.get(),
-		pResource->GetCameraBuffer());
+	auto pLight = std::make_shared<Light>();
+	pLight->SetColor(Vector3(1, 1, 1));
+	pLight->SetDirection(Vector3(0, 0, 1));
 	
-	context.pShaderTable = pResource->GetShaderTable();
+	pResource->SetCamera(m_pCamera);
+	pResource->SetLight(pLight);
+	DrawContext context(pResource.get());
 
 	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE)
 	{
-		pResource->UpdateCamera(m_pCamera.get());
+		pResource->UpdateCamera();
+		pResource->UpdateLight();
 		m_cpuProfiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		render.Start();
 		timer.Start();
 		
-		pSkyBoxNode->Draw(context);
+		//pSkyBoxNode->Draw(context);
 
 		m_pRoot->Draw(context);
 		m_diff += timer.Stop() * 50;
@@ -229,6 +244,7 @@ void PointCloudApp::Execute()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		pResource->ShowUI();
 		ShowUI();
 		m_pRoot->ShowUIData();
 
@@ -251,12 +267,6 @@ void PointCloudApp::Execute()
 
 void PointCloudApp::ShowUI()
 {
-
-	ImGui::Text(
-		"Eye:(%lf,%lf,%lf)\nCenter:(%lf,%lf,%lf)\nUp:(%lf,%lf,%lf)\n",
-		m_pCamera->Eye().x, m_pCamera->Eye().y, m_pCamera->Eye().z,
-		m_pCamera->Center().x, m_pCamera->Center().y, m_pCamera->Center().z,
-		m_pCamera->Up().x, m_pCamera->Up().y, m_pCamera->Up().z);
 
 	static RollingBuffer  ui_fpsDraw, ui_fps60, ui_fps120;
 	static float timeDelta = 0.0f;

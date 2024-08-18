@@ -1,8 +1,17 @@
 struct Camera
 {
 	mat4x4 VP;
-	float padding[48];
+	vec4 eye;
+	float padding[44];
 };
+
+struct Light
+{
+	vec4 color;
+	vec4 direction;
+	float padding[56];
+};
+
 
 vec4 tonemap(vec4 color)
 {

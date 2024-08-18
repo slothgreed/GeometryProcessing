@@ -30,7 +30,7 @@ public:
 	const Vector<Vector3>& Position() const { return m_position; };
 	const Vector<Vector3>& Normal() const { return m_normal; };
 	const Vector<Vector4>& Color() const { return m_color; };
-	const Vector<glm::vec2>& Texcoord() const { return m_texcoord; };
+	const Vector<Vector2>& Texcoord() const { return m_texcoord; };
 	const Vector<Vertex>& GetVertex() const { return m_vertex; };
 	const Vector<unsigned int>& Index() const { return m_index; };
 
@@ -64,7 +64,7 @@ protected:
 	Vector<Vector4> m_color;
 	Vector<Vector3> m_position;
 	Vector<Vector3> m_normal;
-	Vector<glm::vec2> m_texcoord;
+	Vector<Vector2> m_texcoord;
 	Vector<Vertex> m_vertex;
 	GLuint m_primitiveType;
 	Vector<unsigned int> m_index;

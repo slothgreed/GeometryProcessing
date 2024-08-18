@@ -6,7 +6,7 @@
 #include <GLTFSDK/GLTFResourceReader.h>
 #include <GLTFSDK/GLBResourceReader.h>
 #include <GLTFSDK/Deserialize.h>
-#include "GLUtility.h"
+#include "Utility.h"
 namespace KI
 {
 
@@ -168,8 +168,8 @@ void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFN
 					break;
 				case Channel::Path::Rotate:
 					nodes[channel.node].SetRotate(glm::mat4_cast(glm::normalize(glm::slerp(
-						CreateQuart(sampler.transform[j]),
-						CreateQuart(sampler.transform[j + 1]),
+						glmUtil::CreateQuart(sampler.transform[j]),
+						glmUtil::CreateQuart(sampler.transform[j + 1]),
 						u))));
 					break;
 				case Channel::Path::Weight:

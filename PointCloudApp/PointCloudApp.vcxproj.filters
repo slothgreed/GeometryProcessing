@@ -173,9 +173,6 @@
     <ClCompile Include="GLTFStruct.cpp">
       <Filter>ソース ファイル\Utility\GLTF</Filter>
     </ClCompile>
-    <ClCompile Include="GLUtility.cpp">
-      <Filter>ソース ファイル\GL</Filter>
-    </ClCompile>
     <ClCompile Include="GLTFSceneUpdater.cpp">
       <Filter>ソース ファイル\Utility\GLTF</Filter>
     </ClCompile>
@@ -226,6 +223,12 @@
     </ClCompile>
     <ClCompile Include="SkyBoxNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="DelaunayGenerator.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -367,9 +370,6 @@
     <ClInclude Include="GLTFStruct.h">
       <Filter>ソース ファイル\Utility\GLTF</Filter>
     </ClInclude>
-    <ClInclude Include="GLUtility.h">
-      <Filter>ソース ファイル\GL</Filter>
-    </ClInclude>
     <ClInclude Include="GLTFSceneUpdater.h">
       <Filter>ソース ファイル\Utility\GLTF</Filter>
     </ClInclude>
@@ -414,6 +414,12 @@
     </ClInclude>
     <ClInclude Include="SkyBoxNode.h">
       <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayGenerator.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

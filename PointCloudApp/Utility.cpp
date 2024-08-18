@@ -46,6 +46,14 @@ int Random::Int(float min, float max)
 {
 	return Gaccho::rnd(min, max);
 }
+
+Vector2 Random::Vec2(const Vector2& min, const Vector2& max)
+{
+	Vector2 value;
+	value.x = Gaccho::rnd(min.x, max.x);
+	value.y = Gaccho::rnd(min.y, max.y);
+	return value;
+}
 Vector3 Random::Vec3(const Vector3& min, const Vector3& max)
 {
 	Vector3 value;
@@ -181,4 +189,105 @@ Vector<Vector4> TypeConverter::Convert4f(const Vector<Vector3>& data)
 
 	return ret;
 }
+
+
+bool glmUtil::iszero(const Vector3& value)
+{
+	return
+		-eps < value.x && value.x < eps &&
+		-eps < value.y && value.y < eps &&
+		-eps < value.z && value.z < eps;
+}
+
+Matrix4x4 glmUtil::CreateScale(const Vector3& value)
+{
+	return glm::scale(mat4(1), value);
+}
+
+Matrix4x4 glmUtil::CreateScale(float value)
+{
+	return glm::scale(mat4(1), Vector3(value, value, value));
+}
+
+Matrix4x4 glmUtil::CreateRotate(float rad, const Vector3& axis)
+{
+	return glm::rotate(glm::mat4(1), rad, axis);
+}
+
+Matrix4x4 glmUtil::CreateRotate(const Vector3& angle)
+{
+	Matrix4x4 rotX = glm::rotate(Matrix4x4(1.0f), angle.x, Vector3(1.0f, 0.0f, 0.0f));
+	Matrix4x4 rotY = glm::rotate(Matrix4x4(1.0f), angle.y, Vector3(0.0f, 1.0f, 0.0f));
+	Matrix4x4 rotZ = glm::rotate(Matrix4x4(1.0f), angle.z, Vector3(0.0f, 0.0f, 1.0f));
+
+	//return rotZ * rotY * rotX;
+
+	return rotZ * rotX * rotY;
+}
+
+Matrix4x4 glmUtil::CreateTranslate(const Vector3& translate)
+{
+	return glm::translate(Matrix4x4(1.0f), translate);
+}
+
+
+Vector3 glmUtil::ToScale(const Matrix4x4& matrix)
+{
+	Matrix3x3 mat(matrix);
+
+	Vector3 scale;
+	scale.x = glm::length(mat[0]);
+	scale.y = glm::length(mat[1]);
+	scale.z = glm::length(mat[2]);
+
+	return scale;
+}
+
+Vector3 glmUtil::ToRotateAngle(const Matrix4x4& matrix)
+{
+	Matrix3x3 rotation(matrix);
+
+	Vector3 scale = ToScale(matrix);
+
+	rotation[0] /= scale.x;
+	rotation[1] /= scale.y;
+	rotation[2] /= scale.z;
+
+	Vector3 eulerAngles;
+
+	// ŠeŽ²‚Ì‰ñ“]‚ðŽæ“¾ (YXZ‡)
+	if (rotation[2][0] < 1) {
+		if (rotation[2][0] > -1) {
+			eulerAngles.y = std::asin(-rotation[2][0]);
+			eulerAngles.x = std::atan2(rotation[2][1], rotation[2][2]);
+			eulerAngles.z = std::atan2(rotation[1][0], rotation[0][0]);
+		} else {
+			// rotation[2][0] == -1
+			eulerAngles.y = glm::pi<float>() / 2.0f;
+			eulerAngles.x = std::atan2(-rotation[0][1], rotation[1][1]);
+			eulerAngles.z = 0.0f;
+		}
+	} else {
+		// rotation[2][0] == 1
+		eulerAngles.y = -glm::pi<float>() / 2.0f;
+		eulerAngles.x = std::atan2(-rotation[0][1], rotation[1][1]);
+		eulerAngles.z = 0.0f;
+	}
+	return eulerAngles;
+}
+Vector3 glmUtil::ToTranslate(const Matrix4x4& matrix)
+{
+	return matrix[3];
+}
+
+Quaternion glmUtil::CreateQuart(const Vector4& vec)
+{
+	Quaternion quart;
+	quart.x = vec.x;
+	quart.y = vec.y;
+	quart.z = vec.z;
+	quart.w = vec.w;
+	return quart;
+}
+
 }

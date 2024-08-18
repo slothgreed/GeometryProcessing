@@ -12,10 +12,12 @@ class GLTFScene : public RenderNode
 public:
 	GLTFScene(const String& name)
 		: RenderNode(name)
+		, m_debugView(0)
 		, m_pShader(nullptr)
 		, m_pChannelGpuUpdater(nullptr)
 		, m_pMatrixGpuUpdater(nullptr)
 		, m_pSkinGpuUpdater(nullptr)
+		, m_visible(true)
 	{
 	};
 	virtual ~GLTFScene();
@@ -29,6 +31,7 @@ public:
 	void SetSkin(Vector<GLTFSkin>&& value) { m_skins = std::move(value); }
 	void SetMesh(Vector<GLTFMesh>&& value) { m_meshes = std::move(value); }
 	void SetAnimation(Vector<GLTFAnimation>&& animation) { m_animation = std::move(animation); }
+	virtual void ShowUI();
 	virtual void DrawNode(const DrawContext& context);
 protected:
 	virtual void UpdateData(float time);
@@ -57,7 +60,7 @@ private:
 	Vector<GLTFSkin> m_skins;
 	Vector<GLTFMesh> m_meshes;
 	Vector<GLTFAnimation> m_animation;
-
+	bool m_visible;
 	struct GpuObject
 	{
 		GpuObject()
@@ -79,7 +82,7 @@ private:
 
 		GLBuffer* skinBuffer;
 	};
-
+	int m_debugView;
 	GpuObject m_gpu;
 
 };

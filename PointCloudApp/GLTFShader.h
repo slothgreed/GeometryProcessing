@@ -17,24 +17,33 @@ public:
 		SSBO_INDEX,
 		COLOR_TEXTURE,
 		NORMAL_TEXTURE,
-		ROUGHNESS_TEXTURE,
+		METAL_ROUGHNESS_TEXTURE,
+		OCCLUSION_TEXTURE,
+		EMISSIVE_TEXTURE,
+		DEBUG_VIEW,
 		NUM
 	};
 
 	virtual ShaderPath GetShaderPath() override;
 	void SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format);
 	void SetModel(const Matrix4x4& value);
+	void BindDebugView(int value);
 	void SetSkinBuffer(const GLBuffer* pBuffer);
 	void SetIndexBuffer(GLBuffer* pBuffer);
 	void SetNodeBuffer(const GLBuffer* pBuffer);
 	void SetMaterialBuffer(const GLBuffer* pBuffer);
+	void SetLight(const GLBuffer* pBuffer);
+
 	void BindBufferIndex(int matrix, int material);
 	virtual void GetUniformLocation();
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	void DrawElement(const GLTFPrimitive& primitive, GLuint dataType);
 	void BindBaseColor(const Texture& texture);
 	void BindNormal(const Texture& texture);
-	void BindRoughness(const Texture& texture);
+	void BindMetalRoughness(const Texture& texture);
+	void BindOcclusion(const Texture& texture);
+	void BindEmissive(const Texture& texture);
+
 
 private:
 	GLuint m_uniform[UNIFORM::NUM];

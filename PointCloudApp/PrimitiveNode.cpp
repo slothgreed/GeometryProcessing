@@ -63,28 +63,29 @@ void PrimitiveNode::UpdateRenderData()
 void PrimitiveNode::DrawNode(const DrawContext& context)
 {
 	UpdateRenderData();
+	const auto& pResourece = context.pResource;
 	IShadingShader* pShader = nullptr;
 	if (m_pPrimitive->Color().size() == m_pPrimitive->Position().size()) {
-		auto pPrimitiveColorShader = context.pShaderTable->GetPrimitiveColorShader();
+		auto pPrimitiveColorShader = pResourece->GetShaderTable()->GetPrimitiveColorShader();
 		pPrimitiveColorShader->Use();
 		pPrimitiveColorShader->SetPosition(m_pPositionBuffer.get());
 		pPrimitiveColorShader->SetColor(m_pColorBuffer.get());
-		pPrimitiveColorShader->SetCamera(context.gpuCamera);
+		pPrimitiveColorShader->SetCamera(pResourece->GetCameraBuffer());
 		pPrimitiveColorShader->SetModel(Matrix4x4(1.0f));
 		pShader = pPrimitiveColorShader.get();
 	} else 	if (m_pPrimitive->Color().size() == m_pPrimitive->Position().size()) {
-		auto pVertexColorShader = context.pShaderTable->GetVertexColorShader();
+		auto pVertexColorShader = pResourece->GetShaderTable()->GetVertexColorShader();
 		pVertexColorShader->Use();
 		pVertexColorShader->SetPosition(m_pPositionBuffer.get());
 		pVertexColorShader->SetColor(m_pColorBuffer.get());
-		pVertexColorShader->SetCamera(context.gpuCamera);
+		pVertexColorShader->SetCamera(pResourece->GetCameraBuffer());
 		pVertexColorShader->SetModel(Matrix4x4(1.0f));
 		pShader = pVertexColorShader.get();
 	} else {
-		auto pSimpleShader = context.pShaderTable->GetSimpleShader();
+		auto pSimpleShader = pResourece->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
 		pSimpleShader->SetPosition(m_pPositionBuffer.get());
-		pSimpleShader->SetCamera(context.gpuCamera);
+		pSimpleShader->SetCamera(pResourece->GetCameraBuffer());
 		pSimpleShader->SetModel(Matrix4x4(1.0f));
 		pSimpleShader->SetColor(m_color);
 		pShader = pSimpleShader.get();

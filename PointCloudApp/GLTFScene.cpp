@@ -2,6 +2,7 @@
 #include "GLBuffer.h"
 #include "GLTFShader.h"
 #include "GLTFSceneUpdater.h"
+#include "Utility.h"
 namespace KI
 {
 bool useGpu = false;
@@ -65,6 +66,7 @@ void GLTFScene::InitAnimation()
 
 void GLTFScene::InitMatrix()
 {
+
 	if (m_gpu.nodeBuffer == nullptr) {
 		m_gpu.nodeBuffer = new GLBuffer();
 		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
@@ -85,18 +87,58 @@ void GLTFScene::CreateMaterialBuffer()
 	m_gpu.materialBuffer->Create<GLTFMaterial>(m_material);
 }
 
+void GLTFScene::ShowUI()
+{
+	ImGui::Checkbox("Visible", &m_visible);
+
+	if (!m_visible) { return; }
+
+	static Vector<String> itemList =
+	{
+		"None", "Color","Normal","Roughness","Occlusion","Emissive","F","G","D"
+	};
+
+	float scale = GetScale();
+	auto rotate = GetRotateAngle();
+	auto translate = GetTranslate();
+	if (ImGui::BeginCombo("Combo", itemList[m_debugView].data())) {
+		for (int i = 0; i < itemList.size(); ++i) {
+			if (ImGui::Selectable(itemList[i].c_str(), m_debugView == i)) { m_debugView = i; }
+			if (m_debugView == i) { ImGui::SetItemDefaultFocus(); }
+		}
+		ImGui::EndCombo();
+	}
+	
+	if (ImGui::SliderFloat("scale", &scale, 1, 100)) {
+		SetScale(scale);
+	}
+
+	if (ImGui::SliderFloat3("rotate", &rotate[0], -360, 360)) {
+		SetRotateAngle(rotate);
+	}
+
+	if (ImGui::SliderFloat3("translate", &translate[0], -10, 10)) {
+		SetTranslate(translate);
+	}
+}
+
+
 void GLTFScene::DrawNode(const DrawContext& context)
 {
+	if (!m_visible) { return; }
+	
 	if (!m_pShader) {
 		m_pShader = new GLTFShader();
 		m_pShader->Build();
 		CreateMaterialBuffer();
 	}
 	m_pShader->Use();
-	m_pShader->SetCamera(context.gpuCamera);
+	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
+	m_pShader->SetLight(context.pResource->GetLightBuffer());
 	m_pShader->SetModel(GetMatrix());
 	m_pShader->SetNodeBuffer(m_gpu.nodeBuffer);
 	m_pShader->SetMaterialBuffer(m_gpu.materialBuffer);
+	m_pShader->BindDebugView(m_debugView);
 	if (m_gpu.skinBuffer) {
 		m_pShader->SetSkinBuffer(m_gpu.skinBuffer);
 	}
@@ -119,10 +161,18 @@ void GLTFScene::DrawNode(const DrawContext& context)
 				m_pShader->BindNormal(*m_texture[material.normalTexture]);
 			}
 
-			if (material.roughnessTexture != -1) {
-				m_pShader->BindRoughness(*m_texture[material.roughnessTexture]);
+			if (material.metalRoughnessTexture != -1) {
+				m_pShader->BindMetalRoughness(*m_texture[material.metalRoughnessTexture]);
 			}
 			
+			if (material.emissiveTexture != -1) {
+				m_pShader->BindEmissive(*m_texture[material.emissiveTexture]);
+			}
+
+			if (material.occlusionTexture != -1) {
+				m_pShader->BindOcclusion(*m_texture[material.occlusionTexture]);
+			}
+
 			m_pShader->DrawElement(primitive, meshBuffer.pIndex->DataType());
 		}
 	}
@@ -135,6 +185,9 @@ void GLTFScene::UpdateData(float time)
 	UpdateMatrix();
 	UpdateSkin();
 }
+
+
+
 
 void GLTFScene::UpdateMatrix()
 {

@@ -181,6 +181,7 @@
     <ClCompile Include="BDB.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
+    <ClCompile Include="DelaunayGenerator.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="GLAPIExt.cpp" />
     <ClCompile Include="GLFWApp.cpp" />
@@ -189,10 +190,10 @@
     <ClCompile Include="GLTFSceneUpdater.cpp" />
     <ClCompile Include="GLTFShader.cpp" />
     <ClCompile Include="GLTFStruct.cpp" />
-    <ClCompile Include="GLUtility.cpp" />
     <ClCompile Include="HalfEdgeLoader.cpp" />
     <ClCompile Include="HalfEdgeStruct.cpp" />
     <ClCompile Include="HalfEdgeNode.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="RenderResource.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="..\extlibs\implot\implot_internal.h" />
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
+    <ClInclude Include="DelaunayGenerator.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GLAPIExt.h" />
     <ClInclude Include="GLFWApp.h" />
@@ -248,10 +250,10 @@
     <ClInclude Include="GLTFShader.h" />
     <ClInclude Include="GLTFStruct.h" />
     <ClInclude Include="GLTypes.h" />
-    <ClInclude Include="GLUtility.h" />
     <ClInclude Include="HalfEdgeLoader.h" />
     <ClInclude Include="HalfEdgeStruct.h" />
     <ClInclude Include="HalfEdgeNode.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
     <ClInclude Include="SkyBoxNode.h" />

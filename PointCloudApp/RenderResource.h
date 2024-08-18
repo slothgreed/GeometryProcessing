@@ -5,21 +5,34 @@
 namespace KI
 {
 class Camera;
+class Light;
 class RenderResource
 {
 public:
 	RenderResource()
-		: m_pCamera(nullptr){};
+		: m_pCameraGpu(nullptr)
+		, m_pLightGpu(nullptr) {};
 	~RenderResource() {};
 	void Build();
 
+	void SetCamera(const Shared<Camera>& pCamera) { m_pCamera = pCamera; }
+	void SetLight(const Shared<Light>& pLight) { m_pLight = pLight; }
+
 	void Finalize();
 	ShaderTable* GetShaderTable() { return &m_pShaderTable; };
-	GLBuffer* GetCameraBuffer() { return m_pCamera; }
+	const ShaderTable* GetShaderTable() const { return &m_pShaderTable; };
+	const GLBuffer* GetCameraBuffer() const { return m_pCameraGpu; }
+	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
 
-	void UpdateCamera(const Camera* pCamera);
+	void ShowUI();
+	void UpdateLight();
+	void UpdateCamera();
 private:
-	GLBuffer* m_pCamera;
+	
+	Shared<Camera> m_pCamera;
+	Shared<Light> m_pLight;
+	GLBuffer* m_pCameraGpu;
+	GLBuffer* m_pLightGpu;
 	ShaderTable m_pShaderTable;
 };
 }

@@ -9,6 +9,7 @@ public:
 	~Random() {};
 
 	static int Int(float min, float max);
+	static Vector2 Vec2(const Vector2& min, const Vector2& max);
 	static Vector3 Vec3(float min, float max);
 	static Vector3 Vec3(const Vector3& min, const Vector3& max);
 
@@ -52,8 +53,8 @@ private:
 class TypeConverter
 {
 public:
-	TypeConverter();
-	~TypeConverter();
+	TypeConverter() {};
+	~TypeConverter() {};
 
 	static Vector<Vector4> Convert4f(const Vector<Vector3>& data);
 private:
@@ -61,32 +62,21 @@ private:
 };
 
 
-namespace glmUtil
+class glmUtil
 {
+public:
 	const float eps = 0.0001f;
-	inline bool iszero(const Vector3& value)
-	{
-		return
-			-eps < value.x && value.x < eps &&
-			-eps < value.y && value.y < eps &&
-			-eps < value.z && value.z < eps;
-	}
+	bool iszero(const Vector3& value);
+	static Matrix4x4 CreateScale(const Vector3& value);
+	static Matrix4x4 CreateScale(float value);
+	static Matrix4x4 CreateRotate(float rad, const Vector3& axis);
+	static Matrix4x4 CreateRotate(const Vector3& angle);
+	static Matrix4x4 CreateTranslate(const Vector3& translate);
+	static Vector3 ToScale(const Matrix4x4& matrix);
+	static Vector3 ToTranslate(const Matrix4x4& matrix);
+	static Vector3 ToRotateAngle(const Matrix4x4& matrix);
+	static Quaternion CreateQuart(const Vector4& vec);
+};
 
-	inline Matrix4x4 CreateScale(const Vector3& value)
-	{
-		return glm::scale(mat4(1), value);
-	}
-
-	inline Matrix4x4 CreateScale(float value)
-	{
-		return glm::scale(mat4(1), Vector3(value, value, value));
-	}
-
-	inline Matrix4x4 CreateRotate(float rad, const Vector3& axis)
-	{
-		return glm::rotate(glm::mat4(1), rad, axis);
-	}
-
-}
 }
 #endif UTILITY_H

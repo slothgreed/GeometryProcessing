@@ -481,11 +481,15 @@ Vector<GLTFMaterial> GLTFLoader::LoadMaterial(const Microsoft::glTF::Document* p
             material.metallicRoughness.baseColorFactor.g,
             material.metallicRoughness.baseColorFactor.b,
             material.metallicRoughness.baseColorFactor.a);
-        materials[i].metalic = material.metallicRoughness.metallicFactor;
+        materials[i].metallic = material.metallicRoughness.metallicFactor;
+        materials[i].roughness = material.metallicRoughness.roughnessFactor;
         materials[i].baseTexture = ConvertIndex(material.metallicRoughness.baseColorTexture.textureId);
         materials[i].normalTexture = ConvertIndex(material.normalTexture.textureId);
-        materials[i].roughnessTexture = ConvertIndex(material.metallicRoughness.metallicRoughnessTexture.textureId);
+        materials[i].metalRoughnessTexture = ConvertIndex(material.metallicRoughness.metallicRoughnessTexture.textureId);
+        materials[i].emissiveTexture = ConvertIndex(material.emissiveTexture.textureId);
+        materials[i].occlusionTexture = ConvertIndex(material.occlusionTexture.textureId);
         materials[i].normalScale = material.normalTexture.scale;
+        materials[i].emissiveColor = Vector4(material.emissiveFactor.r, material.emissiveFactor.g, material.emissiveFactor.b, 1.0);
     }
 
     return materials;

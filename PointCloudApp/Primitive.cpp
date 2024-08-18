@@ -112,8 +112,7 @@ const BDB& Primitive::GetBDB()
 		return m_bdb;
 	}
 
-	for (const auto& p : m_position)
-	{
+	for (const auto& p : m_position) {
 		m_bdb.Add(p);
 	}
 

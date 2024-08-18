@@ -5,7 +5,6 @@
 #include "IAlgorithm.h"
 namespace KI
 {
-
 class PointCloud;
 class PointCloudNode : public RenderNode
 {
@@ -34,6 +33,8 @@ private:
 	Shared<PointCloud> m_pPointCloud;
 	Vector<Vector<int>> m_neighbor;
 	Unique<GLBuffer> m_pPositionBuffer;
+
+	Vector3 m_color;
 	Unique<GLBuffer> m_pColorBuffer;
 };
 

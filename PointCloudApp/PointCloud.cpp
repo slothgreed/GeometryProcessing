@@ -21,6 +21,23 @@ void  PointCloud::To2D()
 	}
 }
 
+Vector<Vector3> PointCloud::Create3D(int size, const Vector3& min, const Vector3& max)
+{
+	Vector<Vector3> pos(size);
+	for (size_t i = 0; i < pos.size(); i++) {
+		pos[i] = Random::Vec3(min, max);
+	}
+
+	return pos;
+}
+
+void PointCloud::SetColorSingle(const Vector3& color)
+{
+	m_color.resize(m_position.size());
+	for (size_t i = 0; i < m_color.size(); i++) {
+		m_color[i] = Vector4(color.x, color.y, color.z, 1.0);
+	}
+}
 
 Vector<Vector4> PointCloud::CreatePosition4f()
 {

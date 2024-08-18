@@ -5,6 +5,7 @@
 #include "Utility.h"
 #include "Harris3D.h"
 #include "AlphaShape.h"
+#include "DelaunayGenerator.h"
 #include <Eigen/SVD>
 #include <Eigen/Core>
 namespace KI
@@ -37,8 +38,11 @@ void PointCloudNode::BuildGLBuffer()
 	m_pPositionBuffer = std::make_unique<GLBuffer>();
 	m_pPositionBuffer->Create(m_pPointCloud->Position());
 
-	m_pColorBuffer = std::make_unique<GLBuffer>();
-	m_pColorBuffer->Create(m_pPointCloud->Color());
+	if (m_pPointCloud->Color().size() != 0) {
+		m_pColorBuffer = std::make_unique<GLBuffer>();
+		m_pColorBuffer->Create(m_pPointCloud->Color());
+	}
+
 	m_pPointCloud->ClearUpdate();
 }
 const Shared<PointCloud>& PointCloudNode::GetData() const
@@ -142,12 +146,25 @@ void PointCloudNode::ComputeTangent()
 void PointCloudNode::DrawNode(const DrawContext& context)
 {
 	UpdateRenderData();
-	auto pShader = context.pShaderTable->GetVertexColorShader();
-	pShader->Use();
-	pShader->SetPosition(m_pPositionBuffer.get());
-	pShader->SetColor(m_pColorBuffer.get());
-	pShader->SetCamera(context.gpuCamera);
-	pShader->SetModel(Matrix4x4(1.0f));
-	pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
+	auto pResource = context.pResource;
+	if (m_pColorBuffer) {
+		auto pShader = pResource->GetShaderTable()->GetVertexColorShader();
+		pShader->Use();
+		pShader->SetPosition(m_pPositionBuffer.get());
+		pShader->SetColor(m_pColorBuffer.get());
+		pShader->SetCamera(pResource->GetCameraBuffer());
+		pShader->SetModel(Matrix4x4(1.0f));
+		pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
+	} else {
+		glPointSize(5.0f);
+		auto pShader = pResource->GetShaderTable()->GetSimpleShader();
+		pShader->Use();
+		pShader->SetPosition(m_pPositionBuffer.get());
+		pShader->SetColor(Vector3(1, 0, 0));
+		pShader->SetCamera(pResource->GetCameraBuffer());
+		pShader->SetModel(Matrix4x4(1.0f));
+		pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
+
+	}
 }
 }

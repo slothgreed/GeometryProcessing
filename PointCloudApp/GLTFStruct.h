@@ -136,16 +136,20 @@ struct GLTFMaterial
 		Mask,
 	};
 
-	Vector4 baseColor;	// 16
-	int baseTexture;	// 20
-	float metalic;		// 24
-	int roughnessTexture;// 28
-	int normalTexture;	// 32
-	float normalScale;	// 36
-	float alphaCuttoff;	// 40
-	int alphaMode;		// 44
-	int doubleSided;	// 48
-	float padding[52];  // 256 
+	Vector4 baseColor;		// 16
+	Vector4 emissiveColor;	// 32
+	int baseTexture;		// 36
+	float metallic;			// 40
+	float roughness;		// 44
+	int metalRoughnessTexture;	// 48
+	int normalTexture;		// 52
+	int occlusionTexture;	// 56
+	int emissiveTexture;	// 60
+	float normalScale;		// 64
+	float alphaCuttoff;		// 68
+	int alphaMode;			// 72
+	int doubleSided;		// 76
+	float padding[45];		// 256 
 };
 
 struct GLTFPrimitive

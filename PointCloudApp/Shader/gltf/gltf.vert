@@ -27,6 +27,7 @@ uniform mat4 u_VP;
 uniform mat4 u_Model;
 uniform ivec2 u_ssboIndex; // (x,y,z,w) = (matrix,material,Hoge,Hoge);
 
+out vec3 f_worldPos;
 out vec3 f_normal;
 out vec2 f_texcoord;
 out vec4 f_tangent;
@@ -51,6 +52,9 @@ void main()
 	} else 	{
 		gl_Position = camera.VP * u_Model * nodes[u_ssboIndex.x].matrix * vec4(position.x, position.y, position.z, 1.0);
 	}
+	
+	gl_Position = camera.VP * u_Model * vec4(position.x, position.y, position.z, 1.0);
+	f_worldPos = (u_Model * vec4(position.x,position.y,position.z,1.0)).xyz;
 	f_normal = normal;
 	f_texcoord = texcoord;
 	f_tangent = tangent;
