@@ -63,6 +63,7 @@ public:
 	void SetVertexFormat(const VertexFormats& format);
 	void SetVertexFormat(const VertexFormat& format);
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
+	void DrawElementInstaced(GLuint primitiveType, GLBuffer* pIndexBuffer, int instanceNum);
 	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, int count);
 private:

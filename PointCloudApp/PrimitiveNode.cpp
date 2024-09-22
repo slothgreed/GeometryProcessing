@@ -97,4 +97,84 @@ void PrimitiveNode::DrawNode(const DrawContext& context)
 		pShader->DrawArray(m_pPrimitive->GetType(), m_pPositionBuffer.get());
 	}
 }
+
+
+
+InstancedPrimitiveNode::InstancedPrimitiveNode(const String& name, const Shared<Primitive>& pPrimitive, const Vector3& color)
+	: RenderNode(name)
+	, m_pPrimitive(std::move(pPrimitive))
+	, m_color(color)
+{
+	BuildGLBuffer();
+}
+
+
+InstancedPrimitiveNode::~InstancedPrimitiveNode()
+{
+
+}
+
+void InstancedPrimitiveNode::SetMatrixs(Vector<Matrix4x4>&& matrix)
+{
+	if (!m_pMatrixBuffer) {
+		m_pMatrixBuffer = std::make_unique<GLBuffer>();
+		m_pMatrixBuffer->Create(matrix);
+		m_pMatrixTexture = std::make_unique<TextureBuffer>();
+		m_pMatrixTexture->Bind(m_pMatrixBuffer->Handle());
+	} else {
+		m_pMatrixBuffer->BufferSubData(0, matrix);
+	}
+}
+void InstancedPrimitiveNode::BuildGLBuffer()
+{
+	if (!m_pPrimitive->NeedUpdate()) { return; }
+
+	m_pPositionBuffer = std::make_unique<GLBuffer>();
+	m_pPositionBuffer->Create(m_pPrimitive->Position());
+
+	if (m_pPrimitive->Index().size() != 0) {
+		m_pIndexBuffer = std::make_unique<GLBuffer>();
+		m_pIndexBuffer->Create(m_pPrimitive->Index());
+	}
+	m_pPrimitive->ClearUpdate();
+
+
+}
+const Shared<Primitive>& InstancedPrimitiveNode::GetData() const
+{
+	return m_pPrimitive;
+}
+void InstancedPrimitiveNode::UpdateData()
+{
+	m_pPrimitive->Update();
+}
+void InstancedPrimitiveNode::UpdateRenderData()
+{
+	BuildGLBuffer();
+}
+
+
+void InstancedPrimitiveNode::DrawNode(const DrawContext& context)
+{
+	UpdateRenderData();
+	const auto& pResourece = context.pResource;
+	IShadingShader* pShader = nullptr;
+	auto pInstancedShader = pResourece->GetShaderTable()->GetInstancedShader();
+	pInstancedShader->Use();
+	pInstancedShader->SetPosition(m_pPositionBuffer.get());
+	pInstancedShader->SetCamera(pResourece->GetCameraBuffer());
+	pInstancedShader->SetColor(m_color);
+	pInstancedShader->SetMatrixTexture(m_pMatrixTexture.get());
+	pShader = pInstancedShader.get();
+
+	if (m_pIndexBuffer) {
+		pShader->DrawElementInstaced(m_pPrimitive->GetType(), m_pIndexBuffer.get(), m_pMatrixBuffer->Num());
+	} else {
+		assert(0);
+	}
+
+}
+
+
+
 }

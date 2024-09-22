@@ -130,6 +130,44 @@ void PrimitiveColorShader::SetPosition(GLBuffer* pPosition)
 void PrimitiveColorShader::SetColor(GLBuffer* pColor)
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pColor->Handle());
-
 }
+
+
+
+ShaderPath InstancedPrimitiveShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
+	path.shader[SHADER_PROGRAM_VERTEX] = "instance.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "instance.frag";
+	return path;
+}
+void InstancedPrimitiveShader::GetUniformLocation()
+{
+	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
+}
+
+void InstancedPrimitiveShader::SetCamera(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+}
+
+void InstancedPrimitiveShader::SetColor(const Vector3& value)
+{
+	glUniform3fv(m_uniform[UNIFORM::COLOR], 1, &value[0]);
+}
+void InstancedPrimitiveShader::SetPosition(const GLBuffer* pPosition)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pPosition));
+	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+}
+
+void InstancedPrimitiveShader::SetMatrixTexture(const TextureBuffer* pBuffer)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_BUFFER, pBuffer->Handle());
+}
+
 }

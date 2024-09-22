@@ -60,6 +60,14 @@ void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)
 	OUTPUT_GLERROR;
 }
 
+
+void IShadingShader::DrawElementInstaced(GLuint primitiveType, GLBuffer* pIndexBuffer, int instaceNum)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
+	glDrawElementsInstanced(primitiveType, pIndexBuffer->Num(), pIndexBuffer->DataType(), 0, instaceNum);
+	OUTPUT_GLERROR;
+}
+
 void IShadingShader::DrawArray(GLuint primitiveType, GLBuffer* pPositionBuffer)
 {
 	DrawArray(primitiveType, pPositionBuffer->Num());

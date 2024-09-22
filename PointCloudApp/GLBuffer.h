@@ -74,7 +74,7 @@ struct VertexFormat
 	{
 	}
 
-	VertexFormat(int _location, GLBuffer* pBuffer)
+	VertexFormat(int _location, const GLBuffer* pBuffer)
 		: location(_location)
 		, componentSize(pBuffer->ComponentSize())
 		, type((DATA_TYPE)pBuffer->DataType())

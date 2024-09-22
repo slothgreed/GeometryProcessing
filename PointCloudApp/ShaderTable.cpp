@@ -16,6 +16,9 @@ void ShaderTable::Build()
 
 	m_pPrimitiveColorShader = std::make_shared<PrimitiveColorShader>();
 	m_pPrimitiveColorShader->Build();
+
+	m_pInstancedShader = std::make_shared<InstancedPrimitiveShader>();
+	m_pInstancedShader->Build();
 }
 
 }

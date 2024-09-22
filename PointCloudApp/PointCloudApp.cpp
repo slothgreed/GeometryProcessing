@@ -181,6 +181,11 @@ void PointCloudApp::Execute()
 		pNode->SetRotateAngle(Vector3(-90, 0, 180));
 		m_pRoot->AddNode(pNode);
 	}
+
+	// Instanced Test
+	{
+		m_pRoot->AddNode(CreateInstacedNodeTest());
+	}
 	/*
 	{
 		String path = "E:\\cgModel\\bunny6000.half";
@@ -292,5 +297,19 @@ void PointCloudApp::Finalize()
 {
 	m_pRoot.reset();
 	glfwTerminate();
+}
+
+
+Shared<InstancedPrimitiveNode> PointCloudApp::CreateInstacedNodeTest()
+{
+	Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));
+
+	auto pNode = std::make_shared<InstancedPrimitiveNode>("InstancedCube", pCube, Vector3(1, 0, 0));
+	Vector<Matrix4x4> matrixs;
+	matrixs.push_back(glmUtil::CreateTranslate(Vector3(15, 0, 0)));
+	matrixs.push_back(glmUtil::CreateTranslate(Vector3(0, 15, 0)));
+	matrixs.push_back(glmUtil::CreateTranslate(Vector3(0, 0, 15)));
+	pNode->SetMatrixs(std::move(matrixs));
+	return pNode;
 }
 }

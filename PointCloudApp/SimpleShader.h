@@ -1,6 +1,7 @@
 #ifndef SIMPLE_SHADER_H
 #define SIMPLE_SHADER_H
 #include "IShader.h"
+#include "Texture.h"
 namespace KI
 {
 
@@ -73,9 +74,29 @@ public:
 	void SetColor(GLBuffer* pColor);
 
 private:
-
 	GLuint m_uniform[UNIFORM::NUM];
 
+};
+
+class InstancedPrimitiveShader : public IShadingShader
+{
+public:
+	enum UNIFORM
+	{
+		COLOR,
+		NUM
+	};
+
+	InstancedPrimitiveShader() {};
+	~InstancedPrimitiveShader() {};
+	virtual ShaderPath GetShaderPath() override;
+	virtual void GetUniformLocation() override;
+	virtual void SetCamera(const GLBuffer* pBuffer);
+	void SetPosition(const GLBuffer* pPosition);
+	void SetColor(const Vector3& color);
+	void SetMatrixTexture(const TextureBuffer* pBuffer);
+private:
+	GLuint m_uniform[UNIFORM::NUM];
 };
 
 }

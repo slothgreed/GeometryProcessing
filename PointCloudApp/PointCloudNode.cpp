@@ -18,6 +18,7 @@ PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitiv
 	m_algorithm[ALGORITHM_KDTREE] = new KDTreeNanoFlann(this, 3);
 	m_algorithm[ALGORITHM_HARRIS3D] = new Harris3D(this);
 	m_algorithm[ALGORITHM_ALPHASHAPE] = new AlphaShape2D(this);
+	m_algorithm[ALGORITHM_DELAUNAY] = new DelaunayGenerator(this);
 	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(this, 3);
 	m_normal = m_pPointCloud->Normal();
 	BuildGLBuffer();

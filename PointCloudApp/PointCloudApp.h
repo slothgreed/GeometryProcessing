@@ -7,6 +7,7 @@
 #include "Profiler.h"
 namespace KI
 {
+class InstancedPrimitiveNode;
 class PointCloudApp : public GLFWApp
 {
 public:
@@ -19,6 +20,7 @@ public:
 	virtual void ProcessMouseEvent(const MouseInput& input);
 	virtual void ResizeEvent(int width, int height);
 private:
+	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();
 	void ShowUI();
 	CPUProfiler m_cpuProfiler;
 	Unique<RenderNode> m_pRoot;
