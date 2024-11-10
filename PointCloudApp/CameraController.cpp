@@ -7,15 +7,16 @@ bool CameraController::Move(const Mouse& mouse)
 	if (mouse.Press(MY_MOUSE_BUTTON::MOUSE_BUTTON_RIGHT))
 	{
 		vec2 move = mouse.Delta();
-		move.x *= 0.3f;
-		move.y *= -0.3f;
+		move.x *= 0.1f;
+		move.y *= -0.1f;
 		Rotate(move);
 	}
 	else if(mouse.Press(MY_MOUSE_BUTTON::MOUSE_BUTTON_MIDDLE))
 	{
+		auto value = 0.01;
 		vec2 move = mouse.Delta();
-		move.x *= -0.3f;
-		move.y *= 0.3f;
+		move.x *= -value;
+		move.y *= value;
 		Translate(move);
 	}
 

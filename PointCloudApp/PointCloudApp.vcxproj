@@ -183,6 +183,7 @@
     <ClCompile Include="ComputePointCloudApp.cpp" />
     <ClCompile Include="DelaunayGenerator.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="GeometryBuffer.cpp" />
     <ClCompile Include="GLAPIExt.cpp" />
     <ClCompile Include="GLFWApp.cpp" />
     <ClCompile Include="GLTFLoader.cpp" />
@@ -194,9 +195,13 @@
     <ClCompile Include="HalfEdgeStruct.cpp" />
     <ClCompile Include="HalfEdgeNode.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="KIMath.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
+    <ClCompile Include="PrimitiveTable.cpp" />
     <ClCompile Include="RenderResource.cpp" />
+    <ClCompile Include="RenderTarget.cpp" />
+    <ClCompile Include="ShapeDiameterFunction.cpp" />
     <ClCompile Include="SkyBoxNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
@@ -242,6 +247,7 @@
     <ClInclude Include="ComputePointCloudApp.h" />
     <ClInclude Include="DelaunayGenerator.h" />
     <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="GeometryBuffer.h" />
     <ClInclude Include="GLAPIExt.h" />
     <ClInclude Include="GLFWApp.h" />
     <ClInclude Include="GLTFLoader.h" />
@@ -253,9 +259,13 @@
     <ClInclude Include="HalfEdgeLoader.h" />
     <ClInclude Include="HalfEdgeStruct.h" />
     <ClInclude Include="HalfEdgeNode.h" />
+    <ClInclude Include="KIMath.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
+    <ClInclude Include="PrimitiveTable.h" />
+    <ClInclude Include="RenderTarget.h" />
+    <ClInclude Include="ShapeDiameterFunction.h" />
     <ClInclude Include="SkyBoxNode.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudIO.h" />

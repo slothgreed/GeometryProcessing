@@ -18,6 +18,7 @@ AlphaShape2D::~AlphaShape2D()
 
 void AlphaShape2D::Execute()
 {
+    return;
     m_edges.clear();
     float alpha = m_ui.alpha;
     float alpha_2 = alpha * alpha;

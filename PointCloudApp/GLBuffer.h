@@ -71,11 +71,13 @@ struct VertexFormat
 		, type(DATA_FLOAT)
 		, normalized(false)
 		, offset(0)
+		, binding(0)
 	{
 	}
 
 	VertexFormat(int _location, const GLBuffer* pBuffer)
 		: location(_location)
+		, binding(_location)
 		, componentSize(pBuffer->ComponentSize())
 		, type((DATA_TYPE)pBuffer->DataType())
 		, normalized(false)
@@ -87,6 +89,7 @@ struct VertexFormat
 	int componentSize;
 	DATA_TYPE type;
 	bool normalized;
+	int binding;
 	unsigned int offset;
 };
 

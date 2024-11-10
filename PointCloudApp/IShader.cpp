@@ -50,7 +50,8 @@ void IShadingShader::SetVertexFormat(const VertexFormat& format)
 {
 	glEnableVertexAttribArray(format.location);
 	glVertexAttribFormat(format.location, format.componentSize, format.type, format.normalized, format.offset);
-	glVertexAttribBinding(format.location, 0);
+	// 色がおかしいのはglVertexAttribBindingのせい。コメントアウトすると正常になる。
+	glVertexAttribBinding(format.location, format.binding);
 }
 
 void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)
@@ -60,11 +61,26 @@ void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)
 	OUTPUT_GLERROR;
 }
 
+void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer, int num, int offset)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
+	offset *= sizeof(unsigned int);
+	glDrawElements(primitiveType, num, pIndexBuffer->DataType(), (void*)offset);
+	OUTPUT_GLERROR;
+}
+
 
 void IShadingShader::DrawElementInstaced(GLuint primitiveType, GLBuffer* pIndexBuffer, int instaceNum)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
 	glDrawElementsInstanced(primitiveType, pIndexBuffer->Num(), pIndexBuffer->DataType(), 0, instaceNum);
+	OUTPUT_GLERROR;
+}
+
+void IShadingShader::DrawArrayInstaced(GLuint primitiveType, int count, int instaceNum)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDrawArraysInstanced(primitiveType, 0, count, instaceNum);
 	OUTPUT_GLERROR;
 }
 
@@ -77,6 +93,13 @@ void IShadingShader::DrawArray(GLuint primitiveType, int count)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDrawArrays(primitiveType, 0, count);
+	OUTPUT_GLERROR;
+}
+
+void IShadingShader::DrawArray(GLuint primitiveType, int offset, int count)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glDrawArrays(primitiveType, offset, count);
 	OUTPUT_GLERROR;
 }
 
@@ -104,29 +127,57 @@ void IShadingShader::Build()
 {
 	auto shaderPath = GetShaderPath();
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
-	
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
+	String vertexCode;
+	String fragCode;
+	String geomCode;
+
 	auto vertexEx = Join(shaderPath.extension[SHADER_PROGRAM_VERTEX]);
-	auto vertexCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_VERTEX]);
-	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
-	auto fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
-
-
+	vertexCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_VERTEX]);
 	vertexCode = version + vertexEx + headerCode + vertexCode;
+
+
+	if (shaderPath.shader[SHADER_PROGRAM_GEOM].size() != 0) {
+		auto geomEx = Join(shaderPath.extension[SHADER_PROGRAM_GEOM]);
+		geomCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_GEOM]);
+		geomCode = version + geomEx + headerCode + geomCode;
+	}
+
+
+	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
+	fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
 	fragCode = version + fragEx + headerCode + fragCode;
-	m_programId = IShadingShader::BuildVertexFrag(vertexCode, fragCode);
+
+
+	m_programId = IShadingShader::BuildVertexGeomFrag(vertexCode, geomCode, fragCode);
 
 
 	GetUniformLocation();
 	OUTPUT_GLERROR;
 }
 
+GLuint IShadingShader::BuildVertexGeomFrag(const String& vert, const String& geom, const String& frag)
+{
+	GLuint vertId = 0;
+	GLuint geomId = 0;
+	GLuint fragId = 0;
+
+	if (vert.size() != 0) { vertId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER); }
+	if (geom.size() != 0) { geomId = ShaderUtility::Compile(geom, GL_GEOMETRY_SHADER); }
+	if (frag.size() != 0) { fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER); }
+	
+	GLuint programId = ShaderUtility::Link(vertId, geomId, fragId);
+
+	if (vertId != 0) { glDeleteShader(vertId); }
+	if (geomId != 0) { glDeleteShader(geomId); }
+	if (fragId != 0) { glDeleteShader(fragId); }
+	return programId;
+}
 GLuint IShadingShader::BuildVertexFrag(const String& vert, const String& frag)
 {
 	GLuint vertexId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER);
 	GLuint fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER);
-
 	GLuint programId = ShaderUtility::Link(vertexId, fragId);
 
 	glDeleteShader(vertexId);
@@ -176,8 +227,15 @@ void IComputeShader::Build()
 ShaderPath TextureShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
 	path.shader[SHADER_PROGRAM_VERTEX] = "texture.vert";
-	path.shader[SHADER_PROGRAM_FRAG] = "texture.frag";
+	if (m_type == Type::VEC4) {
+		path.shader[SHADER_PROGRAM_FRAG] = "texture.frag";
+	} else if(m_type == Type::UINT) {
+		path.shader[SHADER_PROGRAM_FRAG] = "textureUINT.frag";
+	}
 
 	return path;
 }
@@ -216,5 +274,6 @@ void TextureShader::SetTexture(GLBuffer* pTexture)
 	OUTPUT_GLERROR;
 
 }
+
 
 }

@@ -40,8 +40,7 @@ void PointCloudNode::BuildGLBuffer()
 	m_pPositionBuffer->Create(m_pPointCloud->Position());
 
 	if (m_pPointCloud->Color().size() != 0) {
-		m_pColorBuffer = std::make_unique<GLBuffer>();
-		m_pColorBuffer->Create(m_pPointCloud->Color());
+		UpdateColor(m_pPointCloud->Color());
 	}
 
 	m_pPointCloud->ClearUpdate();
@@ -70,6 +69,17 @@ const Vector<int>& PointCloudNode::GetNeighbor(int index)
 
 	return m_neighbor[index];
 }
+
+void PointCloudNode::UpdateColor(const Vector<Vector4>& color)
+{
+	if (!m_pColorBuffer) {
+		m_pColorBuffer = std::make_unique<GLBuffer>();
+		m_pColorBuffer->Create(color);
+	} else {
+		m_pColorBuffer->BufferSubData(0, color);
+	}
+
+}
 void PointCloudNode::ShowUI()
 {
 	for (auto& algorithm : m_algorithm) {
@@ -85,8 +95,8 @@ void PointCloudNode::ShowUI()
 		for (int i = 0; i < normal.size(); i++) {
 			normal[i] = -normal[i];
 		}
-		m_pPointCloud->SetColor(std::move(normal));
-		m_pPointCloud->Update();
+
+		UpdateColor(normal);
 	}
 }
 void PointCloudNode::ComputeNormal()
@@ -116,8 +126,12 @@ void PointCloudNode::ShowNormal()
 {
 	ComputeNormal();
 	auto normal = m_pPointCloud->Normal();
-	m_pPointCloud->SetColor(std::move(normal));
-	m_pPointCloud->Update();
+	Vector<Vector4> normal4;
+	for (const auto& c : normal) {
+		normal4.push_back(Vector4(c, 1.0));
+	}
+
+	UpdateColor(normal4);
 }
 void PointCloudNode::ComputeNeighbor(float radius)
 {

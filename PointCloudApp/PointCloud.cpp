@@ -28,7 +28,21 @@ Vector<Vector3> PointCloud::Create3D(int size, const Vector3& min, const Vector3
 		pos[i] = Random::Vec3(min, max);
 	}
 
-	return pos;
+	Vector<Vector3> unique;
+	for (size_t i = 0; i < pos.size(); i++) {
+		bool isUnique = true;
+		for (size_t j = 0; j < pos.size(); j++) {
+			if (i == j)continue;
+			if (pos[i] == pos[j]) {
+				isUnique = false;
+				break;
+			}
+		}
+		if (isUnique) {
+			unique.push_back(pos[i]);
+		}
+	}
+	return unique;
 }
 
 void PointCloud::SetColorSingle(const Vector3& color)

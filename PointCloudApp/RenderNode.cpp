@@ -22,6 +22,29 @@ void RenderNode::Draw(const DrawContext& context)
 	}
 }
 
+void RenderNode::DrawParts(const DrawContext& context, const RenderParts& parts)
+{
+	DrawPartsNode(context, parts);
+}
+
+void RenderNode::Pick(const PickContext& context)
+{
+	PickNode(context);
+	for (auto& data : m_child) {
+		data.second->Pick(context);
+	}
+}
+
+
+void RenderNode::CollectPicked(PickResult& result)
+{
+	CollectPickedNode(result);
+	for (auto& data : m_child) {
+		data.second->CollectPickedNode(result);
+	}
+}
+
+
 void RenderNode::Update(float time)
 {
 	UpdateData(time);
@@ -56,5 +79,33 @@ void RenderNode::UpdateModelMatrix()
 		glmUtil::CreateTranslate(m_translate) *
 		glmUtil::CreateRotate(m_rotate) *
 		glmUtil::CreateScale(m_scale));
+}
+
+BDB RenderNode::GetCameraFitBox() const
+{
+	return m_bdb.CreateRotate(m_matrix);
+}
+BDB RenderNode::CalcCameraFitBox()
+{
+	BDB bdb;
+	bdb.Add(GetCameraFitBox());
+	for (const auto& child : m_child) {
+		auto pRenderNode = child.second.get();
+		bdb.Add(pRenderNode->GetCameraFitBox());
+		pRenderNode->CalcCameraFitBox(bdb);
+	}
+
+	return bdb;
+}
+
+BDB RenderNode::CalcCameraFitBox(BDB bdb)
+{
+	for (const auto& child : m_child) {
+		auto pRenderNode = child.second.get();
+		bdb.Add(pRenderNode->GetCameraFitBox());
+		pRenderNode->CalcCameraFitBox(bdb);
+	}
+
+	return bdb;
 }
 }

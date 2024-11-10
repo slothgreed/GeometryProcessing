@@ -92,7 +92,6 @@ void VertexColorShader::SetColor(GLBuffer* pColor)
 {
 	SetVertexFormat(VertexFormat(ATTRIB_COLOR, pColor));
 	glBindVertexBuffer(ATTRIB_COLOR, pColor->Handle(), 0, pColor->SizeOfData());
-	// 色がおかしいのはglVertexBindingのせい。コメントアウトすると正常になる。
 	OUTPUT_GLERROR;
 }
 
@@ -170,4 +169,97 @@ void InstancedPrimitiveShader::SetMatrixTexture(const TextureBuffer* pBuffer)
 	glBindTexture(GL_TEXTURE_BUFFER, pBuffer->Handle());
 }
 
+ShaderPath VertexVectorShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
+	path.shader[SHADER_PROGRAM_VERTEX] = "vertexvector.vert";
+	path.extension[SHADER_PROGRAM_GEOM].push_back("#extension GL_EXT_geometry_shader4 : enable\n");
+	path.shader[SHADER_PROGRAM_GEOM] = "vertexvector.geom";
+	path.shader[SHADER_PROGRAM_FRAG] = "vertexvector.frag";
+	return path;
+}
+void VertexVectorShader::GetUniformLocation()
+{
+	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
+	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
+	m_uniform[UNIFORM::LENGTH] = glGetUniformLocation(Handle(), "u_Length");
+
+}
+void VertexVectorShader::SetCamera(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+void VertexVectorShader::SetPosition(const GLBuffer* pPosition)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pPosition));
+	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
+void VertexVectorShader::SetVector(const GLBuffer* pVector)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_NORMAL, pVector));
+	glBindVertexBuffer(ATTRIB_NORMAL, pVector->Handle(), 0, pVector->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
+void VertexVectorShader::SetModel(const Matrix4x4& value)
+{
+	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
+	OUTPUT_GLERROR;
+}
+
+void VertexVectorShader::SetColor(const Vector4& value)
+{
+	glUniform4fv(m_uniform[UNIFORM::COLOR], 1, &value[0]);
+	OUTPUT_GLERROR;
+}
+void VertexVectorShader::SetLength(float length)
+{
+	glUniform1f(m_uniform[UNIFORM::LENGTH], length);
+	OUTPUT_GLERROR;
+}
+
+ShaderPath PointPickShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
+	path.shader[SHADER_PROGRAM_VERTEX] = "pick.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "pick.frag";
+	return path;
+}
+void PointPickShader::GetUniformLocation()
+{
+	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
+	m_uniform[UNIFORM::PICKOFFSET] = glGetUniformLocation(Handle(), "u_PickOffset");
+
+}
+void PointPickShader::SetCamera(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+void PointPickShader::SetPosition(const GLBuffer* pPosition)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pPosition));
+	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	OUTPUT_GLERROR;
+}
+void PointPickShader::SetModel(const Matrix4x4& value)
+{
+	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
+	OUTPUT_GLERROR;
+}
+
+void PointPickShader::SetPickOffset(unsigned int offset)
+{
+	glUniform1ui(m_uniform[UNIFORM::PICKOFFSET], offset);
+	OUTPUT_GLERROR;
+}
 }

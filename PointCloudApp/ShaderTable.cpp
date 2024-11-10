@@ -11,7 +11,7 @@ void ShaderTable::Build()
 	m_pVertexColorShader = std::make_shared<VertexColorShader>();
 	m_pVertexColorShader->Build();
 
-	m_pTextureShader = std::make_shared<TextureShader>();
+	m_pTextureShader = std::make_shared<TextureShader>(TextureShader::VEC4);
 	m_pTextureShader->Build();
 
 	m_pPrimitiveColorShader = std::make_shared<PrimitiveColorShader>();
@@ -19,6 +19,12 @@ void ShaderTable::Build()
 
 	m_pInstancedShader = std::make_shared<InstancedPrimitiveShader>();
 	m_pInstancedShader->Build();
+
+	m_pPointPickShader = std::make_shared<PointPickShader>();
+	m_pPointPickShader->Build();
+
+	m_pTextureUINTShader = std::make_shared<TextureShader>(TextureShader::UINT);
+	m_pTextureUINTShader->Build();
 }
 
 }

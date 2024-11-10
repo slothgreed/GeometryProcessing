@@ -230,7 +230,27 @@ Matrix4x4 glmUtil::CreateTranslate(const Vector3& translate)
 	return glm::translate(Matrix4x4(1.0f), translate);
 }
 
+Matrix4x4 glmUtil::CreateTransform(float scale, const Vector3& translate)
+{
+	return glm::scale(glm::translate(Matrix4x4(1.0f), translate), Vector3(scale, scale, scale));
+}
 
+Matrix4x4 glmUtil::CreateRotate(Vector3 from, Vector3 to)
+{
+	// “ü—ÍƒxƒNƒgƒ‹‚ğ³‹K‰»
+	from = glm::normalize(from);
+	to = glm::normalize(to);
+
+	// “àÏ‚ÆŠOÏ‚ğŒvZ
+	float dot = glm::clamp(glm::dot(from, to), -1.0f, 1.0f);
+	auto axis = glm::cross(from, to);
+
+	// Šp“x‚ğZo
+	float angle = acos(dot);
+
+	// ‰ñ“]²‚ÆŠp“x‚©‚ç‰ñ“]s—ñ‚ğì¬
+	return glm::rotate(glm::mat4(1.0f), angle, axis);
+}
 Vector3 glmUtil::ToScale(const Matrix4x4& matrix)
 {
 	Matrix3x3 mat(matrix);
@@ -275,6 +295,36 @@ Vector3 glmUtil::ToRotateAngle(const Matrix4x4& matrix)
 	}
 	return eulerAngles;
 }
+
+String glmUtil::ToString(const Vector3& value)
+{
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(6); 
+	ss << "(" << value.x << ", " << value.y << ", " << value.z << ")";
+	return ss.str();
+}
+
+String glmUtil::ToString(const Vector4& value)
+{
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(6); 
+	ss << "(" << value.x << ", " << value.y << ", " << value.z << ", " << value.w << ")";
+	return ss.str();
+}
+
+String glmUtil::ToString(const Matrix4x4& mat)
+{
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(6);
+	ss << "(" << mat[0][0] << ", " << mat[0][1] << ", " << mat[0][2] << ", " << mat[0][3] << ")";
+	ss << "(" << mat[1][0] << ", " << mat[1][1] << ", " << mat[1][2] << ", " << mat[1][3] << ")";
+	ss << "(" << mat[2][0] << ", " << mat[2][1] << ", " << mat[2][2] << ", " << mat[2][3] << ")";
+	ss << "(" << mat[3][0] << ", " << mat[3][1] << ", " << mat[3][2] << ", " << mat[3][3] << ")";
+	return ss.str();
+
+
+}
+
 Vector3 glmUtil::ToTranslate(const Matrix4x4& matrix)
 {
 	return matrix[3];
@@ -289,5 +339,15 @@ Quaternion glmUtil::CreateQuart(const Vector4& vec)
 	quart.w = vec.w;
 	return quart;
 }
+
+int GLUtil::GetPrimitiveSize(int value)
+{
+	if (GL_POINTS == value) { return 1; }
+	if (GL_LINES == value) { return 2; }
+	if (GL_TRIANGLES == value) { return 3; }
+
+	return 0;
+}
+
 
 }

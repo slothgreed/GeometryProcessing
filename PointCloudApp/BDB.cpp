@@ -19,7 +19,8 @@ BDB::BDB(const Vector3& min, const Vector3& max)
 }
 bool BDB::IsActive() const
 {
-	return m_min.x != numeric_limits<float>::infinity();
+	return m_min.x != numeric_limits<float>::infinity() &&
+		m_min.x != -numeric_limits<float>::infinity();
 }
 void BDB::Apply(const Vector3& position)
 {
@@ -35,6 +36,7 @@ void BDB::Apply(const Vector3& position)
 
 void BDB::Apply(const BDB& bdb)
 {
+	if (!bdb.IsActive()) { return; }
 	m_min.x = glm::min(m_min.x, bdb.Min().x);
 	m_min.y = glm::min(m_min.y, bdb.Min().y);
 	m_min.z = glm::min(m_min.z, bdb.Min().z);
@@ -56,16 +58,11 @@ void BDB::Add(const Vector3& pos)
 	if (pos.x > m_max.x) { m_max.x = pos.x; }
 	if (pos.y > m_max.y) { m_max.y = pos.y; }
 	if (pos.z > m_max.z) { m_max.z = pos.z; }
-	
-	m_center = Vector3(
-		(m_min.x + m_max.x) * 0.5,
-		(m_min.y + m_max.y) * 0.5,
-		(m_min.z + m_max.z) * 0.5
-	);
 }
 
 void BDB::Add(const BDB& box)
 {
+	if (!box.IsActive()) { return; }
 	Add(box.Max());
 	Add(box.Min());
 }
@@ -73,12 +70,23 @@ void BDB::Set(Vector3 min, Vector3 max)
 {
 	m_min = min;
 	m_max = max;
-	m_center = Vector3(
+}
+
+Vector3 BDB::Center() const
+{
+	return Vector3(
 		(m_min.x + m_max.x) * 0.5,
 		(m_min.y + m_max.y) * 0.5,
 		(m_min.z + m_max.z) * 0.5
 	);
+}
 
+BDB BDB::CreateRotate(const Matrix4x4& matrix) const
+{
+	BDB bdb;
+	bdb.m_min = matrix * Vector4(m_min, 1.0f);
+	bdb.m_max = matrix * Vector4(m_max, 1.0f);
+	return bdb;
 }
 }
 

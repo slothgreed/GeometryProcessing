@@ -11,15 +11,21 @@ RenderTextureNode::RenderTextureNode(const String& name, const Shared<Texture>& 
 
 void RenderTextureNode::DrawNode(const DrawContext& context)
 {
-	glEnable(GL_TEXTURE_2D);
-
 	BuildGLBuffer();
-	m_pShader->Use();
-	m_pShader->BindTexture(*m_pTexture);
-	m_pShader->SetPosition(m_pPositionBuffer.get());
-	m_pShader->SetTexture(m_pTexcoordBuffer.get());
-	m_pShader->DrawElement(m_pPrimitive.GetType(), m_pIndexBuffer.get());
+	Shared<TextureShader> pShader = nullptr;
+	if (m_pTexture->GetFormat().format == GL_RED_INTEGER) {
+		pShader = context.pResource->GetShaderTable()->GetTextureUINTShader();
+	} else {
+		pShader = context.pResource->GetShaderTable()->GetTextureShader();
 
+	}
+	//glEnable(GL_TEXTURE_2D);
+	//OUTPUT_GLERROR;
+	pShader->Use();
+	pShader->BindTexture(*m_pTexture);
+	pShader->SetPosition(m_pPositionBuffer.get());
+	pShader->SetTexture(m_pTexcoordBuffer.get());
+	pShader->DrawElement(m_pPrimitive.GetType(), m_pIndexBuffer.get());
 }
 
 void RenderTextureNode::BuildGLBuffer()
@@ -34,9 +40,6 @@ void RenderTextureNode::BuildGLBuffer()
 	m_pIndexBuffer = std::make_unique<GLBuffer>();
 	m_pIndexBuffer->Create(m_pPrimitive.Index());
 	
-	//m_pShader = dynamic_pointer_cast<TextureShader>(GetResource()->GetShader(IShadingShader::Type::Texture));
-	m_pShader = std::make_shared<TextureShader>();
-	m_pShader->Build();
 
 }
 void RenderTextureNode::UpdateRenderData()

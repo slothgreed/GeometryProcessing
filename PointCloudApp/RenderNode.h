@@ -20,6 +20,38 @@ struct DrawContext
 		: pResource(_pResource){}
 	RenderResource* pResource;
 };
+class RenderParts
+{
+public:
+	RenderParts() {}
+	virtual ~RenderParts() {}
+	virtual String ToString() { return String(); };
+};
+
+struct PickContext
+{
+	PickContext()
+		: pResource(nullptr)
+		, pickedId(0)
+	{
+	}
+	PickContext(RenderResource* _pResource)
+		: pResource(_pResource)
+		, pickedId(0)
+	{
+	}
+	RenderResource* pResource;
+	int pickedId;
+};
+
+class RenderNode;
+struct PickResult
+{
+	PickContext* context;
+	std::unordered_map<RenderNode*, Unique<RenderParts>> pResult;
+	int id;
+};
+
 class RenderNode
 {
 public:
@@ -35,6 +67,9 @@ public:
 	virtual void ShowUIData();
 	virtual const BDB& GetBoundBox() { return m_bdb; }
 	virtual void Draw(const DrawContext& context);
+	virtual void DrawParts(const DrawContext& context, const RenderParts& parts);
+	virtual void Pick(const PickContext& context);
+	virtual void CollectPicked(PickResult& result);
 	virtual void Update(float time);
 	const Matrix4x4& GetMatrix() const { return m_matrix; }
 	void SetMatrix(float scale, const Vector3& rotate, const Vector3& translate);
@@ -51,11 +86,18 @@ public:
 	float GetScale() { return m_scale; }
 	const Vector3& GetTranslate() const { return m_translate; }
 	const String& GetName() { return m_name; }
+	virtual BDB GetCameraFitBox() const;
+	BDB CalcCameraFitBox();
+	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
 protected:
 	virtual void ShowUI() {};
+	virtual void PickNode(const PickContext& context) {};
+	virtual bool CollectPickedNode(PickResult& result) { return false; }
+	virtual void DrawPartsNode(const DrawContext& context, const RenderParts& parts) {};
 	virtual void DrawNode(const DrawContext& context) {};
 	virtual void UpdateData(float time) {};
 private:
+	BDB CalcCameraFitBox(BDB bdb);
 	void UpdateModelMatrix();
 
 	String m_name;

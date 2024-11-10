@@ -9,11 +9,15 @@
 #include <algorithm>
 #include <String>
 #include <vector>
+#include <list>
 #include <memory>
 #include <optional>
 #include <unordered_set>
 #include <unordered_map>
 #include <array>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 using namespace glm;
 
 namespace KI
@@ -34,7 +38,7 @@ enum MY_MOUSE_EVENT
 	MOUSE_EVENT_UP,
 	MOUSE_EVENT_MOVE
 };
-
+template <typename T> using List = std::list<T>;
 template <typename T> using Shared= std::shared_ptr<T>;
 template <typename T> using Unique = std::unique_ptr<T>;
 template <typename T> using Vector = std::vector<T>;

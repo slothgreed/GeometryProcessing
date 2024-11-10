@@ -21,6 +21,7 @@ void ScrollCallBack(GLFWwindow* window, double x, double y)
 
 void WindowSizeCallBack(GLFWwindow* window, int width, int height)
 {
+
 	g_instance->ResizeEvent(width, height);
 }
 
@@ -97,8 +98,8 @@ void GLFWApp::Initialize()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	m_window = glfwCreateWindow(1024, 768, "PointCloudApp", NULL, NULL);
+	m_windowSize = Vector2(1024, 768);
+	m_window = glfwCreateWindow(m_windowSize.x, m_windowSize.y, "PointCloudApp", NULL, NULL);
 	if (m_window == NULL) {
 		return;
 	}

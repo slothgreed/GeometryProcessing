@@ -1,4 +1,3 @@
-#version 400
 out vec4 FragColor;
 in vec2 f_texcoord;
 uniform sampler2D tex;

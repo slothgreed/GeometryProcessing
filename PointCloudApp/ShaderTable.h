@@ -8,6 +8,7 @@ class VertexColorShader;
 class TextureShader;
 class PrimitiveColorShader;
 class InstancedPrimitiveShader;
+class PointPickShader;
 class ShaderTable
 {
 public:
@@ -21,13 +22,16 @@ public:
 	const Shared<PrimitiveColorShader>& GetPrimitiveColorShader() { return m_pPrimitiveColorShader; }
 	const Shared<TextureShader>& GetTextureShader() { return m_pTextureShader; }
 	const Shared<InstancedPrimitiveShader>& GetInstancedShader() { return m_pInstancedShader; }
-
+	const Shared<PointPickShader>& GetPointPickShader() { return m_pPointPickShader; }
+	const Shared<TextureShader>& GetTextureUINTShader() { return m_pTextureUINTShader; }
 private:
+	Shared<PointPickShader> m_pPointPickShader;
 	Shared<SimpleShader> m_pSimpleShader;
 	Shared<VertexColorShader> m_pVertexColorShader;
 	Shared<PrimitiveColorShader> m_pPrimitiveColorShader;
-	Shared<TextureShader> m_pTextureShader;
 	Shared<InstancedPrimitiveShader> m_pInstancedShader;
+	Shared<TextureShader> m_pTextureShader;
+	Shared<TextureShader> m_pTextureUINTShader;
 };
 }
 

@@ -72,11 +72,32 @@ public:
 	static Matrix4x4 CreateRotate(float rad, const Vector3& axis);
 	static Matrix4x4 CreateRotate(const Vector3& angle);
 	static Matrix4x4 CreateTranslate(const Vector3& translate);
+	static Matrix4x4 CreateTransform(float scale, const Vector3& translate);
+	static Matrix4x4 CreateRotate(Vector3 from, Vector3 to);
+
 	static Vector3 ToScale(const Matrix4x4& matrix);
 	static Vector3 ToTranslate(const Matrix4x4& matrix);
 	static Vector3 ToRotateAngle(const Matrix4x4& matrix);
 	static Quaternion CreateQuart(const Vector4& vec);
+
+	static String ToString(const Vector3& value);
+	static String ToString(const Vector4& value);
+	static String ToString(const Matrix4x4& value);
+
 };
+
+class GLUtil
+{
+public:
+	GLUtil();
+	~GLUtil();
+
+	static int GetPrimitiveSize(int value);
+
+private:
+
+};
+
 
 }
 #endif UTILITY_H

@@ -175,6 +175,7 @@ void GLTFScene::DrawNode(const DrawContext& context)
 
 			m_pShader->DrawElement(primitive, meshBuffer.pIndex->DataType());
 		}
+
 	}
 }
 

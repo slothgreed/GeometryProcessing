@@ -97,10 +97,12 @@ class Circle : public Primitive
 {
 public:
 	Circle(float radius, const Vector3& center);
+	Circle(float radius, int pointNum);
+
 	~Circle();
 
 private:
-	void Build(float radius, const Vector3& center);
+	void Build(float radius, int pointNum, const Vector3& center);
 };
 
 class RenderPlane : public Primitive

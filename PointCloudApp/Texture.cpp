@@ -4,6 +4,7 @@ namespace KI
 {
 
 Texture::Texture()
+	:m_handle(0)
 {
 
 }
@@ -12,6 +13,18 @@ Texture::~Texture()
 {
 }
 
+void Texture::Set(const Format& format)
+{
+	Bind();
+	glTexImage2D(
+		format.target, format.level,
+		format.internalformat,
+		format.width, format.height,
+		format.border, format.format,
+		format.type, nullptr);
+	m_format = format;
+	OUTPUT_GLERROR;
+}
 void Texture::Bind()
 {
 	glBindTexture(GL_TEXTURE_2D, m_handle);
@@ -47,7 +60,7 @@ Texture2D::Texture2D()
 void Texture2D::Clear(int value)
 {
 	glBindTexture(GL_TEXTURE_2D, m_handle);
-	glClearTexImage(m_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glClearTexImage(m_handle, 0, m_format.format, m_format.type, &value);
 
 }
 void Texture2D::Build(int width, int height)
@@ -57,10 +70,10 @@ void Texture2D::Build(int width, int height)
 
 void Texture2D::Resize(int width, int height)
 {
-	glBindTexture(GL_TEXTURE_2D, m_handle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-	m_size.x = width;
-	m_size.y = height;
+	if (m_format.width == width && m_format.height == height) { return; }
+	m_format.width = width;
+	m_format.height = height;
+	Set(m_format);
 	OUTPUT_GLERROR;
 }
 
@@ -72,9 +85,14 @@ void Texture2D::Build(int width, int height, unsigned char* data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	m_size.x = width;
-	m_size.y = height;
+	Format format;
+	format.internalformat = GL_RGBA32F;
+	format.width = width;
+	format.height = height;
+	format.format = GL_RGBA;
+	format.type = GL_UNSIGNED_BYTE;
+
+	Set(format);
 	OUTPUT_GLERROR;
 
 }

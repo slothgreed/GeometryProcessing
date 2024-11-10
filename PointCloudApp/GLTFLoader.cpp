@@ -409,6 +409,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.componentSize = 3;
         format.type = DATA_FLOAT;
         format.offset = 0;
+        format.binding = 0;
         formats.push_back(format);
     }
 
@@ -419,6 +420,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.componentSize = 3;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, normal);
+        format.binding = 0;
         formats.push_back(format);
     }
 
@@ -429,6 +431,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.componentSize = 2;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, texcoord);
+        format.binding = 0;
         formats.push_back(format);
     }
 
@@ -439,6 +442,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.componentSize = 4;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, tangent);
+        format.binding = 0;
         formats.push_back(format);
     }
 
@@ -450,6 +454,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.componentSize = 4;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, joint);
+        format.binding = 0;
         formats.push_back(format);
     }
 
@@ -460,6 +465,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         format.componentSize = 4;
         format.type = DATA_FLOAT;
         format.offset = offsetof(Vertex, weight);
+        format.binding = 0;
         formats.push_back(format);
     }
 

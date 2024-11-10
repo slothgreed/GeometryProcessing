@@ -317,18 +317,22 @@ void Axis::Build(float size)
 
 Circle::Circle(float radius, const Vector3& center)
 {
-	Build(radius, center);
+	Build(radius, 360, center);
 }
 
+Circle::Circle(float radius, int pointNum)
+{
+	Build(radius, pointNum, Vector3(0, 0, 0));
+}
 Circle::~Circle()
 {
 }
 
-void Circle::Build(float radius, const Vector3& center)
+void Circle::Build(float radius, int pointNum, const Vector3& center)
 {
-	for (int i = 0; i < 360; i++) {
-		auto angle0 = (i / (float)360) * 3.14159f * 2.0f;
-		auto angle1 = ((i + 1) / (float)360) * 3.14159f * 2.0f;
+	for (int i = 0; i < pointNum; i++) {
+		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
+		auto angle1 = ((i + 1) / (float)pointNum) * 3.14159f * 2.0f;
 		m_position.push_back(Vector3(
 			radius * cosf(angle0),
 			radius * sinf(angle0),

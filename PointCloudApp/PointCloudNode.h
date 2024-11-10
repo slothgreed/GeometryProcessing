@@ -19,6 +19,8 @@ public:
 	const Vector<Vector3>& GetNormal();
 	const Vector<int>& GetNeighbor(int index);
 private:
+
+	void UpdateColor(const Vector<Vector4>& color);
 	void ComputeNormal();
 	void ComputeNeighbor(float radius);
 	void ShowNormal();
@@ -29,7 +31,6 @@ private:
 	Vector<Vector3> m_tangentX;
 	Vector<Vector3> m_tangentY;
 	std::unordered_map<ALGORITHM_TYPE, IAlgorithm*> m_algorithm;
-	Shared<VertexColorShader> m_pShader;
 	Shared<PointCloud> m_pPointCloud;
 	Vector<Vector<int>> m_neighbor;
 	Unique<GLBuffer> m_pPositionBuffer;

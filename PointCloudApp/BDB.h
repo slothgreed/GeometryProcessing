@@ -16,12 +16,12 @@ public:
 	void Apply(const BDB& bdb);
 	const Vector3& Min() const { return m_min; }
 	const Vector3& Max() const { return m_max; }
-	const Vector3& Center() const { return m_center; }
+	Vector3 Center() const;
 
+	BDB CreateRotate(const Matrix4x4& matrix) const;
 private:
 	Vector3 m_min;
 	Vector3 m_max;
-	Vector3 m_center;
 	
 };
 }

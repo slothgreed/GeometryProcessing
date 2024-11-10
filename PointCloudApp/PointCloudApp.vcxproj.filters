@@ -230,6 +230,21 @@
     <ClCompile Include="DelaunayGenerator.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="PrimitiveTable.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryBuffer.cpp">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="KIMath.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeDiameterFunction.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTarget.cpp">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -420,6 +435,21 @@
     </ClInclude>
     <ClInclude Include="DelaunayGenerator.h">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveTable.h">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryBuffer.h">
+      <Filter>ソース ファイル\GL\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="KIMath.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeDiameterFunction.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.h">
+      <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,6 +8,52 @@
 namespace KI
 {
 
+void GLContext::SetViewport(const Vector2& size)
+{
+	glViewport(0, 0, size.x, size.y);
+}
+void GLContext::EnablePolygonOffset(int factor, int units)
+{
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(factor, units);
+}
+
+void GLContext::EnableDepth()
+{
+	glEnable(GL_DEPTH_TEST);
+}
+void GLContext::DisableDepth()
+{
+	glDisable(GL_DEPTH_TEST);
+}
+void GLContext::DisablePolygonOffset()
+{
+	glDisable(GL_POLYGON_OFFSET_FILL);
+}
+void GLContext::SetPointSize(float value)
+{
+	if (m_pointSize == value) { return; }
+	glPointSize(value);
+	m_pointSize = value;
+}
+
+void GLContext::SetLineWidth(float value)
+{
+	if (m_lineWidth == value) { return; }
+	glLineWidth(value);
+	m_lineWidth = value;
+}
+
+void GLContext::SetupPick()
+{
+	SetPointSize(8.0f);
+	SetLineWidth(7.0f);
+}
+void GLContext::SetupShading()
+{
+	SetPointSize(8.0f);
+	SetLineWidth(3.0f);
+}
 void RenderResource::Build()
 {
 	m_pShaderTable.Build();
@@ -59,19 +105,4 @@ void RenderResource::Finalize()
 	m_pLightGpu = nullptr;
 }
 
-void RenderResource::ShowUI()
-{
-	ImGui::Text(
-		"Eye:(%lf,%lf,%lf)\nCenter:(%lf,%lf,%lf)\nUp:(%lf,%lf,%lf)\n",
-		m_pCamera->Eye().x, m_pCamera->Eye().y, m_pCamera->Eye().z,
-		m_pCamera->Center().x, m_pCamera->Center().y, m_pCamera->Center().z,
-		m_pCamera->Up().x, m_pCamera->Up().y, m_pCamera->Up().z);
-
-	Vector3 color = m_pLight->GetColor();
-	if (ImGui::ColorEdit3("Light Color", &color[0])) {
-		m_pLight->SetColor(color);
-	}
-
-	ImGui::Text("Direction:(%lf, %lf, %lf)\n",	m_pLight->GetDirection().x, m_pLight->GetDirection().y, m_pLight->GetDirection().z);
-}
 }

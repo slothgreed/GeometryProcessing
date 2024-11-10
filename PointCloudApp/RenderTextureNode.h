@@ -18,7 +18,6 @@ public:
 private:
 	void BuildGLBuffer();
 	void UpdateRenderData();
-	Shared<TextureShader> m_pShader;
 	Shared<Texture> m_pTexture;
 	RenderPlane m_pPrimitive;
 	Unique<GLBuffer> m_pPositionBuffer;

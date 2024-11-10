@@ -1,6 +1,7 @@
 #include "PrimitiveNode.h"
 #include "PointCloud.h"
 #include "SimpleShader.h"
+#include "Utility.h"
 namespace KI
 {
 
@@ -65,13 +66,13 @@ void PrimitiveNode::DrawNode(const DrawContext& context)
 	UpdateRenderData();
 	const auto& pResourece = context.pResource;
 	IShadingShader* pShader = nullptr;
-	if (m_pPrimitive->Color().size() == m_pPrimitive->Position().size()) {
+	if (m_pPrimitive->Color().size() * GLUtil::GetPrimitiveSize(m_pPrimitive->GetType()) == m_pPrimitive->Position().size()) {
 		auto pPrimitiveColorShader = pResourece->GetShaderTable()->GetPrimitiveColorShader();
 		pPrimitiveColorShader->Use();
 		pPrimitiveColorShader->SetPosition(m_pPositionBuffer.get());
 		pPrimitiveColorShader->SetColor(m_pColorBuffer.get());
 		pPrimitiveColorShader->SetCamera(pResourece->GetCameraBuffer());
-		pPrimitiveColorShader->SetModel(Matrix4x4(1.0f));
+		pPrimitiveColorShader->SetModel(GetMatrix());
 		pShader = pPrimitiveColorShader.get();
 	} else 	if (m_pPrimitive->Color().size() == m_pPrimitive->Position().size()) {
 		auto pVertexColorShader = pResourece->GetShaderTable()->GetVertexColorShader();
@@ -79,14 +80,14 @@ void PrimitiveNode::DrawNode(const DrawContext& context)
 		pVertexColorShader->SetPosition(m_pPositionBuffer.get());
 		pVertexColorShader->SetColor(m_pColorBuffer.get());
 		pVertexColorShader->SetCamera(pResourece->GetCameraBuffer());
-		pVertexColorShader->SetModel(Matrix4x4(1.0f));
+		pVertexColorShader->SetModel(GetMatrix());
 		pShader = pVertexColorShader.get();
 	} else {
 		auto pSimpleShader = pResourece->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
 		pSimpleShader->SetPosition(m_pPositionBuffer.get());
 		pSimpleShader->SetCamera(pResourece->GetCameraBuffer());
-		pSimpleShader->SetModel(Matrix4x4(1.0f));
+		pSimpleShader->SetModel(GetMatrix());
 		pSimpleShader->SetColor(m_color);
 		pShader = pSimpleShader.get();
 	}
@@ -170,7 +171,7 @@ void InstancedPrimitiveNode::DrawNode(const DrawContext& context)
 	if (m_pIndexBuffer) {
 		pShader->DrawElementInstaced(m_pPrimitive->GetType(), m_pIndexBuffer.get(), m_pMatrixBuffer->Num());
 	} else {
-		assert(0);
+		pShader->DrawArrayInstaced(m_pPrimitive->GetType(), m_pPositionBuffer->Num(), m_pMatrixBuffer->Num());
 	}
 
 }

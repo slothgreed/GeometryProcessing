@@ -99,5 +99,55 @@ private:
 	GLuint m_uniform[UNIFORM::NUM];
 };
 
+class VertexVectorShader : public IShadingShader
+{
+public:
+	VertexVectorShader() {};
+	~VertexVectorShader() {};
+
+	enum UNIFORM
+	{
+		COLOR,
+		LENGTH,
+		MODEL,
+		NUM
+	};
+
+	virtual ShaderPath GetShaderPath() override;
+	virtual void GetUniformLocation() override;
+	virtual void SetCamera(const GLBuffer* pBuffer);
+	void SetPosition(const GLBuffer* pPosition);
+	void SetVector(const GLBuffer* pVector);
+	void SetModel(const Matrix4x4& value);
+	void SetColor(const Vector4& color);
+	void SetLength(float length);
+private:
+	GLuint m_uniform[UNIFORM::NUM];
+};
+
+class PointPickShader : public IShadingShader
+{
+public:
+	PointPickShader() {};
+	~PointPickShader() {};
+
+	enum UNIFORM
+	{
+		MODEL,
+		PICKOFFSET,
+		NUM
+	};
+
+	virtual ShaderPath GetShaderPath() override;
+	virtual void GetUniformLocation() override;
+	virtual void SetCamera(const GLBuffer* pBuffer);
+	void SetPosition(const GLBuffer* pPosition);
+	void SetModel(const Matrix4x4& value);
+	void SetPickOffset(unsigned int offset);
+private:
+	GLuint m_uniform[UNIFORM::NUM];
+
+};
+
 }
 #endif SIMPLE_SHADER_H

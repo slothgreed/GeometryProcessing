@@ -85,7 +85,7 @@ Meshlet MeshletGenerator::ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int
 		{
 			Vector3 gravity = Vector3(0.0f);
 			for (auto index : face) {
-				gravity += halfEdge.CalcGravity(halfEdge.GetFace(index));
+				gravity += halfEdge.CalcGravity(halfEdge.GetIndexedFace(index));
 			}
 
 			return gravity;
@@ -95,7 +95,7 @@ Meshlet MeshletGenerator::ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int
 		{
 			USet<Cluster*> ret;
 			for (auto faceIndex : face) {
-				auto aroundFace = halfEdge.GetAroundFace(halfEdge.GetFace(faceIndex));
+				auto aroundFace = halfEdge.GetAroundFace(halfEdge.GetIndexedFace(faceIndex));
 				for (auto around : aroundFace) {
 					auto cluster = faceToCluster[around];
 					// マージ済みでなく自身でない場合
@@ -112,7 +112,7 @@ Meshlet MeshletGenerator::ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int
 		{
 			USet<int> ret;
 			for (auto faceIndex : face) {
-				auto aroundFace = halfEdge.GetAroundFace(halfEdge.GetFace(faceIndex));
+				auto aroundFace = halfEdge.GetAroundFace(halfEdge.GetIndexedFace(faceIndex));
 				for (auto around : aroundFace) {
 					auto cluster = faceToCluster[around];
 					// マージ済みでなく自身でない場合
@@ -191,7 +191,7 @@ Meshlet MeshletGenerator::ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int
 		meshlet.data.push_back(std::move(data));
 		meshlet.maxVertex = std::max(meshlet.maxVertex, cluster.face.size() * 3);
 		for (auto face : cluster.face) {
-			const auto& faceIndex = halfEdge.GetFace(face);
+			const auto& faceIndex = halfEdge.GetIndexedFace(face);
 			meshlet.index.push_back(faceIndex.position[0]);
 			meshlet.index.push_back(faceIndex.position[1]);
 			meshlet.index.push_back(faceIndex.position[2]);

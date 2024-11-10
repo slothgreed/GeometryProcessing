@@ -63,11 +63,15 @@ public:
 	void SetVertexFormat(const VertexFormats& format);
 	void SetVertexFormat(const VertexFormat& format);
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
+	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer, int num, int offset);
 	void DrawElementInstaced(GLuint primitiveType, GLBuffer* pIndexBuffer, int instanceNum);
+	void DrawArrayInstaced(GLuint primitiveType, int count, int instanceNum);
 	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, int count);
+	void DrawArray(GLuint primitiveType, int offset, int count);
 private:
 	GLuint BuildVertexFrag(const String& vert, const String& frag);
+	GLuint BuildVertexGeomFrag(const String& vert, const String& geom, const String& frag);
 
 };
 
@@ -105,7 +109,15 @@ class Texture;
 class TextureShader : public IShadingShader
 {
 public:
-	TextureShader() {};
+
+	enum Type
+	{
+		UINT,
+		VEC4
+	};
+
+	TextureShader(Type type):
+	m_type(type) {};
 	~TextureShader() {};
 	virtual ShaderPath GetShaderPath();
 	virtual void GetUniformLocation();
@@ -114,8 +126,10 @@ public:
 	void SetPosition(GLBuffer* pPosition);
 	void SetTexture(GLBuffer* pTexture);
 private:
+	Type m_type;
 	GLuint m_uniform;
 };
+
 }
 
 

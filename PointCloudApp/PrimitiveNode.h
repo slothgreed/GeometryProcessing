@@ -48,7 +48,6 @@ private:
 	Unique<TextureBuffer> m_pMatrixTexture;
 	Unique<GLBuffer> m_pMatrixBuffer;
 	Unique<GLBuffer> m_pPositionBuffer;
-	Unique<GLBuffer> m_pColorBuffer;
 	Unique<GLBuffer> m_pIndexBuffer;
 
 };

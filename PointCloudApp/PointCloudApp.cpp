@@ -27,12 +27,16 @@
 #include "HalfEdgeLoader.h"
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
+#include "RenderTarget.h"
 #include <Eigen/Core>
 namespace KI
 {
 void PointCloudApp::ResizeEvent(int width, int height)
 {
-	glViewport(0, 0, width, height);
+	m_windowSize = Vector2(width, height);
+	if (m_pResource) {
+		m_pResource->GL()->SetViewport(Vector2(width, height));
+	}
 	if (m_pCamera) {
 		m_pCamera->SetAspect(width / (float)height);
 	}
@@ -101,15 +105,14 @@ struct ScrollingBuffer
 
 void PointCloudApp::Execute()
 {
-	auto pResource = std::make_unique<RenderResource>();
-	pResource->Build();
-
+	m_pResource = std::make_unique<RenderResource>();
+	m_pResource->Build();
 	BDB bdb;
 	m_pRoot = std::make_unique<RenderNode>("Root");
 	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
 	//m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>(), Vector3(1, 0, 0)));
 	bdb.Add(m_pRoot->GetBoundBox());
-	
+
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
 	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf")));
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
@@ -142,15 +145,8 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
 
 
+
 	//auto pPointCloud = Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz"));
-	
-	auto pos2D = PointCloud::Create3D(100, Vector3(-10, -10, 0), Vector3(10, 10, 0));
-	auto point2DPrim = std::make_shared<PointCloud>();
-	point2DPrim->SetPosition(std::move(pos2D));
-	point2DPrim->SetType(GL_POINTS);
-	bdb.Apply(point2DPrim->GetBDB());
-	auto pPointCloudNode = std::make_shared<PointCloudNode>("2DPointCloud", point2DPrim);
-	m_pRoot->AddNode(pPointCloudNode);
 	//auto pRandom = Shared<PointCloud>(PointCloud::Create2D(10, vec2(0, 0), vec2(100, 100)));
 	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
 
@@ -160,8 +156,8 @@ void PointCloudApp::Execute()
 	//pPointCloud->SetColor(kmeans.CreateClusterColor());
 	
 
-	//Shared<Primitive> pAxis = std::make_shared<Axis>(5000);
-	//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	Shared<Primitive> pAxis = std::make_shared<Axis>(50);
+	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 
 	//{
 	//	Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));
@@ -176,32 +172,20 @@ void PointCloudApp::Execute()
 	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Cube", pCube));
 	//}
 
+	//m_pRoot->AddNode(CreateGLTFNodeTest());
+	m_pRoot->AddNode(CreateBunnyNodeTest());
+	
+	// Test
 	{
-		auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"));
-		pNode->SetRotateAngle(Vector3(-90, 0, 180));
-		m_pRoot->AddNode(pNode);
+		//m_pRoot->AddNode(CreateDelaunayTest());
+		//m_pRoot->AddNode(CreateInstacedNodeTest());
 	}
-
-	// Instanced Test
-	{
-		m_pRoot->AddNode(CreateInstacedNodeTest());
-	}
-	/*
-	{
-		String path = "E:\\cgModel\\bunny6000.half";
-		auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
-		auto node = std::make_shared<HalfEdgeNode>(path, data);
-		node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
-		m_pRoot->AddNode(node);
-	}
-	*/
+	
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);	// GLenum mode
-	//glPointSize(5.0f);
-	glLineWidth(5.0f);
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
@@ -220,40 +204,69 @@ void PointCloudApp::Execute()
 	pLight->SetColor(Vector3(1, 1, 1));
 	pLight->SetDirection(Vector3(0, 0, 1));
 	
-	pResource->SetCamera(m_pCamera);
-	pResource->SetLight(pLight);
-	DrawContext context(pResource.get());
-
+	m_pResource->GL()->SetViewport(m_windowSize);
+	m_pResource->GL()->EnablePolygonOffset(1.0f, 1.0f);
+	m_pResource->GL()->SetLineWidth(5.0f);
+	m_pResource->GL()->SetPointSize(5.0f);
+	m_pResource->SetCamera(m_pCamera);
+	m_pResource->SetLight(pLight);
+	DrawContext drawContext(m_pResource.get());
+	PickContext pickContext(m_pResource.get());
 	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
-	while (glfwWindowShouldClose(m_window) == GL_FALSE)
-	{
-		pResource->UpdateCamera();
-		pResource->UpdateLight();
+	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
+	
+	Shared<Texture> pTexture = pPickTarget->GetColor(0);
+	auto pTextureNode = std::make_unique<RenderTextureNode>("Texture", pTexture);
+
+	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
+		m_pResource->UpdateCamera();
+		m_pResource->UpdateLight();
+		m_pResource->GL()->SetupShading();
 		m_cpuProfiler.Start();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		render.Start();
 		timer.Start();
-		
+
 		//pSkyBoxNode->Draw(context);
 
-		m_pRoot->Draw(context);
+		m_pRoot->Draw(drawContext);
+
+		if (m_ui.pickMode) {
+			m_pResource->GL()->SetupPick();
+			pPickTarget->Resize(m_windowSize);
+			pPickTarget->Bind();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			m_pRoot->Pick(pickContext);
+			auto mousePos = ImGui::GetMousePos();
+			m_pick.context = &pickContext;
+			m_pick.id = pPickTarget->GetIntPixel(mousePos.x, m_windowSize.y - mousePos.y);
+			pickContext.pickedId = m_pick.id;
+			m_pRoot->CollectPicked(m_pick);
+			pPickTarget->UnBind();
+			if (m_pick.pResult.size() != 0) {
+				for (auto& result : m_pick.pResult) {
+					result.first->DrawParts(drawContext, *result.second.get());
+				}
+			}
+		}
+
+		
+
 		m_diff += timer.Stop() * 50;
 		m_pRoot->Update(m_diff);
 		if (m_diff > 100000.0) { m_diff = 0.0f; }
 		render.Stop();
-		
+
 		m_cpuProfiler.Stop();
 		//cpuProfiler.Output();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		pResource->ShowUI();
 		ShowUI();
-		m_pRoot->ShowUIData();
-
 		ImGui::Render();
+
 
 		int display_w, display_h;
 		glfwGetFramebufferSize(m_window, &display_w, &display_h);
@@ -272,6 +285,55 @@ void PointCloudApp::Execute()
 
 void PointCloudApp::ShowUI()
 {
+	if (ImGui::TreeNodeEx(m_pRoot->GetName().data(), ImGuiTreeNodeFlags_DefaultOpen)) {
+		for (const auto& child : m_pRoot->GetChild()) {
+			auto open = ImGui::TreeNode(child.first.data());
+			if (ImGui::IsItemClicked()) {
+				m_pSelect = child.second.get();
+			}
+
+			if (open) {
+				ImGui::TreePop();
+			}
+		}
+		ImGui::TreePop();
+	}
+
+	if (m_pSelect) {
+		ImGui::Begin(m_pSelect->GetName().data());
+		m_pSelect->ShowUIData();
+		ImGui::End();
+	}
+
+	ImGui::Checkbox("PickMode", &m_ui.pickMode);
+	if (m_ui.pickMode) {
+		ImGui::SetNextWindowPos(ImGui::GetMousePos());
+		ImGui::BeginTooltip();
+		for (auto& result : m_pick.pResult) {
+			ImGui::Text(result.second->ToString().data());
+		}
+		ImGui::EndTooltip();
+	}
+
+	auto pCamera = m_pResource->GetCamera();
+	ImGui::Text(
+		"Eye:(%lf,%lf,%lf)\nCenter:(%lf,%lf,%lf)\nUp:(%lf,%lf,%lf)\n",
+		pCamera->Eye().x, pCamera->Eye().y, pCamera->Eye().z,
+		pCamera->Center().x, pCamera->Center().y, pCamera->Center().z,
+		pCamera->Up().x, pCamera->Up().y, pCamera->Up().z);
+	if (ImGui::Button("Camera Fit\n")) {
+		auto bdb = m_pRoot->CalcCameraFitBox();
+		if (bdb.IsActive()) {
+			pCamera->FitToBDB(bdb);
+		}
+	}
+	auto pLight = m_pResource->GetLight();
+	Vector3 color = pLight->GetColor();
+	if (ImGui::ColorEdit3("Light Color", &color[0])) {
+		pLight->SetColor(color);
+	}
+
+	ImGui::Text("Direction:(%lf, %lf, %lf)\n", pLight->GetDirection().x, pLight->GetDirection().y, pLight->GetDirection().z);
 
 	static RollingBuffer  ui_fpsDraw, ui_fps60, ui_fps120;
 	static float timeDelta = 0.0f;
@@ -298,8 +360,30 @@ void PointCloudApp::Finalize()
 	m_pRoot.reset();
 	glfwTerminate();
 }
+Shared<RenderNode> PointCloudApp::CreateGLTFNodeTest()
+{
+	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"));
+	pNode->SetRotateAngle(Vector3(-90, 0, 180));
+	return pNode;
+}
+Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
+{
+	//String path = "E:\\cgModel\\Armadillo.half";
+	String path = "E:\\cgModel\\bunny6000.half";
+	auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
+	auto node = std::make_shared<HalfEdgeNode>(path, data);
+	node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
+	return node;
+}
 
-
+Shared<PointCloudNode> PointCloudApp::CreateDelaunayTest()
+{
+	auto pos2D = PointCloud::Create3D(250, Vector3(-100, -100, 0), Vector3(100, 100, 0));
+	auto point2DPrim = std::make_shared<PointCloud>();
+	point2DPrim->SetPosition(std::move(pos2D));
+	point2DPrim->SetType(GL_POINTS);
+	return std::make_shared<PointCloudNode>("2DPointCloud", point2DPrim);
+}
 Shared<InstancedPrimitiveNode> PointCloudApp::CreateInstacedNodeTest()
 {
 	Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));
