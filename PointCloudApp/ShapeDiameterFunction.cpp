@@ -36,8 +36,9 @@ std::vector<Vector3> CraeteSamplingCircle(glm::vec3 tip, glm::vec3 axis, float h
 
 ShapeDiameterFunction::ShapeDiameterFunction(HalfEdgeNode* pNode)
 	:m_pHalfEdge(pNode)
-	,m_samplingNum(10)
+	, m_samplingNum(10)
 	, m_debugIndex(-1)
+	, m_maxValue(0)
 {
 }
 

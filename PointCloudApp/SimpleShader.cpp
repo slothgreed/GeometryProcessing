@@ -22,7 +22,7 @@ ShaderPath SimpleShader::GetShaderPath()
 	path.shader[SHADER_PROGRAM_FRAG] = "simple.frag";
 	return path;
 }
-void SimpleShader::GetUniformLocation()
+void SimpleShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
@@ -67,7 +67,7 @@ ShaderPath VertexColorShader::GetShaderPath()
 	path.shader[SHADER_PROGRAM_FRAG] = "vertexcolor.frag";
 	return path;
 }
-void VertexColorShader::GetUniformLocation()
+void VertexColorShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
@@ -107,7 +107,7 @@ ShaderPath PrimitiveColorShader::GetShaderPath()
 	path.shader[SHADER_PROGRAM_FRAG] = "primitivecolor.frag";
 	return path;
 }
-void PrimitiveColorShader::GetUniformLocation()
+void PrimitiveColorShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }
@@ -143,7 +143,7 @@ ShaderPath InstancedPrimitiveShader::GetShaderPath()
 	path.shader[SHADER_PROGRAM_FRAG] = "instance.frag";
 	return path;
 }
-void InstancedPrimitiveShader::GetUniformLocation()
+void InstancedPrimitiveShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
 }
@@ -181,7 +181,7 @@ ShaderPath VertexVectorShader::GetShaderPath()
 	path.shader[SHADER_PROGRAM_FRAG] = "vertexvector.frag";
 	return path;
 }
-void VertexVectorShader::GetUniformLocation()
+void VertexVectorShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
@@ -234,7 +234,7 @@ ShaderPath PointPickShader::GetShaderPath()
 	path.shader[SHADER_PROGRAM_FRAG] = "pick.frag";
 	return path;
 }
-void PointPickShader::GetUniformLocation()
+void PointPickShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 	m_uniform[UNIFORM::PICKOFFSET] = glGetUniformLocation(Handle(), "u_PickOffset");

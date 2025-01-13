@@ -35,7 +35,7 @@ public:
 	void SetLight(const GLBuffer* pBuffer);
 
 	void BindBufferIndex(int matrix, int material);
-	virtual void GetUniformLocation();
+	virtual void FetchUniformLocation();
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	void DrawElement(const GLTFPrimitive& primitive, GLuint dataType);
 	void BindBaseColor(const Texture& texture);

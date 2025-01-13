@@ -70,12 +70,22 @@ void glMultiDrawMeshTasksIndirectCountNV(GLintptr indirect, GLintptr drawcount, 
 class GLAPIExt
 {
 public:
-	GLAPIExt() {};
+	GLAPIExt()
+	:m_maxComputeLocalSize(glm::ivec3(0))
+	,m_maxComputeWorkGroupCount(glm::ivec3(0)){};
 	~GLAPIExt() {};
 
 	static bool Initialize();
-private:
+	static void Finalize();
+	const glm::ivec3& GetMaxComputeWorkGroupCount();
+	const glm::ivec3& GetMaxComputeLocalSize();
 
+	static GLAPIExt* Info();
+
+private:
+	static GLAPIExt* m_pInfo;
+	glm::ivec3 m_maxComputeWorkGroupCount;
+	glm::ivec3 m_maxComputeLocalSize;
 };
 
 

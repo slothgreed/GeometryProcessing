@@ -63,7 +63,7 @@ void GLTFShader::BindDebugView(int value)
 	glUniform1i(m_uniform[UNIFORM::DEBUG_VIEW], value);
 }
 
-void GLTFShader::GetUniformLocation()
+void GLTFShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 	m_uniform[UNIFORM::SSBO_INDEX] = glGetUniformLocation(Handle(), "u_ssboIndex");

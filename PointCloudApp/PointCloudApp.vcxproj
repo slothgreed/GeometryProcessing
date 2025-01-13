@@ -231,6 +231,7 @@
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="Voxelizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\extlibs\imgui\backends\imgui_impl_glfw.h" />
@@ -301,6 +302,7 @@
     <ClInclude Include="Utility.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="SimpleShader.h" />
+    <ClInclude Include="Voxelizer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

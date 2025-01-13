@@ -49,6 +49,7 @@ using Matrix3x3 = glm::mat3x3;
 using Matrix4x4 = glm::mat4x4;
 using Vector2 = glm::vec2;
 using Vector3 = glm::vec3;
+using Vector3i = glm::ivec3;
 using Vector4 = glm::vec4;
 using Quaternion = glm::quat;
 

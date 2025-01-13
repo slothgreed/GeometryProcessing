@@ -141,6 +141,7 @@ void GLFWApp::Execute()
 
 void GLFWApp::Finalize()
 {
+	GLAPIExt::Finalize();
 	g_instance = NULL;
 	glfwTerminate();
 }

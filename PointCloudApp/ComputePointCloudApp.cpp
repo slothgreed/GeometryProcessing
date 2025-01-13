@@ -29,7 +29,7 @@ void CreateTextureComputeShader::Execute(const Shared<Texture>& pTexture)
 	UnUse();
 }
 
-void CreateTextureComputeShader::GetUniformLocation()
+void CreateTextureComputeShader::FetchUniformLocation()
 {
 
 }
@@ -53,7 +53,7 @@ ShaderPath PointCloudComputeShader::GetShaderPath()
 	return path;
 }
 
-void PointCloudComputeShader::GetUniformLocation()
+void PointCloudComputeShader::FetchUniformLocation()
 {
 	m_uniformVP = glGetUniformLocation(m_programId, "u_VP");
 }

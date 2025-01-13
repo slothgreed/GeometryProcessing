@@ -190,7 +190,28 @@ Vector<Vector4> TypeConverter::Convert4f(const Vector<Vector3>& data)
 	return ret;
 }
 
+UIntBool::UIntBool(int size)
+{
+	m_data.resize(UIntBool::Size(size));
+}
 
+bool UIntBool::True(int pos) const
+{
+	auto index = pos / size_t(32);
+	auto bit = size_t(31) - (pos % 32);
+	auto mask = 1 << bit;
+	return m_data[index] & mask;
+}
+
+int UIntBool::Size(int num)
+{
+	return num / size_t(32);
+}
+
+int UIntBool::MemorySize() const
+{
+	return m_data.size() * sizeof(unsigned int);
+}
 bool glmUtil::iszero(const Vector3& value)
 {
 	return

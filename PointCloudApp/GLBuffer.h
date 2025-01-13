@@ -49,7 +49,7 @@ public:
 	void GetBufferData(Vector<Vector3>& value);
 	void GetBufferData(Vector<glm::vec4>& value);
 	void GetBufferData(void* value, int memorySize);
-
+	void SetData(unsigned int value);
 	GLuint DataType() const { return (GLuint)m_dataType; }
 	int Num() const { return m_num; }
 	int MemorySize() const { return m_num * m_sizeOfData; }

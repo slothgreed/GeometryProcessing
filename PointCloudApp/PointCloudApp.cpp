@@ -105,6 +105,7 @@ struct ScrollingBuffer
 
 void PointCloudApp::Execute()
 {
+
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	BDB bdb;
@@ -199,6 +200,7 @@ void PointCloudApp::Execute()
 	glBindVertexArray(VertexArrayID);
 	Timer timer;
 	float m_diff = 0;
+
 
 	auto pLight = std::make_shared<Light>();
 	pLight->SetColor(Vector3(1, 1, 1));
@@ -372,7 +374,7 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
 	String path = "E:\\cgModel\\bunny6000.half";
 	auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
 	auto node = std::make_shared<HalfEdgeNode>(path, data);
-	node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
+	//node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
 	return node;
 }
 

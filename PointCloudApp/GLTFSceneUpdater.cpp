@@ -98,7 +98,7 @@ ShaderPath GLTFSceneMatrixUpdaterOnGpu::Shader::GetShaderPath()
 	return path;
 }
 
-void GLTFSceneMatrixUpdaterOnGpu::Shader::GetUniformLocation()
+void GLTFSceneMatrixUpdaterOnGpu::Shader::FetchUniformLocation()
 {
 	m_uniformMaxLevel = glGetUniformLocation(m_programId, "u_maxLevel");
 }
@@ -123,7 +123,7 @@ ShaderPath GLTFChannelUpdaterOnGpu::Shader::GetShaderPath()
 	return path;
 }
 
-void GLTFChannelUpdaterOnGpu::Shader::GetUniformLocation()
+void GLTFChannelUpdaterOnGpu::Shader::FetchUniformLocation()
 {
 	m_uniformTimer = glGetUniformLocation(m_programId, "u_Timer");
 }

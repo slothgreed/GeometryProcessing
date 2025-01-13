@@ -71,11 +71,10 @@ ShaderPath MeshShaderTest::TriangleShader::GetShaderPath()
 void MeshShaderTest::TriangleShader::Draw(const GpuObject& gpu)
 {
 	Use();
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gpu.position->Handle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, gpu.index->Handle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, gpu.meshlet->Handle());
-
-	glDrawMeshTasksNV(0, gpu.meshlet->Num());
+	BindShaderStorage(0, gpu.position->Handle());
+	BindShaderStorage(1, gpu.index->Handle());
+	BindShaderStorage(2, gpu.meshlet->Handle());
+	DrawMeshTasks(0, gpu.meshlet->Num());
 	UnUse();
 }
 

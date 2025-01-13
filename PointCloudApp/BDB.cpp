@@ -72,6 +72,12 @@ void BDB::Set(Vector3 min, Vector3 max)
 	m_max = max;
 }
 
+float BDB::MaxLength() const
+{
+	auto length = m_max - m_min;
+	return std::max(std::max(length.x,length.y),length.z);
+}
+
 Vector3 BDB::Center() const
 {
 	return Vector3(

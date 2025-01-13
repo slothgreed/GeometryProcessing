@@ -37,11 +37,20 @@ public:
 
 	virtual void Build() = 0;
 	virtual ShaderPath GetShaderPath() = 0;
-
+	bool IsActive() { return m_programId != 0; }
 	void Use();
 	void UnUse();
 	void Delete();
-
+	int GetUniformLocation(const char* str);
+	void Bind(int location, GLBuffer* pBuffer);
+	void BindUniform(int location, const Matrix4x4& value);
+	void BindUniform(int location, const Vector3i& value);
+	void BindUniform(int location, const Vector3& value);
+	void BindUniform(int location, float value);
+	void BindUniform(int location, int value);
+	void BindUniform(int location, uint64 value);
+	void BindUniform(int location, uint value);
+	void BindShaderStorage(int location, int handle);
 protected:
 	String LoadHeaderCode(const String& localPath, const Vector<String>& header);
 	GLuint Handle() const { return m_programId; };
@@ -57,7 +66,7 @@ public:
 	virtual ~IShadingShader();
 
 	virtual void Build();
-	virtual void GetUniformLocation() = 0;
+	virtual void FetchUniformLocation() = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
 
 	void SetVertexFormat(const VertexFormats& format);
@@ -81,10 +90,10 @@ public:
 	IComputeShader() {};
 	~IComputeShader() {};
 
-	virtual void GetUniformLocation() = 0;
+	virtual void FetchUniformLocation() = 0;
 
 	virtual void Build();
-
+	void Dispatch(GLuint x, GLuint y, GLuint z);
 protected:
 	glm::ivec3 m_dimension;
 private:
@@ -97,9 +106,10 @@ public:
 	IMeshShader() {};
 	~IMeshShader() {};
 
-	virtual void GetUniformLocation() {};
+	virtual void FetchUniformLocation() {};
 	virtual void Build();
 
+	void DrawMeshTasks(int first, int count);
 private:
 
 };
@@ -120,7 +130,7 @@ public:
 	m_type(type) {};
 	~TextureShader() {};
 	virtual ShaderPath GetShaderPath();
-	virtual void GetUniformLocation();
+	virtual void FetchUniformLocation();
 	virtual void SetCamera(const GLBuffer* pBuffer) {};
 	void BindTexture(const Texture& texture);
 	void SetPosition(GLBuffer* pPosition);

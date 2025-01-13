@@ -75,7 +75,7 @@ void ComputeShaderTest::Shader::Execute(const Vector<float>& in, Vector<float>& 
 	buffer->GetBufferData(out);
 }
 
-void ComputeShaderTest::Shader::GetUniformLocation()
+void ComputeShaderTest::Shader::FetchUniformLocation()
 {
 	m_uniform = glGetUniformLocation(m_programId, "u_elementSize");
 }

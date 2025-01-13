@@ -16,6 +16,7 @@ public:
 	void Apply(const BDB& bdb);
 	const Vector3& Min() const { return m_min; }
 	const Vector3& Max() const { return m_max; }
+	float MaxLength() const;
 	Vector3 Center() const;
 
 	BDB CreateRotate(const Matrix4x4& matrix) const;

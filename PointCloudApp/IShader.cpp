@@ -153,7 +153,7 @@ void IShadingShader::Build()
 	m_programId = IShadingShader::BuildVertexGeomFrag(vertexCode, geomCode, fragCode);
 
 
-	GetUniformLocation();
+	FetchUniformLocation();
 	OUTPUT_GLERROR;
 }
 
@@ -200,14 +200,15 @@ void IMeshShader::Build()
 	GLuint fragId = ShaderUtility::Compile(version + fragEx + headerCode + fragCode, GL_FRAGMENT_SHADER);
 
 	m_programId = ShaderUtility::Link(meshId, fragId);
+	FetchUniformLocation();
 
 	glDeleteShader(meshId);
 	glDeleteShader(fragId);
-	GetUniformLocation();
 	return;
 }
 void IComputeShader::Build()
 {
+	GLAPIExt::Info()->GetMaxComputeLocalSize();
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto shaderPath = GetShaderPath();
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
@@ -219,10 +220,70 @@ void IComputeShader::Build()
 
 	m_programId = ShaderUtility::LinkCompute(computeId);
 
-	GetUniformLocation();
+	FetchUniformLocation();
 	OUTPUT_GLERROR;
 }
 
+int IShader::GetUniformLocation(const char* str)
+{
+	auto val = glGetUniformLocation(Handle(), str);
+	OUTPUT_GLERROR;
+	return val;
+}
+void IShader::Bind(int location, GLBuffer* pBuffer)
+{
+
+}
+
+void IShader::BindUniform(int location, const Matrix4x4& value)
+{
+	glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+	OUTPUT_GLERROR;
+}
+void IShader::BindUniform(int location, const Vector3& value)
+{
+	glUniform3f(location, value.x, value.y, value.z);
+	OUTPUT_GLERROR;
+}
+void IShader::BindUniform(int location, const Vector3i& value)
+{
+	glUniform3i(location, value.x, value.y, value.z);
+	OUTPUT_GLERROR;
+}
+
+void IShader::BindUniform(int location, float value)
+{
+	glUniform1f(location, value);
+	OUTPUT_GLERROR;
+}
+void IShader::BindUniform(int location, int value)
+{
+	glUniform1i(location, value);
+	OUTPUT_GLERROR;
+}
+
+void IShader::BindUniform(int location, uint64 value)
+{
+	glUniform1ui64ARB(location, value);
+	OUTPUT_GLERROR;
+}
+
+void IShader::BindUniform(int location, uint value)
+{
+	glUniform1ui(location, value);
+	OUTPUT_GLERROR;
+}
+void IShader::BindShaderStorage(int location, int handle)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, location, handle);
+	OUTPUT_GLERROR;
+}
+
+void IComputeShader::Dispatch(GLuint x, GLuint y, GLuint z)
+{
+	glDispatchCompute(x, y, z);
+	OUTPUT_GLERROR;
+}
 
 ShaderPath TextureShader::GetShaderPath()
 {
@@ -240,10 +301,14 @@ ShaderPath TextureShader::GetShaderPath()
 	return path;
 }
 
-
-void TextureShader::GetUniformLocation()
+void IMeshShader::DrawMeshTasks(int first, int count)
 {
-	m_uniform = glGetUniformLocation(m_programId, "tex");
+	glDrawMeshTasksNV(first, count);
+	OUTPUT_GLERROR;
+}
+void TextureShader::FetchUniformLocation()
+{
+	m_uniform = GetUniformLocation("tex");
 }
 
 void TextureShader::BindTexture(const Texture& texture)

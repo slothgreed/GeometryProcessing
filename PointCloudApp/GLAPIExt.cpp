@@ -78,3 +78,48 @@ void glMultiDrawMeshTasksIndirectCountNV(GLintptr indirect, GLintptr drawcount, 
 {
 	_glMultiDrawMeshTasksIndirectCountNV(indirect, drawcount, maxdrawcount, stride);
 }
+
+
+const glm::ivec3& GLAPIExt::GetMaxComputeWorkGroupCount()
+{
+	if (m_maxComputeWorkGroupCount.x == 0) {
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &m_maxComputeWorkGroupCount.x);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &m_maxComputeWorkGroupCount.y);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &m_maxComputeWorkGroupCount.z);
+	}
+
+	return m_maxComputeWorkGroupCount;
+}
+
+const glm::ivec3& GLAPIExt::GetMaxComputeLocalSize()
+{
+	if (m_maxComputeLocalSize.x == 0) {
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &m_maxComputeLocalSize.x);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &m_maxComputeLocalSize.y);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &m_maxComputeLocalSize.z);
+	}
+
+	return m_maxComputeLocalSize;
+
+}
+
+GLAPIExt* g_instance = nullptr;
+
+
+GLAPIExt* GLAPIExt::Info()
+{
+	if (g_instance == nullptr) {
+		g_instance = new GLAPIExt();
+	}
+
+	return g_instance;
+
+}
+
+void GLAPIExt::Finalize()
+{
+	if (g_instance != nullptr) {
+		delete g_instance;
+		g_instance = nullptr;
+	}
+}

@@ -23,7 +23,7 @@ public:
 		};
 
 		virtual ShaderPath GetShaderPath();
-		virtual void GetUniformLocation();
+		virtual void FetchUniformLocation();
 
 		void SetCamera(const GLBuffer* pBuffer);
 		void SetModel(const Matrix4x4& value) override;

@@ -16,7 +16,9 @@ void GLBuffer::Create(DATA_TYPE dataType, int size, int sizeofData, const void* 
 {
 	Delete();
 	glCreateBuffers(1, &m_handle);
+	OUTPUT_GLERROR;
 	glNamedBufferData(m_handle, size * sizeofData, data, GL_STATIC_DRAW);
+	OUTPUT_GLERROR;
 	m_dataType = dataType;
 	m_num = size;
 	m_memorySize = size * sizeofData;
@@ -137,6 +139,12 @@ void GLBuffer::GetBufferData(void* value, int memorySize)
 	OUTPUT_GLERROR;
 }
 
+void GLBuffer::SetData(unsigned int value)
+{
+	assert(m_handle != 0);
+	glClearNamedBufferSubData(m_handle, GL_R32UI, 0, m_memorySize, GL_RED, GL_UNSIGNED_INT, &value);
+	OUTPUT_GLERROR;
+}
 int GLBuffer::ComponentSize() const
 {
 	if (m_dataType == DATA_FLOAT ||

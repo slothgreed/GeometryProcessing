@@ -21,7 +21,7 @@ ShaderPath SkyBoxNode::Shader::GetShaderPath()
 	return path;
 }
 
-void SkyBoxNode::Shader::GetUniformLocation()
+void SkyBoxNode::Shader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 	m_uniform[UNIFORM::SKYBOX] = glGetUniformLocation(Handle(), "u_skybox");

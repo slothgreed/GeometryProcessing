@@ -15,7 +15,7 @@ public:
 
 	virtual ShaderPath GetShaderPath() override;
 	void Execute(const Shared<Texture>& pTexture);
-	virtual void GetUniformLocation() override;
+	virtual void FetchUniformLocation() override;
 private:
 
 };
@@ -27,7 +27,7 @@ public:
 	~PointCloudComputeShader();
 
 	virtual ShaderPath GetShaderPath();
-	virtual void GetUniformLocation();
+	virtual void FetchUniformLocation();
 	virtual void Execute(const Matrix4x4& proj, const Matrix4x4& view, const Shared<Texture2D>& pTexture, const Shared<Texture2D>& pDepthBuffer);
 private:
 	void Initialize();

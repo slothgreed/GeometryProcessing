@@ -1,0 +1,134 @@
+layout(local_size_x=1) in;
+layout(max_vertices=256, max_primitives=384) out;
+layout(triangles) out;
+
+
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+layout(std430,binding = 1) buffer voxelBuffer
+{
+	uint voxel[];
+};
+
+#define MAX_COLORS 10
+vec4 meshletcolors[MAX_COLORS] = {
+  vec4(1,0,0,1), 
+  vec4(0,1,0,1),
+  vec4(0,0,1,1),
+  vec4(1,1,0,1),
+  vec4(1,0,1,1),
+  vec4(0,1,1,1),
+  vec4(1,0.5,0,1),
+  vec4(0.5,1,0,1),
+  vec4(0,0.5,1,1),
+  vec4(1,1,1,1)
+};
+
+layout (location = 0) out PerVertexData
+{
+  vec4 color;
+} v_out[];
+
+uniform ivec3 u_resolute;
+uniform float u_pitch;
+uniform vec3 u_min;
+
+uniform mat4 u_Model;
+
+bool hasVoxel(uint location, int bitIndex)
+{
+	return bool((voxel[location] & 1 << bitIndex) != 0u);
+}
+
+vec3 getVoxel(uint location, int bitIndex)
+{
+	int index = int(location) * 32 + bitIndex;
+	int x = index / (u_resolute.y * u_resolute.z);
+	int y = (index / u_resolute.y) % u_resolute.z;
+	int z = index % u_resolute.z;
+	return vec3(x,y,z);
+}
+
+
+void main()
+{
+
+	mat4 mvp = camera.VP * u_Model;
+	uint location = gl_GlobalInvocationID.x;
+	int num = 0;
+	for(int i = 0; i < 32; i++) {
+		if(!hasVoxel(location,i)) continue;
+		vec3 pos = getVoxel(location,i) * u_pitch + u_min;
+		int vOffset = 8 * num;
+		gl_MeshVerticesNV[vOffset + 0].gl_Position = mvp * vec4(pos.xyz,1.0);
+		gl_MeshVerticesNV[vOffset + 1].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,0.0,0.0),1.0);
+		gl_MeshVerticesNV[vOffset + 2].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,u_pitch,0.0),1.0);
+		gl_MeshVerticesNV[vOffset + 3].gl_Position = mvp * vec4(pos.xyz + vec3(0.0,u_pitch,0.0),1.0);
+		gl_MeshVerticesNV[vOffset + 4].gl_Position = mvp * vec4(pos.xyz + vec3(0.0,0.0,u_pitch),1.0);
+		gl_MeshVerticesNV[vOffset + 5].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,0.0,u_pitch),1.0);
+		gl_MeshVerticesNV[vOffset + 6].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,u_pitch,u_pitch),1.0);
+		gl_MeshVerticesNV[vOffset + 7].gl_Position = mvp * vec4(pos.xyz + vec3(0.0,u_pitch,u_pitch),1.0);
+
+		int indexs = 36 * num;
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+														
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
+														
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+														
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
+														
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+														
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		
+		indexs = 8 * num;
+		v_out[indexs++].color =  meshletcolors[0];
+		v_out[indexs++].color =  meshletcolors[1];
+		v_out[indexs++].color =  meshletcolors[2];
+		v_out[indexs++].color =  meshletcolors[3];
+		v_out[indexs++].color =  meshletcolors[4];
+		v_out[indexs++].color =  meshletcolors[5];
+		v_out[indexs++].color =  meshletcolors[6];
+		v_out[indexs++].color =  meshletcolors[7];
+
+		num++;
+	}
+	
+	gl_PrimitiveCountNV = num * 12;
+
+	
+}

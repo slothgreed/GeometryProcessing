@@ -20,7 +20,7 @@ public:
 
 	virtual ShaderPath GetShaderPath() override;
 
-	void GetUniformLocation();
+	void FetchUniformLocation();
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
 	void SetColor(const Vector3& value);
@@ -44,7 +44,7 @@ public:
 
 	virtual ShaderPath GetShaderPath() override;
 
-	virtual void GetUniformLocation() override;
+	virtual void FetchUniformLocation() override;
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	virtual void SetModel(const Matrix4x4& value) override;
 	void SetPosition(GLBuffer* pPosition);
@@ -67,7 +67,7 @@ public:
 	PrimitiveColorShader() {};
 	~PrimitiveColorShader() {};
 	virtual ShaderPath GetShaderPath() override;
-	virtual void GetUniformLocation() override;
+	virtual void FetchUniformLocation() override;
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	virtual void SetModel(const Matrix4x4& value) override;
 	void SetPosition(GLBuffer* pPosition);
@@ -90,7 +90,7 @@ public:
 	InstancedPrimitiveShader() {};
 	~InstancedPrimitiveShader() {};
 	virtual ShaderPath GetShaderPath() override;
-	virtual void GetUniformLocation() override;
+	virtual void FetchUniformLocation() override;
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	void SetPosition(const GLBuffer* pPosition);
 	void SetColor(const Vector3& color);
@@ -114,7 +114,7 @@ public:
 	};
 
 	virtual ShaderPath GetShaderPath() override;
-	virtual void GetUniformLocation() override;
+	virtual void FetchUniformLocation() override;
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	void SetPosition(const GLBuffer* pPosition);
 	void SetVector(const GLBuffer* pVector);
@@ -139,7 +139,7 @@ public:
 	};
 
 	virtual ShaderPath GetShaderPath() override;
-	virtual void GetUniformLocation() override;
+	virtual void FetchUniformLocation() override;
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	void SetPosition(const GLBuffer* pPosition);
 	void SetModel(const Matrix4x4& value);

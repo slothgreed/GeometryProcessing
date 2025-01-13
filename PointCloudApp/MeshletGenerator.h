@@ -31,7 +31,7 @@ public:
 	};
 
 	virtual ShaderPath GetShaderPath();
-	void GetUniformLocation();
+	void FetchUniformLocation();
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
 	void SetPosition(GLBuffer* pBuffer);

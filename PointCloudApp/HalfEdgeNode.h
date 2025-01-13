@@ -6,6 +6,7 @@
 #include "MeshletGenerator.h"
 namespace KI
 {
+class Voxelizer;
 class ShapeDiameterFunction;
 class HalfEdgeNode : public RenderNode
 {
@@ -104,6 +105,7 @@ private:
 
 	MeshletGpu m_meshletGpu;
 	ShapeDiameterFunction* m_pShapeDiameterFunction;
+	Voxelizer* m_pVoxelizer;
 	struct UI
 	{
 		UI()
@@ -114,7 +116,8 @@ private:
 			, visibleMesh(true)
 			, visibleEdge(false)
 			, visibleVertex(false)
-			, visualizeNormal(false)
+			, visibleNormal(false)
+			, visibleVoxel(false)
 			, normalLength(1.0f)
 		{
 		}
@@ -125,7 +128,8 @@ private:
 		bool visibleMesh;
 		bool visibleEdge;
 		bool visibleVertex;
-		bool visualizeNormal;
+		bool visibleNormal;
+		bool visibleVoxel;
 		float normalLength;
 	};
 

@@ -35,7 +35,7 @@ private:
 		{
 		}
 		virtual ShaderPath GetShaderPath();
-		virtual void GetUniformLocation();
+		virtual void FetchUniformLocation();
 		void Execute(GLBuffer* pMapBuffer, GLBuffer* pNodeBuffer, int maxLevel);
 	private:
 
@@ -63,7 +63,7 @@ private:
 		~Shader() {};
 
 		virtual ShaderPath GetShaderPath();
-		virtual void GetUniformLocation();
+		virtual void FetchUniformLocation();
 		void Execute(GLBuffer* pNodeBuffer, GLBuffer* pChannelBuffer, GLBuffer* pSamplerBuffer, float timer);
 	private:
 		GLuint m_uniformTimer;
@@ -89,7 +89,7 @@ public:
 		virtual ~Shader() {};
 
 		virtual ShaderPath GetShaderPath();
-		virtual void GetUniformLocation() {};
+		virtual void FetchUniformLocation() {};
 
 		void Execute(GLBuffer* pNodeBuffer, GLBuffer* pSkinBuffer, int jointNum);
 	private:

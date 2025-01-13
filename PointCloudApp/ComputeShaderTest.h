@@ -22,7 +22,7 @@ private:
 		virtual ShaderPath GetShaderPath() override;
 
 		void Execute(const Vector<float>& in, Vector<float>& out);
-		virtual void GetUniformLocation() override;
+		virtual void FetchUniformLocation() override;
 	private:
 		int m_elementSize;
 		GLuint m_uniform;

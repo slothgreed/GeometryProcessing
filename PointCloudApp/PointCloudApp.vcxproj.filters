@@ -245,6 +245,9 @@
     <ClCompile Include="RenderTarget.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
+    <ClCompile Include="Voxelizer.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -450,6 +453,9 @@
     </ClInclude>
     <ClInclude Include="RenderTarget.h">
       <Filter>ソース ファイル\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Voxelizer.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

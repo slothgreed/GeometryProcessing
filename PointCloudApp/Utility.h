@@ -57,10 +57,25 @@ public:
 	~TypeConverter() {};
 
 	static Vector<Vector4> Convert4f(const Vector<Vector3>& data);
+	static Vector<unsigned int> CreateUIntBitArray(int size);
 private:
 
 };
 
+class UIntBool
+{
+public:
+	UIntBool(int size);
+	UIntBool(Vector<unsigned int>&& data) { m_data = std::move(data); }
+	~UIntBool() {};
+
+	bool True(int pos) const;
+	static int Size(int num);
+	const Vector<unsigned int>& Get() const { return m_data; }
+	int MemorySize() const;
+private:
+	Vector<unsigned int> m_data;
+};
 
 class glmUtil
 {

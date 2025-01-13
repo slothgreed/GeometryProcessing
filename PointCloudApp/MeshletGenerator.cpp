@@ -19,7 +19,7 @@ ShaderPath MeshletShader::GetShaderPath()
 	return path;
 }
 
-void MeshletShader::GetUniformLocation()
+void MeshletShader::FetchUniformLocation()
 {
 	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
 }

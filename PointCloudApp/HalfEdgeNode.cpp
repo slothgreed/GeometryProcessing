@@ -3,7 +3,7 @@
 #include "Utility.h"
 #include "MeshletGenerator.h"
 #include "ShapeDiameterFunction.h"
-
+#include "Voxelizer.h"
 namespace KI
 {
 
@@ -12,6 +12,7 @@ HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pSt
 	, m_pHalfEdge(pStruct)
 {
 	m_pShapeDiameterFunction = new ShapeDiameterFunction(this);
+	m_pVoxelizer = new Voxelizer(this);
 	BuildGLBuffer();
 	SetBoundBox(pStruct->CreateBDB());
 
@@ -107,7 +108,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		pSimpleShader->DrawArray(GL_POINTS, m_pHalfEdge->GetPositionNum());
 	}
 
-	if (m_ui.visualizeNormal) {
+	if (m_ui.visibleNormal) {
 		ShowNormal();
 	}
 
@@ -132,6 +133,9 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	//	pPrimitiveColorShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
 	//}
 
+	if (m_ui.visibleVoxel) {
+		m_pVoxelizer->Draw(pResource->GetCameraBuffer()->Handle());
+	}
 
 
 	if (m_ui.visibleMeshlet && m_meshletGpu.shader) {
@@ -230,8 +234,8 @@ void HalfEdgeNode::ShowUI()
 	ImGui::Checkbox("ShowVertex", &m_ui.visibleVertex);
 
 
-	ImGui::Checkbox("ShowNormal", &m_ui.visualizeNormal);
-	if (m_ui.visualizeNormal) {
+	ImGui::Checkbox("ShowNormal", &m_ui.visibleNormal);
+	if (m_ui.visibleNormal) {
 		ImGui::SliderFloat("NormalLength", &m_ui.normalLength, 0.0f, 1.0f);
 	}
 
@@ -252,10 +256,14 @@ void HalfEdgeNode::ShowUI()
 		m_meshletGpu.shader->Build();
 	}
 
-	m_pShapeDiameterFunction->ShowUI();
 	if (ImGui::Checkbox("ShowSDF", &m_ui.visibleSDF)) {
 		m_pShapeDiameterFunction->Execute();
 		BuildSDF();
+	}
+	m_pShapeDiameterFunction->ShowUI();
+
+	if (ImGui::Checkbox("ShowVoxel", &m_ui.visibleVoxel)) {
+		m_pVoxelizer->Execute(m_gpu.position->Handle(), m_gpu.faceIndexBuffer->Handle());
 	}
 
 }
