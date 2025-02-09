@@ -4,12 +4,12 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 layout(std430,binding = 0) buffer posBuffer
 {
-	vec3 position[];
+	vec4 position[];
 };
 
 layout(std430,binding = 1) buffer indexBuffer
 {
-	int indexs[];
+	uint indexs[];
 };
 
 layout(std430,binding = 2) buffer voxelBuffer
@@ -19,26 +19,20 @@ layout(std430,binding = 2) buffer voxelBuffer
 
 
 uniform float u_pitch;
-uniform ivec3 u_resolute;
+uniform int u_resolute;
 uniform vec3 u_min;
 uniform int u_triNum;
 
-void setBool(uint index)
-{
-	uint location = index / 32;
-	uint bit = 31 - (index % 32);
-	uint mask = 1 << bit | 0;
-	atomicOr(voxel[location], mask);
-}
 void main()
 {
 	uint triIdx = gl_GlobalInvocationID.x;
 	if(triIdx >= u_triNum) {return;}
 	
-	vec3 p0 = position[indexs[3 * triIdx + 0]] - u_min;
-	vec3 p1 = position[indexs[3 * triIdx + 1]] - u_min;
-	vec3 p2 = position[indexs[3 * triIdx + 2]] - u_min;
 	
+	vec3 p0 = position[indexs[3 * triIdx + 0]].xyz - u_min;
+	vec3 p1 = position[indexs[3 * triIdx + 1]].xyz - u_min;
+	vec3 p2 = position[indexs[3 * triIdx + 2]].xyz - u_min;
+
 	vec3 edge0 = p1 - p0;
 	vec3 edge1 = p2 - p1;
 	vec3 edge2 = p0 - p2;
@@ -52,9 +46,8 @@ void main()
 	float d2 = dot(normal,(vec3(u_pitch) - c) - p0);
 	vec3 bdbMin_ = min(min(p0,p1),p2);
 	vec3 bdbMax_ = max(max(p0,p1),p2);
-	ivec3 bdbMin = clamp(ivec3(bdbMin_ / u_pitch), ivec3(0),u_resolute);
-	ivec3 bdbMax = clamp(ivec3(bdbMax_ / u_pitch), ivec3(0),u_resolute);
-
+	ivec3 bdbMin = clamp(ivec3(bdbMin_ / u_pitch), ivec3(0),ivec3(u_resolute - 1));
+	ivec3 bdbMax = clamp(ivec3(bdbMax_ / u_pitch), ivec3(0),ivec3(u_resolute - 1));
 	vec2 xyEdge[3];
 	float xyDiff[3];
 	xyEdge[0] = vec2(-edge0.y, edge0.x);
@@ -84,7 +77,8 @@ void main()
 	zxDiff[0] = (-dot(zxEdge[0], vec2(p0.z, p0.x))) + max(0.0f, u_pitch * zxEdge[0].x) + max(0.0f, u_pitch * zxEdge[0].y);
 	zxDiff[1] = (-dot(zxEdge[1], vec2(p1.z, p1.x))) + max(0.0f, u_pitch * zxEdge[1].x) + max(0.0f, u_pitch * zxEdge[1].y);
 	zxDiff[2] = (-dot(zxEdge[2], vec2(p2.z, p2.x))) + max(0.0f, u_pitch * zxEdge[2].x) + max(0.0f, u_pitch * zxEdge[2].y);
-	
+
+
 	for(int i = bdbMin.x; i <= bdbMax.x; i++){
 	for(int j = bdbMin.y; j <= bdbMax.y; j++){
 	for(int k = bdbMin.z; k <= bdbMax.z; k++){
@@ -107,9 +101,11 @@ void main()
 		//if(dot(zxEdge[0],zxP) + zxDiff[0] < 0.0f){continue;}
 		//if(dot(zxEdge[1],zxP) + zxDiff[1] < 0.0f){continue;}
 		//if(dot(zxEdge[2],zxP) + zxDiff[2] < 0.0f){continue;}
-		//
-		uint location =	i +	j * u_resolute.x + k * u_resolute.x + u_resolute.y;
-		setBool(location);
-		break;
+		
+		uint location = i + j * u_resolute + k * u_resolute * u_resolute;
+		uint location2 = location / 32;
+		uint bit = location % 32;
+		uint mask = 1 << bit | 0;
+		atomicOr(voxel[location2], mask);
 	}}}
 } 

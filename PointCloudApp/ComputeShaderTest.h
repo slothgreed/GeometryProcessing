@@ -25,6 +25,7 @@ private:
 		virtual void FetchUniformLocation() override;
 	private:
 		int m_elementSize;
+		Vector3i m_dimension;
 		GLuint m_uniform;
 	};
 

@@ -1,6 +1,7 @@
 #include "Voxelizer.h"
 #include "HalfEdgeNode.h"
 #include "BDB.h"
+//#define DEBUG_VOXEL
 
 namespace KI
 {
@@ -15,30 +16,60 @@ int To1ArraySize(int resolution)
 }
 Voxelizer::Voxelizer(HalfEdgeNode* pNode)
 	: m_pNode(pNode)
-	, m_resolution(32)
+	, m_resolution(256)
+	, m_pCpuVoxel(new GLBuffer())
+	, m_pVec4PointBuffer(new GLBuffer())
 {
 	m_gpuVoxelizer.Build();
 }
 
 Voxelizer::~Voxelizer()
 {
+	delete m_pCpuVoxel;
 }
 
-void Voxelizer::Execute(GLuint pointBuffer, GLuint indexBuffer)
+vec3 getVoxel(uint location, int bitIndex)
 {
-	auto resultGPU = m_gpuVoxelizer.Execute(m_pNode->GetBoundBox(), m_resolution, pointBuffer, indexBuffer, m_pNode->GetData()->GetFaceNum());
+	int index = int(location) * 32 + bitIndex;
+	int z = index / (32 * 32);
+	int y = (index / 32) % 32;
+	int x = index % 32;
+	return vec3(x, y, z);
+}
 
-	auto indexs = m_pNode->GetData()->CreateIndexBufferData();
-	std::vector<unsigned int> resultCPU(To1ArraySize(m_resolution));
-	for (int i = 0; i < m_pNode->GetData()->GetFaceNum(); i++) {
-		ExecuteCPU(m_pNode->GetBoundBox(), i, m_pNode->GetData()->GetPosition(), indexs, resultCPU);
-	}
-	
-	for (int i = 0; i < resultCPU.size(); i++) {
-		if (resultCPU[i] != resultGPU[i]) {
-			int a = 0;
+
+void Voxelizer::Execute(GLBuffer* pointBuffer, GLBuffer* indexBuffer)
+{
+	if (m_pVec4PointBuffer->Num() == 0) {
+		if (pointBuffer->ComponentSize() == 3) {
+			Vector<Vector3> point(pointBuffer->Num());
+			pointBuffer->GetBufferData(point);
+			auto vec4 = TypeConverter::Convert4f(point);
+			m_pVec4PointBuffer->Create(vec4);
 		}
 	}
+
+	auto resultGPU = m_gpuVoxelizer.Execute(m_pNode->GetBoundBox(), m_resolution, m_pVec4PointBuffer, indexBuffer, m_pNode->GetData()->GetFaceNum());
+
+#ifdef DEBUG_VOXEL
+	// CPU Debug
+	{
+		auto indexs = m_pNode->GetData()->CreateIndexBufferData();
+		std::vector<unsigned int> resultCPU(To1ArraySize(m_resolution));
+
+		for (int i = 0; i < m_pNode->GetData()->GetFaceNum(); i++) {
+			ExecuteCPU(m_pNode->GetBoundBox(), i, m_pNode->GetData()->GetPosition(), indexs, resultCPU);
+		}
+
+		m_pCpuVoxel->Create(resultCPU);
+	
+		for (int i = 0; i < resultCPU.size(); i++) {
+			if (resultCPU[i] != resultGPU[i]) {
+				int a = 0;
+			}
+		}
+	}
+#endif // DEBUG_VOXEL
 }
 
 void Voxelizer::ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3>& position, const std::vector<unsigned int>& indexs, std::vector<unsigned int>& result)
@@ -46,11 +77,9 @@ void Voxelizer::ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3
 	if(triIdx >= m_pNode->GetData()->GetFaceNum()) {return;}
 	
 	float u_pitch = bdb.MaxLength() / m_resolution;
-	auto u_resolute = ToResolute3i(m_resolution);
 	vec3 p0 = position[indexs[3 * triIdx + 0]] - bdb.Min();
 	vec3 p1 = position[indexs[3 * triIdx + 1]] - bdb.Min();
 	vec3 p2 = position[indexs[3 * triIdx + 2]] - bdb.Min();
-	
 	vec3 edge0 = p1 - p0;
 	vec3 edge1 = p2 - p1;
 	vec3 edge2 = p0 - p2;
@@ -64,8 +93,8 @@ void Voxelizer::ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3
 	float d2 = dot(normal,(vec3(u_pitch) - c) - p0);
 	vec3 bdbMin_ = min(min(p0,p1),p2);
 	vec3 bdbMax_ = max(max(p0,p1),p2);
-	ivec3 bdbMin = clamp(ivec3(bdbMin_ / u_pitch), ivec3(0),u_resolute);
-	ivec3 bdbMax = clamp(ivec3(bdbMax_ / u_pitch), ivec3(0),u_resolute);
+	ivec3 bdbMin = clamp(ivec3(bdbMin_ / u_pitch), ivec3(0),ivec3(m_resolution - 1));
+	ivec3 bdbMax = clamp(ivec3(bdbMax_ / u_pitch), ivec3(0),ivec3(m_resolution - 1));
 
 	vec2 xyEdge[3];
 	float xyDiff[3];
@@ -120,13 +149,18 @@ void Voxelizer::ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3
 		//if(dot(zxEdge[0],zxP) + zxDiff[0] < 0.0f){continue;}
 		//if(dot(zxEdge[1],zxP) + zxDiff[1] < 0.0f){continue;}
 		//if(dot(zxEdge[2],zxP) + zxDiff[2] < 0.0f){continue;}
-		//
-		uint location =	i +	j * u_resolute.x + k * u_resolute.x + u_resolute.y;
-
+		
+		uint location = i + j * m_resolution + k * m_resolution * m_resolution;
 		uint location2 = location / 32;
-		uint bit = 31 - (location % 32);
+		uint bit = location % 32;
 		uint mask = 1 << bit | 0;
 		result[location2] |= mask;
+
+		auto v = getVoxel(location2, bit);
+		if (v.x == i && v.y == j && v.z == k) {
+		} else {
+			int a = 0;
+		}
 	}}}
 }
 void Voxelizer::ShowUI()
@@ -142,30 +176,39 @@ void Voxelizer::ComputeShader::FetchUniformLocation()
 	m_uniform[UNIFORM::TRIANGLENUM] = GetUniformLocation("u_triNum");
 }
 
-std::vector<unsigned int> Voxelizer::ComputeShader::Execute(const BDB& bdb, int resolution, GLuint positionBuffer, GLuint indexBuffer, int triangleNum)
+std::vector<unsigned int> Voxelizer::ComputeShader::Execute(const BDB& bdb, int resolution, GLBuffer* pointBuffer, GLBuffer* indexBuffer, int triangleNum)
 {
 	m_pVoxelBuffer->Create(To1ArraySize(resolution), sizeof(unsigned int));
 	m_pVoxelBuffer->SetData(0);
 	Use();
 	BindUniform(m_uniform[UNIFORM::MIN], bdb.Min());
 	BindUniform(m_uniform[UNIFORM::PITCH], bdb.MaxLength() / resolution);
-	BindUniform(m_uniform[UNIFORM::RESOLUTE], ToResolute3i(resolution));
+	BindUniform(m_uniform[UNIFORM::RESOLUTE], resolution);
 	BindUniform(m_uniform[UNIFORM::TRIANGLENUM], triangleNum);
-	BindShaderStorage(0, positionBuffer);
-	BindShaderStorage(1, indexBuffer);
+	BindShaderStorage(0, pointBuffer->Handle());
+	BindShaderStorage(1, indexBuffer->Handle());
 	BindShaderStorage(2, m_pVoxelBuffer->Handle());
-	Dispatch(triangleNum, 1, 1);
+	Dispatch(IComputeShader::GetDispatchNum1D(Vector3i(1, 1, 1), triangleNum));
 
+	glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+#ifdef DEBUG_VOXEL
 	std::vector<unsigned int> result(m_pVoxelBuffer->Num());
 	m_pVoxelBuffer->GetBufferData(result.data(), result.size() * sizeof(unsigned int));
 	return result;
+#else
+	return std::vector<unsigned int>();
+#endif
+
 }
 
-void Voxelizer::Draw(int camera)
+void Voxelizer::Draw(GLBuffer* pointBuffer, GLBuffer* indexBuffer, int camera)
 {
 	if (!m_drawer.IsActive()) { m_drawer.Build(); }
-	if (!m_gpuVoxelizer.m_pVoxelBuffer) { return; }
+	//if (!m_gpuVoxelizer.m_pVoxelBuffer) { return; }
+
+	//Execute(pointBuffer, indexBuffer);
 	m_drawer.Draw(camera, m_pNode->GetMatrix(), m_pNode->GetBoundBox(), m_resolution, m_gpuVoxelizer.m_pVoxelBuffer);
+	//m_drawer.Draw(camera, m_pNode->GetMatrix(), m_pNode->GetBoundBox(), m_resolution, m_pCpuVoxel);
 }
 
 Voxelizer::ComputeShader::ComputeShader()
@@ -194,6 +237,7 @@ void Voxelizer::MeshShader::FetchUniformLocation()
 	m_uniform[UNIFORM::MIN] = GetUniformLocation("u_min");
 	m_uniform[UNIFORM::MODEL] = GetUniformLocation("u_Model");
 	m_uniform[UNIFORM::RESOLUTE] = GetUniformLocation("u_resolute");
+	m_uniform[UNIFORM::ARRAYSIZE] = GetUniformLocation("u_arraySize");
 }
 ShaderPath Voxelizer::MeshShader::GetShaderPath()
 {
@@ -211,10 +255,11 @@ void Voxelizer::MeshShader::Draw(int camera, const Matrix4x4& matrix, const BDB&
 {
 
 	Use();
-	BindUniform(m_uniform[UNIFORM::RESOLUTE], ToResolute3i(resolution));
+	BindUniform(m_uniform[UNIFORM::RESOLUTE], resolution);
 	BindUniform(m_uniform[UNIFORM::PITCH], bdb.MaxLength() / resolution);
 	BindUniform(m_uniform[UNIFORM::MIN], bdb.Min());
 	BindUniform(m_uniform[UNIFORM::MODEL], matrix);
+	BindUniform(m_uniform[UNIFORM::ARRAYSIZE], voxelBuffer->Num());
 	BindShaderStorage(0, camera);
 	BindShaderStorage(1, voxelBuffer->Handle());
 	DrawMeshTasks(0, voxelBuffer->Num());

@@ -92,10 +92,10 @@ public:
 
 	virtual void FetchUniformLocation() = 0;
 
+	static Vector3i GetDispatchNum1D(const Vector3i& localSize, int value);
 	virtual void Build();
 	void Dispatch(GLuint x, GLuint y, GLuint z);
-protected:
-	glm::ivec3 m_dimension;
+	void Dispatch(const Vector3i& value);
 private:
 
 };

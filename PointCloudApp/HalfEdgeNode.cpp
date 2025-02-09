@@ -134,7 +134,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	//}
 
 	if (m_ui.visibleVoxel) {
-		m_pVoxelizer->Draw(pResource->GetCameraBuffer()->Handle());
+		m_pVoxelizer->Draw(m_gpu.position.get(), m_gpu.faceIndexBuffer.get(), pResource->GetCameraBuffer()->Handle());
 	}
 
 
@@ -263,7 +263,7 @@ void HalfEdgeNode::ShowUI()
 	m_pShapeDiameterFunction->ShowUI();
 
 	if (ImGui::Checkbox("ShowVoxel", &m_ui.visibleVoxel)) {
-		m_pVoxelizer->Execute(m_gpu.position->Handle(), m_gpu.faceIndexBuffer->Handle());
+		m_pVoxelizer->Execute(m_gpu.position.get(), m_gpu.faceIndexBuffer.get());
 	}
 
 }

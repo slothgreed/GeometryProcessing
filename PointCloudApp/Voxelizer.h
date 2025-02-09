@@ -15,9 +15,9 @@ public:
 	virtual ~Voxelizer();
 
 	virtual ALGORITHM_TYPE GetType() override { return ALGORITHM_VOXELIZER; }
-	void Execute(GLuint pointBuffer, GLuint indexBuffer);
+	void Execute(GLBuffer* pointBuffer, GLBuffer* indexBuffer);
 
-	void Draw(int camera);
+	void Draw(GLBuffer* pointBuffer, GLBuffer* indexBuffer, int camera);
 	virtual void ShowUI();
 
 private:
@@ -31,6 +31,7 @@ private:
 			MODEL,
 			PITCH,
 			RESOLUTE,
+			ARRAYSIZE,
 			NUM
 		};
 		virtual void FetchUniformLocation();
@@ -59,10 +60,12 @@ private:
 		virtual ShaderPath GetShaderPath();
 
 		GLBuffer* m_pVoxelBuffer;
-		std::vector<unsigned int> Execute(const BDB& bdb, int resolution, GLuint positionBuffer, GLuint indexBuffer, int triangleNum);
+		std::vector<unsigned int> Execute(const BDB& bdb, int resolution, GLBuffer* pointBuffer, GLBuffer* indexBuffer, int triangleNum);
 		GLuint m_uniform[UNIFORM::NUM];
 	};
 
+	GLBuffer* m_pVec4PointBuffer;
+	GLBuffer* m_pCpuVoxel;
 	ComputeShader m_gpuVoxelizer;
 	MeshShader m_drawer;
 	HalfEdgeNode* m_pNode;

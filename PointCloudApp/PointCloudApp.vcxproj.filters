@@ -51,6 +51,9 @@
     <Filter Include="ソース ファイル\Utility\PointCloud">
       <UniqueIdentifier>{2a44b236-d1b0-4470-9761-755616275d4a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Utility\CADScene">
+      <UniqueIdentifier>{20aa09f7-84d0-4b8a-ad71-60f9912f1806}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -247,6 +250,9 @@
     </ClCompile>
     <ClCompile Include="Voxelizer.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="CADSceneLoader.cpp">
+      <Filter>ソース ファイル\Utility\CADScene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -456,6 +462,9 @@
     </ClInclude>
     <ClInclude Include="Voxelizer.h">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="CADSceneLoader.h">
+      <Filter>ソース ファイル\Utility\CADScene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

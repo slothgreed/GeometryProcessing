@@ -59,6 +59,8 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 
 		GLchar* errorLog = new GLchar[maxLength];
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
+		String str = errorLog;
+		printf(str.data());
 		assert(0);
 		delete[] errorLog;
 		errorLog = nullptr;
@@ -86,6 +88,7 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint geomId, GLuint fragId)
 		glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &maxLength);
 
 		GLchar* errorLog = new GLchar[maxLength];
+		String str = errorLog;
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
 		assert(0);
 		delete[] errorLog;

@@ -208,7 +208,6 @@ void IMeshShader::Build()
 }
 void IComputeShader::Build()
 {
-	GLAPIExt::Info()->GetMaxComputeLocalSize();
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto shaderPath = GetShaderPath();
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
@@ -222,6 +221,11 @@ void IComputeShader::Build()
 
 	FetchUniformLocation();
 	OUTPUT_GLERROR;
+}
+
+Vector3i IComputeShader::GetDispatchNum1D(const Vector3i& localSize, int value)
+{
+	return Vector3i((value + localSize.x - 1) / localSize.x, 1, 1);
 }
 
 int IShader::GetUniformLocation(const char* str)
@@ -282,6 +286,12 @@ void IShader::BindShaderStorage(int location, int handle)
 void IComputeShader::Dispatch(GLuint x, GLuint y, GLuint z)
 {
 	glDispatchCompute(x, y, z);
+	OUTPUT_GLERROR;
+}
+
+void IComputeShader::Dispatch(const Vector3i& value)
+{
+	glDispatchCompute(value.x, value.y, value.z);
 	OUTPUT_GLERROR;
 }
 

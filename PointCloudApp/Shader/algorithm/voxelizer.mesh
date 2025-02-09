@@ -32,10 +32,10 @@ layout (location = 0) out PerVertexData
   vec4 color;
 } v_out[];
 
-uniform ivec3 u_resolute;
+uniform int u_resolute;
 uniform float u_pitch;
 uniform vec3 u_min;
-
+uniform int u_arraySize;
 uniform mat4 u_Model;
 
 bool hasVoxel(uint location, int bitIndex)
@@ -46,89 +46,134 @@ bool hasVoxel(uint location, int bitIndex)
 vec3 getVoxel(uint location, int bitIndex)
 {
 	int index = int(location) * 32 + bitIndex;
-	int x = index / (u_resolute.y * u_resolute.z);
-	int y = (index / u_resolute.y) % u_resolute.z;
-	int z = index % u_resolute.z;
+	int z = index / (u_resolute * u_resolute);
+	int y = (index / u_resolute) % u_resolute;
+	int x = index % u_resolute;
 	return vec3(x,y,z);
 }
 
+vec3 getNormal(vec4 v0, vec4 v1, vec4 v2){
+	return cross((v1 - v0).xyz,(v2 - v0).xyz);
+}
 
+bool isOuter(vec3 normal){
+	return dot(vec3(0,0,-1),normal) > 0;
+	return false;
+}
 void main()
 {
 
 	mat4 mvp = camera.VP * u_Model;
 	uint location = gl_GlobalInvocationID.x;
 	int num = 0;
-	for(int i = 0; i < 32; i++) {
-		if(!hasVoxel(location,i)) continue;
-		vec3 pos = getVoxel(location,i) * u_pitch + u_min;
+	int vOffset = 0;
+	int indexs = 0;
+	int inNum = 0;
+	for(int localSize = 0; localSize < 32; localSize++) 
+	{
+		if(!hasVoxel(location,localSize)) continue;
+		vec3 pos = getVoxel(location,localSize) * u_pitch + u_min;
+		vec4 v0 = mvp * vec4(pos.xyz,1.0);
+		vec4 v1 = mvp * vec4(pos.xyz + vec3(u_pitch,0.0,0.0),1.0);
+		vec4 v2 = mvp * vec4(pos.xyz + vec3(u_pitch,u_pitch,0.0),1.0);
+		vec4 v3 = mvp * vec4(pos.xyz + vec3(0.0,u_pitch,0.0),1.0);
+		vec4 v4 = mvp * vec4(pos.xyz + vec3(0.0,0.0,u_pitch),1.0);
+		vec4 v5 = mvp * vec4(pos.xyz + vec3(u_pitch,0.0,u_pitch),1.0);
+		vec4 v6 = mvp * vec4(pos.xyz + vec3(u_pitch,u_pitch,u_pitch),1.0);
+		vec4 v7 = mvp * vec4(pos.xyz + vec3(0.0,u_pitch,u_pitch),1.0);
+
+
+
 		int vOffset = 8 * num;
-		gl_MeshVerticesNV[vOffset + 0].gl_Position = mvp * vec4(pos.xyz,1.0);
-		gl_MeshVerticesNV[vOffset + 1].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,0.0,0.0),1.0);
-		gl_MeshVerticesNV[vOffset + 2].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,u_pitch,0.0),1.0);
-		gl_MeshVerticesNV[vOffset + 3].gl_Position = mvp * vec4(pos.xyz + vec3(0.0,u_pitch,0.0),1.0);
-		gl_MeshVerticesNV[vOffset + 4].gl_Position = mvp * vec4(pos.xyz + vec3(0.0,0.0,u_pitch),1.0);
-		gl_MeshVerticesNV[vOffset + 5].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,0.0,u_pitch),1.0);
-		gl_MeshVerticesNV[vOffset + 6].gl_Position = mvp * vec4(pos.xyz + vec3(u_pitch,u_pitch,u_pitch),1.0);
-		gl_MeshVerticesNV[vOffset + 7].gl_Position = mvp * vec4(pos.xyz + vec3(0.0,u_pitch,u_pitch),1.0);
-
-		int indexs = 36 * num;
-		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
-														
-		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
-														
-		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
-														
-		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
-														
-		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
-														
-		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
-		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_MeshVerticesNV[vOffset + 0].gl_Position = v0;
+		gl_MeshVerticesNV[vOffset + 1].gl_Position = v1;
+		gl_MeshVerticesNV[vOffset + 2].gl_Position = v2;
+        gl_MeshVerticesNV[vOffset + 3].gl_Position = v3;
+        gl_MeshVerticesNV[vOffset + 4].gl_Position = v4;
+        gl_MeshVerticesNV[vOffset + 5].gl_Position = v5;
+        gl_MeshVerticesNV[vOffset + 6].gl_Position = v6;
+        gl_MeshVerticesNV[vOffset + 7].gl_Position = v7;
 		
-		indexs = 8 * num;
-		v_out[indexs++].color =  meshletcolors[0];
-		v_out[indexs++].color =  meshletcolors[1];
-		v_out[indexs++].color =  meshletcolors[2];
-		v_out[indexs++].color =  meshletcolors[3];
-		v_out[indexs++].color =  meshletcolors[4];
-		v_out[indexs++].color =  meshletcolors[5];
-		v_out[indexs++].color =  meshletcolors[6];
-		v_out[indexs++].color =  meshletcolors[7];
+		v_out[vOffset + 0].color =  meshletcolors[0];
+		v_out[vOffset + 1].color =  meshletcolors[1];
+		v_out[vOffset + 2].color =  meshletcolors[2];
+		v_out[vOffset + 3].color =  meshletcolors[3];
+		v_out[vOffset + 4].color =  meshletcolors[4];
+		v_out[vOffset + 5].color =  meshletcolors[5];
+		v_out[vOffset + 6].color =  meshletcolors[6];
+		v_out[vOffset + 7].color =  meshletcolors[7];
 
+		if(!isOuter(getNormal(v0,v3,v2))){
+		// front
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset; 
+		inNum++;
+		}		
+		
+		if(!isOuter(getNormal(v0,v4,v7))){
+		// left
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
+		inNum++;
+		}
+		
+
+		if(!isOuter(getNormal(v4,v5,v6))){
+		// back
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		inNum++;
+		}
+		
+		if(!isOuter(getNormal(v1,v2,v6))){
+        // right
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
+		inNum++;
+		}
+
+		if(!isOuter(getNormal(v2,v3,v7))){
+		// top
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 3 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 2 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 7 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 6 + vOffset;  
+		inNum++;
+		}
+		
+		if(!isOuter(getNormal(v1,v5,v4))){
+		// bottom
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 5 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 1 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 4 + vOffset;  
+		gl_PrimitiveIndicesNV[indexs++] = 0 + vOffset;  
+		inNum++;	
+		}
 		num++;
 	}
 	
-	gl_PrimitiveCountNV = num * 12;
+	gl_PrimitiveCountNV = inNum * 2;
+	//gl_PrimitiveCountNV = num * 12;
 
 	
 }

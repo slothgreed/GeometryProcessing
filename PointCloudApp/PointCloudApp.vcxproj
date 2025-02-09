@@ -108,9 +108,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;CSF_SUPPORT_ZLIB=1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\develop\Nvidia\nvpro_core\fileformats;E:\develop\Nvidia\nvpro_core;$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc;$(SolutionDir)extlibs\nvpro_core\gl_cadscene_rendertechniques\build;$(SolutionDir)extlibs\nvpro_core\gl_cadscene_rendertechniques;$(SolutionDir)extlibs\nvpro_core\nvpro_core;$(SolutionDir)extlibs\nvpro_core\nvpro_core\nvp;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\zlib;$(SolutionDir)extlibs\nvpro_core\gl_cadscene_rendertechniques\build\nvpro_core\third_party;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\glfw\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\imgui;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\implot;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\fmt\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\glm;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\thread_pool\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\stb;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\tinygltf;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\tinyobjloader;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\cgltf;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\vma\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\NVTX\c\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\dxh\include\directx</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
@@ -118,8 +118,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64;E:\develop\Microsoft\glTF-SDK\Built\Out\v141\x64\Debug\GLTFSDK</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;GLTFSDK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\nvpro_core;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64;E:\develop\Microsoft\glTF-SDK\Built\Out\v141\x64\Debug\GLTFSDK</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;GLTFSDK.lib;glu32.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(Configuration)\zlibstatic.lib;nvpro_core\third_party\glfw\src\$(Configuration)\glfw3.lib;nvpro_core\third_party\$(Configuration)\imgui.lib;nvpro_core\third_party\$(Configuration)\implot.lib;nvpro_core\third_party\$(Configuration)\fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,9 +150,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;CSF_SUPPORT_ZLIB=1;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\develop\Nvidia\nvpro_core\fileformats;E:\develop\Nvidia\nvpro_core;$(SolutionDir)extlibs\glfw-3.3.bin.WIN64\include;$(SolutionDir)extlibs\glew-2.1.0\include;$(SolutionDir)extlibs\glm-0.9.9.6\glm;$(SolutionDir)extlibs\eigen-src;$(SolutionDir)extlibs\stb;$(SolutionDir)extlibs\imgui;$(SolutionDir)$(RootNamespace);E:\develop\Microsoft\glTF-SDK\GLTFSDK\Inc;$(SolutionDir)extlibs\nvpro_core\nvpro_core\nvp;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\zlib;$(SolutionDir)extlibs\nvpro_core\gl_cadscene_rendertechniques\build\nvpro_core\third_party;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\glfw\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\imgui;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\implot;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\fmt\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\glm;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\thread_pool\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\stb;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\tinygltf;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\tinyobjloader;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\cgltf;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\vma\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\NVTX\c\include;$(SolutionDir)extlibs\nvpro_core\nvpro_core\third_party\dxh\include\directx</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
@@ -162,8 +162,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64;E:\develop\Microsoft\glTF-SDK\Built\Out\v141\x64\Release\GLTFSDK</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;GLTFSDK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\extlibs\glfw-3.3.bin.WIN64\lib-vc2015;$(SolutionDir)\extlibs\nvpro_core;$(SolutionDir)\extlibs\glew-2.1.0\lib\Release\x64;E:\develop\Microsoft\glTF-SDK\Built\Out\v141\x64\Release\GLTFSDK</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glew32.lib;opengl32.lib;GLTFSDK.lib;glu32.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(Configuration)\zlibstatic.lib;nvpro_core\third_party\glfw\src\$(Configuration)\glfw3.lib;nvpro_core\third_party\$(Configuration)\imgui.lib;nvpro_core\third_party\$(Configuration)\implot.lib;nvpro_core\third_party\$(Configuration)\fmt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -179,6 +179,7 @@
     <ClCompile Include="..\extlibs\implot\implot_items.cpp" />
     <ClCompile Include="AlphaShape.cpp" />
     <ClCompile Include="BDB.cpp" />
+    <ClCompile Include="CADSceneLoader.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
     <ClCompile Include="DelaunayGenerator.cpp" />
@@ -245,6 +246,7 @@
     <ClInclude Include="..\extlibs\implot\implot.h" />
     <ClInclude Include="..\extlibs\implot\implot_internal.h" />
     <ClInclude Include="AlphaShape.h" />
+    <ClInclude Include="CADSceneLoader.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
     <ClInclude Include="DelaunayGenerator.h" />
     <ClInclude Include="FrameBuffer.h" />
