@@ -55,30 +55,17 @@ void ShapeDiameterFunction::Execute()
 		const auto& position = pHalfEdge->GetPosition()[i];
 		const auto& normal = pHalfEdge->GetNormal(i);
 		auto circle = CraeteSamplingCircle(position, -normal, 10, 1, 10);
-		//float value = Gaccho::rnd(0, 99);
 		float value = 0.0f;
 		float intersectNum = 0;
 		for (int k = 0; k < circle.size(); k++) {
-			float minValue = std::numeric_limits<float>::max();
-			Ray::IntersectResult min;
-			for (int j = 0; j < pHalfEdge->GetFaceNum(); j++) {
-				auto face = pHalfEdge->GetFace(j);
-				auto result = Ray(position, glm::normalize(circle[k] - position)).Intersect(face.pos0, face.pos1, face.pos2, false);
-				if (result.success) {
-					if (result.distance < minValue) {
-						minValue = result.distance;
-						min = result;
-					}
-					intersectNum++;
-				}
-			}
-
-			if (min.success) {
-				value += min.distance;
+			Ray ray(position, glm::normalize(circle[k] - position));
+			auto intersect = m_pHalfEdge->GetBVH()->IntersectMinFace(ray);
+			if (intersect.IsSuccess()) {
+				value += intersect.distance;
+				intersectNum++;
 			}
 		}
 
-		intersectNum = 1;
 		m_result[i] = value / intersectNum;
 		m_maxValue = m_result[i] < m_maxValue ? m_maxValue : m_result[i];
 	}
@@ -99,35 +86,22 @@ Vector<Vector3> ShapeDiameterFunction::GetResultVertexColor() const
 }
 void ShapeDiameterFunction::ShowUI()
 {
-	if (ImGui::SliderInt("ShapeDiameterFunctionDebug",&m_debugIndex,-1,m_pHalfEdge->GetData()->GetPositionNum())) {
+	if (ImGui::SliderInt("ShapeDiameterFunctionDebug",&m_debugIndex,-1,m_pHalfEdge->GetData()->GetPositionNum(),"%d", ImGuiSliderFlags_Logarithmic)) {
 		if (m_debugIndex < 0) { return; }
 		auto pRays = std::make_shared<Primitive>();
 		Vector<Vector3> pos;
-		for (int i = m_debugIndex; i < m_debugIndex + 1; i++) {
+		for (int i = m_debugIndex; i < m_debugIndex; i++) {
 			auto pHalfEdge = m_pHalfEdge->GetData();
 			const auto& position = pHalfEdge->GetPosition()[i];
 			const auto& normal = pHalfEdge->GetNormal(i);
 			auto circle = CraeteSamplingCircle(position, -normal, 10, 1, 10);
 			float value = 0.0f;
 			for (int k = 0; k < circle.size(); k++) {
-				float minValue = std::numeric_limits<float>::max();
-				Ray::IntersectResult min;
-				Vector3 source;
-				for (int j = 0; j < pHalfEdge->GetFaceNum(); j++) {
-					auto face = pHalfEdge->GetFace(j);
-					auto result = Ray(position, glm::normalize(circle[k] - position)).Intersect(face.pos0, face.pos1, face.pos2, false);
-					if (result.success) {
-						if (result.distance < minValue) {
-							minValue = result.distance;
-							min = result;
-							source = position;
-						}
-					}
-				}
-
-				if (min.success) {
-					pos.push_back(source);
-					pos.push_back(min.position);
+				Ray ray(position, glm::normalize(circle[k] - position));
+				auto intersect = m_pHalfEdge->GetBVH()->IntersectMinFace(ray);
+				if (intersect.IsSuccess()) {
+					pos.push_back(position);
+					pos.push_back(intersect.position);
 				} else {
 					pos.push_back(position);
 					pos.push_back(position + (circle[k] - position) * 100.0f);

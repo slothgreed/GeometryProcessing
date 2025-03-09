@@ -13,6 +13,7 @@ public:
 	static RenderNode* Load(const String& name);
 private:
 };
+
 }
 
 #endif CADSCENE_LOADER_H

@@ -32,6 +32,20 @@ enum TEXTURE_TYPE
 	TEXTURE_CUBE_MAP = GL_TEXTURE_CUBE_MAP
 };
 
+struct DrawArgs
+{
+	DrawArgs()
+		: primitive(PRIMITIVE_POINTS), dataType(DATA_UINT), offset(0), count(0), baseVertex(0)
+	{
+	}
+	PRIMITIVE_TYPE primitive;
+	uint count;
+	DATA_TYPE dataType;
+	uint offset;
+	uint baseVertex;
+};
+
+
 }
 
 #endif GL_TYPES_H

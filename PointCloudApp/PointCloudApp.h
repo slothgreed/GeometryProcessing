@@ -7,6 +7,7 @@
 #include "Profiler.h"
 namespace KI
 {
+class CSFRenderNode;
 class HalfEdgeNode;
 class PointCloudNode;
 class InstancedPrimitiveNode;
@@ -37,6 +38,7 @@ private:
 	PickResult m_pick;
 	UI m_ui;
 	Shared<RenderNode> CreateGLTFNodeTest();
+	Shared<RenderNode> CreateCSFRenderNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<PointCloudNode> CreateDelaunayTest();
 	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();

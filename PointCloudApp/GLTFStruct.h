@@ -136,6 +136,22 @@ struct GLTFMaterial
 		Mask,
 	};
 
+	GLTFMaterial()
+		:baseTexture(0)
+		, metallic(0.0f)
+		, roughness(0.0f)
+		, metalRoughnessTexture(-1)
+		, normalTexture(-1)
+		, occlusionTexture(-1)
+		, emissiveTexture(-1)
+		, normalScale(1.0f)
+		, alphaCuttoff(0.0f)
+		, alphaMode(0)
+		, doubleSided(0)
+	{
+
+	}
+
 	Vector4 baseColor;		// 16
 	Vector4 emissiveColor;	// 32
 	int baseTexture;		// 36
@@ -171,6 +187,8 @@ struct GLTFPrimitive
 
 struct MeshBuffer
 {
+	MeshBuffer(){}
+	void Init() { pVertex = std::make_unique<GLBuffer>(); pIndex = std::make_unique<GLBuffer>(); }
 	VertexFormats format;
 	Unique<GLBuffer> pVertex;
 	Unique<GLBuffer> pIndex;

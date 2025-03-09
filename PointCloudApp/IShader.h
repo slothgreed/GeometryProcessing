@@ -38,12 +38,13 @@ public:
 	virtual void Build() = 0;
 	virtual ShaderPath GetShaderPath() = 0;
 	bool IsActive() { return m_programId != 0; }
-	void Use();
+	virtual void Use();
 	void UnUse();
 	void Delete();
 	int GetUniformLocation(const char* str);
 	void Bind(int location, GLBuffer* pBuffer);
 	void BindUniform(int location, const Matrix4x4& value);
+	void BindUniform(int location, const Vector2i& value);
 	void BindUniform(int location, const Vector3i& value);
 	void BindUniform(int location, const Vector3& value);
 	void BindUniform(int location, float value);
@@ -68,7 +69,7 @@ public:
 	virtual void Build();
 	virtual void FetchUniformLocation() = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
-
+	void BindIndexBuffer(const GLBuffer* pBuffer);
 	void SetVertexFormat(const VertexFormats& format);
 	void SetVertexFormat(const VertexFormat& format);
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
@@ -78,6 +79,8 @@ public:
 	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, int count);
 	void DrawArray(GLuint primitiveType, int offset, int count);
+	void DrawElementsBaseVertex(const DrawArgs& args);
+	void DrawElementsBaseVertex(GLuint primitiveType, uint count, GLuint type, void* offset, uint baseVertex);
 private:
 	GLuint BuildVertexFrag(const String& vert, const String& frag);
 	GLuint BuildVertexGeomFrag(const String& vert, const String& geom, const String& frag);
@@ -88,7 +91,7 @@ class IComputeShader : public IShader
 {
 public:
 	IComputeShader() {};
-	~IComputeShader() {};
+	virtual ~IComputeShader() {};
 
 	virtual void FetchUniformLocation() = 0;
 
@@ -104,7 +107,7 @@ class IMeshShader : public IShader
 {
 public:
 	IMeshShader() {};
-	~IMeshShader() {};
+	virtual ~IMeshShader() {};
 
 	virtual void FetchUniformLocation() {};
 	virtual void Build();
@@ -126,9 +129,9 @@ public:
 		VEC4
 	};
 
-	TextureShader(Type type):
-	m_type(type) {};
-	~TextureShader() {};
+	TextureShader(Type type)
+		: m_type(type) {};
+	virtual ~TextureShader() {};
 	virtual ShaderPath GetShaderPath();
 	virtual void FetchUniformLocation();
 	virtual void SetCamera(const GLBuffer* pBuffer) {};

@@ -20,8 +20,11 @@ void ShaderTable::Build()
 	m_pInstancedShader = std::make_shared<InstancedPrimitiveShader>();
 	m_pInstancedShader->Build();
 
-	m_pPointPickShader = std::make_shared<PointPickShader>();
-	m_pPointPickShader->Build();
+	m_pPointPickByPrimitive = std::make_shared<PointPickShader>(PointPickShader::PrimitiveID);
+	m_pPointPickByPrimitive->Build();
+
+	m_pPointPickByID = std::make_shared<PointPickShader>(PointPickShader::PickID);
+	m_pPointPickByID->Build();
 
 	m_pTextureUINTShader = std::make_shared<TextureShader>(TextureShader::UINT);
 	m_pTextureUINTShader->Build();

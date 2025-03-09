@@ -19,7 +19,7 @@ public:
 	};
 
 	virtual ShaderPath GetShaderPath() override;
-
+	
 	void FetchUniformLocation();
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
@@ -128,7 +128,14 @@ private:
 class PointPickShader : public IShadingShader
 {
 public:
-	PointPickShader() {};
+
+	enum IDType
+	{
+		PrimitiveID,
+		PickID,
+	};
+
+	PointPickShader(IDType type):m_type(type) {};
 	~PointPickShader() {};
 
 	enum UNIFORM
@@ -142,9 +149,12 @@ public:
 	virtual void FetchUniformLocation() override;
 	virtual void SetCamera(const GLBuffer* pBuffer);
 	void SetPosition(const GLBuffer* pPosition);
+	void SetPosition(VertexFormat format, const GLBuffer* pPosition);
 	void SetModel(const Matrix4x4& value);
 	void SetPickOffset(unsigned int offset);
+	void SetPickID(unsigned int pickID);
 private:
+	IDType m_type;
 	GLuint m_uniform[UNIFORM::NUM];
 
 };

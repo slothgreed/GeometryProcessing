@@ -121,7 +121,7 @@ Matrix4x4 MathHelper::CreateRotateMatrix(const Vector3& source, const Vector3& t
 }
 // refer : https://shikousakugo.wordpress.com/2012/06/27/ray-intersection-2/
 // Tomas Mollerの交差判定,　クラメルの公式利用
-Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient)
+Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient) const
 {
 	const float epsilon = 1e-6f; // 精度の閾値
 	if (glm::distance(m_origin, p0) < epsilon || 
@@ -164,4 +164,25 @@ Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const 
 
 	return IntersectResult(m_origin + m_direction * t, t);
 }
+
+Ray::IntersectResult Ray::Intersect(const BDB& bdb) const
+{
+	auto invDir = 1.0f / m_direction;
+	auto t0s = (bdb.Min() - m_origin) * invDir;
+	auto t1s = (bdb.Max() - m_origin) * invDir;
+
+	auto tMinVec = glm::min(t0s, t1s);
+	auto tMaxVec = glm::max(t0s, t1s);
+
+	float tMin = glm::max(glm::max(tMinVec.x, tMinVec.y), tMinVec.z);
+	float tMax = glm::min(glm::min(tMaxVec.x, tMaxVec.y), tMaxVec.z);
+
+	if (tMax >= tMin && tMax > 0.0f) {
+		return Ray::IntersectResult::CreateSuccess();
+	}
+
+	return Ray::IntersectResult::CreateFailed();
+
+}
+
 }

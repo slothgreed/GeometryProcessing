@@ -8,13 +8,15 @@ enum ALGORITHM_TYPE
 	ALGORITHM_ALPHASHAPE,
 	ALGORITHM_DELAUNAY,
 	ALGORITHM_SHAPE_DIAMETER,
-	ALGORITHM_VOXELIZER
+	ALGORITHM_SIGNED_DISTANCE_FIELD,
+	ALGORITHM_VOXELIZER,
+	ALGORITHM_BVH,
 };
 class IAlgorithm
 {
 public:
 	IAlgorithm() {};
-	~IAlgorithm() {};
+	virtual ~IAlgorithm() {};
 	virtual ALGORITHM_TYPE GetType() = 0;
 	virtual void Execute() {};
 	virtual void ShowUI() = 0;

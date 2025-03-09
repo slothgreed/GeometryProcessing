@@ -11,6 +11,10 @@ void IShader::Use()
 {
 	assert(m_programId != 0);
 	glUseProgram(m_programId);
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(3);
 	OUTPUT_GLERROR;
 }
 
@@ -103,6 +107,18 @@ void IShadingShader::DrawArray(GLuint primitiveType, int offset, int count)
 	OUTPUT_GLERROR;
 }
 
+void IShadingShader::DrawElementsBaseVertex(const DrawArgs& args)
+{
+	glDrawElementsBaseVertex(args.primitive, args.count, args.dataType, (void*)args.offset, args.baseVertex);
+	OUTPUT_GLERROR;
+
+}
+void IShadingShader::DrawElementsBaseVertex(GLuint primitiveType, uint count, GLuint type, void* offset, uint baseVertex)
+{
+	glDrawElementsBaseVertex(primitiveType, count, GL_UNSIGNED_INT, (void*)offset, baseVertex);
+	OUTPUT_GLERROR;
+}
+
 
 IShadingShader::IShadingShader()
 {
@@ -185,6 +201,14 @@ GLuint IShadingShader::BuildVertexFrag(const String& vert, const String& frag)
 	return programId;
 }
 
+
+void IShadingShader::BindIndexBuffer(const GLBuffer* pBuffer)
+{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+
+
 void IMeshShader::Build()
 {
 	auto shaderPath = GetShaderPath();
@@ -242,6 +266,11 @@ void IShader::Bind(int location, GLBuffer* pBuffer)
 void IShader::BindUniform(int location, const Matrix4x4& value)
 {
 	glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+	OUTPUT_GLERROR;
+}
+void IShader::BindUniform(int location, const Vector2i& value)
+{
+	glUniform2i(location, value.x, value.y);
 	OUTPUT_GLERROR;
 }
 void IShader::BindUniform(int location, const Vector3& value)

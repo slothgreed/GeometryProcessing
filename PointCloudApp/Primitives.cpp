@@ -28,6 +28,76 @@ Cube::Cube(const Vector3& min, const Vector3& max)
 	m_primitiveType = GL_TRIANGLES;
 }
 
+Cube Cube::CreateLine(const Vector3& min, const Vector3& max)
+{
+	Cube cube;
+	cube.m_min = min; cube.m_max = max;
+	cube.m_position.resize(8);
+	cube.m_position[0] = (min);
+	cube.m_position[1] = (Vector3(max.x, min.y, min.z));
+	cube.m_position[2] = (Vector3(max.x, max.y, min.z));
+	cube.m_position[3] = (Vector3(min.x, max.y, min.z));
+	cube.m_position[4] = (Vector3(min.x, min.y, max.z));
+	cube.m_position[5] = (Vector3(max.x, min.y, max.z));
+	cube.m_position[6] = (max);
+	cube.m_position[7] = (Vector3(min.x, max.y, max.z));
+
+	cube.m_index.clear();
+	cube.m_index.push_back(0); cube.m_index.push_back(1);
+	cube.m_index.push_back(1); cube.m_index.push_back(2);
+	cube.m_index.push_back(2); cube.m_index.push_back(3);
+	cube.m_index.push_back(3); cube.m_index.push_back(0);
+
+
+	cube.m_index.push_back(4); cube.m_index.push_back(5);
+	cube.m_index.push_back(5); cube.m_index.push_back(6);
+	cube.m_index.push_back(6); cube.m_index.push_back(7);
+	cube.m_index.push_back(7); cube.m_index.push_back(4);
+
+
+
+	cube.m_index.push_back(0); cube.m_index.push_back(4);
+	cube.m_index.push_back(1); cube.m_index.push_back(5);
+	cube.m_index.push_back(2); cube.m_index.push_back(6);
+	cube.m_index.push_back(3); cube.m_index.push_back(7);
+
+	cube.m_primitiveType = GL_LINES;
+	return cube;
+}
+
+
+Plane::Plane(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord)
+{
+	if (axis == Axis::X) {
+		m_position.push_back(Vector3(position, min.y, min.z));
+		m_position.push_back(Vector3(position, min.y, max.z));
+		m_position.push_back(Vector3(position, max.y, max.z));
+		m_position.push_back(Vector3(position, max.y, min.z));
+	} else if (axis == Axis::Y) {
+		m_position.push_back(Vector3(min.x, position, min.z));
+		m_position.push_back(Vector3(min.x, position, max.z));
+		m_position.push_back(Vector3(max.x, position, max.z));
+		m_position.push_back(Vector3(max.x, position, min.z));
+	} else if (axis == Axis::Z) {
+		m_position.push_back(Vector3(min.x, min.y, position));
+		m_position.push_back(Vector3(max.x, min.y, position));
+		m_position.push_back(Vector3(max.x, max.y, position));
+		m_position.push_back(Vector3(min.x, max.y, position));
+	}
+
+	if (texcoord) {
+		m_texcoord.resize(4);
+		m_texcoord[0] = vec2(0, 1.0);
+		m_texcoord[1] = vec2(1.0, 1.0);
+		m_texcoord[2] = vec2(1.0, 0);
+		m_texcoord[3] = vec2(0, 0);
+	}
+
+	m_index.push_back(0); m_index.push_back(1); m_index.push_back(2);
+	m_index.push_back(2); m_index.push_back(3); m_index.push_back(0);
+	m_primitiveType = GL_TRIANGLES;
+}
+
 
 Cone::Cone(float _radius, float _height, int _partition)
 	: radius(_radius)

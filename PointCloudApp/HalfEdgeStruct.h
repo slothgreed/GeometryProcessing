@@ -70,6 +70,7 @@ public:
 	Vector<unsigned int> CreateIndexBufferData() const;
 	Vector<unsigned int> CreateEdgeIndexBufferData();
 	Vector3 CalcGravity(const IndexedFace& triangle) const;
+	Vector3 CalcGravity(int faceIndex) const;
 	Vector3 CalcFaceNormal(int faceIndex) const;
 
 	Vector<int> GetAroundEdge(int positionIndex) const;

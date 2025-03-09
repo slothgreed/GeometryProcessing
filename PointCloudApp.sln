@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PointCloudApp", "PointCloudApp\PointCloudApp.vcxproj", "{4281572D-3796-4234-BC44-ED3FD8EDB69D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B16B213D-A58B-37BA-8F9F-96D645197D1E} = {B16B213D-A58B-37BA-8F9F-96D645197D1E}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NvPro", "NvPro", "{0E026779-2BED-45AC-A2C0-260D34E17776}"
 EndProject

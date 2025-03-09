@@ -5,6 +5,10 @@ namespace KI
 {
 Vector<Vector3> g_RGB;
 
+void Printf::Vec3(const Vector3& value, bool newLine)
+{
+	printf(("% lf, % lf, % lf\n"), value.x, value.y, value.z);
+}
 void Printf::Vec3(const String& name, const Vector3& value, bool newLine)
 {
 	if (newLine) {

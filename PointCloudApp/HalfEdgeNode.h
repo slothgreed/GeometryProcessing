@@ -3,11 +3,15 @@
 #include "SimpleShader.h"
 #include "RenderNode.h"
 #include "HalfEdgeStruct.h"
+#include "BVH.h"
 #include "MeshletGenerator.h"
+#include "GeometryUtility.h"
 namespace KI
 {
+class BVH;
 class Voxelizer;
 class ShapeDiameterFunction;
+class SignedDistanceField;
 class HalfEdgeNode : public RenderNode
 {
 public:
@@ -38,7 +42,10 @@ public:
 	~HalfEdgeNode();
 
 	HalfEdgeStruct* GetData() { return m_pHalfEdge.get(); }
+	const HalfEdgeStruct* GetData() const { return m_pHalfEdge.get(); }
 
+	const BVH* GetBVH() const { return m_pBVH; }
+	const MortonCode& GetMorton() const { return m_morton.data; }
 protected:
 	virtual void ShowUI();
 	virtual void DrawNode(const DrawContext& context);
@@ -48,7 +55,9 @@ protected:
 	virtual void UpdateData(float time) {};
 	
 private:
+	void BuildBVH();
 	void BuildSDF();
+	void BuildMorton();
 	void BuildEdge();
 	void ShowNormal();
 	void BuildGLBuffer();
@@ -101,9 +110,21 @@ private:
 		Unique<GLBuffer> index;
 	};
 
+
 	PickIds m_pickIds;
 
 	MeshletGpu m_meshletGpu;
+
+	struct Morton
+	{
+		Unique<GLBuffer> gpuLine;
+		Unique<GLBuffer> gpuColor;
+		MortonCode data;
+	};
+
+	Morton m_morton;
+	BVH* m_pBVH;
+	SignedDistanceField* m_pSignedDistanceField;
 	ShapeDiameterFunction* m_pShapeDiameterFunction;
 	Voxelizer* m_pVoxelizer;
 	struct UI
@@ -111,6 +132,7 @@ private:
 		UI()
 			: visible(true)
 			, visibleSDF(false)
+			, visibleBVH(false)
 			, visibleMeshlet(false)
 			, meshlet(0)
 			, visibleMesh(true)
@@ -118,12 +140,17 @@ private:
 			, visibleVertex(false)
 			, visibleNormal(false)
 			, visibleVoxel(false)
+			, visibleMorton(false)
+			, visibleSignedDistanceField(false)
 			, normalLength(1.0f)
 		{
 		}
 		bool visible;
 		bool visibleSDF;
+		bool visibleBVH;
 		bool visibleMeshlet;
+		bool visibleMorton;
+		bool visibleSignedDistanceField;
 		int meshlet;
 		bool visibleMesh;
 		bool visibleEdge;

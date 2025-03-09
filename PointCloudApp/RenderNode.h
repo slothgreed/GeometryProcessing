@@ -10,6 +10,7 @@
 namespace KI
 {
 class GLBuffer;
+
 struct DrawContext
 {
 	DrawContext()
@@ -82,7 +83,7 @@ public:
 	void RemoveNode(const String& name) { m_child.erase(name); }
 	void AddNode(const Shared<RenderNode>& pNode) { m_child[pNode->m_name] = pNode; }
 	const Vector3& GetRotate() const { return m_rotate; }
-	const Vector3& GetRotateAngle() const;
+	Vector3 GetRotateAngle() const;
 	float GetScale() { return m_scale; }
 	const Vector3& GetTranslate() const { return m_translate; }
 	const String& GetName() { return m_name; }

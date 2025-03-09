@@ -17,11 +17,13 @@ public:
 	const Shared<Primitive>& GetData() const;
 	void UpdateData();
 	void DrawNode(const DrawContext& context);
+	void SetGLStatus(const Shared<GLStatus>& status) { m_gl = status; }
 private:
+
+	Shared<GLStatus> m_gl;
 	void BuildGLBuffer();
 	void UpdateRenderData();
 	Vector3 m_color;
-
 	Shared<Primitive> m_pPrimitive;
 	Unique<GLBuffer> m_pPositionBuffer;
 	Unique<GLBuffer> m_pColorBuffer;

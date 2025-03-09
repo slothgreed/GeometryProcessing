@@ -4,20 +4,39 @@
 
 namespace KI
 {
+struct GLStatus
+{
+	friend class GLContext;
+	GLStatus()
+		:backCull(true)
+		,pointSize(-1.0f)
+		,lineWidth(-1.0f)
+	{
+	}
+	
+	void SetPointSize(float size) { lineWidth = size; }
+	void SetLineWidth(float size) { pointSize = size; }
+	void SetBackCull(bool value) { backCull = value; }
+private:
+	float pointSize;
+	float lineWidth;
+	bool backCull;
+};
 class GLContext
 {
 public:
 	GLContext()
-		:m_pointSize(-1)
-		, m_lineWidth(-1)
 	{
 	}
 	~GLContext() {};
 
+	void SetupStatus(const GLStatus& status);
 	void EnablePolygonOffset(int factor, int units);
 	void DisablePolygonOffset();
 	void EnableDepth();
 	void DisableDepth();
+	void EnableCullFace();
+	void DisableCullFace();
 	void SetViewport(const Vector2& size);
 	void SetPointSize(float value);
 	void SetLineWidth(float value);
@@ -26,8 +45,8 @@ public:
 	void SetupShading();
 private:
 	Vector2 viewportSize;
-	float m_pointSize;
-	float m_lineWidth;
+	GLStatus m_cache;
+
 };
 
 class Camera;

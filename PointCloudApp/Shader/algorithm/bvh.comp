@@ -1,0 +1,37 @@
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+struct BVHNode
+{
+	vec4 min;
+	vec4 max;
+	ivec4 link; // left,right,parent;
+}
+
+
+layout(std430,binding = 0) buffer posBuffer
+{
+	BVHNode nodes[];
+};
+
+void computeMortonCode()
+{
+	uint triangleID = gl_GlobalInvocationID.x;
+	vec3 centroid = computeCentroid(triangleID);
+	mortonCode[triangleID] = encodeMorton(centroid);
+}
+
+void contructBVH(int nodeID)
+{
+	int left = getLeafChild(nodeID * 2);
+	int right = getLeafChild(nodeID * 2 + 1);
+	
+	nodes[nodeID].link.x = left;
+	nodes[nodeID].link.y = right;
+	
+	nodes[left].parent = nodeID;
+	nodes[right].parent = nodeID;
+	
+	nodes[nodeID].min = min(nodes[left].min,nodes[right].min);
+	nodes[nodeID].max = min(nodes[left].max,nodes[right].max);
+}

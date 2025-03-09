@@ -23,6 +23,7 @@ public:
 	Printf() {};
 	~Printf() {};
 
+	static void Vec3(const Vector3& value, bool newLine = true);
 	static void Vec3(const String& name, const Vector3& value, bool newLine = true);
 	static void Vec4(const String& name, const Vector4& value, bool newLine = true);
 	static void Mat4(const String& name, const Matrix4x4& value, bool newLine = true);

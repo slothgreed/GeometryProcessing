@@ -232,6 +232,11 @@ ShaderPath PointPickShader::GetShaderPath()
 
 	path.shader[SHADER_PROGRAM_VERTEX] = "pick.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "pick.frag";
+	if (m_type == PickID) {
+		path.extension[SHADER_PROGRAM_FRAG].push_back("#define PICK_BY_ID\n");
+	} else if(m_type == PrimitiveID){
+		path.extension[SHADER_PROGRAM_FRAG].push_back("#define PICK_BY_PRIMITIVE\n");
+	}
 	return path;
 }
 void PointPickShader::FetchUniformLocation()
@@ -245,21 +250,32 @@ void PointPickShader::SetCamera(const GLBuffer* pBuffer)
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
 	OUTPUT_GLERROR;
 }
+
+void PointPickShader::SetPosition(VertexFormat format, const GLBuffer* pPosition)
+{
+	format.location = ATTRIB_POSITION;
+	SetVertexFormat(format);
+	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+}
 void PointPickShader::SetPosition(const GLBuffer* pPosition)
 {
-	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pPosition));
-	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	VertexFormat format = VertexFormat(ATTRIB_POSITION, pPosition);
+	SetPosition(format, pPosition);
 	OUTPUT_GLERROR;
 }
 void PointPickShader::SetModel(const Matrix4x4& value)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
-	OUTPUT_GLERROR;
+	BindUniform(m_uniform[UNIFORM::MODEL], value);
 }
 
 void PointPickShader::SetPickOffset(unsigned int offset)
 {
-	glUniform1ui(m_uniform[UNIFORM::PICKOFFSET], offset);
-	OUTPUT_GLERROR;
+	BindUniform(m_uniform[UNIFORM::PICKOFFSET], offset);
+}
+
+void PointPickShader::SetPickID(unsigned int pickID)
+{
+	// PickOffsetÇë„ë÷Ç∑ÇÈÅB
+	BindUniform(m_uniform[UNIFORM::PICKOFFSET], pickID);
 }
 }

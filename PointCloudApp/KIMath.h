@@ -1,5 +1,6 @@
 #ifndef KI_MATH_H
 #define KI_MATH_H
+#include "BDB.h"
 namespace KI
 {
 class MathHelper
@@ -49,6 +50,17 @@ public:
 		{
 		};
 
+		static IntersectResult CreateFailed()
+		{
+			return IntersectResult();
+		}
+		static IntersectResult CreateSuccess()
+		{
+			IntersectResult result;
+			result.success = true;
+			return result;
+		}
+
 		bool success;
 		Vector3 position;
 		float distance;
@@ -56,7 +68,8 @@ public:
 
 
 	// orient = true : Œü‚«‚ğl—¶‚·‚éB
-	IntersectResult Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient);
+	IntersectResult Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient) const;
+	IntersectResult Intersect(const BDB& bdb) const;
 private:
 	Vector3 m_origin;
 	Vector3 m_direction;

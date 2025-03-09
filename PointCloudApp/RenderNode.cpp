@@ -54,7 +54,7 @@ void RenderNode::Update(float time)
 	}
 }
 
-const Vector3& RenderNode::GetRotateAngle() const
+Vector3 RenderNode::GetRotateAngle() const
 {
 	return Vector3(glm::degrees(m_rotate.x), glm::degrees(m_rotate.y), glm::degrees(m_rotate.z));
 }

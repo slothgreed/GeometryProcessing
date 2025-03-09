@@ -36,12 +36,16 @@ HalfEdgeStruct::Face HalfEdgeStruct::GetFace(int faceIndex) const
 	return face;
 }
 
+Vector3 HalfEdgeStruct::CalcGravity(int faceIndex) const
+{
+	return CalcGravity(GetIndexedFace(faceIndex));
+}
 Vector3 HalfEdgeStruct::CalcGravity(const IndexedFace& face) const
 {
 	auto position = m_position[face.position[0]];
 	position += m_position[face.position[1]];
 	position += m_position[face.position[2]];
-	position *= (1/3);
+	position /= 3.0f;
 	return position;
 }
 
@@ -98,7 +102,7 @@ Vector<int> HalfEdgeStruct::GetAroundFaceFromPosition(int posIndex) const
 Vector<unsigned int> HalfEdgeStruct::CreateIndexBufferData() const
 {
 	Vector<unsigned int> indexBuffer;
-	indexBuffer.resize(m_faceToEdge.size() * 3);
+	indexBuffer.resize(m_face.size() * 3);
 	int counter = 0;
 	for (const auto& face : m_face) {
 		indexBuffer[counter++] = face.position[0];

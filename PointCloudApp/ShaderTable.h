@@ -22,10 +22,12 @@ public:
 	const Shared<PrimitiveColorShader>& GetPrimitiveColorShader() { return m_pPrimitiveColorShader; }
 	const Shared<TextureShader>& GetTextureShader() { return m_pTextureShader; }
 	const Shared<InstancedPrimitiveShader>& GetInstancedShader() { return m_pInstancedShader; }
-	const Shared<PointPickShader>& GetPointPickShader() { return m_pPointPickShader; }
+	const Shared<PointPickShader>& GetPointPickByPrimitive() { return m_pPointPickByPrimitive; }
+	const Shared<PointPickShader>& GetPointPickByID() { return m_pPointPickByID; }
 	const Shared<TextureShader>& GetTextureUINTShader() { return m_pTextureUINTShader; }
 private:
-	Shared<PointPickShader> m_pPointPickShader;
+	Shared<PointPickShader> m_pPointPickByPrimitive;
+	Shared<PointPickShader> m_pPointPickByID;
 	Shared<SimpleShader> m_pSimpleShader;
 	Shared<VertexColorShader> m_pVertexColorShader;
 	Shared<PrimitiveColorShader> m_pPrimitiveColorShader;

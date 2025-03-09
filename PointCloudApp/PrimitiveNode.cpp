@@ -64,6 +64,9 @@ void PrimitiveNode::UpdateRenderData()
 void PrimitiveNode::DrawNode(const DrawContext& context)
 {
 	UpdateRenderData();
+	if (m_gl) {
+		context.pResource->GL()->SetupStatus(*m_gl.get());
+	}
 	const auto& pResourece = context.pResource;
 	IShadingShader* pShader = nullptr;
 	if (m_pPrimitive->Color().size() * GLUtil::GetPrimitiveSize(m_pPrimitive->GetType()) == m_pPrimitive->Position().size()) {

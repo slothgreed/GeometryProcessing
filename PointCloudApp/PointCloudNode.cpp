@@ -74,11 +74,9 @@ void PointCloudNode::UpdateColor(const Vector<Vector4>& color)
 {
 	if (!m_pColorBuffer) {
 		m_pColorBuffer = std::make_unique<GLBuffer>();
-		m_pColorBuffer->Create(color);
-	} else {
-		m_pColorBuffer->BufferSubData(0, color);
 	}
 
+	m_pColorBuffer->Create(color);
 }
 void PointCloudNode::ShowUI()
 {

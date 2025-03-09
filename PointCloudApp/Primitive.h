@@ -20,6 +20,15 @@ public:
 		Array,
 		Interleave
 	};
+
+	enum VertexComponent
+	{
+		POSITION,
+		NORMAL,
+		COLOR,
+		TEXCOORD
+	};
+
 public:
 	const BDB& GetBDB();
 	GLuint GetDrawType() const;

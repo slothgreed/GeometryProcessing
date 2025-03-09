@@ -3,16 +3,22 @@
 #include "Utility.h"
 #include "MeshletGenerator.h"
 #include "ShapeDiameterFunction.h"
+#include "SignedDistanceField.h"
 #include "Voxelizer.h"
+#include "BVH.h"
 namespace KI
 {
 
 HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pStruct)
 	: RenderNode(name)
 	, m_pHalfEdge(pStruct)
+
 {
 	m_pShapeDiameterFunction = new ShapeDiameterFunction(this);
 	m_pVoxelizer = new Voxelizer(this);
+	m_pBVH = new BVH(this);
+	m_pSignedDistanceField = new SignedDistanceField(this);
+
 	BuildGLBuffer();
 	SetBoundBox(pStruct->CreateBDB());
 
@@ -24,10 +30,14 @@ HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pSt
 
 	m_pickIds.vertex.begin = m_pickIds.face.num + m_pickIds.edge.num;
 	m_pickIds.vertex.num = m_pHalfEdge->GetPositionNum();
+	BuildBVH();
 }
 
 HalfEdgeNode::~HalfEdgeNode()
 {
+	RELEASE_INSTANCE(m_pShapeDiameterFunction);
+	RELEASE_INSTANCE(m_pVoxelizer);
+	RELEASE_INSTANCE(m_pBVH);
 
 }
 
@@ -84,12 +94,40 @@ void HalfEdgeNode::BuildSDF()
 	m_gpu.sdf = std::make_unique<GLBuffer>();
 	m_gpu.sdf->Create(m_pShapeDiameterFunction->GetResultVertexColor());
 }
+
+void HalfEdgeNode::BuildMorton()
+{
+	if (m_morton.gpuLine) { return; }
+	m_morton.data.Create(m_pHalfEdge->GetPosition(),m_pHalfEdge->CreateIndexBufferData(),GetBoundBox());
+	
+	Vector<Vector3> position(m_morton.data.Get().size());
+	Vector<Vector3> color(m_morton.data.Get().size());
+	for (auto i = 0; i < m_morton.data.Get().size(); i++) {
+		position[i] = m_pHalfEdge->CalcGravity(m_morton.data.Get()[i].triangleIndex);
+		color[i] = MortonCode::ToColor(m_morton.data.Get()[i].morton);
+	}
+
+	m_morton.gpuLine = std::make_unique<GLBuffer>();
+	m_morton.gpuLine->Create(position);
+
+	m_morton.gpuColor = std::make_unique<GLBuffer>();
+	m_morton.gpuColor->Create(color);
+}
+
+void HalfEdgeNode::BuildBVH()
+{
+	BuildMorton();
+	m_pBVH->Execute();
+}
+
+
 void HalfEdgeNode::DrawNode(const DrawContext& context)
 {
 	if (!m_ui.visible) { return; }
 	auto pResource = context.pResource;
 	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 	pSimpleShader->Use();
+
 	pSimpleShader->SetPosition(m_gpu.position.get());
 	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
 	pSimpleShader->SetModel(GetMatrix());
@@ -108,6 +146,16 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		pSimpleShader->DrawArray(GL_POINTS, m_pHalfEdge->GetPositionNum());
 	}
 
+	if (m_ui.visibleMorton) {
+		auto pVertexColor = pResource->GetShaderTable()->GetVertexColorShader();
+		pVertexColor->Use();
+		pSimpleShader->SetPosition(m_morton.gpuLine.get());
+		pVertexColor->SetCamera(pResource->GetCameraBuffer());
+		pVertexColor->SetModel(GetMatrix());
+		pVertexColor->SetColor(m_morton.gpuColor.get());
+		pSimpleShader->DrawArray(GL_LINE_STRIP, 0, m_pHalfEdge->GetFaceNum());
+	}
+
 	if (m_ui.visibleNormal) {
 		ShowNormal();
 	}
@@ -122,6 +170,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		pVertexColor->DrawArray(GL_POINTS, m_pHalfEdge->GetPositionNum());
 	}
 
+	
 
 	auto pPrimitiveColorShader = pResource->GetShaderTable()->GetPrimitiveColorShader();
 	//if (pPrimitiveColorShader &&  m_meshletGpu.shader) {
@@ -155,7 +204,7 @@ void HalfEdgeNode::PickNode(const PickContext& context)
 	if (!m_ui.visible) { return; }
 
 	auto pResource = context.pResource;
-	auto pPickShader = pResource->GetShaderTable()->GetPointPickShader();
+	auto pPickShader = pResource->GetShaderTable()->GetPointPickByPrimitive();
 	pPickShader->Use();
 	pPickShader->SetPosition(m_gpu.position.get());
 	pPickShader->SetCamera(pResource->GetCameraBuffer());
@@ -257,10 +306,34 @@ void HalfEdgeNode::ShowUI()
 	}
 
 	if (ImGui::Checkbox("ShowSDF", &m_ui.visibleSDF)) {
-		m_pShapeDiameterFunction->Execute();
-		BuildSDF();
+		if (m_ui.visibleSDF) {
+			m_pShapeDiameterFunction->Execute();
+			BuildSDF();
+
+		}
 	}
 	m_pShapeDiameterFunction->ShowUI();
+
+	if (ImGui::Checkbox("ShowBVH", &m_ui.visibleBVH)) {
+		if (m_ui.visibleBVH) {
+			BuildBVH();
+		} else {
+			m_pBVH->DeleteUINode();
+		}
+	} 
+
+	if (m_ui.visibleBVH) {
+		m_pBVH->ShowUI();
+	}
+
+	ImGui::Checkbox("ShowSignedDistanceField", &m_ui.visibleSignedDistanceField);
+	if (m_ui.visibleSignedDistanceField) {
+		m_pSignedDistanceField->ShowUI();
+	}
+
+	if (ImGui::Checkbox("ShowMorton", &m_ui.visibleMorton)) {
+		BuildMorton();
+	}
 
 	if (ImGui::Checkbox("ShowVoxel", &m_ui.visibleVoxel)) {
 		m_pVoxelizer->Execute(m_gpu.position.get(), m_gpu.faceIndexBuffer.get());

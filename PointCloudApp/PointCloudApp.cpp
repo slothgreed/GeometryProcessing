@@ -28,6 +28,7 @@
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
 #include "RenderTarget.h"
+#include "CADSceneLoader.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -130,6 +131,7 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
 	//
+	
 	/*
 	{
 		auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
@@ -140,6 +142,7 @@ void PointCloudApp::Execute()
 		m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
 	}
 	*/
+	
 
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
 	//pPointCloud->To2D();
@@ -172,10 +175,10 @@ void PointCloudApp::Execute()
 	//	pCube->SetColor(std::move(color));
 	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Cube", pCube));
 	//}
-
+	
+	//m_pRoot->AddNode(CreateCSFRenderNodeTest());
 	//m_pRoot->AddNode(CreateGLTFNodeTest());
 	m_pRoot->AddNode(CreateBunnyNodeTest());
-	
 	// Test
 	{
 		//m_pRoot->AddNode(CreateDelaunayTest());
@@ -216,7 +219,6 @@ void PointCloudApp::Execute()
 	PickContext pickContext(m_pResource.get());
 	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
 	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
-	
 	Shared<Texture> pTexture = pPickTarget->GetColor(0);
 	auto pTextureNode = std::make_unique<RenderTextureNode>("Texture", pTexture);
 
@@ -251,6 +253,9 @@ void PointCloudApp::Execute()
 					result.first->DrawParts(drawContext, *result.second.get());
 				}
 			}
+
+			glViewport(0, 0, 256, 256);
+			pTextureNode->Draw(drawContext);
 		}
 
 		
@@ -366,6 +371,15 @@ Shared<RenderNode> PointCloudApp::CreateGLTFNodeTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"));
 	pNode->SetRotateAngle(Vector3(-90, 0, 180));
+	return pNode;
+}
+
+Shared<RenderNode> PointCloudApp::CreateCSFRenderNodeTest()
+{
+	//auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\blade.csf.gz"));
+	auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\geforce.csf.gz"));
+	//auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\worldcar.csf.gz"));
+	//auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\SubMarine_134.bk3d.gz"));
 	return pNode;
 }
 Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()

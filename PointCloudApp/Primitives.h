@@ -6,15 +6,33 @@ namespace KI
 class Cube : public Primitive
 {
 public:
+	Cube() {};
 	Cube(const Vector3& min, const Vector3& max);
 	~Cube() {};
 
+
+	static Cube CreateLine(const Vector3& min, const Vector3& max);
 private:
 	Vector3 m_min;
 	Vector3 m_max;
+};
 
+class Plane : public Primitive
+{
+public:
+
+	enum Axis
+	{
+		X,Y,Z
+	};
+
+	Plane(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord = false);
+	~Plane() {};
+
+private:
 
 };
+
 
 class Cone : public Primitive
 {

@@ -8,6 +8,18 @@
 namespace KI
 {
 
+void GLContext::SetupStatus(const GLStatus& status)
+{
+	if (status.backCull) {
+		EnableCullFace();
+	} else {
+		DisableCullFace();
+	}
+
+	SetPointSize(status.pointSize);
+	SetLineWidth(status.lineWidth);
+}
+
 void GLContext::SetViewport(const Vector2& size)
 {
 	glViewport(0, 0, size.x, size.y);
@@ -18,6 +30,14 @@ void GLContext::EnablePolygonOffset(int factor, int units)
 	glPolygonOffset(factor, units);
 }
 
+void GLContext::EnableCullFace()
+{
+	glEnable(GL_CULL_FACE);
+}
+void GLContext::DisableCullFace()
+{
+	glDisable(GL_CULL_FACE);
+}
 void GLContext::EnableDepth()
 {
 	glEnable(GL_DEPTH_TEST);
@@ -32,16 +52,16 @@ void GLContext::DisablePolygonOffset()
 }
 void GLContext::SetPointSize(float value)
 {
-	if (m_pointSize == value) { return; }
+	if (m_cache.pointSize == value || m_cache.pointSize == -1) { return; }
 	glPointSize(value);
-	m_pointSize = value;
+	m_cache.pointSize = value;
 }
 
 void GLContext::SetLineWidth(float value)
 {
-	if (m_lineWidth == value) { return; }
+	if (m_cache.lineWidth == value || m_cache.lineWidth == -1) { return; }
 	glLineWidth(value);
-	m_lineWidth = value;
+	m_cache.lineWidth = value;
 }
 
 void GLContext::SetupPick()
@@ -93,7 +113,7 @@ void RenderResource::UpdateLight()
 
 	LightGPU gpu;
 	gpu.color = Vector4(m_pLight->GetColor(), 1.0f);
-	gpu.direction = Vector4(m_pLight->GetDirection(), 1.0f);
+	gpu.direction = Vector4(glm::normalize(m_pCamera->Direction()), 1.0f);
 	m_pLightGpu->BufferSubData(0, 1, sizeof(LightGPU), &gpu);
 }
 void RenderResource::Finalize()

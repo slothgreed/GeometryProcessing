@@ -120,12 +120,9 @@ const BDB& Primitive::GetBDB()
 }
 int Primitive::GetTriangleNum()
 {
-	if (m_index.size() != 0)
-	{
+	if (m_index.size() != 0) {
 		return m_index.size() / 3;
-	}
-	else
-	{
+	} else {
 		return m_position.size() / 3;
 	}
 }

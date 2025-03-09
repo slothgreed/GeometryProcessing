@@ -36,7 +36,9 @@ public:
         //    if appropriate.
         // 3. Always open the file stream in binary mode. The glTF SDK will handle any text
         //    encoding issues for us.
-        auto streamPath = m_pathBase / std::filesystem::u8path(filename);
+        std::u8string u8filename(filename.begin(), filename.end());
+        std::filesystem::path path(u8filename);
+        auto streamPath = m_pathBase / path;
         auto stream = std::make_shared<std::ifstream>(streamPath, std::ios_base::binary);
 
         // Check if the stream has no errors and is ready for I/O operations

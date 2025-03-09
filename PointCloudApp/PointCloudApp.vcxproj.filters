@@ -254,6 +254,18 @@
     <ClCompile Include="CADSceneLoader.cpp">
       <Filter>ソース ファイル\Utility\CADScene</Filter>
     </ClCompile>
+    <ClCompile Include="CSFNode.cpp">
+      <Filter>ソース ファイル\Utility\CADScene</Filter>
+    </ClCompile>
+    <ClCompile Include="SignedDistanceField.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="BVH.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryUtility.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -465,6 +477,18 @@
     </ClInclude>
     <ClInclude Include="CADSceneLoader.h">
       <Filter>ソース ファイル\Utility\CADScene</Filter>
+    </ClInclude>
+    <ClInclude Include="CSFNode.h">
+      <Filter>ソース ファイル\Utility\CADScene</Filter>
+    </ClInclude>
+    <ClInclude Include="SignedDistanceField.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="BVH.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryUtility.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

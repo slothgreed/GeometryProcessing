@@ -82,27 +82,27 @@ void GLTFShader::SetModel(const Matrix4x4& value)
 
 void GLTFShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	BindShaderStorage(0, pBuffer->Handle());
 }
 
 void GLTFShader::SetLight(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pBuffer->Handle());
+	BindShaderStorage(1, pBuffer->Handle());
 }
 
 void GLTFShader::SetMaterialBuffer(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, pBuffer->Handle());
+	BindShaderStorage(3, pBuffer->Handle());
 }
 
 void GLTFShader::SetNodeBuffer(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, pBuffer->Handle());
+	BindShaderStorage(4, pBuffer->Handle());
 }
 
 void GLTFShader::SetSkinBuffer(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, pBuffer->Handle());
+	BindShaderStorage(5, pBuffer->Handle());
 }
 
 void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)
@@ -112,7 +112,7 @@ void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)
 }
 
 
-void GLTFShader::SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format)
+void GLTFShader::SetVertexBuffer(const GLBuffer* pBuffer, const VertexFormats& format)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, pBuffer->Handle());
 	glBindVertexBuffer(0, pBuffer->Handle(), 0, pBuffer->SizeOfData());
@@ -121,7 +121,7 @@ void GLTFShader::SetVertexBuffer(GLBuffer* pBuffer, const VertexFormats& format)
 		SetVertexFormat(f);
 	}
 }
-void GLTFShader::SetIndexBuffer(GLBuffer* pBuffer)
+void GLTFShader::SetIndexBuffer(const GLBuffer* pBuffer)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pBuffer->Handle());
 }
