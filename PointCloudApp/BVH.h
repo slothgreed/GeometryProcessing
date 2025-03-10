@@ -2,6 +2,7 @@
 #define KI_BVH
 #include "KIMath.h"
 #include "IAlgorithm.h"
+#include "GLBuffer.h"
 #include "GeometryUtility.h"
 namespace KI
 {
@@ -22,7 +23,8 @@ public:
 		}
 
 		Node(const BDB& _bdb, unsigned int _morton, int _triIndex)
-			: box(_bdb)
+			: minBox(_bdb.Min())
+			, maxBox(_bdb.Max())
 			, morton(_morton)
 			, triangleIndex(_triIndex)
 			, left(-1)
@@ -32,7 +34,8 @@ public:
 		{
 
 		}
-		BDB box;
+		Vector3 minBox;
+		Vector3 maxBox;
 		unsigned int morton;
 		int left;
 		int right;
@@ -75,8 +78,15 @@ public:
 	void DeleteUINode();
 
 private:
+	void CreateGPUBuffer();
 	void CountLeafNodes(int nodeIndex, int& leafNum);
 	void DebugForAllLeaf();
+
+	struct GPU
+	{
+		Unique<GLBuffer> pBuffer;
+	};
+
 
 	struct UI
 	{
@@ -89,6 +99,7 @@ private:
 	};
 
 	UI m_ui;
+	GPU m_gpu;
 	HalfEdgeNode* m_pHalfEdge;
 	Vector<std::pair<int, int>> m_levelRange;
 	Vector<Node> m_nodes;

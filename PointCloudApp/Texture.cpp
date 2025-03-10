@@ -13,7 +13,7 @@ Texture::~Texture()
 {
 }
 
-void Texture::Set(const Format& format)
+void Texture::Set(const Format& format, unsigned char* data)
 {
 	Bind();
 	glTexImage2D(
@@ -21,7 +21,7 @@ void Texture::Set(const Format& format)
 		format.internalformat,
 		format.width, format.height,
 		format.border, format.format,
-		format.type, nullptr);
+		format.type, data);
 	m_format = format;
 	OUTPUT_GLERROR;
 }
@@ -68,12 +68,33 @@ void Texture2D::Build(int width, int height)
 	Build(width, height, NULL);
 }
 
+
+Texture* Texture2D::Create(const Vector2i& resolute)
+{
+	auto pTexture = new Texture2D();
+	unsigned char* pixelData = new unsigned char[resolute.x * resolute.y * 4];
+	int index = 0;
+	for (int i = 0; i < resolute.x; i++) {
+		for (int j = 0; j < resolute.y; j++) {
+			pixelData[index * 4] = 255;
+			pixelData[index * 4 + 1] = 0;
+			pixelData[index * 4 + 2] = 0;
+			pixelData[index * 4 + 3] = 255;
+			index++;
+		}
+	}
+
+	pTexture->Build(resolute.x, resolute.y, pixelData);
+	delete[] pixelData;
+	return pTexture;
+}
+
 void Texture2D::Resize(int width, int height)
 {
 	if (m_format.width == width && m_format.height == height) { return; }
 	m_format.width = width;
 	m_format.height = height;
-	Set(m_format);
+	Set(m_format, nullptr);
 	OUTPUT_GLERROR;
 }
 
@@ -92,7 +113,8 @@ void Texture2D::Build(int width, int height, unsigned char* data)
 	format.format = GL_RGBA;
 	format.type = GL_UNSIGNED_BYTE;
 
-	Set(format);
+
+	Set(format, data);
 	OUTPUT_GLERROR;
 
 }

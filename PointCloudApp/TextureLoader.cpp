@@ -43,23 +43,5 @@ TextureLoader::PixelData* TextureLoader::LoadData(const String& name, int comp)
 	return pixel;
 }
 
-Texture* TextureLoader::Create(const Vector2i& resolute)
-{
-	auto pTexture = new Texture2D();
-	unsigned char* pixelData = new unsigned char[resolute.x * resolute.y * 4];
-	int i = 0;
-	for (int i = 0; i < resolute.x; i++) {
-		for (int j = 0; j < resolute.y; j++) {
-			pixelData[i * 4] = 255;
-			pixelData[i * (4 + 1)] = 0;
-			pixelData[i * (4 + 2)] = 0;
-			pixelData[i * (4 + 3)] = 0;
-		}
-	}
-
-	pTexture->Build(resolute.x, resolute.y, pixelData);
-	delete[] pixelData;
-	return pTexture;
-}
 
 }

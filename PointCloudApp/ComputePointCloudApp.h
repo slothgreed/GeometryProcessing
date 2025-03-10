@@ -6,6 +6,7 @@
 namespace KI
 {
 class PointCloud;
+class Texture;
 class Texture2D;
 class CreateTextureComputeShader : public IComputeShader
 {

@@ -26,7 +26,7 @@ private:
 	class Impl;
 	GLTFDocument::Impl* m_pImpl;
 };
-
+class Texture;
 class GLTFLoader
 {
 public:

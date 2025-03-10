@@ -40,7 +40,7 @@ public:
 	GLuint Handle() const { return m_handle; }
 	Vector2 Size() const { return Vector2(m_format.width, m_format.height); }
 	const Format& GetFormat() const { return m_format; }
-	void Set(const Format& format);
+	void Set(const Format& format, unsigned char* data);
 
 protected:
 	Format m_format;
@@ -64,6 +64,7 @@ public:
 	~Texture2D() {};
 
 	virtual TEXTURE_TYPE Type() const { return TEXTURE_2D; }
+	static Texture* Create(const Vector2i& resolute);
 
 	void Build(int width, int height);
 	void Build(int width, int height, unsigned char* data);

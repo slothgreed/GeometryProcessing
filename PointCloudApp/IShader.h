@@ -118,31 +118,6 @@ private:
 };
 
 
-class Texture;
-class TextureShader : public IShadingShader
-{
-public:
-
-	enum Type
-	{
-		UINT,
-		VEC4
-	};
-
-	TextureShader(Type type)
-		: m_type(type) {};
-	virtual ~TextureShader() {};
-	virtual ShaderPath GetShaderPath();
-	virtual void FetchUniformLocation();
-	virtual void SetCamera(const GLBuffer* pBuffer) {};
-	void BindTexture(const Texture& texture);
-	void SetPosition(GLBuffer* pPosition);
-	void SetTexture(GLBuffer* pTexture);
-private:
-	Type m_type;
-	GLuint m_uniform;
-};
-
 }
 
 

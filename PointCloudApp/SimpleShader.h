@@ -159,5 +159,40 @@ private:
 
 };
 
+class Texture;
+class TextureShader : public IShadingShader
+{
+public:
+
+	enum Type
+	{
+		UINT,
+		VEC4
+	};
+
+	enum UNIFORM
+	{
+		TEXTURE,
+		MODEL,
+		NUM
+	};
+
+	TextureShader(Type type)
+		: m_type(type)
+	{
+	};
+	virtual ~TextureShader() {};
+	virtual ShaderPath GetShaderPath();
+	virtual void FetchUniformLocation();
+	virtual void SetCamera(const GLBuffer* pBuffer);
+	void SetModel(const Matrix4x4& value);
+	void BindTexture(const Texture& texture);
+	void SetPosition(GLBuffer* pPosition);
+	void SetTexcoord(GLBuffer* pTexture);
+private:
+	Type m_type;
+	GLuint m_uniform[UNIFORM::NUM];
+};
+
 }
 #endif SIMPLE_SHADER_H

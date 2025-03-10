@@ -23,7 +23,6 @@ public:
 
 	static Texture* Load(const String& name);
 	static PixelData* LoadData(const String& name, int comp);
-	static Texture* Create(const Vector2i& resolute);
 private:
 
 };

@@ -177,7 +177,7 @@ void PointCloudApp::Execute()
 	//}
 	
 	//m_pRoot->AddNode(CreateCSFRenderNodeTest());
-	//m_pRoot->AddNode(CreateGLTFNodeTest());
+	m_pRoot->AddNode(CreateGLTFNodeTest());
 	m_pRoot->AddNode(CreateBunnyNodeTest());
 	// Test
 	{

@@ -9,7 +9,16 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, 
 	: RenderNode(name)
 	, m_color(color)
 {
-	m_pPrimitive = std::move(pPrimitive);
+	m_pPrimitive = pPrimitive;
+	SetBoundBox(m_pPrimitive->GetBDB());
+	BuildGLBuffer();
+}
+
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Shared<Texture>& pTexutre)
+	: RenderNode(name)
+	, m_pTexture(pTexutre)
+{
+	m_pPrimitive = pPrimitive;
 	SetBoundBox(m_pPrimitive->GetBDB());
 	BuildGLBuffer();
 }
@@ -17,7 +26,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, 
 PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive)
 	: RenderNode(name)
 {
-	m_pPrimitive = std::move(pPrimitive);
+	m_pPrimitive = pPrimitive;
 	BuildGLBuffer();
 }
 
@@ -43,6 +52,11 @@ void PrimitiveNode::BuildGLBuffer()
 		m_pIndexBuffer = std::make_unique<GLBuffer>();
 		m_pIndexBuffer->Create(m_pPrimitive->Index());
 	}
+
+	if (m_pPrimitive->Texcoord().size() != 0) {
+		m_pTexcoordBuffer = std::make_unique<GLBuffer>();
+		m_pTexcoordBuffer->Create(m_pPrimitive->Texcoord());
+	}
 	m_pPrimitive->ClearUpdate();
 
 
@@ -63,6 +77,9 @@ void PrimitiveNode::UpdateRenderData()
 
 void PrimitiveNode::DrawNode(const DrawContext& context)
 {
+	if (m_pPrimitive->Position().size() == 0) {
+		return;
+	}
 	UpdateRenderData();
 	if (m_gl) {
 		context.pResource->GL()->SetupStatus(*m_gl.get());
@@ -85,6 +102,15 @@ void PrimitiveNode::DrawNode(const DrawContext& context)
 		pVertexColorShader->SetCamera(pResourece->GetCameraBuffer());
 		pVertexColorShader->SetModel(GetMatrix());
 		pShader = pVertexColorShader.get();
+	} else if (m_pPrimitive->Texcoord().size() != 0) {
+		auto pTextureShader = pResourece->GetShaderTable()->GetTextureShader();
+		pTextureShader->Use();
+		pTextureShader->BindTexture(*m_pTexture);
+		pTextureShader->SetPosition(m_pPositionBuffer.get());
+		pTextureShader->SetTexcoord(m_pTexcoordBuffer.get());
+		pTextureShader->SetCamera(pResourece->GetCameraBuffer());
+		pTextureShader->SetModel(GetMatrix());
+		pShader = pTextureShader.get();
 	} else {
 		auto pSimpleShader = pResourece->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
@@ -106,7 +132,7 @@ void PrimitiveNode::DrawNode(const DrawContext& context)
 
 InstancedPrimitiveNode::InstancedPrimitiveNode(const String& name, const Shared<Primitive>& pPrimitive, const Vector3& color)
 	: RenderNode(name)
-	, m_pPrimitive(std::move(pPrimitive))
+	, m_pPrimitive(pPrimitive)
 	, m_color(color)
 {
 	BuildGLBuffer();
@@ -140,6 +166,8 @@ void InstancedPrimitiveNode::BuildGLBuffer()
 		m_pIndexBuffer = std::make_unique<GLBuffer>();
 		m_pIndexBuffer->Create(m_pPrimitive->Index());
 	}
+
+
 	m_pPrimitive->ClearUpdate();
 
 

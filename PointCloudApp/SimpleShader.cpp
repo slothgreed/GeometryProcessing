@@ -278,4 +278,68 @@ void PointPickShader::SetPickID(unsigned int pickID)
 	// PickOffset‚ð‘ã‘Ö‚·‚éB
 	BindUniform(m_uniform[UNIFORM::PICKOFFSET], pickID);
 }
+
+
+ShaderPath TextureShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
+	path.shader[SHADER_PROGRAM_VERTEX] = "texture.vert";
+	if (m_type == Type::VEC4) {
+		path.shader[SHADER_PROGRAM_FRAG] = "texture.frag";
+	} else if (m_type == Type::UINT) {
+		path.shader[SHADER_PROGRAM_FRAG] = "textureUINT.frag";
+	}
+
+	return path;
+}
+
+void TextureShader::FetchUniformLocation()
+{
+	m_uniform[UNIFORM::TEXTURE] = GetUniformLocation("tex");
+	m_uniform[UNIFORM::MODEL] = GetUniformLocation("u_Model");
+}
+
+void TextureShader::BindTexture(const Texture& texture)
+{
+	glActiveTexture(GL_TEXTURE0);
+	OUTPUT_GLERROR;
+	glUniform1i(m_uniform[UNIFORM::TEXTURE], 0);
+	OUTPUT_GLERROR;
+	glBindTexture(GL_TEXTURE_2D, texture.Handle());
+	OUTPUT_GLERROR;
+}
+
+void TextureShader::SetPosition(GLBuffer* pPosition)
+{
+	static const int ATTRIBUTE_POSITION = 0;
+	SetVertexFormat(VertexFormat(ATTRIBUTE_POSITION, pPosition));
+
+	glBindVertexBuffer(ATTRIBUTE_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
+void TextureShader::SetModel(const Matrix4x4& value)
+{
+	BindUniform(m_uniform[UNIFORM::MODEL], value);
+}
+
+void TextureShader::SetCamera(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+}
+
+
+void TextureShader::SetTexcoord(GLBuffer* pTexture)
+{
+	static const int ATTRIBUTE_TEXCOORD = 1;
+	SetVertexFormat(VertexFormat(ATTRIBUTE_TEXCOORD, pTexture));
+
+	glBindVertexBuffer(ATTRIBUTE_TEXCOORD, pTexture->Handle(), 0, pTexture->SizeOfData());
+	OUTPUT_GLERROR;
+
+}
+
 }

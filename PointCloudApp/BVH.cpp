@@ -34,8 +34,11 @@ void BVH::Execute()
 			Node node;
 			node.left = left;
 			node.right = right;
-			node.box.Add(m_nodes[left].box);
-			node.box.Add(m_nodes[right].box);
+			BDB box;
+			box.Add(m_nodes[left].minBox); box.Add(m_nodes[left].maxBox);
+			box.Add(m_nodes[right].minBox);	box.Add(m_nodes[right].maxBox);
+			
+			node.minBox = box.Min(); node.maxBox = box.Max();
 			m_nodes.push_back(std::move(node));
 
 			m_nodes[left].parent = parentIndex;
@@ -52,37 +55,6 @@ void BVH::Execute()
 		leaves = (leaves + 1) / 2;
 		m_levelRange.push_back(std::pair<int, int>(offset, m_nodes.size()));
 	}
-
-	/*
-	int leaves = (morton.Get().size() + 1) / 2;
-	int offset = 0;
-	m_levelRange.push_back(std::pair<int, int>(offset, m_nodes.size()));
-	while (leaves > 1) {
-		for (int i = 0; i < leaves; i += 2) {
-			int parentIndex = m_nodes.size();
-			int left = offset + i;
-			int right = offset + i + 1;
-
-			Node node;
-			node.left = left;
-			node.right = right;
-			node.box.Add(m_nodes[left].box);
-			node.box.Add(m_nodes[right].box);
-			m_nodes.push_back(std::move(node));
-
-			m_nodes[left].parent = parentIndex;
-			m_nodes[right].parent = parentIndex;
-		}
-
-		offset = m_levelRange[m_levelRange.size() - 1].second;
-		if (leaves % 2 == 1) {
-			m_nodes.push_back(m_nodes[offset - 1]);
-		}
-
-		leaves = (leaves + 1) / 2;
-		m_levelRange.push_back(std::pair<int, int>(offset, m_nodes.size()));
-	}
-	*/
 
 	/* TestCode
 	{
@@ -187,7 +159,7 @@ Vector<BVH::IntersectResult> BVH::IntersectFace(const Ray& ray) const
 
 		const Node& node = m_nodes[nodeIndex];
 
-		auto intersect = ray.Intersect(node.box);
+		auto intersect = ray.Intersect(BDB(node.minBox, node.maxBox));
 		// AABBと交差しない場合はスキップ
 		if (!intersect.success) { continue; }
 
@@ -255,6 +227,12 @@ void BVH::DeleteUINode()
 {
 	m_pHalfEdge->RemoveNode("BVH");
 }
+void BVH::CreateGPUBuffer()
+{
+	if (m_gpu.pBuffer) { return; }
+	m_gpu.pBuffer = std::make_unique<GLBuffer>();
+	//m_gpu.pBuffer->Create()
+}
 void BVH::ShowUI()
 {
 	if (ImGui::SliderInt("ShowLevel", &m_ui.showLevel, -1, m_levelRange.size() - 1)) {
@@ -263,7 +241,7 @@ void BVH::ShowUI()
 		Vector<Vector3> position;
 		Vector<unsigned int> indexs;
 		for (int i = m_levelRange[m_ui.showLevel].first; i < m_levelRange[m_ui.showLevel].second; i++) {
-			auto cube = Cube::CreateLine(m_nodes[i].box.Min(), m_nodes[i].box.Max());
+			auto cube = Cube::CreateLine(m_nodes[i].minBox, m_nodes[i].maxBox);
 			for (int j = 0; j < cube.Position().size(); j++) {
 				position.push_back(cube.Position()[j]);
 			}

@@ -324,59 +324,11 @@ void IComputeShader::Dispatch(const Vector3i& value)
 	OUTPUT_GLERROR;
 }
 
-ShaderPath TextureShader::GetShaderPath()
-{
-	ShaderPath path;
-	path.version = "version.h";
-	path.header.push_back("common.h");
-
-	path.shader[SHADER_PROGRAM_VERTEX] = "texture.vert";
-	if (m_type == Type::VEC4) {
-		path.shader[SHADER_PROGRAM_FRAG] = "texture.frag";
-	} else if(m_type == Type::UINT) {
-		path.shader[SHADER_PROGRAM_FRAG] = "textureUINT.frag";
-	}
-
-	return path;
-}
 
 void IMeshShader::DrawMeshTasks(int first, int count)
 {
 	glDrawMeshTasksNV(first, count);
 	OUTPUT_GLERROR;
-}
-void TextureShader::FetchUniformLocation()
-{
-	m_uniform = GetUniformLocation("tex");
-}
-
-void TextureShader::BindTexture(const Texture& texture)
-{
-	glActiveTexture(GL_TEXTURE0);
-	OUTPUT_GLERROR;
-	glUniform1i(m_uniform, 0);
-	OUTPUT_GLERROR;
-	glBindTexture(GL_TEXTURE_2D, texture.Handle());
-	OUTPUT_GLERROR;
-}
-
-void TextureShader::SetPosition(GLBuffer* pPosition)
-{
-	static const int ATTRIBUTE_POSITION = 0;
-	SetVertexFormat(VertexFormat(ATTRIBUTE_POSITION, pPosition));
-
-	glBindVertexBuffer(ATTRIBUTE_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
-	OUTPUT_GLERROR;
-}
-
-void TextureShader::SetTexture(GLBuffer* pTexture)
-{
-	static const int ATTRIBUTE_TEXCOORD = 1;
-	SetVertexFormat(VertexFormat(ATTRIBUTE_TEXCOORD, pTexture));
-
-	glBindVertexBuffer(ATTRIBUTE_TEXCOORD, pTexture->Handle(), 0, pTexture->SizeOfData());
-	OUTPUT_GLERROR;
-
 }
 
 

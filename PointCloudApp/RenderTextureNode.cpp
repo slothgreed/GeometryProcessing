@@ -1,4 +1,5 @@
 #include "RenderTextureNode.h"
+#include "SimpleShader.h"
 namespace KI
 {
 
@@ -7,6 +8,7 @@ RenderTextureNode::RenderTextureNode(const String& name, const Shared<Texture>& 
 	,m_pTexture(pTexture)
 	,m_needUpdate(true)
 {
+	m_pPrimitive = std::make_unique<RenderPlane>();
 }
 
 void RenderTextureNode::SetPrimitive(Unique<Primitive>&& pPrimitive)
@@ -31,7 +33,7 @@ void RenderTextureNode::DrawNode(const DrawContext& context)
 	pShader->Use();
 	pShader->BindTexture(*m_pTexture);
 	pShader->SetPosition(m_pPositionBuffer.get());
-	pShader->SetTexture(m_pTexcoordBuffer.get());
+	pShader->SetTexcoord(m_pTexcoordBuffer.get());
 	pShader->DrawElement(m_pPrimitive->GetType(), m_pIndexBuffer.get());
 }
 

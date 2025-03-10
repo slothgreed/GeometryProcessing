@@ -5,6 +5,7 @@ namespace KI
 {
 struct GLTFMaterial;
 struct GLTFPrimitive;
+class Texture;
 class GLTFShader : public IShadingShader
 {
 public:

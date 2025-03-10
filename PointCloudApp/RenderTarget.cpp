@@ -90,7 +90,7 @@ Texture2D* RenderTarget::CreatePickTexture(int width, int height)
 	format.border = 0;
 	format.format = GL_RED_INTEGER;
 	format.type = GL_UNSIGNED_INT;
-	pTexture->Set(format);
+	pTexture->Set(format, nullptr);
 
 	return pTexture;
 }
@@ -109,7 +109,7 @@ Texture2D* RenderTarget::CreateDepthTexture(int width, int height)
 	format.border = 0;
 	format.format = GL_DEPTH_STENCIL;
 	format.type = GL_UNSIGNED_INT_24_8;
-	pDepth->Set(format);
+	pDepth->Set(format, nullptr);
 	return pDepth;
 }
 int RenderTarget::GetIntPixel(int x, int y)

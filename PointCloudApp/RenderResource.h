@@ -1,7 +1,7 @@
 #ifndef RENDER_RESOURCE_H
 #define RENDER_RESOURCE_H
 #include "ShaderTable.h"
-
+#include "Texture.h"
 namespace KI
 {
 struct GLStatus
