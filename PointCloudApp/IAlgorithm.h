@@ -1,5 +1,8 @@
 #ifndef IALGORITHM_H
 #define IALGORITHM_H
+#include "RenderNode.h"
+namespace KI
+{
 
 enum ALGORITHM_TYPE
 {
@@ -19,9 +22,10 @@ public:
 	virtual ~IAlgorithm() {};
 	virtual ALGORITHM_TYPE GetType() = 0;
 	virtual void Execute() {};
-	virtual void ShowUI() = 0;
+	virtual void ShowUI(UIContext& ui) = 0;
 private:
 
 };
+}
 
 #endif

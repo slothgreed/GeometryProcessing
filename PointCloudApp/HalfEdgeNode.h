@@ -47,7 +47,7 @@ public:
 	const BVH* GetBVH() const { return m_pBVH; }
 	const MortonCode& GetMorton() const { return m_morton.data; }
 protected:
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 	virtual void DrawNode(const DrawContext& context);
 	virtual void PickNode(const PickContext& context);
 	virtual void DrawPartsNode(const DrawContext& context, const RenderParts& parts);

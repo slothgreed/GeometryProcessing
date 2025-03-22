@@ -265,7 +265,7 @@ void HalfEdgeNode::DrawPartsNode(const DrawContext& context, const RenderParts& 
 }
 
 
-void HalfEdgeNode::ShowUI()
+void HalfEdgeNode::ShowUI(UIContext& ui)
 {
 	ImGui::Checkbox("Visible", &m_ui.visible);
 	ImGui::Text("PositionNum%d, EdgeNum%d,TriangleNum %d",
@@ -312,7 +312,7 @@ void HalfEdgeNode::ShowUI()
 
 		}
 	}
-	m_pShapeDiameterFunction->ShowUI();
+	m_pShapeDiameterFunction->ShowUI(ui);
 
 	if (ImGui::Checkbox("ShowBVH", &m_ui.visibleBVH)) {
 		if (m_ui.visibleBVH) {
@@ -323,12 +323,12 @@ void HalfEdgeNode::ShowUI()
 	} 
 
 	if (m_ui.visibleBVH) {
-		m_pBVH->ShowUI();
+		m_pBVH->ShowUI(ui);
 	}
 
 	ImGui::Checkbox("ShowSignedDistanceField", &m_ui.visibleSignedDistanceField);
 	if (m_ui.visibleSignedDistanceField) {
-		m_pSignedDistanceField->ShowUI();
+		m_pSignedDistanceField->ShowUI(ui);
 	}
 
 	if (ImGui::Checkbox("ShowMorton", &m_ui.visibleMorton)) {

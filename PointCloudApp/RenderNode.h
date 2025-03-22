@@ -2,9 +2,6 @@
 #define RENDER_NODE_H
 #include "RenderResource.h"
 #include "BDB.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
-#include "../implot/implot.h"
 #include "RenderResource.h"
 #include "Light.h"
 namespace KI
@@ -21,6 +18,28 @@ struct DrawContext
 		: pResource(_pResource){}
 	RenderResource* pResource;
 };
+
+struct UIContext
+{
+	UIContext() {}
+
+	struct UIRect
+	{
+		UIRect() {}
+		UIRect(const Vector2i p, const Vector2i s) : Position(p),Size(s){}
+		Vector2i GetRightBottom() const { return Position + Size; }
+		Vector2i GetLeftBottom() const { return Position + Vector2i(0, Size.y); }
+		Vector2i Position;
+		Vector2i Size;
+	};
+
+	void SetRoot(const UIRect& rect) { m_root = rect; }
+	const UIRect& GetRoot() const { return m_root; }
+private:
+	UIRect m_root;
+};
+
+
 class RenderParts
 {
 public:
@@ -42,6 +61,7 @@ struct PickContext
 	{
 	}
 	RenderResource* pResource;
+	int pickMaxId;
 	int pickedId;
 };
 
@@ -50,6 +70,7 @@ struct PickResult
 {
 	PickContext* context;
 	std::unordered_map<RenderNode*, Unique<RenderParts>> pResult;
+	Vector3 pickPos;
 	int id;
 };
 
@@ -65,7 +86,7 @@ public:
 	RenderNode(const String& name, const Matrix4x4& matrix) : m_name(name), m_matrix(matrix) {}
 	virtual ~RenderNode() {};
 
-	virtual void ShowUIData();
+	virtual void ShowUIData(UIContext& ui);
 	virtual const BDB& GetBoundBox() { return m_bdb; }
 	virtual void Draw(const DrawContext& context);
 	virtual void DrawParts(const DrawContext& context, const RenderParts& parts);
@@ -91,7 +112,7 @@ public:
 	BDB CalcCameraFitBox();
 	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
 protected:
-	virtual void ShowUI() {};
+	virtual void ShowUI(UIContext& ui) {};
 	virtual void PickNode(const PickContext& context) {};
 	virtual bool CollectPickedNode(PickResult& result) { return false; }
 	virtual void DrawPartsNode(const DrawContext& context, const RenderParts& parts) {};

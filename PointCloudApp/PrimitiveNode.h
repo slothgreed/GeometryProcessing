@@ -15,12 +15,25 @@ public:
 	PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Shared<Texture>& pTexutre);
 	~PrimitiveNode();
 
+	struct Parts : public RenderParts
+	{
+		virtual String ToString();
+		Vector3 position;
+	};
+
+
 	const Shared<Primitive>& GetData() const;
 	void UpdateData();
 	void DrawNode(const DrawContext& context);
 	void SetGLStatus(const Shared<GLStatus>& status) { m_gl = status; }
-private:
+	void SetPickTarget(bool value) { m_pickTarget = value; }
+	bool GetPickTarget() const { return m_pickTarget; }
+	void PickNode(const PickContext& context);
+	bool CollectPickedNode(PickResult& result);
+	void DrawPartsNode(const DrawContext& context, const RenderParts& parts);
 
+private:
+	bool m_pickTarget;
 	Shared<GLStatus> m_gl;
 	void BuildGLBuffer();
 	void UpdateRenderData();

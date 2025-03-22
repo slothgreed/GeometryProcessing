@@ -7,6 +7,11 @@ Camera::Camera()
 	m_theta = 0;
 	m_phi = 0;
 }
+
+void Camera::SetEye(const Vector3& eye)
+{
+	SetLookAt(eye, m_center, m_up);
+}
 void Camera::SetLookAt(const Vector3& eye, const Vector3& center, const Vector3& up)
 {
 	m_View = glm::lookAt(eye, center, up);
@@ -96,21 +101,16 @@ void Camera::SetTheta(float value)
 	}
 }
 
-void Camera::FitToBDB(const BDB& bdb)
-{
-	if (!bdb.IsActive()) { return; }
-	float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(m_fov / 2.0);
-	lookAtDistance *= 1.2f / m_aspect;
-
-	Vector3 eyeDirection = glm::normalize(Eye() - Center());
-	Vector3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
-
-	SetLookAt(newPosition, bdb.Center(), Up());
-}
 
 void Camera::SetAspect(float aspect)
 {
 	SetPerspective(m_fov, aspect, m_near, m_far);
 }
 
+
+Vector3 Camera::ScreenToModel(const Vector3& pos)
+{
+	return glm::unProject(pos, m_View, m_Project, m_viewport);
+
+}
 }

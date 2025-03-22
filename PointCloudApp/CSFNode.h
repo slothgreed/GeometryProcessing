@@ -4,6 +4,17 @@
 namespace KI
 {
 
+class RenderNode;
+class CSFLoader
+{
+public:
+	CSFLoader() {};
+	~CSFLoader() {};
+
+	static RenderNode* Load(const String& name);
+private:
+};
+
 struct CSFNode
 {
     Matrix4x4 matrix;
@@ -101,7 +112,7 @@ public:
 	virtual void PickNode(const PickContext& context);
 
 	virtual void DrawNode(const DrawContext& context);
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 
 	void SetMaterial(Vector<CSFMaterial>&& materials) { m_materials = std::move(materials); UpdateMaterial(); }
 	void SetNode(Vector<CSFNode>&& nodes) { m_nodes = std::move(nodes); UpdateNode(); }

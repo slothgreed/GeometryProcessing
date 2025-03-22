@@ -4,6 +4,7 @@
 #include "Utility.h"
 #include "PrimitiveNode.h"
 #include "Primitives.h"
+#include <queue>
 namespace KI
 {
 
@@ -56,76 +57,50 @@ void BVH::Execute()
 		m_levelRange.push_back(std::pair<int, int>(offset, m_nodes.size()));
 	}
 
-	/* TestCode
-	{
-
-
-		struct Node
-		{
-			unsigned int morton;
-			int left;
-			int right;
-			int parent;
-		};
-
-		std::vector<Node> nodes = {
-		{0, -1, -1, -1}, {1, -1, -1, -1}, {2, -1, -1, -1}, {3, -1, -1, -1},
-		{4, -1, -1, -1}, {5, -1, -1, -1}, {6, -1, -1, -1}, {7, -1, -1, -1}
-		};
-
-		// モートンコード順に並んでいるのでソートは不要だが、明示的に確認
-		std::sort(nodes.begin(), nodes.end(), [](const Node& a, const Node& b)
-		{
-			return a.morton < b.morton;
-		});
-
-		int numLeaves = nodes.size();
-		std::vector<Node> bvhNodes;
-		bvhNodes.reserve(2 * numLeaves - 1);
-
-		// リーフノードをコピー
-		for (int i = 0; i < numLeaves; i++) {
-			bvhNodes.push_back(nodes[i]);
-		}
-
-		int offset = 0;
-		while (numLeaves > 1) {
-			int newSize = 0;
-			for (int i = 0; i < numLeaves - 1; i += 2) {
-				int left = offset + i;
-				int right = offset + i + 1;
-				int parentIndex = bvhNodes.size();
-
-				bvhNodes.push_back({ 0, left, right, -1 });
-				bvhNodes[left].parent = parentIndex;
-				bvhNodes[right].parent = parentIndex;
-				newSize++;
-			}
-
-			// 余ったノード（奇数個だった場合）をそのまま追加
-			if (numLeaves % 2 == 1) {
-				bvhNodes.push_back(bvhNodes[offset + numLeaves - 1]);
-			}
-
-			offset += numLeaves;
-			numLeaves = (numLeaves + 1) / 2;
-		}
-		nodes = bvhNodes;
-
-		// 昇順に配置した結果を出力
-		printf("Sorted Morton Codes:\n");
-		for (const auto& node : nodes) {
-			printf("Morton: %06b, Left: %d, Right: %d\n", node.morton, node.left, node.right);
-		}
-
-	}
-	*/
 	DebugForAllLeaf();
 }
 
 HalfEdgeStruct::Face GetFace(const HalfEdgeNode* pHalfEdge, int triangleIndex)
 {
 	return pHalfEdge->GetData()->GetFace(triangleIndex);
+}
+
+BVH::IntersectResult BVH::CalcMinDistance(const Vector3& pos) const
+{
+	if (m_nodes.empty()) { return BVH::IntersectResult(); }
+
+	auto face = m_pHalfEdge->GetData()->GetFace(0);
+	auto pToTri = Intersect::PointToTriangle(pos, face.pos0, face.pos1, face.pos2);
+
+	auto minDist = BVH::IntersectResult(0, pToTri.position, pToTri.distance);
+	std::vector<std::pair<int,int>> stack;
+	stack.push_back({ m_nodes.size() - 1,0 }); // ルートノードから開始
+	// 深さ優先探索
+	while (!stack.empty()) {
+		auto nodeIndex = stack.back();
+		stack.pop_back();
+
+		const Node& node = m_nodes[nodeIndex.first];
+
+		auto intersect = Intersect::PointToBox(pos, BDB(node.minBox, node.maxBox), false);
+		// AABBの最短距離が面との最短距離より大きい場合はスキップ
+		if (intersect.distance > minDist.distance) { continue; }
+		auto bdbLine = BDB(node.minBox, node.maxBox).CreateLine();
+		if (node.left == -1 && node.right == -1) {
+			// リーフノードなら交差リストに追加
+			auto face = GetFace(m_pHalfEdge, node.triangleIndex);
+			auto triIntersect = Intersect::PointToTriangle(pos, face.pos0, face.pos1, face.pos2);
+			if (triIntersect.distance < minDist.distance) {
+				minDist = BVH::IntersectResult(node.triangleIndex, triIntersect.position, triIntersect.distance);
+			}
+		} else {
+			if (node.right != -1) { stack.push_back({ node.right,nodeIndex.second + 1 }); }
+			if (node.left != -1) { stack.push_back({ node.left,nodeIndex.second + 1 }); }
+		}
+	}
+
+	return minDist;
+	
 }
 
 BVH::IntersectResult BVH::IntersectMinFace(const Ray& ray) const
@@ -233,7 +208,7 @@ void BVH::CreateGPUBuffer()
 	m_gpu.pBuffer = std::make_unique<GLBuffer>();
 	//m_gpu.pBuffer->Create()
 }
-void BVH::ShowUI()
+void BVH::ShowUI(UIContext& ui)
 {
 	if (ImGui::SliderInt("ShowLevel", &m_ui.showLevel, -1, m_levelRange.size() - 1)) {
 		if (m_ui.showLevel == -1) { return; }

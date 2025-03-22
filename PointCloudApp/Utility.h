@@ -96,6 +96,7 @@ public:
 	static Vector3 ToRotateAngle(const Matrix4x4& matrix);
 	static Quaternion CreateQuart(const Vector4& vec);
 
+	static String ToString(const Vector2& value);
 	static String ToString(const Vector3& value);
 	static String ToString(const Vector4& value);
 	static String ToString(const Matrix4x4& value);

@@ -194,5 +194,27 @@ private:
 	GLuint m_uniform[UNIFORM::NUM];
 };
 
+
+class TextureViewShader : public IShadingShader
+{
+public:
+
+	enum UNIFORM
+	{
+		TEXTURE,
+		NUM
+	};
+
+	TextureViewShader()	{};
+	virtual ~TextureViewShader() {};
+	virtual ShaderPath GetShaderPath();
+	virtual void FetchUniformLocation();
+	void BindTexture(const Texture& texture);
+	void SetPosition(GLBuffer* pPosition);
+	void SetTexcoord(GLBuffer* pTexture);
+private:
+	GLuint m_uniform[UNIFORM::NUM];
+};
+
 }
 #endif SIMPLE_SHADER_H

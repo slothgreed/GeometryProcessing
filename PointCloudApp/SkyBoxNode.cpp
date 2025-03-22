@@ -95,12 +95,12 @@ void SkyBoxNode::BuildGLBuffer()
 void SkyBoxNode::Draw(const DrawContext& context)
 {
 	BuildGLBuffer();
-
+	context.pResource->GL()->EnableCullFace();
 	m_pShader->Use();
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetTexture(m_pCubemap.get());
-	m_pShader->SetModel(glmUtil::CreateScale(100));
+	m_pShader->SetModel(glmUtil::CreateScale(30000));
 	m_pShader->DrawArray(m_skybox->GetDrawType(), m_pPositionBuffer->Num());
 }
 

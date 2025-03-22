@@ -12,6 +12,9 @@ public:
 	~CameraController() {};
 	bool Move(const Mouse& mouse);
 	bool Wheel(const Mouse&  mouse);
+	void RotateAnimation(float time, const BDB& bdb);
+	void FitToBDB(const BDB& bdb);
+
 private:
 	void Zoom(float ratio);
 	void Rotate(const vec2& move);

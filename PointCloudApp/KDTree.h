@@ -20,7 +20,7 @@ public:
 	virtual void Execute();
 	bool Executed() { return m_index.size() != 0; }
 	Vector<Vector4> CreateLevelColor(int target);
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 private:
 
 	struct Node

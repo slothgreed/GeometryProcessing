@@ -21,15 +21,7 @@ void RenderTextureNode::SetPrimitive(Unique<Primitive>&& pPrimitive)
 void RenderTextureNode::DrawNode(const DrawContext& context)
 {
 	BuildGLBuffer();
-	Shared<TextureShader> pShader = nullptr;
-	if (m_pTexture->GetFormat().format == GL_RED_INTEGER) {
-		pShader = context.pResource->GetShaderTable()->GetTextureUINTShader();
-	} else {
-		pShader = context.pResource->GetShaderTable()->GetTextureShader();
-
-	}
-	//glEnable(GL_TEXTURE_2D);
-	//OUTPUT_GLERROR;
+	auto pShader = context.pResource->GetShaderTable()->GetTextureViewShader();
 	pShader->Use();
 	pShader->BindTexture(*m_pTexture);
 	pShader->SetPosition(m_pPositionBuffer.get());

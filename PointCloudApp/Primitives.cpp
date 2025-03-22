@@ -73,24 +73,37 @@ Plane::Plane(const Vector3& min, const Vector3& max, float position, Axis axis, 
 		m_position.push_back(Vector3(position, min.y, max.z));
 		m_position.push_back(Vector3(position, max.y, max.z));
 		m_position.push_back(Vector3(position, max.y, min.z));
+		if (texcoord) {
+			m_texcoord.resize(4);
+			m_texcoord[0] = vec2(0, 0.0);
+			m_texcoord[1] = vec2(1.0, 0.0);
+			m_texcoord[2] = vec2(1.0, 1.0);
+			m_texcoord[3] = vec2(0, 1.0);
+		}
 	} else if (axis == Axis::Y) {
 		m_position.push_back(Vector3(min.x, position, min.z));
 		m_position.push_back(Vector3(min.x, position, max.z));
 		m_position.push_back(Vector3(max.x, position, max.z));
 		m_position.push_back(Vector3(max.x, position, min.z));
+		if (texcoord) {
+			m_texcoord.resize(4);
+			m_texcoord[0] = vec2(0, 0.0);
+			m_texcoord[1] = vec2(0, 1.0);
+			m_texcoord[2] = vec2(1.0, 1.0);
+			m_texcoord[3] = vec2(1.0, 0.0);
+		}
 	} else if (axis == Axis::Z) {
 		m_position.push_back(Vector3(min.x, min.y, position));
 		m_position.push_back(Vector3(max.x, min.y, position));
 		m_position.push_back(Vector3(max.x, max.y, position));
 		m_position.push_back(Vector3(min.x, max.y, position));
-	}
-
-	if (texcoord) {
-		m_texcoord.resize(4);
-		m_texcoord[0] = vec2(0, 1.0);
-		m_texcoord[1] = vec2(1.0, 1.0);
-		m_texcoord[2] = vec2(1.0, 0);
-		m_texcoord[3] = vec2(0, 0);
+		if (texcoord) {
+			m_texcoord.resize(4);
+			m_texcoord[0] = vec2(0, 0.0);
+			m_texcoord[1] = vec2(0, 1.0);
+			m_texcoord[2] = vec2(1.0, 1.0);
+			m_texcoord[3] = vec2(1.0, 0.0);
+		}
 	}
 
 	m_index.push_back(0); m_index.push_back(1); m_index.push_back(2);

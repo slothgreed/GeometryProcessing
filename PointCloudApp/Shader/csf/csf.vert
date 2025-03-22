@@ -12,13 +12,13 @@ layout(std430, binding = 3) buffer NodeBuffer
 };
 
 uniform ivec2 u_node; // (x,y) = (matrix,material);
-
+uniform mat4 u_Model;
 out vec4 f_position;
 out vec4 f_normal;
 
 void main()
 {
-	f_position = nodes[u_node.x].world * position;
+	f_position = u_Model * nodes[u_node.x].world * position;
 	f_normal = normal;
 	gl_Position = camera.VP * f_position;
 }

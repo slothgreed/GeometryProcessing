@@ -12,11 +12,14 @@ public:
 
 	void SetPerspective(float fov, float aspect, float _near, float _far);
 	void MoveWithSpherical(const vec2& move);
-	const float Phi() const { return m_phi; }
-	const float Theta() const { return m_theta; }
-
+	float Phi() const { return m_phi; }
+	float Theta() const { return m_theta; }
+	float FOV() const { return m_fov; }
+	float Aspect() const { return m_aspect; }
+	void SetEye(const Vector3& eye);
 	void SetLookAt(const Vector3& eye, const Vector3& center, const Vector3& up);
 	void SetProject(const Matrix4x4 proj);
+	void SetViewport(const Vector4i& viewport) { m_viewport = viewport; }
 	const Matrix4x4& ViewMatrix() const { return m_View; }
 	const Matrix4x4& Projection() const { return m_Project; }
 
@@ -30,10 +33,9 @@ public:
 
 	const float LookAtDistance() const { return m_distance; }
 
-	void FitToBDB(const BDB& bdb);
-
 	void SetAspect(float aspect);
 
+	Vector3 ScreenToModel(const Vector3& pos);
 private:
 	void SphericalToCartesian(float radius, float x, float y, Vector3& result);
 	void SetTheta(float value);
@@ -50,6 +52,7 @@ private:
 	Matrix4x4 m_View;
 	Matrix4x4 m_Project;
 
+	Vector4i m_viewport;
 	Vector3 m_eye;
 	Vector3 m_center;
 	Vector3 m_up;

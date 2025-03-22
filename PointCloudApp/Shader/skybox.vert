@@ -10,6 +10,7 @@ uniform mat4 u_Model;
 out vec3 texCoord;
 void main()
 {
-    gl_Position = camera.VP * u_Model * vec4(position.x,position.y,position.z, 1.0);
+    vec4 pos = camera.VP * u_Model * vec4(position.x,position.y,position.z, 1.0);
+	gl_Position = pos;
 	texCoord = position;
 }

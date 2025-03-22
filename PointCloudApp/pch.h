@@ -18,6 +18,11 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "../implot/implot.h"
+#include "imgui.h"
+
 using namespace glm;
 
 namespace KI

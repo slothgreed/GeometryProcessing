@@ -21,9 +21,38 @@ public:
 	static float ToAngle(float rad);
 	static Vector4 WorldToScreenPos(const Matrix4x4& proj, const Matrix4x4& view, const Matrix4x4& model, const Vector3& value);
 
+	
 private:
 
 };
+
+class Intersect
+{
+public:
+	Intersect() {}
+	~Intersect() {}
+
+	struct Result
+	{
+		Result() :success(false), distance(0) {}
+		Result(float v) :success(true), distance(v) {}
+		Result(float v, const Vector3& p) :success(true), distance(v), position(p) {}
+		bool success;
+		Vector3 position;
+		float distance;
+	};
+
+	// point to triangle
+	static Result PointToTriangle(const Vector3& p, const Vector3& t0, const Vector3& t1, const Vector3& t2);
+	static Result PointToEdge(const glm::vec3& P, const glm::vec3& X, const glm::vec3& Y);
+	static Result PointToBox(const glm::vec3& P, const BDB& bdb, bool innerDist);
+
+private:
+
+};
+
+
+
 class Ray
 {
 public:

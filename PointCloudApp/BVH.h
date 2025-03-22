@@ -48,7 +48,7 @@ public:
 	virtual ~BVH() {};
 	virtual ALGORITHM_TYPE GetType() { return ALGORITHM_BVH; }
 	virtual void Execute();
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 
 	struct IntersectResult
 	{
@@ -72,11 +72,11 @@ public:
 	};
 
 
+	BVH::IntersectResult CalcMinDistance(const Vector3& pos) const;
 	BVH::IntersectResult IntersectMinFace(const Ray& ray) const;
-
 	Vector<BVH::IntersectResult> IntersectFace(const Ray& ray) const;
 	void DeleteUINode();
-
+	int GetMaxLevel() const { return m_levelRange.size(); }
 private:
 	void CreateGPUBuffer();
 	void CountLeafNodes(int nodeIndex, int& leafNum);

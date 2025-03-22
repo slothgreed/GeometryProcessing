@@ -180,7 +180,6 @@
     <ClCompile Include="AlphaShape.cpp" />
     <ClCompile Include="BDB.cpp" />
     <ClCompile Include="BVH.cpp" />
-    <ClCompile Include="CADSceneLoader.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
     <ClCompile Include="CSFNode.cpp" />
@@ -251,7 +250,6 @@
     <ClInclude Include="..\extlibs\implot\implot_internal.h" />
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="BVH.h" />
-    <ClInclude Include="CADSceneLoader.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
     <ClInclude Include="CSFNode.h" />
     <ClInclude Include="DelaunayGenerator.h" />

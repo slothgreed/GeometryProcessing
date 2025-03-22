@@ -34,6 +34,10 @@ public:
 		Vector3 pos0;
 		Vector3 pos1;
 		Vector3 pos2;
+		Vector3 Gravity() const
+		{
+			return (pos0 + pos1 + pos2) / 3.0f;
+		}
 	};
 
 	typedef std::array<int,2> IndexedEdge;

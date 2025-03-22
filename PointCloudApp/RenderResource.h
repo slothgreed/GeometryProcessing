@@ -61,7 +61,7 @@ public:
 	~RenderResource() {};
 	void Build();
 
-	void SetCamera(const Shared<Camera>& pCamera) { m_pCamera = pCamera; }
+	void SetMainCamera(const Shared<Camera>& pCamera) { m_pCamera = pCamera; }
 	void SetLight(const Shared<Light>& pLight) { m_pLight = pLight; }
 	GLContext* GL() { return m_pContext.get(); }
 	const Shared<Camera>& GetCamera() const { return m_pCamera; }

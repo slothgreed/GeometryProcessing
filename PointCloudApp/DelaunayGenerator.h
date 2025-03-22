@@ -14,7 +14,7 @@ public:
 	ALGORITHM_TYPE GetType() { return ALGORITHM_DELAUNAY; }
 	virtual void Execute() {};
 	Vector<unsigned int> Execute2D(int iterate);
-	void ShowUI();
+	void ShowUI(UIContext& ui);
 
 private:
 

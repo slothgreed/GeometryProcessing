@@ -15,7 +15,7 @@ public:
 	const Shared<PointCloud>& GetData() const;
 	void UpdateData();
 	void DrawNode(const DrawContext& context);
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 	const Vector<Vector3>& GetNormal();
 	const Vector<int>& GetNeighbor(int index);
 private:

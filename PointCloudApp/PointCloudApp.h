@@ -30,9 +30,11 @@ private:
 	struct UI
 	{
 		UI()
-		:pickMode(false) {}
+		:pickMode(false)
+		,animation(false){}
 		~UI() {}
 		bool pickMode;
+		bool animation;
 	};
 
 	PickResult m_pick;

@@ -17,6 +17,7 @@ public:
 	void UnBind();
 
 	int GetIntPixel(int x, int y);
+	float GetDepth(int x, int y);
 	const Shared<Texture2D>& GetColor(int index) const { return m_pColor[index]; }
 	const Shared<Texture2D>& GetDepth() const { return m_pDepth; }
 	static RenderTarget* CreatePickTarget(const Vector2& size);

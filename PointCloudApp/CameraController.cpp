@@ -60,4 +60,29 @@ void CameraController::Translate(const vec2& move)
 	Vector3 center = m_pCamera->Center() + xDir + yDir;
 	m_pCamera->SetLookAt(eye, center, m_pCamera->Up());
 }
+
+void CameraController::RotateAnimation(float time, const BDB& bdb)
+{
+	float angle = time * 0.5f; // ‘¬“x’²®
+	auto center = bdb.Center();
+	auto bdbLength = bdb.MaxLength() * 1.2f;
+	float x = center.x + bdbLength * cos(angle);
+	float y = center.y;
+	float z = center.z + bdbLength * sin(angle);
+
+	m_pCamera->SetEye(Vector3(x, y, z));
+}
+
+void CameraController::FitToBDB(const BDB& bdb)
+{
+	if (!bdb.IsActive()) { return; }
+	float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(m_pCamera->FOV() / 2.0);
+	lookAtDistance *= 1.2f / m_pCamera->Aspect();
+
+	Vector3 eyeDirection = m_pCamera->Direction();
+	Vector3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
+
+	m_pCamera->SetLookAt(newPosition, bdb.Center(), m_pCamera->Up());
+}
+
 }

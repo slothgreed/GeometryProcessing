@@ -78,10 +78,10 @@ void PointCloudNode::UpdateColor(const Vector<Vector4>& color)
 
 	m_pColorBuffer->Create(color);
 }
-void PointCloudNode::ShowUI()
+void PointCloudNode::ShowUI(UIContext& ui)
 {
 	for (auto& algorithm : m_algorithm) {
-		algorithm.second->ShowUI();
+		algorithm.second->ShowUI(ui);
 	}
 
 	if (ImGui::Button("ShowNormal")) {

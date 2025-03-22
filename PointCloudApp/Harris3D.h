@@ -12,7 +12,7 @@ public:
 	virtual ALGORITHM_TYPE GetType() { return ALGORITHM_HARRIS3D; };
 
 	virtual void Execute();
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 private:
 	Vector<float> m_result;
 	PointCloudNode* m_pPointCloud;

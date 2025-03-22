@@ -32,6 +32,35 @@ public:
 		~Format() {}
 	};
 
+	class Sampler
+	{
+	public:
+		enum WRAP
+		{
+			REPEAT = 0x2901,
+		};
+
+		enum FILTER
+		{
+			LINEAR = 0x2601,
+			NEAREST = 0x2600
+		};
+
+		Sampler()
+			:wrap(WRAP::REPEAT)
+			, filter(FILTER::LINEAR)
+		{
+		}
+
+		Sampler(FILTER _f)
+			:wrap(WRAP::REPEAT)
+			, filter(_f)
+		{
+		}
+		WRAP wrap;
+		FILTER filter;
+	};
+
 	Texture();
 	~Texture();
 	void Bind();
@@ -43,6 +72,7 @@ public:
 	void Set(const Format& format, unsigned char* data);
 
 protected:
+	Sampler m_sampler;
 	Format m_format;
 	GLuint m_handle;
 };
@@ -61,14 +91,19 @@ class Texture2D : public Texture
 {
 public:
 	Texture2D();
+	Texture2D(const Sampler& sampler);
+
 	~Texture2D() {};
 
 	virtual TEXTURE_TYPE Type() const { return TEXTURE_2D; }
-	static Texture* Create(const Vector2i& resolute);
+	static Texture2D* Create(const Vector2i& resolute, const Vector4& color);
 
 	void Build(int width, int height);
 	void Build(int width, int height, unsigned char* data);
+	void Build(int width, int height, const Sampler& sampler, unsigned char* data);
 
+	void BindSampler(const Sampler& sampler);
+	static Texture::Format CreateRGBA(int width, int height);
 	void Clear(int value);
 	void Resize(int width, int height);
 private:

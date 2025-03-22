@@ -84,7 +84,7 @@ Vector<Vector3> ShapeDiameterFunction::GetResultVertexColor() const
 	}
 	return vertexColor;
 }
-void ShapeDiameterFunction::ShowUI()
+void ShapeDiameterFunction::ShowUI(UIContext& ui)
 {
 	if (ImGui::SliderInt("ShapeDiameterFunctionDebug",&m_debugIndex,-1,m_pHalfEdge->GetData()->GetPositionNum(),"%d", ImGuiSliderFlags_Logarithmic)) {
 		if (m_debugIndex < 0) { return; }

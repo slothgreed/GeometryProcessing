@@ -120,7 +120,7 @@ void ComputePointCloudApp::Execute()
 	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
 	BDB bdb;
 	bdb.Apply(pPointCloud->GetBDB());
-	m_pCamera->FitToBDB(bdb);
+	m_pCameraController->FitToBDB(bdb);
 
 	int maxCountX, maxCountY, maxCountZ;
 	glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &maxCountX);

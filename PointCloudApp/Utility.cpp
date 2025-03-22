@@ -21,9 +21,9 @@ void Printf::Vec3(const String& name, const Vector3& value, bool newLine)
 void Printf::Vec4(const String& name, const Vector4& value, bool newLine)
 {
 	if (newLine) {
-		printf((name + ":%lf,%lf,%lf%lf\n").data(), value.x, value.y, value.z, value.w);
+		printf((name + ":%lf,%lf,%lf,%lf\n").data(), value.x, value.y, value.z, value.w);
 	} else {
-		printf((name + ":%lf,%lf,%lf%lf").data(), value.x, value.y, value.z, value.w);
+		printf((name + ":%lf,%lf,%lf,%lf").data(), value.x, value.y, value.z, value.w);
 	}
 }
 
@@ -319,6 +319,15 @@ Vector3 glmUtil::ToRotateAngle(const Matrix4x4& matrix)
 		eulerAngles.z = 0.0f;
 	}
 	return eulerAngles;
+}
+
+
+String glmUtil::ToString(const Vector2& value)
+{
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(6);
+	ss << "(" << value.x << ", " << value.y << ")";
+	return ss.str();
 }
 
 String glmUtil::ToString(const Vector3& value)

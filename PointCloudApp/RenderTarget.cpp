@@ -103,12 +103,12 @@ Texture2D* RenderTarget::CreateDepthTexture(int width, int height)
 	Texture::Format format;
 	format.target = GL_TEXTURE_2D;
 	format.level = 0;
-	format.internalformat = GL_DEPTH24_STENCIL8;
+	format.internalformat = GL_DEPTH_COMPONENT24;
 	format.width = width;
 	format.height = height;
 	format.border = 0;
-	format.format = GL_DEPTH_STENCIL;
-	format.type = GL_UNSIGNED_INT_24_8;
+	format.format = GL_DEPTH_COMPONENT;
+	format.type = GL_FLOAT;
 	pDepth->Set(format, nullptr);
 	return pDepth;
 }
@@ -139,4 +139,13 @@ int RenderTarget::GetIntPixel(int x, int y)
 	
 }
 
+float RenderTarget::GetDepth(int x, int y)
+{
+	m_pFrameBuffer->Bind();
+	float result;
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &result);
+	OUTPUT_GLERROR;
+	m_pFrameBuffer->UnBind();
+	return result;
+}
 }

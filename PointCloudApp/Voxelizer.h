@@ -18,7 +18,7 @@ public:
 	void Execute(GLBuffer* pointBuffer, GLBuffer* indexBuffer);
 
 	void Draw(GLBuffer* pointBuffer, GLBuffer* indexBuffer, int camera);
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 
 private:
 	void ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3>& position, const std::vector<unsigned int>& indexs, std::vector<unsigned int>& results);

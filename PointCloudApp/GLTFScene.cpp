@@ -87,7 +87,7 @@ void GLTFScene::CreateMaterialBuffer()
 	m_gpu.materialBuffer->Create<GLTFMaterial>(m_material);
 }
 
-void GLTFScene::ShowUI()
+void GLTFScene::ShowUI(UIContext& ui)
 {
 	ImGui::Checkbox("Visible", &m_visible);
 
@@ -117,7 +117,7 @@ void GLTFScene::ShowUI()
 		SetRotateAngle(rotate);
 	}
 
-	if (ImGui::SliderFloat3("translate", &translate[0], -10, 10)) {
+	if (ImGui::SliderFloat3("translate", &translate[0], -100, 100)) {
 		SetTranslate(translate);
 	}
 }

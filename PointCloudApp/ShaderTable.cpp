@@ -28,6 +28,9 @@ void ShaderTable::Build()
 
 	m_pTextureUINTShader = std::make_shared<TextureShader>(TextureShader::UINT);
 	m_pTextureUINTShader->Build();
+
+	m_pTextureViewShader = std::make_shared<TextureViewShader>();
+	m_pTextureViewShader->Build();
 }
 
 }

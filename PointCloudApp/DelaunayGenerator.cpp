@@ -147,7 +147,7 @@ DelaunayGenerator::Circumscribe DelaunayGenerator::CalcCircumscribedCircle(const
 }
 
 int g_iterateNum = 0;
-void DelaunayGenerator::ShowUI()
+void DelaunayGenerator::ShowUI(UIContext& ui)
 {
 	if (ImGui::SliderInt("DelaunayGenerator", &g_iterateNum, 3, m_positions.size())) {
 		Execute2D(g_iterateNum);

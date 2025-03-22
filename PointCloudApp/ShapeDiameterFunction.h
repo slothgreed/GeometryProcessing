@@ -13,7 +13,7 @@ public:
 
 	virtual ALGORITHM_TYPE GetType() override { return ALGORITHM_SHAPE_DIAMETER; }
 	virtual void Execute();
-	virtual void ShowUI();
+	virtual void ShowUI(UIContext& ui);
 
 	const Vector<float>& GetResult() const { return m_result; }
 	Vector<Vector3> GetResultFaceColor() const;

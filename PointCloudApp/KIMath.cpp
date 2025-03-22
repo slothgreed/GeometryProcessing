@@ -119,6 +119,87 @@ Matrix4x4 MathHelper::CreateRotateMatrix(const Vector3& source, const Vector3& t
 	return glm::toMat4(axis);
 
 }
+
+
+Intersect::Result Intersect::PointToBox(const glm::vec3& P, const BDB& bdb, bool innerDist)
+{
+	// AABB 内部にいる場合は、表面までの最短距離を計算
+	glm::vec3 C; // AABB の最近点
+	C.x = std::max(bdb.Min().x, std::min(P.x, bdb.Max().x));
+	C.y = std::max(bdb.Min().y, std::min(P.y, bdb.Max().y));
+	C.z = std::max(bdb.Min().z, std::min(P.z, bdb.Max().z));
+
+	if (P.x >= bdb.Min().x && P.x <= bdb.Max().x &&
+		P.y >= bdb.Min().y && P.y <= bdb.Max().y &&
+		P.z >= bdb.Min().z && P.z <= bdb.Max().z) {
+
+		if (!innerDist) { return Intersect::Result(0); }
+		// AABB の内部にいる場合、最短の面上の点を求める
+		float dx = std::min(P.x - bdb.Min().x, bdb.Max().x - P.x);
+		float dy = std::min(P.y - bdb.Min().y, bdb.Max().y - P.y);
+		float dz = std::min(P.z - bdb.Min().z, bdb.Max().z - P.z);
+		float minDist = std::min({ dx, dy, dz });
+
+		// どの面に最も近いか判定し、C を修正
+		if (minDist == dx) {
+			C.x = (P.x - bdb.Min().x < bdb.Max().x - P.x) ? bdb.Min().x : bdb.Max().x;
+		} else if (minDist == dy) {
+			C.y = (P.y - bdb.Min().y < bdb.Max().y - P.y) ? bdb.Min().y : bdb.Max().y;
+		} else {
+			C.z = (P.z - bdb.Min().z < bdb.Max().z - P.z) ? bdb.Min().z : bdb.Max().z;
+		}
+	}
+
+	return Intersect::Result(glm::length(P - C));
+}
+
+Intersect::Result Intersect::PointToEdge(const glm::vec3& P, const glm::vec3& X, const glm::vec3& Y)
+{
+	glm::vec3 XY = Y - X;
+	glm::vec3 XP = P - X;
+	float t = glm::dot(XP, XY) / glm::dot(XY, XY);
+	t = glm::clamp(t, 0.0f, 1.0f);
+	glm::vec3 Q_edge = X + t * XY;
+	return Intersect::Result(glm::length(P - Q_edge), Q_edge);
+};
+
+Intersect::Result Intersect::PointToTriangle(const Vector3& P, const Vector3& A, const Vector3& B, const Vector3& C)
+{
+	// 三角形の法線を求める
+	glm::vec3 AB = B - A;
+	glm::vec3 AC = C - A;
+	glm::vec3 N = glm::normalize(glm::cross(AB, AC));
+
+	// P から三角形の平面への垂線の足を求める
+	float d = glm::dot(P - A, N);
+	glm::vec3 Q_face = P - d * N; // 垂線の足
+
+	// Q_face が三角形の内部にあるか判定（バリセントリック座標を使用）
+	glm::vec3 v0 = C - A, v1 = B - A, v2 = Q_face - A;
+	float d00 = glm::dot(v0, v0);
+	float d01 = glm::dot(v0, v1);
+	float d11 = glm::dot(v1, v1);
+	float d20 = glm::dot(v2, v0);
+	float d21 = glm::dot(v2, v1);
+	float denom = d00 * d11 - d01 * d01;
+	if (std::abs(denom) < 1e-6f) {
+		return Intersect::Result(glm::length(P - A), A);
+	}
+	float u = (d11 * d20 - d01 * d21) / denom;
+	float v = (d00 * d21 - d01 * d20) / denom;
+
+	if (u >= 0.0f && v >= 0.0f && (u + v) <= 1.0f) {
+		// Q_face が三角形の内部にある場合
+		return Intersect::Result(std::abs(d), Q_face);
+	} else {
+		auto edge0 = PointToEdge(P, A, B);
+		auto edge1 = PointToEdge(P, B, C);
+		auto edge2 = PointToEdge(P, C, A);
+
+		// 最短距離を持つものを選択
+		return std::min({ edge0, edge1, edge2 }, [](const Intersect::Result& a, const Intersect::Result& b)	{ return a.distance < b.distance; });
+	}
+}
 // refer : https://shikousakugo.wordpress.com/2012/06/27/ray-intersection-2/
 // Tomas Mollerの交差判定,　クラメルの公式利用
 Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient) const
@@ -164,7 +245,6 @@ Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const 
 
 	return IntersectResult(m_origin + m_direction * t, t);
 }
-
 Ray::IntersectResult Ray::Intersect(const BDB& bdb) const
 {
 	auto invDir = 1.0f / m_direction;

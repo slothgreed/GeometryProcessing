@@ -129,8 +129,9 @@ void GLFWApp::Initialize()
 
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();
-	m_pCamera->SetPerspective(45, 1, 0.1, 10000);
+	m_pCamera->SetPerspective(45, 1, 0.1, 1000000);
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), Vector3(0, 1, 0));
+	m_pCamera->SetViewport(Vector4i(0, 0, m_windowSize.x, m_windowSize.y));
 	m_pCameraController = std::make_unique<CameraController>(m_pCamera);
 }
 

@@ -3,9 +3,6 @@
 
 
 #include <iostream>
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 
 #include "Mouse.h"
 #include "MouseInput.h"
@@ -28,7 +25,8 @@
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
 #include "RenderTarget.h"
-#include "CADSceneLoader.h"
+#include "CSFNode.h"
+#include "Utility.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -109,21 +107,25 @@ void PointCloudApp::Execute()
 
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
-	BDB bdb;
 	m_pRoot = std::make_unique<RenderNode>("Root");
-	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
-	//m_pRoot->SetMatrix(glmUtil::CreateRotate(-glm::pi<float>(), Vector3(1, 0, 0)));
-	bdb.Add(m_pRoot->GetBoundBox());
+	BDB bdb;
+	/*
+	{
+		m_pRoot->AddNode(std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
+		bdb.Add(m_pRoot->GetBoundBox());
+		m_pRoot->AddNode(CreateCSFRenderNodeTest());
+		m_pRoot->AddNode(CreateGLTFNodeTest());
+		m_pRoot->AddNode(CreateBunnyNodeTest());
+	}
+	*/
+
+	{
+		Shared<Primitive> pAxis = std::make_shared<Axis>(50);
+		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		m_pRoot->AddNode(CreateBunnyNodeTest());
+	}
 
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
-	//m_pRoot = (std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\2CylinderEngine\\glTF\\2CylinderEngine.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BoxAnimated\\glTF\\BoxAnimated.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\RiggedSimple\\glTF\\RiggedSimple.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\RiggedFigure\\glTF\\RiggedFigure.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\CesiumMan\\glTF\\CesiumMan.gltf")));
-	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf")));
-
 	//auto pGLTF = GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf");
 	//m_pRoot->AddNode(std::shared_ptr<RenderNode>(pGLTF));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
@@ -150,35 +152,6 @@ void PointCloudApp::Execute()
 
 
 
-	//auto pPointCloud = Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz"));
-	//auto pRandom = Shared<PointCloud>(PointCloud::Create2D(10, vec2(0, 0), vec2(100, 100)));
-	//pRandom->OutputText("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\random_10.xyz");
-
-
-	//KMeansAlgorithm kmeans(pPointCloud, 300, 10);
-	//kmeans.Execute(pPointCloud->Position(),300,10);
-	//pPointCloud->SetColor(kmeans.CreateClusterColor());
-	
-
-	Shared<Primitive> pAxis = std::make_shared<Axis>(50);
-	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-
-	//{
-	//	Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));
-	//	Vector<Vector3> color(pCube->GetTriangleNum());
-	//	int index = 0;
-	//	while (index < color.size()) {
-	//		color[index] = ColorUtility::CreatePrimary(index);
-	//		color[index +1] = ColorUtility::CreatePrimary(index);
-	//		index += 2;
-	//	}
-	//	pCube->SetColor(std::move(color));
-	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Cube", pCube));
-	//}
-	
-	//m_pRoot->AddNode(CreateCSFRenderNodeTest());
-	m_pRoot->AddNode(CreateGLTFNodeTest());
-	m_pRoot->AddNode(CreateBunnyNodeTest());
 	// Test
 	{
 		//m_pRoot->AddNode(CreateDelaunayTest());
@@ -213,7 +186,7 @@ void PointCloudApp::Execute()
 	m_pResource->GL()->EnablePolygonOffset(1.0f, 1.0f);
 	m_pResource->GL()->SetLineWidth(5.0f);
 	m_pResource->GL()->SetPointSize(5.0f);
-	m_pResource->SetCamera(m_pCamera);
+	m_pResource->SetMainCamera(m_pCamera);
 	m_pResource->SetLight(pLight);
 	DrawContext drawContext(m_pResource.get());
 	PickContext pickContext(m_pResource.get());
@@ -232,7 +205,7 @@ void PointCloudApp::Execute()
 		render.Start();
 		timer.Start();
 
-		//pSkyBoxNode->Draw(context);
+		//pSkyBoxNode->Draw(drawContext);
 
 		m_pRoot->Draw(drawContext);
 
@@ -244,7 +217,10 @@ void PointCloudApp::Execute()
 			m_pRoot->Pick(pickContext);
 			auto mousePos = ImGui::GetMousePos();
 			m_pick.context = &pickContext;
-			m_pick.id = pPickTarget->GetIntPixel(mousePos.x, m_windowSize.y - mousePos.y);
+			Vector2i screen = Vector2i(mousePos.x, m_windowSize.y - mousePos.y);
+			m_pick.id = pPickTarget->GetIntPixel(screen.x, screen.y);
+			auto depth = pPickTarget->GetDepth(screen.x, screen.y);
+			m_pick.pickPos = m_pCamera->ScreenToModel(Vector3(screen.x, screen.y, depth));
 			pickContext.pickedId = m_pick.id;
 			m_pRoot->CollectPicked(m_pick);
 			pPickTarget->UnBind();
@@ -258,7 +234,9 @@ void PointCloudApp::Execute()
 			pTextureNode->Draw(drawContext);
 		}
 
-		
+		if (m_pSelect && m_ui.animation) {
+			m_pCameraController->RotateAnimation(m_diff, m_pSelect->CalcCameraFitBox());
+		}
 
 		m_diff += timer.Stop() * 50;
 		m_pRoot->Update(m_diff);
@@ -270,6 +248,7 @@ void PointCloudApp::Execute()
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always); 
 		ImGui::NewFrame();
 		ShowUI();
 		ImGui::Render();
@@ -292,6 +271,10 @@ void PointCloudApp::Execute()
 
 void PointCloudApp::ShowUI()
 {
+	ImVec2 mainPos = ImGui::GetWindowPos();  // 現在のウィンドウの座標
+	ImVec2 mainSize = ImGui::GetWindowSize(); // 現在のウィンドウのサイズ
+	UIContext ui;
+	ui.SetRoot(UIContext::UIRect(Vector2i(mainPos.x, mainPos.y), Vector2i(mainSize.x, mainSize.y)));
 	if (ImGui::TreeNodeEx(m_pRoot->GetName().data(), ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (const auto& child : m_pRoot->GetChild()) {
 			auto open = ImGui::TreeNode(child.first.data());
@@ -304,11 +287,15 @@ void PointCloudApp::ShowUI()
 			}
 		}
 		ImGui::TreePop();
+		if (m_ui.animation && m_pSelect) {
+			m_pCameraController->FitToBDB(m_pSelect->CalcCameraFitBox());
+		}
 	}
 
 	if (m_pSelect) {
+		ImGui::SetNextWindowPos(ImVec2(ui.GetRoot().GetLeftBottom().x, ui.GetRoot().GetLeftBottom().y), ImGuiCond_Always);
 		ImGui::Begin(m_pSelect->GetName().data());
-		m_pSelect->ShowUIData();
+		m_pSelect->ShowUIData(ui);
 		ImGui::End();
 	}
 
@@ -319,6 +306,11 @@ void PointCloudApp::ShowUI()
 		for (auto& result : m_pick.pResult) {
 			ImGui::Text(result.second->ToString().data());
 		}
+		auto mousePos = ImGui::GetMousePos();
+		String screenPos = "Screen Pos" + glmUtil::ToString(Vector2(mousePos.x,mousePos.y));
+		String worldPos = "World Pos" + glmUtil::ToString(m_pick.pickPos);
+		ImGui::Text(screenPos.data());
+		ImGui::Text(worldPos.data());
 		ImGui::EndTooltip();
 	}
 
@@ -330,15 +322,21 @@ void PointCloudApp::ShowUI()
 		pCamera->Up().x, pCamera->Up().y, pCamera->Up().z);
 	if (ImGui::Button("Camera Fit\n")) {
 		auto bdb = m_pRoot->CalcCameraFitBox();
+		if (m_pSelect) {
+			bdb = m_pSelect->CalcCameraFitBox();
+		}
 		if (bdb.IsActive()) {
-			pCamera->FitToBDB(bdb);
+			m_pCameraController->FitToBDB(bdb);
 		}
 	}
+	ImGui::Checkbox("Animation", &m_ui.animation);
+
 	auto pLight = m_pResource->GetLight();
 	Vector3 color = pLight->GetColor();
 	if (ImGui::ColorEdit3("Light Color", &color[0])) {
 		pLight->SetColor(color);
 	}
+
 
 	ImGui::Text("Direction:(%lf, %lf, %lf)\n", pLight->GetDirection().x, pLight->GetDirection().y, pLight->GetDirection().z);
 
@@ -370,16 +368,21 @@ void PointCloudApp::Finalize()
 Shared<RenderNode> PointCloudApp::CreateGLTFNodeTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"));
-	pNode->SetRotateAngle(Vector3(-90, 0, 180));
+	pNode->SetScale(100);
+	pNode->SetRotateAngle(Vector3(0, 90, -90));
+	pNode->SetTranslate(Vector3(-1000, 100, 0));
 	return pNode;
 }
 
 Shared<RenderNode> PointCloudApp::CreateCSFRenderNodeTest()
 {
-	//auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\blade.csf.gz"));
-	auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\geforce.csf.gz"));
-	//auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\worldcar.csf.gz"));
-	//auto pNode = std::shared_ptr<RenderNode>(CADSceneLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\SubMarine_134.bk3d.gz"));
+	//auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\blade.csf.gz"));
+	auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\geforce.csf.gz"));
+	pNode->SetScale(500);
+	pNode->SetRotateAngle(Vector3(0, 90, 0));
+	pNode->SetTranslate(Vector3(-500, 0, 0));
+	//auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\worldcar.csf.gz"));
+	//auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\SubMarine_134.bk3d.gz"));
 	return pNode;
 }
 Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
@@ -388,7 +391,7 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
 	String path = "E:\\cgModel\\bunny6000.half";
 	auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
 	auto node = std::make_shared<HalfEdgeNode>(path, data);
-	//node->SetMatrix(glmUtil::CreateScale(0.01f) * glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
+	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
 	return node;
 }
 

@@ -342,4 +342,54 @@ void TextureShader::SetTexcoord(GLBuffer* pTexture)
 
 }
 
+
+
+
+ShaderPath TextureViewShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
+	path.shader[SHADER_PROGRAM_VERTEX] = "posteffect\\posteffect.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "posteffect\\viewtexture.frag";
+
+	return path;
+}
+
+void TextureViewShader::FetchUniformLocation()
+{
+	m_uniform[UNIFORM::TEXTURE] = GetUniformLocation("tex");
+}
+
+void TextureViewShader::BindTexture(const Texture& texture)
+{
+	glActiveTexture(GL_TEXTURE0);
+	OUTPUT_GLERROR;
+	glUniform1i(m_uniform[UNIFORM::TEXTURE], 0);
+	OUTPUT_GLERROR;
+	glBindTexture(GL_TEXTURE_2D, texture.Handle());
+	OUTPUT_GLERROR;
+}
+
+void TextureViewShader::SetPosition(GLBuffer* pPosition)
+{
+	static const int ATTRIBUTE_POSITION = 0;
+	SetVertexFormat(VertexFormat(ATTRIBUTE_POSITION, pPosition));
+
+	glBindVertexBuffer(ATTRIBUTE_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
+
+void TextureViewShader::SetTexcoord(GLBuffer* pTexture)
+{
+	static const int ATTRIBUTE_TEXCOORD = 1;
+	SetVertexFormat(VertexFormat(ATTRIBUTE_TEXCOORD, pTexture));
+
+	glBindVertexBuffer(ATTRIBUTE_TEXCOORD, pTexture->Handle(), 0, pTexture->SizeOfData());
+	OUTPUT_GLERROR;
+
+}
+
 }

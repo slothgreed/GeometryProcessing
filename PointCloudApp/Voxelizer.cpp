@@ -163,7 +163,7 @@ void Voxelizer::ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3
 		}
 	}}}
 }
-void Voxelizer::ShowUI()
+void Voxelizer::ShowUI(UIContext& ui)
 {
 
 }

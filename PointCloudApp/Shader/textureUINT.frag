@@ -13,5 +13,4 @@ void main()
 	uint id = texture(tex,texCoords).r;
 	
 	FragColor = vec4(id,0.0,0.0,1.0);
-	//FragColor = vec4(idToColor(id),1.0);
 } 

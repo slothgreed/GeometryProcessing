@@ -56,7 +56,7 @@ void AlphaShape2D::Execute()
     }
 }
 
-void AlphaShape2D::ShowUI()
+void AlphaShape2D::ShowUI(UIContext& ui)
 {
     ImGui::Text("AlphaShape");
     if (ImGui::SliderFloat("Alpha", &m_ui.alpha, 0.0f, 80.0f, "%lf")) {

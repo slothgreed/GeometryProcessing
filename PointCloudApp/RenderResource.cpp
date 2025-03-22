@@ -1,9 +1,6 @@
 #include "RenderResource.h"
 #include "Camera.h"
 #include "Light.h"
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 
 namespace KI
 {
@@ -52,15 +49,19 @@ void GLContext::DisablePolygonOffset()
 }
 void GLContext::SetPointSize(float value)
 {
-	if (m_cache.pointSize == value || m_cache.pointSize == -1) { return; }
+	if (m_cache.pointSize == value) { return; }
+	if (value < 0) { return; }
 	glPointSize(value);
+	OUTPUT_GLERROR;
 	m_cache.pointSize = value;
 }
 
 void GLContext::SetLineWidth(float value)
 {
-	if (m_cache.lineWidth == value || m_cache.lineWidth == -1) { return; }
+	if (m_cache.lineWidth == value) { return; }
+	if (value < 0) { return; }
 	glLineWidth(value);
+	OUTPUT_GLERROR;
 	m_cache.lineWidth = value;
 }
 
@@ -87,12 +88,16 @@ void RenderResource::UpdateCamera()
 
 	struct CameraGPU
 	{
+		Matrix4x4 view;
+		Matrix4x4 proj;
 		Matrix4x4 vp;
 		Vector4 eye;
-		float padding[44];
+		float padding[12];
 	};
 
 	CameraGPU gpu;
+	gpu.view = m_pCamera->ViewMatrix();
+	gpu.proj = m_pCamera->Projection();
 	gpu.vp = m_pCamera->Projection() * m_pCamera->ViewMatrix();
 	gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
 	m_pCameraGpu->BufferSubData(0, 1, sizeof(CameraGPU), &gpu);

@@ -1,5 +1,7 @@
 struct Camera
 {
+	mat4x4 view;
+	mat4x4 proj;
 	mat4x4 VP;
 	vec4 eye;
 	float padding[44];

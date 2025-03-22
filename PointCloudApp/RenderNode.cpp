@@ -4,12 +4,12 @@
 namespace KI
 {
 
-void RenderNode::ShowUIData()
+void RenderNode::ShowUIData(UIContext& ui)
 {
-	ShowUI();
+	ShowUI(ui);
 
 	for (auto& data : m_child) {
-		data.second->ShowUI();
+		data.second->ShowUI(ui);
 	}
 }
 

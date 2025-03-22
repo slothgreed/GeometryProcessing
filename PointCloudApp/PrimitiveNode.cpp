@@ -8,6 +8,7 @@ namespace KI
 PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Vector3& color)
 	: RenderNode(name)
 	, m_color(color)
+	, m_pickTarget(false)
 {
 	m_pPrimitive = pPrimitive;
 	SetBoundBox(m_pPrimitive->GetBDB());
@@ -17,6 +18,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, 
 PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Shared<Texture>& pTexutre)
 	: RenderNode(name)
 	, m_pTexture(pTexutre)
+	, m_pickTarget(false)
 {
 	m_pPrimitive = pPrimitive;
 	SetBoundBox(m_pPrimitive->GetBDB());
@@ -25,6 +27,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, 
 
 PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive)
 	: RenderNode(name)
+	, m_pickTarget(false)
 {
 	m_pPrimitive = pPrimitive;
 	BuildGLBuffer();
@@ -74,6 +77,42 @@ void PrimitiveNode::UpdateRenderData()
 	BuildGLBuffer();
 }
 
+String PrimitiveNode::Parts::ToString()
+{
+	return glmUtil::ToString(position);
+}
+
+void PrimitiveNode::PickNode(const PickContext& context)
+{
+	if (!m_pickTarget) { return; }
+	auto pResource = context.pResource;
+	auto pPickShader = pResource->GetShaderTable()->GetPointPickByID();
+	pPickShader->Use();
+	pPickShader->SetCamera(pResource->GetCameraBuffer());
+	pPickShader->SetPosition(m_pPositionBuffer.get());
+	pPickShader->SetModel(GetMatrix());
+	pPickShader->SetPickOffset(0);
+	if (m_pIndexBuffer) {
+		pPickShader->DrawElement(m_pPrimitive->GetType(), m_pIndexBuffer.get());
+	} else {
+		pPickShader->DrawArray(m_pPrimitive->GetType(), m_pPositionBuffer.get());
+	}
+}
+
+bool PrimitiveNode::CollectPickedNode(PickResult& result)
+{
+	if (result.id == 0) {
+		result.pResult[this] = std::make_unique<PrimitiveNode::Parts>();
+		return true;
+	}
+
+	return false;
+}
+
+void PrimitiveNode::DrawPartsNode(const DrawContext& context, const RenderParts& parts)
+{
+
+}
 
 void PrimitiveNode::DrawNode(const DrawContext& context)
 {

@@ -53,7 +53,7 @@ KDTree::KDTree(PointCloudNode* pointCloud, int dimension)
 }
 
 
-void KDTree::ShowUI()
+void KDTree::ShowUI(UIContext& ui)
 {
 	if (ImGui::Button("KDTree")) {
 		if (!Executed()) {
