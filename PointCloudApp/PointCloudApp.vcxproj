@@ -207,6 +207,7 @@
     <ClCompile Include="ShapeDiameterFunction.cpp" />
     <ClCompile Include="SignedDistanceField.cpp" />
     <ClCompile Include="SkyBoxNode.cpp" />
+    <ClCompile Include="STEPNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
     <ClCompile Include="RenderTextureNode.cpp" />
@@ -276,6 +277,7 @@
     <ClInclude Include="ShapeDiameterFunction.h" />
     <ClInclude Include="SignedDistanceField.h" />
     <ClInclude Include="SkyBoxNode.h" />
+    <ClInclude Include="STEPNode.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudIO.h" />
     <ClInclude Include="RenderTextureNode.h" />

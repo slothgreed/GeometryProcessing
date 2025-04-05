@@ -40,7 +40,8 @@ private:
 	PickResult m_pick;
 	UI m_ui;
 	Shared<RenderNode> CreateGLTFNodeTest();
-	Shared<RenderNode> CreateCSFRenderNodeTest();
+	Shared<RenderNode> CreateCSFNodeTest();
+	Shared<RenderNode> CreateSTEPNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<PointCloudNode> CreateDelaunayTest();
 	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();

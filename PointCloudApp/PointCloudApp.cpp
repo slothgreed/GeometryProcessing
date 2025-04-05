@@ -26,6 +26,7 @@
 #include "SkyBoxNode.h"
 #include "RenderTarget.h"
 #include "CSFNode.h"
+#include "STEPNode.h"
 #include "Utility.h"
 #include <Eigen/Core>
 namespace KI
@@ -113,7 +114,7 @@ void PointCloudApp::Execute()
 	{
 		m_pRoot->AddNode(std::unique_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf")));
 		bdb.Add(m_pRoot->GetBoundBox());
-		m_pRoot->AddNode(CreateCSFRenderNodeTest());
+		m_pRoot->AddNode(CreateCSFNodeTest());
 		m_pRoot->AddNode(CreateGLTFNodeTest());
 		m_pRoot->AddNode(CreateBunnyNodeTest());
 	}
@@ -122,7 +123,8 @@ void PointCloudApp::Execute()
 	{
 		Shared<Primitive> pAxis = std::make_shared<Axis>(50);
 		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		m_pRoot->AddNode(CreateBunnyNodeTest());
+		//m_pRoot->AddNode(CreateBunnyNodeTest());
+		m_pRoot->AddNode(CreateSTEPNodeTest());
 	}
 
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
@@ -374,7 +376,7 @@ Shared<RenderNode> PointCloudApp::CreateGLTFNodeTest()
 	return pNode;
 }
 
-Shared<RenderNode> PointCloudApp::CreateCSFRenderNodeTest()
+Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()
 {
 	//auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\blade.csf.gz"));
 	auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\geforce.csf.gz"));
@@ -393,6 +395,13 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
 	auto node = std::make_shared<HalfEdgeNode>(path, data);
 	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
 	return node;
+}
+
+Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest()
+{
+	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\123Block_Color.stp"));
+	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cube.stp"));
+	return pNode;
 }
 
 Shared<PointCloudNode> PointCloudApp::CreateDelaunayTest()

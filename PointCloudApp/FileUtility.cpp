@@ -80,6 +80,11 @@ bool FileUtility::CheckExtension(const String& filePath, const String& ext)
 
 Vector<String> FileUtility::Split(const String& str, char del)
 {
+	return StringUtility::Split(str, del);
+}
+
+Vector<String> StringUtility::Split(const String& str, char del)
+{
 	int first = 0;
 	int last = str.find_first_of(del);
 
@@ -99,6 +104,115 @@ Vector<String> FileUtility::Split(const String& str, char del)
 	}
 
 	return result;
+
+}
+
+bool StringUtility::Contains(const String& str, const String& target)
+{
+	return str.find(target) != std::string::npos;
+}
+
+std::pair<String, String> StringUtility::SplitAtFirst(const String& str, char delimiter)
+{
+	size_t pos = str.find(delimiter);
+	if (pos == std::string::npos) {
+		return std::pair<String, String>(); // 区切り文字が見つからなかった場合
+	}
+
+	auto left = str.substr(0, pos);         // 区切り文字の前の部分
+	auto right = str.substr(pos + 1);      // 区切り文字の後の部分
+	return std::make_pair(left, right);
+}
+
+String StringUtility::TrimWhiteSpace(const String& str)
+{
+	size_t start = str.find_first_not_of(" \t\n\r\f\v"); // 空白でない最初の位置
+	if (start == std::string::npos) return ""; // すべて空白なら空文字を返す
+
+	size_t end = str.find_last_not_of(" \t\n\r\f\v"); // 空白でない最後の位置
+	return str.substr(start, end - start + 1);
+}
+
+String StringUtility::Remove(const String& str, char del)
+{
+	// strからdelを削除した新しい文字列を作成
+	String result = str;
+
+	// delを削除（std::removeで要素を移動し、eraseで実際に削除）
+	result.erase(std::remove(result.begin(), result.end(), del), result.end());
+
+	return result;
+}
+
+String StringUtility::RemoveFirst(const String& str, int num)
+{
+	if (num <= 0 || str.size() <= static_cast<size_t>(num)) {
+		return str;
+	}
+
+	return std::string(str.c_str() + num, str.size() - num);
+}
+
+String StringUtility::RemoveLast(const String& str, int num)
+{
+	if (num <= 0 || str.size() <= static_cast<size_t>(num)) {
+		return str;
+	}
+
+	return std::string(str.c_str(), str.size() - num);
+}
+
+String StringUtility::After(const String& str, char del)
+{
+	size_t pos = str.find(del);
+	if (pos != std::string::npos) {
+		return str.substr(pos + 1);  // delの次の文字から最後まで
+	}
+	return "";  // delが見つからなかった場合は空文字列を返す
+}
+
+String StringUtility::After(const String& str, int pos)
+{
+	return str.substr(pos);
+}
+
+int StringUtility::FindFirst(const String& str, char del)
+{
+	size_t pos = str.find(del);
+	if (pos != std::string::npos) {
+		return pos;  // delの次の文字から最後まで
+	}
+
+	return -1;
+}
+
+String StringUtility::Before(const String& str, int pos)
+{
+	return str.substr(0, pos);  // delimiterより前の部分
+}
+
+String StringUtility::Before(const String& str, char del)
+{
+	size_t pos = str.find(del);
+	if (pos != std::string::npos) {
+		return str.substr(0, pos);  // delimiterより前の部分
+	}
+	return str;  // delimiterが見つからなかった場合は全体を返す
+}
+
+int StringUtility::ToInt(const String& str)
+{
+	return std::atoi(str.data());
+}
+
+float StringUtility::ToFloat(const String& str)
+{
+	return std::atof(str.data());
+}
+
+String StringUtility::ToString(int value)
+{
+	return std::to_string(value);
 }
 
 FileWriter::FileWriter()

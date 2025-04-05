@@ -263,6 +263,9 @@
     <ClCompile Include="GeometryUtility.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="STEPNode.cpp">
+      <Filter>ソース ファイル\Utility\CSF</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -483,6 +486,9 @@
     </ClInclude>
     <ClInclude Include="GeometryUtility.h">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="STEPNode.h">
+      <Filter>ソース ファイル\Utility\CSF</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
