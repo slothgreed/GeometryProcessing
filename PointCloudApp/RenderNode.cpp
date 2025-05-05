@@ -11,6 +11,7 @@ void RenderNode::ShowUIData(UIContext& ui)
 	for (auto& data : m_child) {
 		data.second->ShowUI(ui);
 	}
+
 }
 
 void RenderNode::Draw(const DrawContext& context)
@@ -108,4 +109,38 @@ BDB RenderNode::CalcCameraFitBox(BDB bdb)
 
 	return bdb;
 }
+
+void RenderNode::ShowUIParameter(const Parameter& parameter, UIContext& ui)
+{
+	static int binCount = 50; // ビン数（初期値）
+	static bool logScale = false;
+
+
+	// 統計量の計算
+	float minArea = parameter.Min();
+	float maxArea = parameter.Max();
+	float sum = parameter.Sum();
+	float mean = parameter.Average();
+
+	auto histogram = parameter.CreateHistogram(logScale, binCount);
+	// UI
+	ImGui::Begin(parameter.Name().data());
+
+	ImGui::Text("Count: %d", (int)parameter.Size());
+	ImGui::Text("Min: %.5f", minArea);
+	ImGui::Text("Max: %.5f", maxArea);
+	ImGui::Text("Mean: %.5f", mean);
+	//ImGui::Text("Median: %.5f", median);
+	ImGui::Checkbox("Log scale", &logScale);
+	ImGui::SliderInt("Bin count", &binCount, 10, 200);
+
+	// 最大値（縦軸スケール）取得
+	float maxY = *std::max_element(histogram.begin(), histogram.end());
+
+	ImGui::PlotHistogram("Area Histogram", histogram.data(), binCount, 0,
+		nullptr, 0.0f, maxY, ImVec2(400, 150));
+
+	ImGui::End();
+}
+
 }

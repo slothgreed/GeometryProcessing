@@ -48,11 +48,12 @@ ShapeDiameterFunction::~ShapeDiameterFunction()
 
 void ShapeDiameterFunction::Execute()
 {
+	if (m_result.size() != 0) { return; }
 	m_maxValue = 0;
 	auto pHalfEdge = m_pHalfEdge->GetData();
-	m_result.resize(pHalfEdge->GetPositionNum());
-	for (int i = 0; i < pHalfEdge->GetPositionNum(); i++) {
-		const auto& position = pHalfEdge->GetPosition()[i];
+	m_result.resize(pHalfEdge->GetVertexNum());
+	for (int i = 0; i < pHalfEdge->GetVertexNum(); i++) {
+		const auto& position = pHalfEdge->GetVertex()[i];
 		const auto& normal = pHalfEdge->GetNormal(i);
 		auto circle = CraeteSamplingCircle(position, -normal, 10, 1, 10);
 		float value = 0.0f;
@@ -66,7 +67,8 @@ void ShapeDiameterFunction::Execute()
 			}
 		}
 
-		m_result[i] = value / intersectNum;
+		if (intersectNum != 0) { m_result[i] = value / intersectNum; }
+
 		m_maxValue = m_result[i] < m_maxValue ? m_maxValue : m_result[i];
 	}
 
@@ -86,13 +88,13 @@ Vector<Vector3> ShapeDiameterFunction::GetResultVertexColor() const
 }
 void ShapeDiameterFunction::ShowUI(UIContext& ui)
 {
-	if (ImGui::SliderInt("ShapeDiameterFunctionDebug",&m_debugIndex,-1,m_pHalfEdge->GetData()->GetPositionNum(),"%d", ImGuiSliderFlags_Logarithmic)) {
+	if (ImGui::SliderInt("ShapeDiameterFunctionDebug",&m_debugIndex,-1,m_pHalfEdge->GetData()->GetVertexNum(),"%d", ImGuiSliderFlags_Logarithmic)) {
 		if (m_debugIndex < 0) { return; }
 		auto pRays = std::make_shared<Primitive>();
 		Vector<Vector3> pos;
 		for (int i = m_debugIndex; i < m_debugIndex; i++) {
 			auto pHalfEdge = m_pHalfEdge->GetData();
-			const auto& position = pHalfEdge->GetPosition()[i];
+			const auto& position = pHalfEdge->GetVertex()[i];
 			const auto& normal = pHalfEdge->GetNormal(i);
 			auto circle = CraeteSamplingCircle(position, -normal, 10, 1, 10);
 			float value = 0.0f;

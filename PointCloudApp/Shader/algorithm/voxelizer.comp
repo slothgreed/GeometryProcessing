@@ -63,7 +63,7 @@ void main()
 	yzEdge[0] = vec2(-edge0.z, edge0.y);
 	yzEdge[1] = vec2(-edge1.z, edge1.y);
 	yzEdge[2] = vec2(-edge2.z, edge2.y);
-	if(normal.z < 0){yzEdge[0] = -yzEdge[0]; yzEdge[1] = -yzEdge[1]; yzEdge[2] = -yzEdge[2];}
+	if(normal.x < 0){yzEdge[0] = -yzEdge[0]; yzEdge[1] = -yzEdge[1]; yzEdge[2] = -yzEdge[2];}
 	yzDiff[0] = (-dot(yzEdge[0], vec2(p0.y, p0.z))) + max(0.0f, u_pitch * yzEdge[0].x) + max(0.0f, u_pitch * yzEdge[0].y);
 	yzDiff[1] = (-dot(yzEdge[1], vec2(p1.y, p1.z))) + max(0.0f, u_pitch * yzEdge[1].x) + max(0.0f, u_pitch * yzEdge[1].y);
 	yzDiff[2] = (-dot(yzEdge[2], vec2(p2.y, p2.z))) + max(0.0f, u_pitch * yzEdge[2].x) + max(0.0f, u_pitch * yzEdge[2].y);
@@ -73,7 +73,7 @@ void main()
 	zxEdge[0] = vec2(-edge0.x, edge0.z);
 	zxEdge[1] = vec2(-edge1.x, edge1.z);
 	zxEdge[2] = vec2(-edge2.x, edge2.z);
-	if(normal.z < 0){zxEdge[0] = -zxEdge[0]; yzEdge[1] = -zxEdge[1]; zxEdge[2] = -zxEdge[2];}
+	if(normal.y < 0){zxEdge[0] = -zxEdge[0]; zxEdge[1] = -zxEdge[1]; zxEdge[2] = -zxEdge[2];}
 	zxDiff[0] = (-dot(zxEdge[0], vec2(p0.z, p0.x))) + max(0.0f, u_pitch * zxEdge[0].x) + max(0.0f, u_pitch * zxEdge[0].y);
 	zxDiff[1] = (-dot(zxEdge[1], vec2(p1.z, p1.x))) + max(0.0f, u_pitch * zxEdge[1].x) + max(0.0f, u_pitch * zxEdge[1].y);
 	zxDiff[2] = (-dot(zxEdge[2], vec2(p2.z, p2.x))) + max(0.0f, u_pitch * zxEdge[2].x) + max(0.0f, u_pitch * zxEdge[2].y);
@@ -82,30 +82,29 @@ void main()
 	for(int i = bdbMin.x; i <= bdbMax.x; i++){
 	for(int j = bdbMin.y; j <= bdbMax.y; j++){
 	for(int k = bdbMin.z; k <= bdbMax.z; k++){
-		//vec3 pos = vec3(i,j,k) * u_pitch;
-		//float NdotP = dot(normal,pos);
-		//if(((NdotP + d1) * (NdotP + d2) < 0.0f)){continue;}
-		//
-		//vec2 xyP = vec2(pos.x,pos.y);
-		//if(dot(xyEdge[0],xyP) + xyDiff[0] < 0.0f){continue;}
-		//if(dot(xyEdge[1],xyP) + xyDiff[1] < 0.0f){continue;}
-		//if(dot(xyEdge[2],xyP) + xyDiff[2] < 0.0f){continue;}
-		//
-		//vec2 yzP = vec2(pos.y,pos.z);
-		//if(dot(yzEdge[0],yzP) + yzDiff[0] < 0.0f){continue;}
-		//if(dot(yzEdge[1],yzP) + yzDiff[1] < 0.0f){continue;}
-		//if(dot(yzEdge[2],yzP) + yzDiff[2] < 0.0f){continue;}
-		//
-		//
-		//vec2 zxP = vec2(pos.x,pos.y);
-		//if(dot(zxEdge[0],zxP) + zxDiff[0] < 0.0f){continue;}
-		//if(dot(zxEdge[1],zxP) + zxDiff[1] < 0.0f){continue;}
-		//if(dot(zxEdge[2],zxP) + zxDiff[2] < 0.0f){continue;}
+		vec3 pos = vec3(i,j,k) * u_pitch;
+		float NdotP = dot(normal,pos);
+		if(((NdotP + d1) * (NdotP + d2) > 0.0f)){continue;}
+		vec2 xyP = vec2(pos.x,pos.y);
+		if(dot(xyEdge[0],xyP) + xyDiff[0] < 0.0f){continue;}
+		if(dot(xyEdge[1],xyP) + xyDiff[1] < 0.0f){continue;}
+		if(dot(xyEdge[2],xyP) + xyDiff[2] < 0.0f){continue;}
 		
+		vec2 yzP = vec2(pos.y,pos.z);
+		if(dot(yzEdge[0],yzP) + yzDiff[0] < 0.0f){continue;}
+		if(dot(yzEdge[1],yzP) + yzDiff[1] < 0.0f){continue;}
+		if(dot(yzEdge[2],yzP) + yzDiff[2] < 0.0f){continue;}
+		
+		vec2 zxP = vec2(pos.z,pos.x);
+		if(dot(zxEdge[0],zxP) + zxDiff[0] < 0.0f){continue;}
+		if(dot(zxEdge[1],zxP) + zxDiff[1] < 0.0f){continue;}
+		if(dot(zxEdge[2],zxP) + zxDiff[2] < 0.0f){continue;}
+
 		uint location = i + j * u_resolute + k * u_resolute * u_resolute;
 		uint location2 = location / 32;
 		uint bit = location % 32;
-		uint mask = 1 << bit | 0;
+		uint mask = 1u << bit;
 		atomicOr(voxel[location2], mask);
+
 	}}}
 } 

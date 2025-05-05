@@ -212,4 +212,63 @@ void DelaunayGenerator::ShowUI(UIContext& ui)
 
 	}
 }
+
+Delaunay3DGenerator::Delaunay3DGenerator(HalfEdgeNode* pNode)
+	:m_pNode(pNode)
+{
+}
+
+Delaunay3DGenerator::Circumsphere Delaunay3DGenerator::CreateCircumsphere(const Tetrahedron& tet)
+{
+	auto det3x3 = [](const Vector3& u, const Vector3& v, const Vector3& w)
+	{
+		return u.x * (v.y * w.z - v.z * w.y)
+			- u.y * (v.x * w.z - v.z * w.x)
+			+ u.z * (v.x * w.y - v.y * w.x);
+	};
+
+	auto ba = tet.p1 - tet.p0;
+	auto ca = tet.p2 - tet.p0;
+	auto da = tet.p3 - tet.p0;
+
+	auto ba2 = ba * 0.5f;
+	auto ca2 = ca * 0.5f;
+	auto da2 = da * 0.5f;
+
+	float det = det3x3(ba, ca, da);
+	if (std::abs(det) < 1e-10) {
+		return Circumsphere(); // ‘Þ‰»
+	}
+
+	auto cross_cd = Vector3(
+		ca.y * da.z - ca.z * da.y,
+		ca.z * da.x - ca.x * da.z,
+		ca.x * da.y - ca.y * da.x);
+	auto numerator = Vector3(
+		  glm::length2(ba) * (ca.y * da.z - ca.z * da.y)
+		- glm::length2(ca) * (ba.y * da.z - ba.z * da.y)
+		+ glm::length2(da) * (ba.y * ca.z - ba.z * ca.y),
+		- glm::length2(ba) * (ca.x * da.z - ca.z * da.x)
+		+ glm::length2(ca) * (ba.x * da.z - ba.z * da.x)
+		- glm::length2(da) * (ba.x * ca.z - ba.z * ca.x),
+		  glm::length2(ba) * (ca.x * da.y - ca.y * da.x)
+		- glm::length2(ca) * (ba.x * da.y - ba.y * da.x)
+		+ glm::length2(da) * (ba.x * ca.y - ba.y * ca.x));
+
+	auto center = Vector3(tet.p0 + 0.5f * numerator / det);
+	float radius = glm::length(center - tet.p0);
+
+	return Circumsphere(center, radius);
+}
+Delaunay3DGenerator::Tetrahedron Delaunay3DGenerator::CreateHugeTetrahedron(const BDB& bdb) const
+{
+	auto length = bdb.MaxLength();
+	Tetrahedron t;
+	t.p0 = Vector3(bdb.Center().x - length, bdb.Center().y - length, bdb.Center().z - length);
+	t.p1 = Vector3(bdb.Center().x + length, bdb.Center().y + length, bdb.Center().z - length);
+	t.p2 = Vector3(bdb.Center().x + length, bdb.Center().y - length, bdb.Center().z + length);
+	t.p3 = Vector3(bdb.Center().x - length, bdb.Center().y + length, bdb.Center().z + length);
+
+	return t;
+}
 }

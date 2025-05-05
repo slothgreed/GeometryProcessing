@@ -201,11 +201,13 @@
     <ClCompile Include="KIMath.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
+    <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="PrimitiveTable.cpp" />
     <ClCompile Include="RenderResource.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="ShapeDiameterFunction.cpp" />
     <ClCompile Include="SignedDistanceField.cpp" />
+    <ClCompile Include="SimulationNode.cpp" />
     <ClCompile Include="SkyBoxNode.cpp" />
     <ClCompile Include="STEPNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
@@ -272,10 +274,12 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
+    <ClInclude Include="Parameter.h" />
     <ClInclude Include="PrimitiveTable.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="ShapeDiameterFunction.h" />
     <ClInclude Include="SignedDistanceField.h" />
+    <ClInclude Include="SimulationNode.h" />
     <ClInclude Include="SkyBoxNode.h" />
     <ClInclude Include="STEPNode.h" />
     <ClInclude Include="TextureLoader.h" />

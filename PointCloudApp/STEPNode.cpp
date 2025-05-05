@@ -4,6 +4,7 @@
 namespace KI
 {
 #define FIND_STEP_DATA(a,b,c,d) { auto x = step.c.find(d); if(x == step.c.end()){assert(0);return a;} a.b = x->second->ToData(step);}
+#define FIND_STEP_DATA2(a,b,c) { auto x = step.b.find(c); if(x == step.b.end()){assert(0);} else { a = x->second->ToData(step);}}
 
 
 
@@ -191,11 +192,6 @@ struct STEPDirection
 	int id;
 	Vector3 direction;
 
-	struct Data
-	{
-		Vector3 direction;
-	};
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPDirection();
@@ -208,11 +204,9 @@ struct STEPDirection
 		step.directions[data->id] = data;
 	}
 
-	STEPDirection::Data ToData(const STEPStruct& step)
+	Vector3 ToData(const STEPStruct& step)
 	{
-		STEPDirection::Data data;
-		data.direction = direction;
-		return data;
+		return direction;
 	}
 };
 
@@ -222,11 +216,6 @@ struct STEPVector
 	int id;
 	int idRef;
 	float length;
-	struct Data
-	{
-		STEPDirection::Data dir;
-		float length;
-	};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
@@ -239,12 +228,13 @@ struct STEPVector
 		step.vectors[data->id] = data;
 	}
 
-	STEPVector::Data ToData(const STEPStruct& step)
+	Vector3 ToData(const STEPStruct& step)
 	{
-		STEPVector::Data data;
-		FIND_STEP_DATA(data, dir, directions, idRef);
-		data.length = length;
-		return data;
+		Vector3 vector;
+		FIND_STEP_DATA2(vector, directions, idRef);
+		vector = glm::normalize(vector);
+		vector *= length;
+		return vector;
 	}
 };
 
@@ -258,7 +248,7 @@ struct STEPLine
 	struct Data
 	{
 		Vector3 begin;
-		STEPVector::Data vector;
+		Vector3 vector;
 	};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -294,8 +284,8 @@ struct STEPAxis2Placement3D
 	struct Data
 	{
 		Vector3 point;
-		STEPDirection::Data dir1;
-		STEPDirection::Data dir2;
+		Vector3 dir1;
+		Vector3 dir2;
 	};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -359,10 +349,6 @@ struct STEPVertexPoint
 	int id;
 	int idRef;
 
-	struct Data
-	{
-		Vector3 pos;
-	};
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPVertexPoint();
@@ -372,11 +358,11 @@ struct STEPVertexPoint
 		step.vertexPoint[data->id] = data;
 	}
 
-	STEPVertexPoint::Data ToData(const STEPStruct& step)
+	Vector3 ToData(const STEPStruct& step)
 	{
-		STEPVertexPoint::Data data;
-		FIND_STEP_DATA(data, pos, points, idRef);
-		return data;
+		Vector3 pos;
+		FIND_STEP_DATA2(pos, points, idRef);
+		return pos;
 	}
 };
 
@@ -394,8 +380,8 @@ struct STEPEdgeCurve
 
 	struct Data
 	{
-		STEPVertexPoint::Data begin;
-		STEPVertexPoint::Data end;
+		Vector3 begin;
+		Vector3 end;
 		STEPLine::Data line;
 		bool orient;
 	};
@@ -440,8 +426,8 @@ struct STEPOrientedEdge
 
 	struct Data
 	{
-		STEPVertexPoint::Data begin;
-		STEPVertexPoint::Data end;
+		Vector3 begin;
+		Vector3 end;
 		STEPEdgeCurve::Data edge;
 		bool orient;
 	};

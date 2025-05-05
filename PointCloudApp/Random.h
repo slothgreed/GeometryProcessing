@@ -38,6 +38,13 @@ public:
 		std::uniform_int_distribution<> uid((min_ <= max_) ? min_ : max_, (min_ <= max_) ? max_ : min_);
 		return uid(mt);
 	}
+
+	float operator()(const float min_, const float max_)
+	{
+		std::uniform_real_distribution<> uid((min_ <= max_) ? min_ : max_, (min_ <= max_) ? max_ : min_);
+		return uid(mt);
+	}
+
 	//Šm—¦
 	bool randBool(const double probability_) {
 		std::bernoulli_distribution uid(probability_);

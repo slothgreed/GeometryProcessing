@@ -8,6 +8,7 @@ public:
 	Random() {};
 	~Random() {};
 
+	static float Float(float min, float max);
 	static int Int(float min, float max);
 	static Vector2 Vec2(const Vector2& min, const Vector2& max);
 	static Vector3 Vec3(float min, float max);

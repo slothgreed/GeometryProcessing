@@ -106,6 +106,41 @@ private:
 	List<IndexedTriangle> m_Delaunay;
 };
 
+class HalfEdgeNode;
+class Delaunay3DGenerator : public IAlgorithm
+{
+	struct Tetrahedron
+	{
+		Vector3 p0;
+		Vector3 p1;
+		Vector3 p2;
+		Vector3 p3;
+	};
+
+	struct Circumsphere
+	{
+		Circumsphere():radius(0.0f) {}
+		Circumsphere(const Vector3& p, float r)
+			: position(p)
+			, radius(r) {}
+		float radius;
+		Vector3 position;
+	};
+
+public:
+	Delaunay3DGenerator(HalfEdgeNode* pNode);
+	~Delaunay3DGenerator() {};
+	ALGORITHM_TYPE GetType() { return ALGORITHM_DELAUNAY_3D; }
+	Circumsphere CreateCircumsphere(const Tetrahedron& tet);
+	Tetrahedron CreateHugeTetrahedron(const BDB& bdb) const;
+
+private:
+	HalfEdgeNode* m_pNode;
+	Tetrahedron m_HugeTetrahedron;
+	Vector<Tetrahedron> m_Delaunay;
+};
+
+
 }
 
 #endif DELAUNAY_GENERATOR

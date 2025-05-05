@@ -28,6 +28,7 @@
 #include "CSFNode.h"
 #include "STEPNode.h"
 #include "Utility.h"
+#include "SimulationNode.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -103,6 +104,14 @@ struct ScrollingBuffer
 	}
 };
 
+// コールバック関数を定義
+void APIENTRY MyGLDebugCallback(GLenum source, GLenum type, GLuint id,
+	GLenum severity, GLsizei length,
+	const GLchar* message, const void* userParam)
+{
+	fprintf(stderr, "GL DEBUG: %s\n", message);
+}
+
 void PointCloudApp::Execute()
 {
 
@@ -123,8 +132,9 @@ void PointCloudApp::Execute()
 	{
 		Shared<Primitive> pAxis = std::make_shared<Axis>(50);
 		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		//m_pRoot->AddNode(CreateBunnyNodeTest());
-		m_pRoot->AddNode(CreateSTEPNodeTest());
+		m_pRoot->AddNode(CreateBunnyNodeTest());
+		m_pRoot->AddNode(std::make_shared<SimulationNode>());
+		//m_pRoot->AddNode(CreateSTEPNodeTest());
 	}
 
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
@@ -165,6 +175,13 @@ void PointCloudApp::Execute()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);	// GLenum mode
+
+
+	// 初期化時に一度だけ設定
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(MyGLDebugCallback, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
@@ -255,7 +272,6 @@ void PointCloudApp::Execute()
 		ShowUI();
 		ImGui::Render();
 
-
 		int display_w, display_h;
 		glfwGetFramebufferSize(m_window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
@@ -301,6 +317,7 @@ void PointCloudApp::ShowUI()
 		ImGui::End();
 	}
 
+
 	ImGui::Checkbox("PickMode", &m_ui.pickMode);
 	if (m_ui.pickMode) {
 		ImGui::SetNextWindowPos(ImGui::GetMousePos());
@@ -315,6 +332,7 @@ void PointCloudApp::ShowUI()
 		ImGui::Text(worldPos.data());
 		ImGui::EndTooltip();
 	}
+
 
 	auto pCamera = m_pResource->GetCamera();
 	ImGui::Text(
@@ -340,6 +358,7 @@ void PointCloudApp::ShowUI()
 	}
 
 
+
 	ImGui::Text("Direction:(%lf, %lf, %lf)\n", pLight->GetDirection().x, pLight->GetDirection().y, pLight->GetDirection().z);
 
 	static RollingBuffer  ui_fpsDraw, ui_fps60, ui_fps120;
@@ -359,6 +378,7 @@ void PointCloudApp::ShowUI()
 		ImPlot::PlotLine("120 FPS", &ui_fps120.Data[0].x, &ui_fps120.Data[0].y, ui_fps120.Data.size(), 0, 2 * sizeof(float));
 		ImPlot::EndPlot();
 	}
+
 
 }
 

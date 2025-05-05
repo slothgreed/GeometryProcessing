@@ -51,6 +51,10 @@ int Random::Int(float min, float max)
 	return Gaccho::rnd(min, max);
 }
 
+float Random::Float(float min, float max)
+{
+	return Gaccho::rnd(min, max);
+}
 Vector2 Random::Vec2(const Vector2& min, const Vector2& max)
 {
 	Vector2 value;
@@ -209,7 +213,7 @@ bool UIntBool::True(int pos) const
 
 int UIntBool::Size(int num)
 {
-	return num / size_t(32);
+	return (num + 32 - 1) / 32;
 }
 
 int UIntBool::MemorySize() const

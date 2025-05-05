@@ -4,9 +4,6 @@
 #include "PrimitiveNode.h"
 #include "Utility.h"
 
-#include <Eigen/Core>
-#include <Eigen/SVD>
-#include <Eigen/Dense>
 namespace KI
 {
 Harris3D::Harris3D(PointCloudNode* pointCloud)

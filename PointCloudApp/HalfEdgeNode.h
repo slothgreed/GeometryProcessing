@@ -46,6 +46,8 @@ public:
 
 	const BVH* GetBVH() const { return m_pBVH; }
 	const MortonCode& GetMorton() const { return m_morton.data; }
+	GLBuffer* GetPositionGpu() { return m_gpu.position.get(); }
+	GLBuffer* GetFaceIndexGpu() { return m_gpu.faceIndexBuffer.get(); }
 protected:
 	virtual void ShowUI(UIContext& ui);
 	virtual void DrawNode(const DrawContext& context);
@@ -56,7 +58,6 @@ protected:
 	
 private:
 	void BuildBVH();
-	void BuildSDF();
 	void BuildMorton();
 	void BuildEdge();
 	void ShowNormal();
@@ -86,14 +87,14 @@ private:
 		GeometryGpu()
 			: position(nullptr)
 			, normal(nullptr)
-			, sdf(nullptr)
+			, vertexColor(nullptr)
 			, faceIndexBuffer(nullptr)
 			, edgeIndexBuffer(nullptr)
 		{
 		}
 		Unique<GLBuffer> position;
 		Unique<GLBuffer> normal;
-		Unique<GLBuffer> sdf;
+		Unique<GLBuffer> vertexColor;
 		Unique<GLBuffer> faceIndexBuffer;
 		Unique<GLBuffer> edgeIndexBuffer;
 	};
@@ -127,11 +128,47 @@ private:
 	SignedDistanceField* m_pSignedDistanceField;
 	ShapeDiameterFunction* m_pShapeDiameterFunction;
 	Voxelizer* m_pVoxelizer;
+
 	struct UI
 	{
+		struct Poisson
+		{
+			struct Surface
+			{
+				Surface()
+					: create(false)
+					, num(10000)
+					, length(0.1f)
+				{
+				}
+
+				bool create;
+				int num;
+				float length;
+			};
+			Poisson()
+				: volume(false)
+			{
+			}
+			bool volume;
+			Surface surface;
+		};
+
+		struct HeatMethod
+		{
+			HeatMethod() 
+				: timeStep(1.0f) {}
+			float timeStep;
+		};
+
+		struct Voxel
+		{
+			Voxel() :visible(false), resolute(8) {}
+			bool visible;
+			int resolute;
+		};
 		UI()
 			: visible(true)
-			, visibleSDF(false)
 			, visibleBVH(false)
 			, visibleMeshlet(false)
 			, meshlet(0)
@@ -139,14 +176,13 @@ private:
 			, visibleEdge(false)
 			, visibleVertex(false)
 			, visibleNormal(false)
-			, visibleVoxel(false)
 			, visibleMorton(false)
 			, visibleSignedDistanceField(false)
 			, normalLength(1.0f)
+			, vertexParameter(0)
 		{
 		}
 		bool visible;
-		bool visibleSDF;
 		bool visibleBVH;
 		bool visibleMeshlet;
 		bool visibleMorton;
@@ -156,10 +192,14 @@ private:
 		bool visibleEdge;
 		bool visibleVertex;
 		bool visibleNormal;
-		bool visibleVoxel;
 		float normalLength;
+		int vertexParameter;
+		Voxel voxel;
+		HeatMethod heatMethod;
+		Poisson poisson;
 	};
 
+	Parameter m_vertexParameter;
 	UI m_ui;
 };
 

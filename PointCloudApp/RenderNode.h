@@ -4,6 +4,7 @@
 #include "BDB.h"
 #include "RenderResource.h"
 #include "Light.h"
+#include "Parameter.h"
 namespace KI
 {
 class GLBuffer;
@@ -112,6 +113,7 @@ public:
 	BDB CalcCameraFitBox();
 	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
 protected:
+	virtual void ShowUIParameter(const Parameter& parameter, UIContext& ui);
 	virtual void ShowUI(UIContext& ui) {};
 	virtual void PickNode(const PickContext& context) {};
 	virtual bool CollectPickedNode(PickResult& result) { return false; }

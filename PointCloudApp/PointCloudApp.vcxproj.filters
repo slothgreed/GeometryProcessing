@@ -266,6 +266,12 @@
     <ClCompile Include="STEPNode.cpp">
       <Filter>ソース ファイル\Utility\CSF</Filter>
     </ClCompile>
+    <ClCompile Include="Parameter.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="SimulationNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -489,6 +495,12 @@
     </ClInclude>
     <ClInclude Include="STEPNode.h">
       <Filter>ソース ファイル\Utility\CSF</Filter>
+    </ClInclude>
+    <ClInclude Include="Parameter.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="SimulationNode.h">
+      <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

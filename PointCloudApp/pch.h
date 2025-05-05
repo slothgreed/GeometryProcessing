@@ -8,6 +8,7 @@
 #include "GLAPIExt.h"
 #include <algorithm>
 #include <String>
+#include <queue>
 #include <vector>
 #include <list>
 #include <memory>
@@ -23,6 +24,11 @@
 #include "../implot/implot.h"
 #include "imgui.h"
 
+#include <Eigen/Core>
+#include <Eigen/SVD>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#define NOMINMAX
 using namespace glm;
 
 namespace KI

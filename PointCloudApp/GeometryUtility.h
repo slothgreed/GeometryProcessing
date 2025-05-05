@@ -25,11 +25,28 @@ public:
 
 	void Create(const Vector<Vector3>& triangle, const Vector<unsigned int>& trinagle, const BDB& box, int resolute = 1024);
 	static unsigned int To(unsigned int x);
+	static unsigned int To(const Vector3& x);
 	static Vector3 ToColor(unsigned int morton);
 	const Vector<Data>& Get() const { return m_mortons; }
 private:
 	Vector<Data> m_mortons;
 };
+
+
+class HalfEdgeStruct;
+class HalfEdgeNode;
+class MeshAlgorithm
+{
+public:
+	MeshAlgorithm() {};
+	~MeshAlgorithm() {};
+
+	static Vector<Vector3> CreatePoissonSampleOnFace(const HalfEdgeStruct& halfEdge);
+	static Vector<Vector3> CreatePoissonSampleVolume(HalfEdgeNode& halfEdge);
+private:
+
+};
+
 
 }
 
