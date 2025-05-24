@@ -1,6 +1,8 @@
 #include "IShader.h"
 #include "ShaderUtility.h"
 #include "Texture.h"
+#include "Primitives.h"
+#include "PostEffect.h"
 namespace KI
 {
 IShader::~IShader()
@@ -203,6 +205,15 @@ GLuint IShadingShader::BuildVertexFrag(const String& vert, const String& frag)
 }
 
 
+void IShadingShader::BindTexture(int location, int unit, const Texture& texture)
+{
+	glActiveTexture(GL_TEXTURE0 + unit);
+	OUTPUT_GLERROR;
+	glUniform1i(location, unit);
+	OUTPUT_GLERROR;
+	glBindTexture(texture.GetFormat().target, texture.Handle());
+	OUTPUT_GLERROR;
+}
 void IShadingShader::BindIndexBuffer(const GLBuffer* pBuffer)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pBuffer->Handle());
@@ -313,6 +324,12 @@ void IShader::BindShaderStorage(int location, int handle)
 	OUTPUT_GLERROR;
 }
 
+void IComputeShader::BindImage(int location, const Texture* pTexture, GLuint access)
+{
+	glBindImageTexture(location, pTexture->Handle(), 0, GL_FALSE, 0, access, pTexture->GetFormat().internalformat);
+	OUTPUT_GLERROR;
+}
+
 void IComputeShader::Dispatch(GLuint x, GLuint y, GLuint z)
 {
 	glDispatchCompute(x, y, z);
@@ -325,6 +342,40 @@ void IComputeShader::Dispatch(const Vector3i& value)
 	OUTPUT_GLERROR;
 }
 
+void IComputeShader::BarrierImage()
+{
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	OUTPUT_GLERROR;
+}
+
+
+
+void IPostEffectShader::Draw(const RenderTextureNode& node)
+{
+	SetPosition(node.GetPositionBuffer().get());
+	SetTexcoord(node.GetTexcoordBuffer().get());
+	DrawElement(RenderPlane::GetPrimitiveType(), node.GetIndexBuffer().get());
+}
+
+
+void IPostEffectShader::SetPosition(GLBuffer* pPosition)
+{
+	static const int ATTRIBUTE_POSITION = 0;
+	SetVertexFormat(VertexFormat(ATTRIBUTE_POSITION, pPosition));
+
+	glBindVertexBuffer(ATTRIBUTE_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
+
+void IPostEffectShader::SetTexcoord(GLBuffer* pTexture)
+{
+	static const int ATTRIBUTE_TEXCOORD = 1;
+	SetVertexFormat(VertexFormat(ATTRIBUTE_TEXCOORD, pTexture));
+
+	glBindVertexBuffer(ATTRIBUTE_TEXCOORD, pTexture->Handle(), 0, pTexture->SizeOfData());
+	OUTPUT_GLERROR;
+}
 
 void IMeshShader::DrawMeshTasks(int first, int count)
 {

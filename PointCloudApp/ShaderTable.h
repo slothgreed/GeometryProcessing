@@ -6,6 +6,7 @@ namespace KI
 class SimpleShader;
 class VertexColorShader;
 class TextureShader;
+class VertexVectorShader;
 class PrimitiveColorShader;
 class InstancedPrimitiveShader;
 class PointPickShader;
@@ -19,6 +20,7 @@ public:
 	void Build();
 
 	const Shared<SimpleShader>& GetSimpleShader() { return m_pSimpleShader; }
+	const Shared<VertexVectorShader>& GetVertexVectorShader() { return m_pVertexVectorShader; }
 	const Shared<VertexColorShader>& GetVertexColorShader() { return m_pVertexColorShader; }
 	const Shared<PrimitiveColorShader>& GetPrimitiveColorShader() { return m_pPrimitiveColorShader; }
 	const Shared<TextureShader>& GetTextureShader() { return m_pTextureShader; }
@@ -28,6 +30,7 @@ public:
 	const Shared<TextureShader>& GetTextureUINTShader() { return m_pTextureUINTShader; }
 	const Shared<TextureViewShader>& GetTextureViewShader() { return m_pTextureViewShader; }
 private:
+	Shared<VertexVectorShader> m_pVertexVectorShader;
 	Shared<PointPickShader> m_pPointPickByPrimitive;
 	Shared<PointPickShader> m_pPointPickByID;
 	Shared<SimpleShader> m_pSimpleShader;

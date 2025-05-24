@@ -5,6 +5,7 @@
 #include "Utility.h"
 #include "Harris3D.h"
 #include "AlphaShape.h"
+#include "Camera.h"
 #include "DelaunayGenerator.h"
 #include <Eigen/SVD>
 #include <Eigen/Core>
@@ -35,6 +36,13 @@ PointCloudNode::~PointCloudNode()
 void PointCloudNode::BuildGLBuffer()
 {
 	if (!m_pPointCloud->NeedUpdate()) { return; }
+
+	if (m_pPointCloud->Color().size() != 0) {
+		m_pInterleave = std::make_unique<GLBuffer>();
+		m_pInterleave->Create(m_pPointCloud->CreatePositionColor4f());
+		m_pPointCloud->ClearUpdate();
+		return;
+	}
 
 	m_pPositionBuffer = std::make_unique<GLBuffer>();
 	m_pPositionBuffer->Create(m_pPointCloud->Position());
@@ -80,6 +88,7 @@ void PointCloudNode::UpdateColor(const Vector<Vector4>& color)
 }
 void PointCloudNode::ShowUI(UIContext& ui)
 {
+	ImGui::Text("PointNum: %d", m_pPointCloud->Position().size());
 	for (auto& algorithm : m_algorithm) {
 		algorithm.second->ShowUI(ui);
 	}
@@ -160,13 +169,18 @@ void PointCloudNode::DrawNode(const DrawContext& context)
 {
 	UpdateRenderData();
 	auto pResource = context.pResource;
-	if (m_pColorBuffer) {
+	if (m_pInterleave) {
+		if (!m_shaderWriteDepth.IsActive()) { m_shaderWriteDepth.SetDepthPhase(true); m_shaderWriteDepth.Build(); }
+		if (!m_shader.IsActive()) { m_shader.Build(); }
+		m_shaderWriteDepth.Execute(context, *this, m_pInterleave->Handle());
+		m_shader.Execute(context, *this, m_pInterleave->Handle());
+	} else if (m_pColorBuffer) {
 		auto pShader = pResource->GetShaderTable()->GetVertexColorShader();
 		pShader->Use();
 		pShader->SetPosition(m_pPositionBuffer.get());
 		pShader->SetColor(m_pColorBuffer.get());
 		pShader->SetCamera(pResource->GetCameraBuffer());
-		pShader->SetModel(Matrix4x4(1.0f));
+		pShader->SetModel(GetMatrix());
 		pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
 	} else {
 		glPointSize(5.0f);
@@ -175,9 +189,47 @@ void PointCloudNode::DrawNode(const DrawContext& context)
 		pShader->SetPosition(m_pPositionBuffer.get());
 		pShader->SetColor(Vector3(1, 0, 0));
 		pShader->SetCamera(pResource->GetCameraBuffer());
-		pShader->SetModel(Matrix4x4(1.0f));
+		pShader->SetModel(GetMatrix());
 		pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());
-
 	}
+}
+
+
+ShaderPath PointCloudNode::Shader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.shader[SHADER_PROGRAM_COMPUTE] = "pointcloud.comp";
+	if (depthPhase) {
+		path.extension[SHADER_PROGRAM_COMPUTE].push_back("#define WRITE_PHASE\n");
+	}
+	return path;
+}
+
+void PointCloudNode::Shader::FetchUniformLocation()
+{
+	m_uVP = GetUniformLocation("u_VP");
+	m_uPositionNum = GetUniformLocation("u_PositionNum");
+}
+
+void PointCloudNode::Shader::Execute(const DrawContext& context, const PointCloudNode& node, int positionBuffer)
+{
+	auto pColorTarget = context.pResource->GetComputeColorTarget();
+	auto pDepthTarget = context.pResource->GetComputeDepthTarget();
+	Matrix4x4 vp = context.pResource->GetCamera()->Projection() * context.pResource->GetCamera()->ViewMatrix();
+	Use();
+	BarrierImage();
+	if (depthPhase) {
+		BindImage(1, pDepthTarget, GL_WRITE_ONLY);
+	} else {
+		BindImage(0, pColorTarget, GL_WRITE_ONLY);
+		BindImage(1, pDepthTarget, GL_READ_ONLY);
+	}
+	BindShaderStorage(2, positionBuffer);
+	BindUniform(m_uVP, vp * node.GetMatrix());
+	BindUniform(m_uPositionNum, (int)node.GetData()->Position().size());
+	Dispatch(Vector3(node.GetData()->Position().size() / 256, 1, 1));
+	BarrierImage();
+	UnUse();
 }
 }

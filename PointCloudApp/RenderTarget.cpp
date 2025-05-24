@@ -61,32 +61,41 @@ void RenderTarget::Resize(const Vector2& size)
 	}
 }
 
-RenderTarget* RenderTarget::CreatePickTarget(const Vector2& size)
+RenderTarget* RenderTarget::CreatePickTarget(const Vector2i& size)
 {
 	auto pTarget = new RenderTarget();
-	auto pColor = std::shared_ptr<Texture2D>(CreateColorTexture(size.x, size.y));
-	auto pDepth = std::shared_ptr<Texture2D>(CreateDepthTexture(size.x, size.y));
+	auto pColor = std::shared_ptr<Texture2D>(CreateColorTexture(size));
+	auto pDepth = std::shared_ptr<Texture2D>(CreateDepthTexture(size));
 	pTarget->Build(pColor, pDepth);
 	return pTarget;
 }
 
-Texture2D* RenderTarget::CreateColorTexture(int width, int height)
+RenderTarget* RenderTarget::CreateForwardTarget(const Vector2i& size)
+{
+	auto pTarget = new RenderTarget();
+	auto pColor = std::shared_ptr<Texture2D>(CreateColorTexture(size));
+	auto pDepth = std::shared_ptr<Texture2D>(CreateDepthTexture(size));
+	pTarget->Build(pColor, pDepth);
+	return pTarget;
+}
+
+Texture2D* RenderTarget::CreateColorTexture(const Vector2i& size)
 {
 	auto pTexture = new Texture2D();
-	pTexture->Build(width, height);
+	pTexture->Build(size.x, size.y);
 	return pTexture;
 }
 
-Texture2D* RenderTarget::CreatePickTexture(int width, int height)
+Texture2D* RenderTarget::CreatePickTexture(const Vector2i& size)
 {
 	auto pTexture = new Texture2D();
-	pTexture->Build(width, height);
+	pTexture->Build(size.x, size.y);
 	Texture::Format format;
 	format.target = GL_TEXTURE_2D;
 	format.level = 0;
 	format.internalformat = GL_R32UI;
-	format.width = width;
-	format.height = height;
+	format.width = size.x;
+	format.height = size.y;
 	format.border = 0;
 	format.format = GL_RED_INTEGER;
 	format.type = GL_UNSIGNED_INT;
@@ -96,16 +105,54 @@ Texture2D* RenderTarget::CreatePickTexture(int width, int height)
 }
 
 
-Texture2D* RenderTarget::CreateDepthTexture(int width, int height)
+Texture2D* RenderTarget::CreateComputeColorTexture(const Vector2i& size)
+{
+	auto pTexture = new Texture2D();
+	pTexture->Build(size.x, size.y);
+	Texture::Format format;
+	format.target = GL_TEXTURE_2D;
+	format.level = 0;
+	format.internalformat = GL_R32UI;
+	format.width = size.x;
+	format.height = size.y;
+	format.border = 0;
+	format.format = GL_RED_INTEGER;
+	format.type = GL_UNSIGNED_INT;
+	pTexture->Set(format, nullptr);
+
+	return pTexture;
+}
+
+Texture2D* RenderTarget::CreateComputeDepthTexture(const Vector2i& size)
+{
+	auto pTexture = new Texture2D();
+	pTexture->Build(size.x, size.y);
+	Texture::Format format;
+	format.target = GL_TEXTURE_2D;
+	format.level = 0;
+	format.internalformat = GL_R32UI;
+	format.width = size.x;
+	format.height = size.y;
+	format.border = 0;
+	format.format = GL_RED_INTEGER;
+	format.type = GL_UNSIGNED_INT;
+	pTexture->Set(format, nullptr);
+
+	return pTexture;
+}
+
+
+
+Texture2D* RenderTarget::CreateDepthTexture(const Vector2i& size)
 {
 	auto pDepth = new Texture2D();
-	pDepth->Build(width, height);
+	pDepth->Build(size.x, size.y);
 	Texture::Format format;
 	format.target = GL_TEXTURE_2D;
 	format.level = 0;
 	format.internalformat = GL_DEPTH_COMPONENT24;
-	format.width = width;
-	format.height = height;
+	format.width = size.x;
+	format.height = size.y;
 	format.border = 0;
 	format.format = GL_DEPTH_COMPONENT;
 	format.type = GL_FLOAT;
@@ -147,5 +194,18 @@ float RenderTarget::GetDepth(int x, int y)
 	OUTPUT_GLERROR;
 	m_pFrameBuffer->UnBind();
 	return result;
+}
+
+void RenderTarget::Copy(const RenderTarget& target)
+{
+	if (GetColorNum() != target.GetColorNum()) { return; }
+	if (GetDepthNum() != target.GetDepthNum()) { return; }
+	for (int i = 0; i < m_pColor.size(); i++) {
+		m_pColor[i]->Copy(*target.GetColor(i).get());
+	}
+
+	if (m_pDepth) {
+		m_pDepth->Copy(*target.GetDepth().get());
+	}
 }
 }

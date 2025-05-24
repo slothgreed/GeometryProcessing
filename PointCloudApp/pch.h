@@ -19,6 +19,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <stack>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "../implot/implot.h"
@@ -62,8 +63,10 @@ using Vector2 = glm::vec2;
 using Vector2i = glm::ivec2;
 using Vector3 = glm::vec3;
 using Vector3i = glm::ivec3;
+using Vector3u = glm::uvec3;
 using Vector4 = glm::vec4;
 using Vector4i = glm::ivec4;
+using Vector4u = glm::uvec4;
 using Quaternion = glm::quat;
 
 inline int StringToInt(const String& str)

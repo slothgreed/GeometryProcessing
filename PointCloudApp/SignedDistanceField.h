@@ -19,13 +19,42 @@ private:
 
 	enum Axis
 	{
-		X,Y,Z
+		X, Y, Z
 	};
+
+	class Shader : public IComputeShader
+	{
+	public:
+		Shader() {};
+		virtual ~Shader() {};
+
+		virtual ShaderPath GetShaderPath();
+		virtual void FetchUniformLocation();
+		void Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture);
+		enum UNIFORM
+		{
+			MINBOX,
+			PITCH,
+			POSITION,
+			AXIS,
+			RESOLUTE,
+			MAXTRIANGLE,
+			FREQUENCY,
+			MODEL,
+			NUM
+		};
+
+	private:
+
+		GLuint m_uniform[UNIFORM::NUM];
+	};
+
+
 
 
 	BVH::IntersectResult CalcMinDistance(const Vector3& pos) const;
 	void CreateTexure(int resolute);
-	void CreateSDFTexture(int resolute, float position, Axis axis, std::vector<Vector3>& lines);
+	void CreateSDFTexture(int resolute, Axis axis, float position, Texture2D* pTexture);
 
 	struct UI
 	{
@@ -58,6 +87,7 @@ private:
 	UI m_ui;
 	HalfEdgeNode* m_pHalfEdge;
 	float m_resolute;
+	Unique<Shader> m_pShader;
 };
 
 }

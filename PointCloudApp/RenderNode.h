@@ -88,7 +88,7 @@ public:
 	virtual ~RenderNode() {};
 
 	virtual void ShowUIData(UIContext& ui);
-	virtual const BDB& GetBoundBox() { return m_bdb; }
+	virtual const BDB& GetBoundBox() const { return m_bdb; }
 	virtual void Draw(const DrawContext& context);
 	virtual void DrawParts(const DrawContext& context, const RenderParts& parts);
 	virtual void Pick(const PickContext& context);

@@ -9,7 +9,7 @@
 #include "GLBuffer.h"
 namespace KI
 {
-
+class Texture;
 enum SHADER_PROGRAM
 {
 	SHADER_PROGRAM_VERTEX,
@@ -69,6 +69,7 @@ public:
 	virtual void Build();
 	virtual void FetchUniformLocation() = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
+	void BindTexture(int location, int unit, const Texture& texture);
 	void BindIndexBuffer(const GLBuffer* pBuffer);
 	void SetVertexFormat(const VertexFormats& format);
 	void SetVertexFormat(const VertexFormat& format);
@@ -99,8 +100,22 @@ public:
 	virtual void Build();
 	void Dispatch(GLuint x, GLuint y, GLuint z);
 	void Dispatch(const Vector3i& value);
+	void BindImage(int location, const Texture* pTexture, GLuint access);
+	void BarrierImage();
 private:
 
+};
+
+class RenderTextureNode;
+class IPostEffectShader : public IShadingShader
+{
+public:
+	IPostEffectShader() {};
+	virtual ~IPostEffectShader() {};
+
+	void SetPosition(GLBuffer* pPosition);
+	void SetTexcoord(GLBuffer* pTexture);
+	void Draw(const RenderTextureNode& node);
 };
 
 class IMeshShader : public IShader

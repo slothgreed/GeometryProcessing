@@ -23,8 +23,8 @@ ShaderPath SkyBoxNode::Shader::GetShaderPath()
 
 void SkyBoxNode::Shader::FetchUniformLocation()
 {
-	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
-	m_uniform[UNIFORM::SKYBOX] = glGetUniformLocation(Handle(), "u_skybox");
+	m_uniform[UNIFORM::MODEL] = GetUniformLocation("u_Model");
+	m_uniform[UNIFORM::SKYBOX] = GetUniformLocation("u_skybox");
 }
 
 void SkyBoxNode::Shader::SetCamera(const GLBuffer* pBuffer)

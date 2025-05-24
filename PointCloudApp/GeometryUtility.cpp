@@ -118,4 +118,27 @@ Vector<Vector3> MeshAlgorithm::CreatePoissonSampleOnFace(const HalfEdgeStruct& h
 
     return samples;
 }
+
+void GeometryUtility::CreateTangentBasis(const Vector3& value, Vector3& t1, Vector3& t2)
+{
+    if (std::abs(value.z) < 0.9f) {
+        t1 = glm::normalize(glm::cross(Vector3(0, 0, 1), value));
+    } else {
+        t1 = glm::normalize(glm::cross(Vector3(1, 0, 0), value));
+    }
+
+    t2 = glm::normalize(glm::cross(value, t1));
+}
+
+float GeometryUtility::CalcCotangent(const Vector3& p0, const Vector3& p1, const Vector3& p2)
+{
+    auto u = p0 - p2;
+    auto v = p1 - p2;
+
+    float cos_theta = glm::dot(u, v);
+    float sin_theta = glm::length(glm::cross(u, v));
+    if (sin_theta == 0) { return 0.0f; }
+    return cos_theta / sin_theta;
+}
+
 }

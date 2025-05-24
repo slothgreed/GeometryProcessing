@@ -29,3 +29,18 @@ vec4 IntToVec4(int value)
     float a = float(value & 0xFF) / 255.0;
     return vec4(r, g, b, a);
 }
+
+float packColor(vec3 color) {
+    return color.r + color.g * 256.0 + color.b * 256.0 * 256.0;
+}
+
+vec4 unpackColor(float f) {
+    float fi = round(f);
+    vec3 color;
+    color.r = floor(fi / 65536.0); // 256 * 256
+    fi -= color.r * 65536.0;
+    color.g = floor(fi / 256.0);
+    fi -= color.g * 256.0;
+    color.b = fi;
+    return vec4(color / 255.0, 1.0);
+}

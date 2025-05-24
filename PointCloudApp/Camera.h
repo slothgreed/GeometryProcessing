@@ -36,6 +36,7 @@ public:
 	void SetAspect(float aspect);
 
 	Vector3 ScreenToModel(const Vector3& pos);
+	const Matrix4x4& GetViewProj() const { return m_View * m_Project; }
 private:
 	void SphericalToCartesian(float radius, float x, float y, Vector3& result);
 	void SetTheta(float value);

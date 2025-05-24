@@ -121,6 +121,7 @@ void RenderResource::UpdateLight()
 	gpu.direction = Vector4(glm::normalize(m_pCamera->Direction()), 1.0f);
 	m_pLightGpu->BufferSubData(0, 1, sizeof(LightGPU), &gpu);
 }
+
 void RenderResource::Finalize()
 {
 	delete m_pCameraGpu;
@@ -129,5 +130,30 @@ void RenderResource::Finalize()
 	delete m_pLightGpu;
 	m_pLightGpu = nullptr;
 }
+void RenderResource::Resize(const Vector2& size)
+{
+	if (m_pRenderTarget) { m_pRenderTarget->Resize(size); }
+}
 
+void GLContext::PushRenderTarget(RenderTarget* pTarget)
+{
+	m_pRenderTargetStack.push(pTarget);
+
+	pTarget->Bind();
+}
+void GLContext::PopRenderTarget()
+{
+	if (m_pRenderTargetStack.empty()) { return; }
+
+	auto pTarget = m_pRenderTargetStack.top();
+	m_pRenderTargetStack.pop();
+
+	pTarget->UnBind();
+}
+
+void RenderResource::InitComputeTarget()
+{
+	if (m_pComputeColorTarget) { m_pComputeColorTarget->ClearMaxValue(); }
+	if (m_pComputeDepthTarget) { m_pComputeDepthTarget->ClearMaxValue(); }
+}
 }

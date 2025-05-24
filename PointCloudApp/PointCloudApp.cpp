@@ -19,7 +19,7 @@
 #include "Primitives.h"
 #include "PrimitiveNode.h"
 #include "TextureLoader.h"
-#include "RenderTextureNode.h"
+#include "PostEffect.h"
 #include "GLTFLoader.h"
 #include "HalfEdgeLoader.h"
 #include "HalfEdgeNode.h"
@@ -129,11 +129,13 @@ void PointCloudApp::Execute()
 	}
 	*/
 
+	m_pRoot->AddNode(CreateLargePointCloudNodeTest());
+
 	{
 		Shared<Primitive> pAxis = std::make_shared<Axis>(50);
 		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		m_pRoot->AddNode(CreateBunnyNodeTest());
-		m_pRoot->AddNode(std::make_shared<SimulationNode>());
+		//m_pRoot->AddNode(CreateBunnyNodeTest());
+		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
 		//m_pRoot->AddNode(CreateSTEPNodeTest());
 	}
 
@@ -146,16 +148,7 @@ void PointCloudApp::Execute()
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
 	//
 	
-	/*
-	{
-		auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\Armadillo.xyz")));
-		//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
-		//Vector<Vector3> color(pPointCloud->Position().size(), Vector3(1.0f, 1.0f, 1.0f));
-		//pPointCloud->SetColor(std::move(color));
-		bdb.Apply(pPointCloud->GetBDB());
-		m_pRoot->AddNode(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
-	}
-	*/
+	
 	
 
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
@@ -197,41 +190,57 @@ void PointCloudApp::Execute()
 	float m_diff = 0;
 
 
+	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
+	auto pForwardTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreateForwardTarget(m_windowSize));
+	Shared<Texture> pMain = pForwardTarget->GetColor(0);
+	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
+	Shared<Texture> pTexture = pPickTarget->GetColor(0);
+
 	auto pLight = std::make_shared<Light>();
 	pLight->SetColor(Vector3(1, 1, 1));
 	pLight->SetDirection(Vector3(0, 0, 1));
-	
+
+
+	auto pComputeColorTarget = std::unique_ptr<Texture2D>(RenderTarget::CreateComputeColorTexture(m_windowSize));
+	auto pComputeDepthTarget = std::unique_ptr<Texture2D>(RenderTarget::CreateComputeDepthTexture(m_windowSize));
+	auto pTexturePalne = std::make_unique<RenderTextureNode>();
 	m_pResource->GL()->SetViewport(m_windowSize);
 	m_pResource->GL()->EnablePolygonOffset(1.0f, 1.0f);
 	m_pResource->GL()->SetLineWidth(5.0f);
 	m_pResource->GL()->SetPointSize(5.0f);
 	m_pResource->SetMainCamera(m_pCamera);
 	m_pResource->SetLight(pLight);
+	m_pResource->SetRenderTarget(pForwardTarget.get());
+	m_pResource->SetComputeColorTarget(pComputeColorTarget.get());
+	m_pResource->SetComputeDepthTarget(pComputeDepthTarget.get());
+	m_pResource->SetTexturePlane(pTexturePalne.get());
 	DrawContext drawContext(m_pResource.get());
 	PickContext pickContext(m_pResource.get());
-	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
-	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
-	Shared<Texture> pTexture = pPickTarget->GetColor(0);
-	auto pTextureNode = std::make_unique<RenderTextureNode>("Texture", pTexture);
-
+	auto pTest = std::unique_ptr<RenderTarget>(RenderTarget::CreateForwardTarget(m_windowSize));
+	ComputeTextureCombiner combiner;
+	combiner.Build();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		m_pResource->UpdateCamera();
 		m_pResource->UpdateLight();
+		m_pResource->Resize(m_windowSize);
+		m_pResource->InitComputeTarget();
+		m_pResource->GL()->PushRenderTarget(pForwardTarget.get());
 		m_pResource->GL()->SetupShading();
 		m_cpuProfiler.Start();
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		render.Start();
 		timer.Start();
 
-		//pSkyBoxNode->Draw(drawContext);
+		pSkyBoxNode->Draw(drawContext);
 
 		m_pRoot->Draw(drawContext);
 
 		if (m_ui.pickMode) {
 			m_pResource->GL()->SetupPick();
 			pPickTarget->Resize(m_windowSize);
-			pPickTarget->Bind();
+			m_pResource->GL()->PushRenderTarget(pPickTarget.get());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			m_pRoot->Pick(pickContext);
 			auto mousePos = ImGui::GetMousePos();
@@ -242,7 +251,7 @@ void PointCloudApp::Execute()
 			m_pick.pickPos = m_pCamera->ScreenToModel(Vector3(screen.x, screen.y, depth));
 			pickContext.pickedId = m_pick.id;
 			m_pRoot->CollectPicked(m_pick);
-			pPickTarget->UnBind();
+			m_pResource->GL()->PopRenderTarget();
 			if (m_pick.pResult.size() != 0) {
 				for (auto& result : m_pick.pResult) {
 					result.first->DrawParts(drawContext, *result.second.get());
@@ -250,12 +259,26 @@ void PointCloudApp::Execute()
 			}
 
 			glViewport(0, 0, 256, 256);
-			pTextureNode->Draw(drawContext);
+			TextureDrawer::Execute(drawContext, pTexture.get());
 		}
 
+		
 		if (m_pSelect && m_ui.animation) {
 			m_pCameraController->RotateAnimation(m_diff, m_pSelect->CalcCameraFitBox());
 		}
+
+		combiner.Execute(drawContext, *pTest);
+		if (m_pResource->GetComputeColorTarget()) {
+			glViewport(0, 0, 512, 512);
+			TextureDrawer::Execute(drawContext, m_pResource->GetComputeColorTarget());
+		}
+
+		m_pResource->GL()->PopRenderTarget();
+
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, m_windowSize.x, m_windowSize.y);
+		TextureDrawer::Execute(drawContext, pMain.get());
 
 		m_diff += timer.Stop() * 50;
 		m_pRoot->Update(m_diff);
@@ -360,18 +383,18 @@ void PointCloudApp::ShowUI()
 
 
 	ImGui::Text("Direction:(%lf, %lf, %lf)\n", pLight->GetDirection().x, pLight->GetDirection().y, pLight->GetDirection().z);
-
+	ImGui::Text("Milli %f, FPS %f", m_cpuProfiler.GetMilli(), m_cpuProfiler.GetFPS());
 	static RollingBuffer  ui_fpsDraw, ui_fps60, ui_fps120;
 	static float timeDelta = 0.0f;
 	ui_fpsDraw.Span = 2.0f;
 	ui_fps60.Span = 2.0f;
 	ui_fps120.Span = 2.0f;
 	timeDelta += ImGui::GetIO().DeltaTime;
-	ui_fpsDraw.AddPoint(timeDelta, m_cpuProfiler.GetMilli());
-	ui_fps60.AddPoint(timeDelta, 1000.0f / 60.0f);
-	ui_fps120.AddPoint(timeDelta, 1000.0f / 120.0f);
+	ui_fpsDraw.AddPoint(timeDelta, m_cpuProfiler.GetFPS());
+	ui_fps60.AddPoint(timeDelta, 60.0f);
+	ui_fps120.AddPoint(timeDelta, 120.0f);
 	ImPlot::SetNextPlotLimitsX(0, 2.0f, ImGuiCond_Always);
-	ImPlot::SetNextPlotLimitsY(0, 30, ImGuiCond_Always);
+	ImPlot::SetNextPlotLimitsY(0, 150, ImGuiCond_Always);
 	if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1, 150), 0, ImPlotAxisFlags_NoTickLabels, ImPlotAxisFlags_NoTickLabels)) {
 		ImPlot::PlotLine("Draw FPS", &ui_fpsDraw.Data[0].x, &ui_fpsDraw.Data[0].y, ui_fpsDraw.Data.size(), 0, 2 * sizeof(float));
 		ImPlot::PlotLine("60 FPS", &ui_fps60.Data[0].x, &ui_fps60.Data[0].y, ui_fps60.Data.size(), 0, 2 * sizeof(float));
@@ -396,6 +419,13 @@ Shared<RenderNode> PointCloudApp::CreateGLTFNodeTest()
 	return pNode;
 }
 
+Shared<RenderNode> PointCloudApp::CreateLargePointCloudNodeTest()
+{
+	auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\bildstein_station3_xyz_intensity_rgb.xyz")));
+	auto pNode =(std::make_shared<PointCloudNode>("PointCloud", pPointCloud));
+	pNode->SetRotateAngle(Vector3(-90, 0, 0));
+	return pNode;
+}
 Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()
 {
 	//auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\blade.csf.gz"));

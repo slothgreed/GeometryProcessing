@@ -18,12 +18,18 @@ public:
 
 	int GetIntPixel(int x, int y);
 	float GetDepth(int x, int y);
+	int GetColorNum() const { return m_pColor.size(); }
+	int GetDepthNum() const { return m_pDepth == nullptr ? 0 : 1; }
 	const Shared<Texture2D>& GetColor(int index) const { return m_pColor[index]; }
 	const Shared<Texture2D>& GetDepth() const { return m_pDepth; }
-	static RenderTarget* CreatePickTarget(const Vector2& size);
-	static Texture2D* CreatePickTexture(int width, int height);
-	static Texture2D* CreateColorTexture(int width, int height);
-	static Texture2D* CreateDepthTexture(int width, int height);
+	static RenderTarget* CreatePickTarget(const Vector2i& size);
+	static RenderTarget* CreateForwardTarget(const Vector2i& size);
+	static Texture2D* CreatePickTexture(const Vector2i& size);
+	static Texture2D* CreateColorTexture(const Vector2i& size);
+	static Texture2D* CreateDepthTexture(const Vector2i& size);
+	static Texture2D* CreateComputeColorTexture(const Vector2i& size);
+	static Texture2D* CreateComputeDepthTexture(const Vector2i& size);
+	void Copy(const RenderTarget& target);
 private:
 	Unique<FrameBuffer> m_pFrameBuffer;
 	std::vector<Shared<Texture2D>> m_pColor;

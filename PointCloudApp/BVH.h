@@ -13,34 +13,34 @@ public:
 
 	struct Node
 	{
-		Node()
-			: left(-1)
-			, right(-1)
-			, parent(-1)
-			, triangleIndex(-1)
-			, morton(0)
-		{
-		}
-
+		Node() : Node(BDB(), -1, -1) {}
 		Node(const BDB& _bdb, unsigned int _morton, int _triIndex)
-			: minBox(_bdb.Min())
-			, maxBox(_bdb.Max())
-			, morton(_morton)
-			, triangleIndex(_triIndex)
-			, left(-1)
-			, right(-1)
-			, parent(-1)
-
 		{
-
+			SetMin(_bdb.Min());
+			SetMax(_bdb.Max());
+			SetMorton(_morton);
+			SetTriangle(_triIndex);
+			SetLeft(-1); SetRight(-1); SetParent(-1);
 		}
-		Vector3 minBox;
-		Vector3 maxBox;
-		unsigned int morton;
-		int left;
-		int right;
-		int parent;
-		int triangleIndex;
+
+		Vector3 MinBox() const { return Vector3(minBox.x, minBox.y, minBox.z); }
+		Vector3 MaxBox() const { return Vector3(maxBox.x, maxBox.y, maxBox.z); }
+		int Left() const { return minBox.w; }
+		int Right() const { return maxBox.w; }
+		int Parent() const { return mix.x; }
+		int Triangle() const { return mix.z; }
+		void SetLeft(int value) { minBox.w = (float)value; }
+		void SetRight(int value) { maxBox.w = (float)value; }
+		void SetMorton(unsigned int value) { mix.y = value; }
+		void SetMin(const Vector3& value) { minBox.x = value.x; minBox.y = value.y; minBox.z = value.z; }
+		void SetMax(const Vector3& value) { maxBox.x = value.x; maxBox.y = value.y; maxBox.z = value.z; }
+		void SetParent(int value) { mix.x = value; }
+		void SetTriangle(int value) { mix.z = value; }
+	private:
+
+		Vector4 minBox; // w = left;
+		Vector4 maxBox; // w = right;
+		Vector4u mix; // x = parent; y = morton; z = triangleIndex; 
 	};
 
 
@@ -77,6 +77,7 @@ public:
 	Vector<BVH::IntersectResult> IntersectFace(const Ray& ray) const;
 	void DeleteUINode();
 	int GetMaxLevel() const { return m_levelRange.size(); }
+	const Vector<BVH::Node>& GetNode() const { return m_nodes; }
 private:
 	void CreateGPUBuffer();
 	void CountLeafNodes(int nodeIndex, int& leafNum);

@@ -41,6 +41,7 @@ private:
 	UI m_ui;
 	Shared<RenderNode> CreateGLTFNodeTest();
 	Shared<RenderNode> CreateCSFNodeTest();
+	Shared<RenderNode> CreateLargePointCloudNodeTest();
 	Shared<RenderNode> CreateSTEPNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<PointCloudNode> CreateDelaunayTest();

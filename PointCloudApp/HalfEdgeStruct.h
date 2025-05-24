@@ -18,18 +18,28 @@ class HalfEdgeStruct
 {
 public:
 
-	enum VertexParameter
+	enum class VertexValue
 	{
 		None,
 		HeatValue,
 		VertexArea,
 		SDF,
+		MinCurvature,
+		MaxCurvature,
 		Num
 	};
 
+	enum class VertexDirection
+	{
+		None,
+		MaxDirection,
+		MinDirection,
+		Num
+	};
 
-	static String ToString(VertexParameter param);
-	static const char* const* GetVertexParameterString();
+	static String ToString(HalfEdgeStruct::VertexValue param);
+	static const char* const* GetVertexValueString();
+	static const char* const* GetVertexDirectionString();
 	struct IndexedFace
 	{
 		std::array<int, 3> position;
@@ -105,11 +115,18 @@ public:
 	float GetVertexArea(int position) const;
 	const Vector<float>& GetVertexArea() const { return m_parameter.vertexArea; }
 
+	void CreateDirectionField();
+	const Vector<float>& GetMinCurvature() const { return m_parameter.minCurvature; }
+	const Vector<float>& GetMaxCurvature() const { return m_parameter.maxCurvature; }
+	const Vector<Vector3>& GetMinDirection() const { return m_parameter.minDirection; }
+	const Vector<Vector3>& GetMaxDirection() const { return m_parameter.maxDirection; }
 	void CreateCotangentLaplasian();
 	void CreateHeatMethod(float timeStep, int position);
 	const Vector<float>& GetHeatValue() const { return m_parameter.heatValue; }
 	void AddVertexOnFace(int faceIndex);
 	void AddVertexOnEdge(int edgeIndex);
+	const Vector3& GetNextPos(int edgeIndex) const;
+
 private:
 
 	void CreateNormal();
@@ -126,6 +143,10 @@ private:
 		Vector<float> heatValue;
 		Vector<float> vertexArea;
 		Vector<Vector3> vertexNormal;
+		Vector<float> minCurvature;
+		Vector<float> maxCurvature;
+		Vector<Vector3> minDirection;
+		Vector<Vector3> maxDirection;
 	};
 
 	Parameter m_parameter;

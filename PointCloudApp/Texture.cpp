@@ -63,11 +63,34 @@ Texture2D::Texture2D(const Sampler& sampler)
 	m_sampler = sampler;
 }
 
+void Texture2D::ClearMaxValue()
+{
+	if (m_format.format == GL_RED_INTEGER && m_format.type == GL_UNSIGNED_INT) {
+		GLuint maxValue = 0x7F7FFFFF;
+		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &maxValue);
+	} else {
+		assert(0);
+	}
+}
 void Texture2D::Clear(int value)
 {
 	glBindTexture(GL_TEXTURE_2D, m_handle);
-	glClearTexImage(m_handle, 0, m_format.format, m_format.type, &value);
 
+	if (m_format.format == GL_RGBA && m_format.type == GL_FLOAT) {
+		float values[4] = { (float)value,(float)value, (float)value, (float)value };
+		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &values);
+	} else if (m_format.format == GL_RED && m_format.type == GL_UNSIGNED_INT) {
+		auto values = (unsigned int)value;
+		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &values);
+	} else if(m_format.format == GL_RGBA && m_format.type == GL_UNSIGNED_BYTE) {
+		unsigned char values[4] = { (unsigned char)value,(unsigned char)value, (unsigned char)value, (unsigned char)value };
+		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &values);
+	} else if (m_format.format == GL_RED && m_format.type == GL_FLOAT) {
+		float values = (float)value;
+		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &values);
+	} else {
+		assert(0);
+	}
 }
 void Texture2D::Build(int width, int height)
 {
@@ -95,6 +118,25 @@ Texture2D* Texture2D::Create(const Vector2i& resolute, const Vector4& color)
 	return pTexture;
 }
 
+Texture2D* Texture2D::Create(const Texture2D& texture)
+{
+	auto pTexture = new Texture2D();
+	pTexture->Build(texture.Size().x, texture.Size().y);
+	pTexture->Copy(texture);
+	return pTexture;
+}
+
+void Texture2D::Copy(const Texture2D& texture)
+{
+	if (m_handle == -1) { return; }
+	Resize(texture.Size().x, texture.Size().y);
+	if (texture.GetFormat() != m_format) { assert(0); return; }
+	glCopyImageSubData(
+		texture.Handle(), texture.GetFormat().target, 0, 0, 0, 0,
+		m_handle, m_format.target, 0, 0, 0, 0,
+		texture.Size().x, texture.Size().y, 1);
+	OUTPUT_GLERROR;
+}
 void Texture2D::Resize(int width, int height)
 {
 	if (m_format.width == width && m_format.height == height) { return; }
@@ -107,7 +149,7 @@ void Texture2D::Resize(int width, int height)
 Texture::Format Texture2D::CreateRGBA(int width, int height)
 {
 	Format format;
-	format.internalformat = GL_RGBA32F;
+	format.internalformat = GL_RGBA8;
 	format.width = width;
 	format.height = height;
 	format.format = GL_RGBA;

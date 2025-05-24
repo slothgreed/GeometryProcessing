@@ -1,36 +1,38 @@
 #include "HalfEdgeStruct.h"
 #include "BDB.h"
 #include "Utility.h"
+#include "GeometryUtility.h"
 namespace KI
 {
 
-const char* const* HalfEdgeStruct::GetVertexParameterString()
+const char* const* HalfEdgeStruct::GetVertexValueString()
 {
 	static const char* parameter[] = {
 		"None",
 		"HeatValue",
 		"VertexArea",
 		"SDF",
+		"MinCurvature",
+		"MaxCurvature"
 	};
 
 	return parameter;
 }
 
-String HalfEdgeStruct::ToString(VertexParameter param)
+const char* const* HalfEdgeStruct::GetVertexDirectionString()
 {
-	switch (param) {
-	case KI::HalfEdgeStruct::None:
-		return "None";
-	case KI::HalfEdgeStruct::HeatValue:
-		return "HeatValue";
-	case KI::HalfEdgeStruct::VertexArea:
-		return "VertexArea";
-	case KI::HalfEdgeStruct::SDF:
-		return "SDF";
-	default:
-		assert(0);
-		return "None";
-	}
+	static const char* parameter[] = {
+		"None",
+		"MinCurvature",
+		"MaxCurvature",
+	};
+
+	return parameter;
+}
+
+String HalfEdgeStruct::ToString(HalfEdgeStruct::VertexValue param)
+{
+	return GetVertexValueString()[(int)param];
 }
 
 HalfEdgeStruct::Edge HalfEdgeStruct::GetEdge(int edgeIndex) const
@@ -310,8 +312,8 @@ void HalfEdgeStruct::CreateCotangentLaplasian()
 
 void HalfEdgeStruct::CreateHeatMethod(float timeStep, int position)
 {
+	if (m_parameter.heatValue.size() != 0) { return; }
 	CreateCotangentLaplasian();
-
 	Eigen::SparseMatrix<float> I(GetVertexNum(), GetVertexNum());
 	I.setIdentity();
 	auto A = I - timeStep * m_parameter.cotangent;
@@ -338,6 +340,96 @@ void HalfEdgeStruct::CreateHeatMethod(float timeStep, int position)
 	}
 }
 
+void HalfEdgeStruct::CreateDirectionField()
+{
+	if (m_parameter.minCurvature.size() != 0) { return; }
+	// 1. 法線ベクトル n_v を使って、接平面基底 (t1, t2) を構築
+	Vector3 t1, t2;
+	m_parameter.minCurvature.resize(m_position.size());
+	m_parameter.maxCurvature.resize(m_position.size());
+	m_parameter.minDirection.resize(m_position.size());
+	m_parameter.maxDirection.resize(m_position.size());
+	for (int i = 0; i < m_position.size(); i++) {
+		const auto& vi = m_position[i];
+		const auto& normal = m_parameter.vertexNormal[i];
+		GeometryUtility::CreateTangentBasis(normal, t1, t2);
+		// 2. Shape operator S (2x2 対称行列) を初期化
+		Eigen::Matrix2f S = Eigen::Matrix2f::Zero();
+		auto aroundEdge = GetAroundEdge(i);
+		float totalWeight = 0.0f;
+		for (const auto& edgeIndex : aroundEdge) {
+			const auto& edge = m_halfEdge[edgeIndex];
+			const auto& vj = m_position[edge.endPos];
+			const auto& normalJ = m_parameter.vertexNormal[edge.endPos];
+			auto dir = vj - vi;
+			auto dNormal = normalJ - normal;
+
+			double weight_sum = 0.0;
+			auto p0 = GetNextPos(edgeIndex);
+			auto p1 = GetNextPos(m_halfEdge[edgeIndex].oppositeEdge);
+			weight_sum += GeometryUtility::CalcCotangent(vi, p0, vj);
+			weight_sum += GeometryUtility::CalcCotangent(vi, p1, vj);
+
+			auto x = glm::dot(dir, t1);
+			auto y = glm::dot(dir, t2);
+			auto dx = glm::dot(dNormal, t1);
+			auto dy = glm::dot(dNormal, t2);
+
+			S(0, 0) += weight_sum * dx * x;
+			S(0, 1) += weight_sum * dx * y;
+			S(1, 0) += weight_sum * dy * x;
+			S(1, 1) += weight_sum * dy * y;
+
+			totalWeight += weight_sum * (x * x + y * y);
+			/*
+			// 3-1. Edge方向を接平面上に投影（pj_proj）
+			auto pj_proj = dir - glm::dot(dir, normal) * normal;
+
+			// 3-2. 法線差（接平面上への変化率）→ dN
+			auto dN = normalJ - normal;
+
+			// 3-3. pj_proj を接平面基底で表現（2D）
+			double u = dot(pj_proj, t1);
+			double v = dot(pj_proj, t2);
+
+			// 3-4. dN を接平面基底で表現（2D）
+			double dNu = dot(dN, t1);
+			double dNv = dot(dN, t2);
+
+			// 3-5. 重み（例：距離ベース、cot重みなど）を計算
+			double weight = 1.0 / (glm::length(pj_proj) + 0.0001); // avoid div0
+
+			// 3-6. Shape operator（近似ヤコビアン）を加算
+			S(0, 0) += weight * dNu * u;
+			S(0, 1) += weight * dNu * v;
+			S(1, 0) += weight * dNv * u;
+			S(1, 1) += weight * dNv * v;
+
+			weight_sum += weight;
+			*/
+		}
+
+		// 4. 正規化
+
+		S /= totalWeight;
+
+		// 5. 固有値・固有ベクトルを求める（Sは対称行列）
+		Eigen::SelfAdjointEigenSolver<Eigen::Matrix2f> solver(S);
+		if (solver.info() == Eigen::Success) {
+			Eigen::Vector2f eigenvalues = solver.eigenvalues();      // 昇順
+			Eigen::Matrix2f eigenvectors = solver.eigenvectors();    // 各列が固有ベクトル
+
+			Eigen::Vector2f dir1 = eigenvectors.col(1); // k1 に対応する固有ベクトル
+			Eigen::Vector2f dir2 = eigenvectors.col(0); // k2 に対応する固有ベクトル
+
+			// 6. 接平面上の方向ベクトルを3Dに変換
+			m_parameter.maxCurvature[i] = eigenvalues[1];
+			m_parameter.minCurvature[i] = eigenvalues[0];
+			m_parameter.minDirection[i] = glm::normalize(dir1.x() * t1 + dir1.y() * t2);
+			m_parameter.maxDirection[i] = glm::normalize(dir2.x() * t1 + dir2.y() * t2);
+		}
+	}
+}
 
 void HalfEdgeStruct::AddVertexOnFace(int faceIndex)
 {
@@ -346,5 +438,10 @@ void HalfEdgeStruct::AddVertexOnFace(int faceIndex)
 void HalfEdgeStruct::AddVertexOnEdge(int edgeIndex)
 {
 
+}
+
+const Vector3& HalfEdgeStruct::GetNextPos(int edgeIndex) const
+{
+	return m_position[m_halfEdge[m_halfEdge[edgeIndex].nextEdge].endPos];
 }
 }

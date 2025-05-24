@@ -33,17 +33,17 @@ void BVH::Execute()
 			int right = offset + i + 1;
 
 			Node node;
-			node.left = left;
-			node.right = right;
+			node.SetLeft(left);
+			node.SetRight(right);
 			BDB box;
-			box.Add(m_nodes[left].minBox); box.Add(m_nodes[left].maxBox);
-			box.Add(m_nodes[right].minBox);	box.Add(m_nodes[right].maxBox);
+			box.Add(m_nodes[left].MinBox()); box.Add(m_nodes[left].MaxBox());
+			box.Add(m_nodes[right].MinBox());	box.Add(m_nodes[right].MaxBox());
 			
-			node.minBox = box.Min(); node.maxBox = box.Max();
+			node.SetMin(box.Min()); node.SetMax(box.Max());
 			m_nodes.push_back(std::move(node));
 
-			m_nodes[left].parent = parentIndex;
-			m_nodes[right].parent = parentIndex;
+			m_nodes[left].SetParent(parentIndex);
+			m_nodes[right].SetParent(parentIndex);
 		}
 
 		// 奇数個の場合の処理
@@ -82,20 +82,19 @@ BVH::IntersectResult BVH::CalcMinDistance(const Vector3& pos) const
 
 		const Node& node = m_nodes[nodeIndex.first];
 
-		auto intersect = Intersect::PointToBox(pos, BDB(node.minBox, node.maxBox), false);
+		auto intersect = Intersect::PointToBox(pos, BDB(node.MinBox(), node.MaxBox()), false);
 		// AABBの最短距離が面との最短距離より大きい場合はスキップ
 		if (intersect.distance > minDist.distance) { continue; }
-		auto bdbLine = BDB(node.minBox, node.maxBox).CreateLine();
-		if (node.left == -1 && node.right == -1) {
+		if (node.Left() == -1 && node.Right() == -1) {
 			// リーフノードなら交差リストに追加
-			auto face = GetFace(m_pHalfEdge, node.triangleIndex);
+			auto face = GetFace(m_pHalfEdge, node.Triangle());
 			auto triIntersect = Intersect::PointToTriangle(pos, face.pos0, face.pos1, face.pos2);
 			if (triIntersect.distance < minDist.distance) {
-				minDist = BVH::IntersectResult(node.triangleIndex, triIntersect.position, triIntersect.distance);
+				minDist = BVH::IntersectResult(node.Triangle(), triIntersect.position, triIntersect.distance);
 			}
 		} else {
-			if (node.right != -1) { stack.push_back({ node.right,nodeIndex.second + 1 }); }
-			if (node.left != -1) { stack.push_back({ node.left,nodeIndex.second + 1 }); }
+			if (node.Right() != -1) { stack.push_back({ node.Right(),nodeIndex.second + 1 }); }
+			if (node.Left() != -1) { stack.push_back({ node.Left(),nodeIndex.second + 1 }); }
 		}
 	}
 
@@ -134,21 +133,21 @@ Vector<BVH::IntersectResult> BVH::IntersectFace(const Ray& ray) const
 
 		const Node& node = m_nodes[nodeIndex];
 
-		auto intersect = ray.Intersect(BDB(node.minBox, node.maxBox));
+		auto intersect = ray.Intersect(BDB(node.MinBox(), node.MaxBox()));
 		// AABBと交差しない場合はスキップ
 		if (!intersect.success) { continue; }
 
-		if (node.left == -1 && node.right == -1) {
+		if (node.Left() == -1 && node.Right() == -1) {
 			// リーフノードなら交差リストに追加
-			auto face = GetFace(m_pHalfEdge, node.triangleIndex);
+			auto face = GetFace(m_pHalfEdge, node.Triangle());
 			auto triIntersect = ray.Intersect(face.pos0, face.pos1, face.pos2, false);
 			if (triIntersect.success) {
-				hit.push_back(BVH::IntersectResult(node.triangleIndex, triIntersect.position, triIntersect.distance));
+				hit.push_back(BVH::IntersectResult(node.Triangle(), triIntersect.position, triIntersect.distance));
 			}
 		} else {
 			// 内部ノードなら子ノードをスタックに追加（右を先に入れると左が先に処理される）
-			if (node.right != -1) stack.push_back(node.right);
-			if (node.left != -1) stack.push_back(node.left);
+			if (node.Right() != -1) stack.push_back(node.Right());
+			if (node.Left() != -1) stack.push_back(node.Left());
 		}
 	}
 
@@ -165,19 +164,19 @@ void BVH::CountLeafNodes(int nodeIndex, int& leafNum)
 	const Node& node = m_nodes[nodeIndex];
 
 	// リーフノードなら出力
-	if (node.left == -1 && node.right == -1) {
+	if (node.Left() == -1 && node.Right() == -1) {
 		leafNum++;
 		return;
 	}
 
 	// 左の子をたどる
-	if (node.left != -1) {
-		CountLeafNodes(node.left, leafNum);
+	if (node.Left() != -1) {
+		CountLeafNodes(node.Left(), leafNum);
 	}
 
 	// 右の子をたどる
-	if (node.right != -1) {
-		CountLeafNodes(node.right, leafNum);
+	if (node.Right() != -1) {
+		CountLeafNodes(node.Right(), leafNum);
 	}
 }
 
@@ -216,7 +215,7 @@ void BVH::ShowUI(UIContext& ui)
 		Vector<Vector3> position;
 		Vector<unsigned int> indexs;
 		for (int i = m_levelRange[m_ui.showLevel].first; i < m_levelRange[m_ui.showLevel].second; i++) {
-			auto cube = Cube::CreateLine(m_nodes[i].minBox, m_nodes[i].maxBox);
+			auto cube = Cube::CreateLine(m_nodes[i].MinBox(), m_nodes[i].MaxBox());
 			for (int j = 0; j < cube.Position().size(); j++) {
 				position.push_back(cube.Position()[j]);
 			}

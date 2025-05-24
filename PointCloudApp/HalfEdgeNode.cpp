@@ -73,18 +73,20 @@ void HalfEdgeNode::BuildGLBuffer()
 	m_gpu.faceIndexBuffer->Create(m_pHalfEdge->CreateIndexBufferData());
 
 	m_gpu.vertexColor = std::make_unique<GLBuffer>();
+	m_gpu.vertexDir1 = std::make_unique<GLBuffer>();
+	m_gpu.vertexDir2 = std::make_unique<GLBuffer>();
 }
 
-void HalfEdgeNode::ShowNormal()
+void HalfEdgeNode::ShowNormal(const DrawContext& context)
 {
-	if (!m_pVectorShader) { m_pVectorShader = std::make_unique<VertexVectorShader>(); m_pVectorShader->Build(); }
-	m_pVectorShader->Use();
-	m_pVectorShader->SetColor(Vector4(1, 0, 0, 1));
-	m_pVectorShader->SetLength(m_ui.normalLength);
-	m_pVectorShader->SetModel(GetMatrix());
-	m_pVectorShader->SetPosition(m_gpu.position.get());
-	m_pVectorShader->SetVector(m_gpu.normal.get());
-	m_pVectorShader->DrawArray(GL_POINTS, m_gpu.position->Num());
+	auto pVertexVector = context.pResource->GetShaderTable()->GetVertexVectorShader();
+	pVertexVector->Use();
+	pVertexVector->SetColor(Vector4(1, 0, 0, 1));
+	pVertexVector->SetLength(m_ui.normalLength);
+	pVertexVector->SetModel(GetMatrix());
+	pVertexVector->SetPosition(m_gpu.position.get());
+	pVertexVector->SetVector(m_gpu.normal.get());
+	pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
 }
 void HalfEdgeNode::BuildEdge()
 {
@@ -116,6 +118,8 @@ void HalfEdgeNode::BuildBVH()
 {
 	BuildMorton();
 	m_pBVH->Execute();
+	m_gpu.bvh = std::make_unique<GLBuffer>();
+	m_gpu.bvh->Create<KI::BVH::Node>(m_pBVH->GetNode());
 }
 
 
@@ -141,7 +145,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 
 	if (m_ui.visibleVertex) {
 
-		if (m_ui.vertexParameter == HalfEdgeStruct::VertexParameter::None) {
+		if ((HalfEdgeStruct::VertexValue)m_ui.vertexValue == HalfEdgeStruct::VertexValue::None) {
 			pSimpleShader->SetPosition(m_gpu.position.get());
 			pSimpleShader->SetCamera(pResource->GetCameraBuffer());
 			pSimpleShader->SetModel(GetMatrix());
@@ -156,6 +160,20 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 			pVertexColor->SetColor(m_gpu.vertexColor.get());
 			pVertexColor->DrawArray(GL_POINTS, m_pHalfEdge->GetVertexNum());
 		}
+
+		if ((HalfEdgeStruct::VertexDirection)m_ui.vertexDirection != HalfEdgeStruct::VertexDirection::None) {
+			auto pVertexVector = context.pResource->GetShaderTable()->GetVertexVectorShader();
+			pVertexVector->Use();
+			pVertexVector->SetLength(m_ui.normalLength);
+			pVertexVector->SetModel(GetMatrix());
+			pVertexVector->SetPosition(m_gpu.position.get());
+			pVertexVector->SetColor(Vector4(0, 1, 0, 1));
+			pVertexVector->SetVector(m_gpu.vertexDir1.get());
+			pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
+			pVertexVector->SetColor(Vector4(0, 0, 1, 1));
+			pVertexVector->SetVector(m_gpu.vertexDir2.get());
+			pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
+		}
 	}
 
 	if (m_ui.visibleMorton) {
@@ -169,7 +187,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	}
 
 	if (m_ui.visibleNormal) {
-		ShowNormal();
+		ShowNormal(context);
 	}
 
 	auto pPrimitiveColorShader = pResource->GetShaderTable()->GetPrimitiveColorShader();
@@ -282,18 +300,24 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 
 	ImGui::Checkbox("ShowVertex", &m_ui.visibleVertex);
 	if (m_ui.visibleVertex) {
-		auto param = (HalfEdgeStruct::VertexParameter)m_ui.vertexParameter;
-		if (ImGui::Combo("VertexParameter", &m_ui.vertexParameter, HalfEdgeStruct::GetVertexParameterString(), static_cast<int>(HalfEdgeStruct::VertexParameter::Num))) {
-			param = (HalfEdgeStruct::VertexParameter)m_ui.vertexParameter;
-			if (param == HalfEdgeStruct::HeatValue) {
+		auto param = (HalfEdgeStruct::VertexValue)m_ui.vertexValue;
+		if (ImGui::Combo("VertexColor", &m_ui.vertexValue, HalfEdgeStruct::GetVertexValueString(), static_cast<int>(HalfEdgeStruct::VertexValue::Num))) {
+			param = (HalfEdgeStruct::VertexValue)m_ui.vertexValue;
+			if (param == HalfEdgeStruct::VertexValue::HeatValue) {
 				m_pHalfEdge->CreateHeatMethod(m_ui.heatMethod.timeStep, 0);
 				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pHalfEdge->GetHeatValue());
-			} else if (param == HalfEdgeStruct::VertexArea) {
+			} else if (param == HalfEdgeStruct::VertexValue::VertexArea) {
 				m_pHalfEdge->CreateVertexArea();
 				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pHalfEdge->GetVertexArea());
-			} else if (param == HalfEdgeStruct::SDF) {
+			} else if (param == HalfEdgeStruct::VertexValue::SDF) {
 				m_pShapeDiameterFunction->Execute();
 				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pShapeDiameterFunction->GetResult());
+			} else if (param == HalfEdgeStruct::VertexValue::MinCurvature) {
+				m_pHalfEdge->CreateDirectionField();
+				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pHalfEdge->GetMinCurvature());
+			} else if (param == HalfEdgeStruct::VertexValue::MaxCurvature) {
+				m_pHalfEdge->CreateDirectionField();
+				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pHalfEdge->GetMaxCurvature());
 			} else {
 				m_vertexParameter = Parameter();
 			}
@@ -303,15 +327,24 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 			}
 		}
 
+		auto paramDir = (HalfEdgeStruct::VertexDirection)m_ui.vertexDirection;
+		if (ImGui::Combo("VertexDirection", &m_ui.vertexDirection, HalfEdgeStruct::GetVertexDirectionString(), static_cast<int>(HalfEdgeStruct::VertexDirection::Num))) {
+			auto param = (HalfEdgeStruct::VertexDirection)m_ui.vertexDirection;
+			if (param != HalfEdgeStruct::VertexDirection::None) {
+				m_pHalfEdge->CreateDirectionField();
+				m_gpu.vertexDir1->Create(m_pHalfEdge->GetMinDirection());
+				m_gpu.vertexDir2->Create(m_pHalfEdge->GetMaxDirection());
+			}
+		}
 
-		if (param == HalfEdgeStruct::HeatValue) {
+		if (param == HalfEdgeStruct::VertexValue::HeatValue) {
 			if (ImGui::SliderFloat("HeatTimeStep", &m_ui.heatMethod.timeStep, 0.0f, 10.0f)) {
 				m_pHalfEdge->CreateHeatMethod(m_ui.heatMethod.timeStep, 0);
 				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pHalfEdge->GetHeatValue());
 				m_gpu.vertexColor->Create(m_vertexParameter.CreatePseudoColor());
 			}
 		}
-		if (param != HalfEdgeStruct::None) {
+		if (param != HalfEdgeStruct::VertexValue::None) {
 			ShowUIParameter(m_vertexParameter, ui);
 		}
 	}
@@ -359,7 +392,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		BuildMorton();
 	}
 
-	if (ImGui::Checkbox("ShowVoxel", &m_ui.voxel.visible));
+	ImGui::Checkbox("ShowVoxel", &m_ui.voxel.visible);
 	if (m_ui.voxel.visible) {
 		if (ImGui::SliderInt("Resolution (2^x)", &m_ui.voxel.resolute, 1, 9)) {
 			m_pVoxelizer->Execute(1 << m_ui.voxel.resolute);

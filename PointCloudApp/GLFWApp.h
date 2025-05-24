@@ -20,7 +20,7 @@ public:
 	virtual void ResizeEvent(int width, int height) {};
 	static GLFWApp* Application();
 protected:
-	Vector2 m_windowSize;
+	Vector2i m_windowSize;
 	GLFWwindow* m_window;
 	Unique<Mouse> m_pMouse;
 	Shared<Camera> m_pCamera;

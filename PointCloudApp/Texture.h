@@ -30,6 +30,23 @@ public:
 			type(GL_UNSIGNED_BYTE) {}
 
 		~Format() {}
+
+		bool operator==(const Format& rhs)
+		{
+			return target == rhs.target &&
+				level == rhs.level &&
+				internalformat == rhs.internalformat &&
+				width == rhs.width &&
+				height == rhs.height &&
+				border == rhs.border &&
+				format == rhs.format &&
+				type == rhs.type;
+		}
+
+		bool operator!=(const Format& rhs)
+		{
+			return !(*this == rhs);
+		}
 	};
 
 	class Sampler
@@ -47,8 +64,8 @@ public:
 		};
 
 		Sampler()
-			:wrap(WRAP::REPEAT)
-			, filter(FILTER::LINEAR)
+			: wrap(WRAP::REPEAT)
+			, filter(FILTER::NEAREST)
 		{
 		}
 
@@ -97,7 +114,7 @@ public:
 
 	virtual TEXTURE_TYPE Type() const { return TEXTURE_2D; }
 	static Texture2D* Create(const Vector2i& resolute, const Vector4& color);
-
+	static Texture2D* Create(const Texture2D& texture);
 	void Build(int width, int height);
 	void Build(int width, int height, unsigned char* data);
 	void Build(int width, int height, const Sampler& sampler, unsigned char* data);
@@ -105,7 +122,9 @@ public:
 	void BindSampler(const Sampler& sampler);
 	static Texture::Format CreateRGBA(int width, int height);
 	void Clear(int value);
+	void ClearMaxValue();
 	void Resize(int width, int height);
+	void Copy(const Texture2D& texture);
 private:
 
 };

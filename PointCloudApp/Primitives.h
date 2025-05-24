@@ -129,6 +129,7 @@ public:
 	RenderPlane();
 	~RenderPlane() {};
 
+	static GLuint GetPrimitiveType();
 private:
 	void Build();
 };

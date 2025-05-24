@@ -1,7 +1,7 @@
 #include <iostream>
 #include "PointCloudIO.h"
 #include "ComputePointCloudApp.h"
-#include "RenderTextureNode.h"
+#include "PostEffect.h"
 #include "Texture.h"
 #include "PointCloud.h"
 #include "MouseInput.h"
@@ -55,7 +55,7 @@ ShaderPath PointCloudComputeShader::GetShaderPath()
 
 void PointCloudComputeShader::FetchUniformLocation()
 {
-	m_uniformVP = glGetUniformLocation(m_programId, "u_VP");
+	m_uniformVP = GetUniformLocation("u_VP");
 }
 void PointCloudComputeShader::Initialize()
 {
@@ -136,13 +136,14 @@ void ComputePointCloudApp::Execute()
 	auto pShader = std::make_unique<PointCloudComputeShader>(pPointCloud);
 	pShader->Build();
 	GPUProfiler profiler("Render");
-	auto pNode = std::make_unique<RenderTextureNode>("Test", m_pColorTexture);
+	auto pNode = std::make_unique<RenderTextureNode>();
+	context.pResource->SetTexturePlane(pNode.get());
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		profiler.Start();
 		pShader->Execute(m_pCamera->Projection(), m_pCamera->ViewMatrix(), m_pColorTexture, nullptr);
-		pNode->Draw(context);
+		TextureDrawer::Execute(context, m_pColorTexture.get());
 		profiler.Stop();
 
 		glfwSwapBuffers(m_window);

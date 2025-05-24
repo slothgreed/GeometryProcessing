@@ -98,7 +98,7 @@ void GLFWApp::Initialize()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	m_windowSize = Vector2(1024, 768);
+	m_windowSize = Vector2i(1024, 768);
 	m_window = glfwCreateWindow(m_windowSize.x, m_windowSize.y, "PointCloudApp", NULL, NULL);
 	if (m_window == NULL) {
 		return;

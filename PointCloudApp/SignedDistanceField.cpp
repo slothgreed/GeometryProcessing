@@ -7,13 +7,17 @@
 namespace KI
 {
 SignedDistanceField::SignedDistanceField(HalfEdgeNode* pHalfEdge)
-	:m_pHalfEdge(pHalfEdge)
-	,m_resolute(16)
+	: m_pHalfEdge(pHalfEdge)
+	, m_resolute(16)
 {
 	auto sampler = Texture::Sampler(Texture::Sampler::FILTER::NEAREST);
 	m_gpu.xTexture = std::make_shared<Texture2D>(sampler);
 	m_gpu.yTexture = std::make_shared<Texture2D>(sampler);
 	m_gpu.zTexture = std::make_shared<Texture2D>(sampler);
+	
+	m_pShader = nullptr;
+	m_pShader = std::make_unique<Shader>();
+	m_pShader->Build();
 }
 
 SignedDistanceField::~SignedDistanceField()
@@ -38,8 +42,12 @@ BVH::IntersectResult SignedDistanceField::CalcMinDistance(const Vector3& pos) co
 	return m_pHalfEdge->GetBVH()->CalcMinDistance(pos);
 }
 
-void SignedDistanceField::CreateSDFTexture(int resolute, float position, Axis axis, std::vector<Vector3>& lines)
+void SignedDistanceField::CreateSDFTexture(int resolute, Axis axis, float position, Texture2D* pTexture)
 {
+	if (m_pShader) {
+		m_pShader->Execute(m_pHalfEdge, resolute, axis, position, pTexture);
+		return;
+	}
 	auto bdb = m_pHalfEdge->GetBoundBox();
 	auto diag = bdb.Max() - bdb.Min();
 	auto pitch = diag / (float)resolute;
@@ -63,9 +71,8 @@ void SignedDistanceField::CreateSDFTexture(int resolute, float position, Axis ax
 			auto pixel = j + (i * resolute);
 
 			auto minDist = CalcMinDistance(pixelPos);
-			auto dist = minDist.distance * 255 / maxLength;
 			float frequency = 5.0f;
-			dist = abs(mod(minDist.distance, frequency) - (frequency * 0.5f));
+			auto dist = abs(mod(minDist.distance, frequency) - (frequency * 0.5f));
 			if (dist < 0.1f) {
 				image[4 * pixel] = 255;
 				image[4 * pixel + 1] = 255;
@@ -77,15 +84,10 @@ void SignedDistanceField::CreateSDFTexture(int resolute, float position, Axis ax
 				image[4 * pixel + 2] = 0;
 				image[4 * pixel + 3] = 255;
 			}
-
-			//lines.push_back(pixelPos);
-			//lines.push_back(minDist.position);
 		}
 	}
 
-	if (axis == Axis::X) { m_gpu.xTexture->Build(resolute, resolute, image.data()); }
-	if (axis == Axis::Y) { m_gpu.yTexture->Build(resolute, resolute, image.data()); }
-	if (axis == Axis::Z) { m_gpu.zTexture->Build(resolute, resolute, image.data()); }
+	pTexture->Build(resolute, resolute, image.data());
 }
 
 
@@ -112,85 +114,100 @@ void SignedDistanceField::ShowUI(UIContext& ui)
 		CreateTexure(m_resolute);
 	}
 
-	ImGui::Checkbox("VisibleX", &m_ui.xPlane.visible);
+	if (ImGui::Checkbox("VisibleX", &m_ui.xPlane.visible)) {
+		if (!m_ui.xPlane.visible) {
+			m_pHalfEdge->RemoveNode("XPlane");
+		}
+	}
 	const auto& bdb = m_pHalfEdge->GetBoundBox();
 	if (m_ui.xPlane.visible) {
 		if (ImGui::SliderFloat("XPlane", &m_ui.xPlane.position, bdb.Min().x, bdb.Max().x, "%lf", 1.0f)) {
-			std::vector<Vector3> lines;
 			std::shared_ptr<Primitive> pPlane = std::make_shared<Plane>(bdb.Min(), bdb.Max(), m_ui.xPlane.position, Plane::X, true);
-			CreateSDFTexture(m_resolute, m_ui.xPlane.position, Axis::X, lines);
+			CreateSDFTexture(m_resolute, Axis::X, m_ui.xPlane.position, m_gpu.xTexture.get());
 			auto pNode = std::make_shared<PrimitiveNode>("XPlane", pPlane, m_gpu.xTexture);
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
 			pNode->SetPickTarget(true);
 			pNode->SetGLStatus(m_ui.glStatus);
 			m_pHalfEdge->AddNode(pNode);
-
-
-			auto pLine = std::make_shared<Primitive>();
-			pLine->SetPosition(std::move(lines));
-			pLine->SetType(GL_LINES);
-			auto pLineNode = std::make_shared<PrimitiveNode>("XIntersect", pLine, ColorUtility::CreatePrimary(0));
-			pLineNode->SetMatrix(m_pHalfEdge->GetMatrix());
-			pLineNode->SetGLStatus(m_ui.glStatus);
-			m_pHalfEdge->AddNode(pLineNode);
-
 		}
-	} else {
-		m_pHalfEdge->RemoveNode("XPlane");
-		m_pHalfEdge->RemoveNode("XIntersect");
 	}
 
-	ImGui::Checkbox("VisibleY", &m_ui.yPlane.visible);
+	if (ImGui::Checkbox("VisibleY", &m_ui.yPlane.visible)) {
+		if (!m_ui.yPlane.visible) {
+			m_pHalfEdge->RemoveNode("YPlane");
+		}
+	}
 	if (m_ui.yPlane.visible) {
 		if (ImGui::SliderFloat("YPlane", &m_ui.yPlane.position, bdb.Min().y, bdb.Max().y, "%lf", 1.0f)) {
 			std::shared_ptr<Primitive> pPlane = std::make_shared<Plane>(bdb.Min(), bdb.Max(), m_ui.yPlane.position, Plane::Y, true);
-			std::vector<Vector3> lines;
-			CreateSDFTexture(m_resolute, m_ui.yPlane.position, Axis::Y, lines);
+			CreateSDFTexture(m_resolute, Axis::Y, m_ui.yPlane.position, m_gpu.yTexture.get());
 			auto pNode = std::make_shared<PrimitiveNode>("YPlane", pPlane, m_gpu.yTexture);
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
 			pNode->SetGLStatus(m_ui.glStatus);
 			pNode->SetPickTarget(true);
 			m_pHalfEdge->AddNode(pNode);
-
-
-			auto pLine = std::make_shared<Primitive>();
-			pLine->SetPosition(std::move(lines));
-			pLine->SetType(GL_LINES);
-			auto pLineNode = std::make_shared<PrimitiveNode>("YIntersect", pLine, ColorUtility::CreatePrimary(0));
-			pLineNode->SetMatrix(m_pHalfEdge->GetMatrix());
-			pLineNode->SetGLStatus(m_ui.glStatus);
-			m_pHalfEdge->AddNode(pLineNode);
 		}
-	} else {
-		m_pHalfEdge->RemoveNode("YPlane");
-		m_pHalfEdge->RemoveNode("YIntersect");
 	}
 
-	ImGui::Checkbox("VisibleZ", &m_ui.zPlane.visible);
+	if (ImGui::Checkbox("VisibleZ", &m_ui.zPlane.visible)) {
+		if (!m_ui.zPlane.visible) {
+			m_pHalfEdge->RemoveNode("ZPlane");
+		}
+	}
+	
 	if (m_ui.zPlane.visible) {
 		if (ImGui::SliderFloat("ZPlane", &m_ui.zPlane.position, bdb.Min().z, bdb.Max().z, "%lf", 1.0f)) {
 			std::shared_ptr<Primitive> pPlane = std::make_shared<Plane>(bdb.Min(), bdb.Max(), m_ui.zPlane.position, Plane::Z, true);
-			std::vector<Vector3> lines;
-			CreateSDFTexture(m_resolute, m_ui.zPlane.position, Axis::Z,lines);
+			CreateSDFTexture(m_resolute, Axis::Z, m_ui.zPlane.position, m_gpu.zTexture.get());
 			auto pNode = std::make_shared<PrimitiveNode>("ZPlane", pPlane, m_gpu.zTexture);
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
 			pNode->SetGLStatus(m_ui.glStatus);
 			pNode->SetPickTarget(true);
 			m_pHalfEdge->AddNode(pNode);
-
-			auto pLine = std::make_shared<Primitive>();
-			pLine->SetPosition(std::move(lines));
-			pLine->SetType(GL_LINES);
-			auto pLineNode = std::make_shared<PrimitiveNode>("ZIntersect", pLine, ColorUtility::CreatePrimary(0));
-			pLineNode->SetMatrix(m_pHalfEdge->GetMatrix());
-			pLineNode->SetGLStatus(m_ui.glStatus);
-			m_pHalfEdge->AddNode(pLineNode);
 		}
-	} else {
-		m_pHalfEdge->RemoveNode("ZPlane");
-		m_pHalfEdge->RemoveNode("ZIntersect");
 	}
+}
 
+ShaderPath SignedDistanceField::Shader::GetShaderPath()
+{
+	ShaderPath path;
+	path.shader[SHADER_PROGRAM_COMPUTE] = "algorithm/sdf.comp";
+	return path;
+}
 
+void SignedDistanceField::Shader::FetchUniformLocation()
+{
+	m_uniform[MINBOX] = GetUniformLocation("u_minBox");
+	m_uniform[PITCH] = GetUniformLocation("u_pitch");
+	m_uniform[POSITION] = GetUniformLocation("u_position");
+	m_uniform[AXIS] = GetUniformLocation("u_axis");
+	m_uniform[RESOLUTE] = GetUniformLocation("u_resolute");
+	m_uniform[MAXTRIANGLE] = GetUniformLocation("u_maxTriangle");
+	m_uniform[FREQUENCY] = GetUniformLocation("u_frequency");
+	m_uniform[MODEL] = GetUniformLocation("u_Model");
+
+}
+
+void SignedDistanceField::Shader::Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture)
+{
+	auto bdb = pNode->GetBoundBox();
+	auto diag = bdb.Max() - bdb.Min();
+	auto pitch = diag / (float)resolute;
+	Use();
+	BindUniform(m_uniform[MINBOX], bdb.Min());
+	BindUniform(m_uniform[PITCH], pitch);
+	BindUniform(m_uniform[POSITION], position);
+	BindUniform(m_uniform[AXIS], (int)axis);
+	BindUniform(m_uniform[RESOLUTE], resolute);
+	BindUniform(m_uniform[MAXTRIANGLE], (int)pNode->GetData()->GetFaceNum());
+	BindUniform(m_uniform[FREQUENCY], 0.5f);
+	BindUniform(m_uniform[MODEL], pNode->GetMatrix());
+	BindShaderStorage(0, pNode->GetPositionGpu()->Handle());
+	BindShaderStorage(1, pNode->GetFaceIndexGpu()->Handle());
+	BindShaderStorage(2, pNode->GetBVHGpu()->Handle());
+	BindShaderStorage(3, pTexture->Handle());
+	Dispatch(Vector3(resolute, resolute, 1));
+	glFlush();
+	UnUse();
 }
 }

@@ -435,6 +435,11 @@ RenderPlane::RenderPlane()
 	Build();
 }
 
+GLuint RenderPlane::GetPrimitiveType()
+{
+	return GL_TRIANGLES;
+}
+
 void RenderPlane::Build()
 {
 	m_position.resize(4);
@@ -444,10 +449,10 @@ void RenderPlane::Build()
 	m_position[3] = Vector3(-1.0, 1.0, 0.0);
 
 	m_texcoord.resize(4);
-	m_texcoord[0] = vec2(0, 1.0);
-	m_texcoord[1] = vec2(1.0, 1.0);
-	m_texcoord[2] = vec2(1.0, 0);
-	m_texcoord[3] = vec2(0, 0);
+	m_texcoord[0] = vec2(0, 0.0);
+	m_texcoord[1] = vec2(1.0, 0.0);
+	m_texcoord[2] = vec2(1.0, 1.0);
+	m_texcoord[3] = vec2(0, 1.0);
 
 	m_index.resize(6);
 	m_index[0] = 0;	m_index[1] = 1;	m_index[2] = 2;

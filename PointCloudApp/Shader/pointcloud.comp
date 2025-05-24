@@ -1,26 +1,37 @@
 
-#version 430
-layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
-layout(rgba32f, binding = 0) uniform image2D outImage;
-
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+layout(r32ui, binding = 0) uniform uimage2D colorImage;
+layout(r32ui, binding = 1) uniform uimage2D  depthImage;
+//layout(std430, binding = 0) buffer colorImageBuffer;
+//{
+//	uint colorImage[];
+//};
+//
+//layout(std430, binding = 1) buffer depthImageBuffer;
+//{
+//	uint depthImage;
+//}
 layout(std430, binding = 2) buffer posBuffer
 {
 	vec4 position[];
 };
 
 layout(location = 4) uniform mat4 u_VP;
-
+uniform int u_PositionNum;
+uniform ivec2 uImageSize;
 float packColor(vec3 color) {
     return color.r + color.g * 256.0 + color.b * 256.0 * 256.0;
 }
 
 vec4 unpackColor(float f) {
+    float fi = round(f);
     vec3 color;
-	color.b = floor(f / 256.0 / 256.0);
-    color.g = floor((f - color.b * 256.0 * 256.0) / 256.0);
-    color.r = floor(f - color.b * 256.0 * 256.0 - color.g * 256.0);
-    // now we have a vec3 with the 3 components in range [0..255]. Let's normalize it!
-    return vec4(color / 255.0,1.0);
+    color.r = floor(fi / 65536.0); // 256 * 256
+    fi -= color.r * 65536.0;
+    color.g = floor(fi / 256.0);
+    fi -= color.g * 256.0;
+    color.b = fi;
+    return vec4(color / 255.0, 1.0);
 }
 
 void main()
@@ -31,7 +42,7 @@ void main()
 		gl_WorkGroupID.x * workGroupSize + 
 		gl_WorkGroupID.y * gl_NumWorkGroups.x * workGroupSize + 
 		gl_LocalInvocationIndex;
-	
+	if(globalID > u_PositionNum) {return;}
 	vec4 modelPos = position[globalID];
 	vec4 pos = u_VP * vec4(modelPos.xyz,1.0);
 	pos.xyz = pos.xyz / pos.w;
@@ -40,7 +51,29 @@ void main()
 		return;
 	}
 	
-	ivec2 uImageSize = imageSize(outImage);
-	ivec2 pixelCoords = ivec2((pos.xy * 0.5 + 0.5) * uImageSize);
-	imageStore(outImage, pixelCoords, unpackColor(modelPos.w));
+	ivec2 uImageSize = imageSize(colorImage);
+	pos = pos * 0.5 + 0.5;
+	ivec2 pixelCoords = ivec2(pos.xy * uImageSize);
+	uint depth = floatBitsToUint(pos.z);
+	
+#ifdef WRITE_PHASE
+	imageAtomicMin(depthImage, pixelCoords, depth);
+#else
+	uint imageDepth = imageLoad(depthImage,pixelCoords).r;
+	if(depth == imageDepth) {
+	if (abs(float(imageDepth) - float(depth)) < 0.5) {
+		imageAtomicExchange(colorImage, pixelCoords, floatBitsToUint(modelPos.w));
+	}
+#endif
+	/*
+	uint imageDepth = imageAtomicMin(depthImage, pixelCoords, depth);
+	if(depth < imageDepth) {
+		imageAtomicExchange(colorImage, pixelCoords, floatBitsToUint(modelPos.w));
+	}
+	
+	uint imageDepth = imageLoad(depthImage,pixelCoords,depth);
+	if(depth == imageDepth) {
+		imageAtomicExchange(colorImage, pixelCoords, floatBitsToUint(modelPos.w));
+	}
+	*/
 } 

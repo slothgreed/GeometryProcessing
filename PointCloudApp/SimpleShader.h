@@ -195,7 +195,7 @@ private:
 };
 
 
-class TextureViewShader : public IShadingShader
+class TextureViewShader : public IPostEffectShader
 {
 public:
 
@@ -210,8 +210,6 @@ public:
 	virtual ShaderPath GetShaderPath();
 	virtual void FetchUniformLocation();
 	void BindTexture(const Texture& texture);
-	void SetPosition(GLBuffer* pPosition);
-	void SetTexcoord(GLBuffer* pTexture);
 private:
 	GLuint m_uniform[UNIFORM::NUM];
 };

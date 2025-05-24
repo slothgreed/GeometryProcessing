@@ -2,6 +2,7 @@
 #define RENDER_RESOURCE_H
 #include "ShaderTable.h"
 #include "Texture.h"
+#include "RenderTarget.h"
 namespace KI
 {
 struct GLStatus
@@ -43,10 +44,13 @@ public:
 
 	void SetupPick();
 	void SetupShading();
+
+	void PushRenderTarget(RenderTarget* pTarget);
+	void PopRenderTarget();
 private:
 	Vector2 viewportSize;
 	GLStatus m_cache;
-
+	std::stack<RenderTarget*> m_pRenderTargetStack;
 };
 
 class Camera;
@@ -57,10 +61,17 @@ public:
 	RenderResource()
 		: m_pContext(std::make_unique<GLContext>())
 		, m_pCameraGpu(nullptr)
-		, m_pLightGpu(nullptr) {};
+		, m_pLightGpu(nullptr)
+		, m_pComputeColorTarget(nullptr)
+		, m_pComputeDepthTarget(nullptr)
+		, m_pRenderTarget(nullptr)
+		, m_pTexturePlane(nullptr) {};
 	~RenderResource() {};
 	void Build();
 
+	void SetComputeColorTarget(Texture2D* pTarget) { m_pComputeColorTarget = pTarget; }
+	void SetComputeDepthTarget(Texture2D* pTarget) { m_pComputeDepthTarget = pTarget; }
+	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	void SetMainCamera(const Shared<Camera>& pCamera) { m_pCamera = pCamera; }
 	void SetLight(const Shared<Light>& pLight) { m_pLight = pLight; }
 	GLContext* GL() { return m_pContext.get(); }
@@ -71,15 +82,26 @@ public:
 	const ShaderTable* GetShaderTable() const { return &m_pShaderTable; };
 	const GLBuffer* GetCameraBuffer() const { return m_pCameraGpu; }
 	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
+	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
+	const Texture2D* GetComputeColorTarget() const { return m_pComputeColorTarget; }
+	const Texture2D* GetComputeDepthTarget() const { return m_pComputeDepthTarget; }
 	void UpdateLight();
 	void UpdateCamera();
+	void Resize(const Vector2& size);
+	void InitComputeTarget();
+	void SetTexturePlane(RenderTextureNode* pPlane) { m_pTexturePlane = pPlane; };
+	const RenderTextureNode* GetTexturePlane() const { return m_pTexturePlane; }
 private:
 	Unique<GLContext> m_pContext;
 	Shared<Camera> m_pCamera;
 	Shared<Light> m_pLight;
 	GLBuffer* m_pCameraGpu;
 	GLBuffer* m_pLightGpu;
+	Texture2D* m_pComputeColorTarget;
+	Texture2D* m_pComputeDepthTarget;
+	RenderTarget* m_pRenderTarget;
 	ShaderTable m_pShaderTable;
+	RenderTextureNode* m_pTexturePlane;
 };
 }
 

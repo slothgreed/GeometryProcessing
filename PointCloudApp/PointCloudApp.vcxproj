@@ -202,6 +202,7 @@
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="Parameter.cpp" />
+    <ClCompile Include="PostEffect.cpp" />
     <ClCompile Include="PrimitiveTable.cpp" />
     <ClCompile Include="RenderResource.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
@@ -212,7 +213,6 @@
     <ClCompile Include="STEPNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
-    <ClCompile Include="RenderTextureNode.cpp" />
     <ClCompile Include="ComputeShaderTest.cpp" />
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="Harris3D.cpp" />
@@ -275,6 +275,7 @@
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
     <ClInclude Include="Parameter.h" />
+    <ClInclude Include="PostEffect.h" />
     <ClInclude Include="PrimitiveTable.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="ShapeDiameterFunction.h" />
@@ -284,7 +285,6 @@
     <ClInclude Include="STEPNode.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudIO.h" />
-    <ClInclude Include="RenderTextureNode.h" />
     <ClInclude Include="ComputeShaderTest.h" />
     <ClInclude Include="Harris3D.h" />
     <ClInclude Include="IAlgorithm.h" />

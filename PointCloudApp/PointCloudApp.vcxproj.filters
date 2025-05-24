@@ -161,9 +161,6 @@
     <ClCompile Include="GLFWApp.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="RenderTextureNode.cpp">
-      <Filter>ソース ファイル\Node</Filter>
-    </ClCompile>
     <ClCompile Include="FrameBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
@@ -271,6 +268,9 @@
     </ClCompile>
     <ClCompile Include="SimulationNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="PostEffect.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -394,9 +394,6 @@
     <ClInclude Include="GLFWApp.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTextureNode.h">
-      <Filter>ソース ファイル\Node</Filter>
-    </ClInclude>
     <ClInclude Include="FrameBuffer.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
@@ -501,6 +498,9 @@
     </ClInclude>
     <ClInclude Include="SimulationNode.h">
       <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="PostEffect.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

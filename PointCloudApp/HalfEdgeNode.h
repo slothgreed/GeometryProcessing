@@ -46,8 +46,9 @@ public:
 
 	const BVH* GetBVH() const { return m_pBVH; }
 	const MortonCode& GetMorton() const { return m_morton.data; }
-	GLBuffer* GetPositionGpu() { return m_gpu.position.get(); }
-	GLBuffer* GetFaceIndexGpu() { return m_gpu.faceIndexBuffer.get(); }
+	GLBuffer* GetPositionGpu() const { return m_gpu.position.get(); }
+	GLBuffer* GetFaceIndexGpu() const { return m_gpu.faceIndexBuffer.get(); }
+	GLBuffer* GetBVHGpu() const { return m_gpu.bvh.get(); }
 protected:
 	virtual void ShowUI(UIContext& ui);
 	virtual void DrawNode(const DrawContext& context);
@@ -60,10 +61,8 @@ private:
 	void BuildBVH();
 	void BuildMorton();
 	void BuildEdge();
-	void ShowNormal();
+	void ShowNormal(const DrawContext& context);
 	void BuildGLBuffer();
-
-	Unique<VertexVectorShader> m_pVectorShader;
 
 	struct PickId
 	{
@@ -95,8 +94,11 @@ private:
 		Unique<GLBuffer> position;
 		Unique<GLBuffer> normal;
 		Unique<GLBuffer> vertexColor;
+		Unique<GLBuffer> vertexDir1;
+		Unique<GLBuffer> vertexDir2;
 		Unique<GLBuffer> faceIndexBuffer;
 		Unique<GLBuffer> edgeIndexBuffer;
+		Unique<GLBuffer> bvh;
 	};
 
 	GeometryGpu m_gpu;
@@ -179,7 +181,8 @@ private:
 			, visibleMorton(false)
 			, visibleSignedDistanceField(false)
 			, normalLength(1.0f)
-			, vertexParameter(0)
+			, vertexValue(0)
+			, vertexDirection(0)
 		{
 		}
 		bool visible;
@@ -193,7 +196,8 @@ private:
 		bool visibleVertex;
 		bool visibleNormal;
 		float normalLength;
-		int vertexParameter;
+		int vertexValue;
+		int vertexDirection;
 		Voxel voxel;
 		HeatMethod heatMethod;
 		Poisson poisson;
