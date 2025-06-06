@@ -1,16 +1,14 @@
 
-layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
-layout(r32ui, binding = 0) uniform uimage2D colorImage;
-layout(r32ui, binding = 1) uniform uimage2D  depthImage;
-//layout(std430, binding = 0) buffer colorImageBuffer;
-//{
-//	uint colorImage[];
-//};
-//
-//layout(std430, binding = 1) buffer depthImageBuffer;
-//{
-//	uint depthImage;
-//}
+layout(std430, binding = 0) buffer colorImageBuffer
+{
+	uint colorImage[];
+};
+
+layout(std430, binding = 1) buffer depthImageBuffer
+{
+	uint depthImage[];
+};
+
 layout(std430, binding = 2) buffer posBuffer
 {
 	vec4 position[];
@@ -18,7 +16,7 @@ layout(std430, binding = 2) buffer posBuffer
 
 layout(location = 4) uniform mat4 u_VP;
 uniform int u_PositionNum;
-uniform ivec2 uImageSize;
+uniform ivec2 u_ImageSize;
 float packColor(vec3 color) {
     return color.r + color.g * 256.0 + color.b * 256.0 * 256.0;
 }
@@ -51,29 +49,16 @@ void main()
 		return;
 	}
 	
-	ivec2 uImageSize = imageSize(colorImage);
 	pos = pos * 0.5 + 0.5;
-	ivec2 pixelCoords = ivec2(pos.xy * uImageSize);
+	ivec2 pixelCoords = ivec2(pos.xy * u_ImageSize);
 	uint depth = floatBitsToUint(pos.z);
-	
+	uint index = uint(pixelCoords.y * u_ImageSize.x + pixelCoords.x);
 #ifdef WRITE_PHASE
-	imageAtomicMin(depthImage, pixelCoords, depth);
+	atomicMin(depthImage[index],depth);
 #else
-	uint imageDepth = imageLoad(depthImage,pixelCoords).r;
+	uint imageDepth = depthImage[index];
 	if(depth == imageDepth) {
-	if (abs(float(imageDepth) - float(depth)) < 0.5) {
-		imageAtomicExchange(colorImage, pixelCoords, floatBitsToUint(modelPos.w));
+		colorImage[index] = floatBitsToUint(modelPos.w);
 	}
 #endif
-	/*
-	uint imageDepth = imageAtomicMin(depthImage, pixelCoords, depth);
-	if(depth < imageDepth) {
-		imageAtomicExchange(colorImage, pixelCoords, floatBitsToUint(modelPos.w));
-	}
-	
-	uint imageDepth = imageLoad(depthImage,pixelCoords,depth);
-	if(depth == imageDepth) {
-		imageAtomicExchange(colorImage, pixelCoords, floatBitsToUint(modelPos.w));
-	}
-	*/
 } 

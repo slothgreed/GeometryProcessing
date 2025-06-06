@@ -11,9 +11,9 @@ public:
 
 	void Build();
 	void Bind();
-	void UnBind();
+	static void UnBind();
 	void Delete();
-	GLuint Handle() { return m_handle; }
+	GLuint Handle() const { return m_handle; }
 	bool Validate() const;
 private:
 	GLuint m_handle;

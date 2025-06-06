@@ -38,6 +38,7 @@ struct CSFMeshBuffer
 {
 	CSFMeshBuffer() {}
 	void Init() { pVertex = std::make_unique<GLBuffer>(); pIndex = std::make_unique<GLBuffer>(); }
+	BDB bdb;
 	Unique<GLBuffer> pVertex;
 	Unique<GLBuffer> pIndex;
 };
@@ -116,7 +117,7 @@ public:
 
 	void SetMaterial(Vector<CSFMaterial>&& materials) { m_materials = std::move(materials); UpdateMaterial(); }
 	void SetNode(Vector<CSFNode>&& nodes) { m_nodes = std::move(nodes); UpdateNode(); }
-	void SetMeshBuffer(Vector<Unique<CSFMeshBuffer>>&& mesh) { m_gpu.pMeshBuffer = std::move(mesh); }
+	void SetMeshBuffer(Vector<Unique<CSFMeshBuffer>>&& mesh);
 	void SetSolids(Vector<CSFSolid>&& solid) { m_solids = std::move(solid);  m_needUpdateProperty = true; }
 	void SetWireDraw(Vector<Vector<CSFDrawRange>>&& solid) { m_wireDraw = std::move(solid);  m_needUpdateProperty = true; }
 	void SetSolidDraw(Vector<Vector<CSFDrawRange>>&& solid) { m_solidDraw = std::move(solid); m_needUpdateProperty = true; }

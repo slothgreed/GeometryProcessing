@@ -17,17 +17,23 @@ void FrameBuffer::Build()
 	glGenFramebuffers(1, &m_handle);
 	OUTPUT_GLERROR;
 }
+
+
 void FrameBuffer::Bind()
 {
-	if (m_handle == 0) { assert(0); return; }
+	if (m_handle == 0) { return; }
 	glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
 	OUTPUT_GLERROR;
 }
+
+
+
 void FrameBuffer::UnBind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	OUTPUT_GLERROR;
 }
+
 
 void FrameBuffer::Delete()
 {

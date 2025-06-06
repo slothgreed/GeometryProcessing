@@ -49,6 +49,26 @@ void SimpleShader::SetPosition(GLBuffer* pBuffer)
 	OUTPUT_GLERROR;
 }
 
+
+ShaderPath FaceShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+	path.shader[SHADER_PROGRAM_VERTEX] = "face.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "face.frag";
+	return path;
+}
+
+void FaceShader::SetNormal(GLBuffer* pBuffer)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_NORMAL, pBuffer));
+	glBindVertexBuffer(ATTRIB_NORMAL, pBuffer->Handle(), 0, pBuffer->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
+
+
 VertexColorShader::VertexColorShader()
 {
 }
@@ -74,7 +94,7 @@ void VertexColorShader::FetchUniformLocation()
 
 void VertexColorShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	BindShaderStorage(0, pBuffer->Handle());
 }
 
 void VertexColorShader::SetModel(const Matrix4x4& value)
@@ -128,7 +148,7 @@ void PrimitiveColorShader::SetPosition(GLBuffer* pPosition)
 }
 void PrimitiveColorShader::SetColor(GLBuffer* pColor)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pColor->Handle());
+	BindShaderStorage(1, pColor->Handle());
 }
 
 
@@ -150,7 +170,7 @@ void InstancedPrimitiveShader::FetchUniformLocation()
 
 void InstancedPrimitiveShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	BindShaderStorage(0, pBuffer->Handle());
 }
 
 void InstancedPrimitiveShader::SetColor(const Vector3& value)
@@ -183,9 +203,9 @@ ShaderPath VertexVectorShader::GetShaderPath()
 }
 void VertexVectorShader::FetchUniformLocation()
 {
-	m_uniform[UNIFORM::COLOR] = glGetUniformLocation(Handle(), "u_Color");
-	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
-	m_uniform[UNIFORM::LENGTH] = glGetUniformLocation(Handle(), "u_Length");
+	m_uniform[UNIFORM::COLOR] = GetUniformLocation("u_Color");
+	m_uniform[UNIFORM::MODEL] = GetUniformLocation("u_Model");
+	m_uniform[UNIFORM::LENGTH] = GetUniformLocation("u_Length");
 
 }
 void VertexVectorShader::SetCamera(const GLBuffer* pBuffer)

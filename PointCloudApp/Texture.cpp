@@ -1,5 +1,6 @@
 #include "Texture.h"
 #include "TextureLoader.h"
+#include "Utility.h"
 namespace KI
 {
 
@@ -23,6 +24,14 @@ void Texture::Set(const Format& format, unsigned char* data)
 		format.border, format.format,
 		format.type, data);
 	m_format = format;
+	OUTPUT_GLERROR;
+}
+
+void Texture::GetPixel(std::vector<unsigned char>& data)
+{
+	Bind();
+	data.resize(m_format.width * m_format.height * GLUtil::GetFormatSize(m_format.format));
+	glGetTexImage(m_format.target, m_format.level, m_format.format, m_format.type, data.data());
 	OUTPUT_GLERROR;
 }
 void Texture::Bind()
@@ -57,11 +66,15 @@ Texture2D::Texture2D()
 	glGenTextures(1, &m_handle);
 }
 
-Texture2D::Texture2D(const Sampler& sampler)
+Texture2D::Texture2D(const Format& format, const Sampler& sampler)
 	:Texture2D()
 {
+	m_format = format;
 	m_sampler = sampler;
+	Bind();
+	BindSampler(m_sampler);
 }
+
 
 void Texture2D::ClearMaxValue()
 {

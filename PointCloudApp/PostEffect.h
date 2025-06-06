@@ -51,7 +51,7 @@ public:
 	ComputeTextureCombiner() {};
 	~ComputeTextureCombiner() {};
 
-	void Execute(const DrawContext& context, RenderTarget& target);
+	void Execute(const DrawContext& context);
 	virtual ShaderPath GetShaderPath();
 	virtual void FetchUniformLocation();
 private:
@@ -59,8 +59,60 @@ private:
 	GLuint m_uDepthForward;
 	GLuint m_uColorCompute;
 	GLuint m_uDepthCompute;
+	GLuint m_uImageSize;
 };
 
+class EdgeDetector : public IPostEffectShader
+{
+public:
+	EdgeDetector()
+		: m_diffNormal(0.0f)
+		, m_diffDepth(0.0f)	{};
+	~EdgeDetector() {};
+
+	void Execute(const DrawContext& context);
+	virtual ShaderPath GetShaderPath();
+	virtual void FetchUniformLocation();
+	void SetDiffNormal(float value) { m_diffNormal = value; }
+	void SetDiffDepth(float value) { m_diffDepth = value; }
+private:
+	GLuint m_uColorTexture;
+	GLuint m_uNormalTexture;
+	GLuint m_uDepthTexture;
+	GLuint m_uTexelSize;
+	GLuint m_uDiffDepth;
+	GLuint m_uDiffNormal;
+	float m_diffNormal;
+	float m_diffDepth;
+};
+
+class PostEffect : public IPostEffect
+{
+public:
+	PostEffect() {};
+	~PostEffect() {};
+
+	void Build();
+	void Execute(DrawContext& context);
+	void ShowUI(UIContext& context);
+
+private:
+	struct UI
+	{
+		UI()
+			: edgeDetector(false)
+			, diffDepth(0.001f)
+			, diffNormal(0.1f)
+		{
+		}
+		bool edgeDetector;
+		float diffDepth;
+		float diffNormal;
+	};
+
+	UI m_ui;
+	EdgeDetector m_EdgeDetector;
+};
 
 }
 #endif POST_EFFECT_H

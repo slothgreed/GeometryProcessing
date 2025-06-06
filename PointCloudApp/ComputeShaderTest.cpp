@@ -52,6 +52,7 @@ void ComputeShaderTest::Finalize()
 ShaderPath ComputeShaderTest::Shader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
 	path.shader[SHADER_PROGRAM_COMPUTE] = "sample\\simple.comp";
 	return path;
 }

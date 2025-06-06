@@ -20,7 +20,7 @@ private:
 		~Shader() {};
 
 		virtual ShaderPath GetShaderPath() override;
-
+		virtual Vector3i GetLocalThreadNum() const { return Vector3i(256, 1, 1); }
 		void Execute(const Vector<float>& in, Vector<float>& out);
 		virtual void FetchUniformLocation() override;
 	private:

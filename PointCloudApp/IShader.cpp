@@ -26,6 +26,7 @@ void IShader::UnUse()
 	glUseProgram(0);
 	OUTPUT_GLERROR;
 }
+
 void IShader::Delete()
 {
 	if (m_programId == 0) {
@@ -242,27 +243,6 @@ void IMeshShader::Build()
 	glDeleteShader(fragId);
 	return;
 }
-void IComputeShader::Build()
-{
-	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
-	auto shaderPath = GetShaderPath();
-	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
-	auto computeEx = Join(shaderPath.extension[SHADER_PROGRAM_COMPUTE]);
-	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
-	auto computeCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_COMPUTE]);
-
-	GLuint computeId = ShaderUtility::Compile(version + computeEx + headerCode + computeCode, GL_COMPUTE_SHADER);
-
-	m_programId = ShaderUtility::LinkCompute(computeId);
-
-	FetchUniformLocation();
-	OUTPUT_GLERROR;
-}
-
-Vector3i IComputeShader::GetDispatchNum1D(const Vector3i& localSize, int value)
-{
-	return Vector3i((value + localSize.x - 1) / localSize.x, 1, 1);
-}
 
 int IShader::GetUniformLocation(const char* str)
 {
@@ -285,6 +265,12 @@ void IShader::BindUniform(int location, const Vector2i& value)
 	glUniform2i(location, value.x, value.y);
 	OUTPUT_GLERROR;
 }
+void IShader::BindUniform(int location, const Vector2& value)
+{
+	glUniform2f(location, value.x, value.y);
+	OUTPUT_GLERROR;
+}
+
 void IShader::BindUniform(int location, const Vector3& value)
 {
 	glUniform3f(location, value.x, value.y, value.z);
@@ -324,12 +310,67 @@ void IShader::BindShaderStorage(int location, int handle)
 	OUTPUT_GLERROR;
 }
 
-void IComputeShader::BindImage(int location, const Texture* pTexture, GLuint access)
+void IComputeShader::Build()
 {
+	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
+	auto shaderPath = GetShaderPath();
+	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
+	auto computeEx = Join(shaderPath.extension[SHADER_PROGRAM_COMPUTE]);
+	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
+	auto localSize = GetLocalThreadNum();
+	GLAPIExt::Info()->GetMaxComputeWorkGroupCount();
+	auto maxLocalSize = GLAPIExt::Info()->GetMaxComputeLocalSize();
+	if (localSize.x > maxLocalSize.x ||
+		localSize.y > maxLocalSize.y ||
+		localSize.z > maxLocalSize.z ||
+		localSize.x * localSize.y * localSize.z > maxLocalSize.w) {
+		assert(0);
+	}
+	auto threadStr = "layout(local_size_x = " + IntToString(localSize.x) + ", local_size_y = " + IntToString(localSize.y) + ", local_size_z = " + IntToString(localSize.z) + ") in;\n";
+	auto computeCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_COMPUTE]);
+
+	GLuint computeId = ShaderUtility::Compile(version + computeEx + threadStr + headerCode + computeCode, GL_COMPUTE_SHADER);
+
+	m_programId = ShaderUtility::LinkCompute(computeId);
+
+	FetchUniformLocation();
+	OUTPUT_GLERROR;
+}
+
+Vector3i IComputeShader::GetLocalThreadNum() const
+{
+	return Vector3i(1, 1, 1);
+}
+
+Vector3i IComputeShader::GetDispatchNum2D(const Vector2i& value)
+{
+	auto localSize = GetLocalThreadNum();
+	return Vector3i((value.x + localSize.x - 1) / localSize.x, (value.y + localSize.y - 1) / localSize.y, 1);
+}
+Vector3i IComputeShader::GetDispatchNum1D(int value)
+{
+	auto localSize = GetLocalThreadNum();
+	return Vector3i((value + localSize.x - 1) / localSize.x, 1, 1);
+}
+
+
+void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint access)
+{
+	if (!(access == GL_WRITE_ONLY ||
+		access == GL_READ_ONLY ||
+		access == GL_READ_WRITE)) {
+		assert(0);
+		return;
+	}
 	glBindImageTexture(location, pTexture->Handle(), 0, GL_FALSE, 0, access, pTexture->GetFormat().internalformat);
 	OUTPUT_GLERROR;
 }
 
+void IComputeShader::BarrierSSBO()
+{
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	OUTPUT_GLERROR;
+}
 void IComputeShader::Dispatch(GLuint x, GLuint y, GLuint z)
 {
 	glDispatchCompute(x, y, z);

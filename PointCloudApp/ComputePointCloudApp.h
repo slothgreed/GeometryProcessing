@@ -26,7 +26,7 @@ class PointCloudComputeShader : public IComputeShader
 public:
 	PointCloudComputeShader(const Shared<PointCloud>& pPointCloud);
 	~PointCloudComputeShader();
-
+	virtual Vector3i GetLocalThreadNum() const { return Vector3i(256, 1, 1); }
 	virtual ShaderPath GetShaderPath();
 	virtual void FetchUniformLocation();
 	virtual void Execute(const Matrix4x4& proj, const Matrix4x4& view, const Shared<Texture2D>& pTexture, const Shared<Texture2D>& pDepthBuffer);

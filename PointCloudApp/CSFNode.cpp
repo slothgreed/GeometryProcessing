@@ -46,6 +46,7 @@ RenderNode* CSFLoader::Load(const String& fileName)
                 csfGeom->vertex[3 * j + 0],
                 csfGeom->vertex[3 * j + 1],
                 csfGeom->vertex[3 * j + 2], 1.0f);
+			pMeshBuffer->bdb.Add(Vector3(vertex.position.x, vertex.position.y, vertex.position.z));
             if (csfGeom->normal) {
                 vertex.normal = Vector4(
                     csfGeom->normal[3 * j + 0],
@@ -258,6 +259,15 @@ CSFRenderNode::~CSFRenderNode()
 	RELEASE_INSTANCE(m_pShader);
 }
 
+void CSFRenderNode::SetMeshBuffer(Vector<Unique<CSFMeshBuffer>>&& mesh)
+{
+	m_gpu.pMeshBuffer = std::move(mesh);
+	BDB bdb;
+	for (const auto& pBuffer : m_gpu.pMeshBuffer) {
+		bdb.Add(pBuffer->bdb);
+	}
+	SetBoundBox(bdb);
+}
 void CSFRenderNode::UpdateProperty()
 {
 	if (!m_needUpdateProperty) { return; }

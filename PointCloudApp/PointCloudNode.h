@@ -32,6 +32,7 @@ private:
 		virtual void Execute(const DrawContext& context, const PointCloudNode& node, int positionBuffer);
 	private:
 		bool depthPhase;
+		GLuint m_uImageSize;
 		GLuint m_uVP;
 		GLuint m_uPositionNum;
 	};

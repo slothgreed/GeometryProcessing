@@ -1,0 +1,171 @@
+const float FLOAT_MAX = 3.4028235e+38;
+
+
+layout(std430,binding = 0) buffer posBuffer
+{
+	float position[];
+};
+
+layout(std430,binding = 1) buffer indexBuffer
+{
+	uint indexs[];
+};
+
+layout(std430,binding = 2) buffer bvhBuffer
+{
+	BVH nodes[];
+};
+
+layout(rgba8, binding = 3) uniform image2D sdfImage;
+
+#ifdef DEBUG
+layout(std430, binding = 4) buffer debugBuffer
+{
+	float debugs[];
+};
+#endif
+
+uniform vec3 u_minBox;
+uniform vec3 u_pitch;
+uniform float u_position;
+uniform int u_axis; // 0 = X; 1 = Y; 2 = Z;
+uniform int u_resolute;
+uniform int u_maxTriangle;
+uniform float u_frequency;
+uniform mat4 u_Model;
+
+float PointToEdge(vec3 P, vec3 X, vec3 Y)
+{
+	vec3 XY = Y - X;
+	vec3 XP = P - X;
+	float t = dot(XP, XY) / dot(XY, XY);
+	t = clamp(t, 0.0f, 1.0f);
+	vec3 Q_edge = X + t * XY;
+	return length(P - Q_edge);
+};
+
+float PointToTriangle(vec3 P, vec3 A, vec3 B, vec3 C)
+{
+	vec3 AB = B - A;
+	vec3 AC = C - A;
+	vec3 N = normalize(cross(AB, AC));
+
+	float d = dot(P - A, N);
+	vec3 Q_face = P - d * N;
+
+	vec3 v0 = C - A, v1 = B - A, v2 = Q_face - A;
+	float d00 = dot(v0, v0);
+	float d01 = dot(v0, v1);
+	float d11 = dot(v1, v1);
+	float d20 = dot(v2, v0);
+	float d21 = dot(v2, v1);
+	float denom = d00 * d11 - d01 * d01;
+	if (abs(denom) < 1e-6f) {
+		return length(P - A);
+	}
+	float u = (d11 * d20 - d01 * d21) / denom;
+	float v = (d00 * d21 - d01 * d20) / denom;
+
+	if (u >= 0.0f && v >= 0.0f && (u + v) <= 1.0f) {
+		return abs(d);
+	} else {
+		float edge0 = PointToEdge(P, A, B);
+		float edge1 = PointToEdge(P, B, C);
+		float edge2 = PointToEdge(P, C, A);
+		return min(edge0,min(edge1,edge2));
+	}
+}
+
+// TODO : 
+float CalcDistance(vec3 v, vec3 p0, vec3 p1, vec3 p2)
+{
+	return PointToTriangle(v,p0,p1,p2);
+}
+
+void GetTrianglePos(int triIndex, out vec3 p0, out vec3 p1, out vec3 p2)
+{
+	uint index0 = indexs[3 * triIndex + 0];
+	uint index1 = indexs[3 * triIndex + 1];
+	uint index2 = indexs[3 * triIndex + 2];
+	
+	p0 = vec3(position[3 * index0],position[3 * index0 + 1],position[3 * index0 + 2]);
+	p1 = vec3(position[3 * index1],position[3 * index1 + 1],position[3 * index1 + 2]);
+	p2 = vec3(position[3 * index2],position[3 * index2 + 1],position[3 * index2 + 2]);
+}
+
+float PointToBox(vec3 P, vec3 bdbMin, vec3 bdbMax)
+{
+	// AABB 内部にいる場合は、表面までの最短距離を計算
+	vec3 C; // AABB の最近点
+	C.x = max(bdbMin.x, min(P.x, bdbMax.x));
+	C.y = max(bdbMin.y, min(P.y, bdbMax.y));
+	C.z = max(bdbMin.z, min(P.z, bdbMax.z));
+
+	if (P.x >= bdbMin.x && P.x <= bdbMax.x &&
+		P.y >= bdbMin.y && P.y <= bdbMax.y &&
+		P.z >= bdbMin.z && P.z <= bdbMax.z) {
+		return 0;
+	}
+
+	return length(P - C);
+}
+
+float CalcMinDistance(vec3 pixelPos)
+{
+	vec3 p0,p1,p2;
+	GetTrianglePos(0,p0,p1,p2);
+	float minDist = CalcDistance(pixelPos,p0,p1,p2);
+    int stack[64];
+    int stackPtr = 0;
+    stack[stackPtr++] = 100258-1;
+
+    while (stackPtr > 0) {
+        int nodeIndex = stack[--stackPtr];
+        BVH node = nodes[nodeIndex];
+
+        float boxDist = PointToBox(pixelPos, getMinBox(node), getMaxBox(node));
+        if (boxDist > minDist) { continue; }
+
+        if (getLeft(node) == -1 && getRight(node) == -1) {
+			GetTrianglePos(getTriangle(node),p0,p1,p2);
+			float dist = CalcDistance(pixelPos,p0,p1,p2);
+            minDist = min(minDist, dist);
+        } else {
+            if (getLeft(node) != -1)  stack[stackPtr++] = getLeft(node);
+            if (getRight(node) != -1) stack[stackPtr++] = getRight(node);
+        }
+    }
+	
+	return minDist;
+}
+
+void main()
+{
+	vec3 pixelPos = vec3(0);
+	pixelPos[u_axis] = u_position;
+	vec3 halfPitch = 0.5 * u_pitch;
+	
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    if (pixel.x >= u_resolute || pixel.y >= u_resolute) return;
+	int width = pixel.x;
+	int height = pixel.y;
+
+	// width;
+	int axisWidth = (u_axis + 1) % 3;
+	pixelPos[axisWidth] = u_minBox[axisWidth] + (width * u_pitch[axisWidth]) + halfPitch[axisWidth]; 
+	
+	// height;
+	int axisHeight = (u_axis + 2) % 3;
+	pixelPos[axisHeight] = u_minBox[axisHeight] + (height * u_pitch[axisHeight]) + halfPitch[axisHeight]; 
+	
+	float minDist = CalcMinDistance(pixelPos);
+#ifdef DEBUG
+	debugs[width * u_resolute + height] = minDist;
+#endif
+	
+	float dist = abs(mod(minDist,u_frequency) - (u_frequency * 0.5));
+	if(dist < 0.1f){dist = 1;} else {dist = 0;}
+	
+	vec4 color = vec4(dist,dist,dist,1);
+	imageStore(sdfImage, ivec2(height,width) ,color);
+}

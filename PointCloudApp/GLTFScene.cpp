@@ -181,7 +181,6 @@ void GLTFScene::DrawNode(const DrawContext& context)
 
 void GLTFScene::UpdateData(float time)
 {
-	//time = 0.5f;
 	UpdateAnimation(time);
 	UpdateMatrix();
 	UpdateSkin();
@@ -196,7 +195,8 @@ void GLTFScene::UpdateMatrix()
 		m_pMatrixGpuUpdater->Execute(m_gpu.nodeBuffer);
 	} else {
 		GLTFNode::UpdateMatrix(m_roots, m_nodes);
-		m_gpu.node = GLTFNode::CreateGpuObject(m_nodes, m_skins);
+		auto node =  GLTFNode::CreateGpuObject(m_nodes, m_skins);
+		m_gpu.node = std::move(node);
 		m_gpu.nodeBuffer->BufferSubData<GLTFNode::GpuObject>(0, m_gpu.node);
 	}
 }

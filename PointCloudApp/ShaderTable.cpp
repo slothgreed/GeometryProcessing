@@ -8,6 +8,9 @@ void ShaderTable::Build()
 	m_pSimpleShader = std::make_shared<SimpleShader>();
 	m_pSimpleShader->Build();
 
+	m_pFaceShader = std::make_shared<FaceShader>();
+	m_pFaceShader->Build();
+
 	m_pVertexColorShader = std::make_shared<VertexColorShader>();
 	m_pVertexColorShader->Build();
 

@@ -271,6 +271,7 @@ Vector<GLTFAnimation> GLTFLoader::LoadAnimation(const Microsoft::glTF::GLTFResou
                 assert(0);
             }
         }
+
         animations[i].SetChannel(std::move(channels));
         animations[i].SetSampler(std::move(samplers));
     }

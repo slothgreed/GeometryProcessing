@@ -38,19 +38,28 @@ public:
 	void DisableDepth();
 	void EnableCullFace();
 	void DisableCullFace();
-	void SetViewport(const Vector2& size);
+	void SetViewport(const Vector2i& size);
 	void SetPointSize(float value);
 	void SetLineWidth(float value);
 
 	void SetupPick();
 	void SetupShading();
 
-	void PushRenderTarget(RenderTarget* pTarget);
+	void PushRenderTarget(RenderTarget* pTarget, int drawTargetNum = -1);
 	void PopRenderTarget();
+	const Vector2i& GetViewportSize() const { return viewportSize; }
 private:
-	Vector2 viewportSize;
+	Vector2i viewportSize;
 	GLStatus m_cache;
-	std::stack<RenderTarget*> m_pRenderTargetStack;
+
+	struct RenderTargetStack
+	{
+		RenderTarget* pRenderTarget;
+		int drawTargetNum;
+	};
+
+
+	std::stack<RenderTargetStack> m_pRenderTargetStack;
 };
 
 class Camera;
@@ -69,9 +78,6 @@ public:
 	~RenderResource() {};
 	void Build();
 
-	void SetComputeColorTarget(Texture2D* pTarget) { m_pComputeColorTarget = pTarget; }
-	void SetComputeDepthTarget(Texture2D* pTarget) { m_pComputeDepthTarget = pTarget; }
-	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	void SetMainCamera(const Shared<Camera>& pCamera) { m_pCamera = pCamera; }
 	void SetLight(const Shared<Light>& pLight) { m_pLight = pLight; }
 	GLContext* GL() { return m_pContext.get(); }
@@ -82,26 +88,33 @@ public:
 	const ShaderTable* GetShaderTable() const { return &m_pShaderTable; };
 	const GLBuffer* GetCameraBuffer() const { return m_pCameraGpu; }
 	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
+	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
+	RenderTarget* GetRenderTarget() { return m_pRenderTarget; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
-	const Texture2D* GetComputeColorTarget() const { return m_pComputeColorTarget; }
-	const Texture2D* GetComputeDepthTarget() const { return m_pComputeDepthTarget; }
+	const GLBuffer* GetComputeColorTarget() const { return m_pComputeColorTarget; }
+	const GLBuffer* GetComputeDepthTarget() const { return m_pComputeDepthTarget; }
+	RenderTarget* GetTmpComputeTarget() { return m_pTmpComputeTarget; }
+	RenderTarget* GetTmpPostEffectTarget() { return m_pTmpPostEffectTarget; }
 	void UpdateLight();
 	void UpdateCamera();
-	void Resize(const Vector2& size);
-	void InitComputeTarget();
+	void InitRenderTarget(const Vector2& size);
 	void SetTexturePlane(RenderTextureNode* pPlane) { m_pTexturePlane = pPlane; };
 	const RenderTextureNode* GetTexturePlane() const { return m_pTexturePlane; }
+	RenderTarget* GetPostEffectTarget() { return m_pPostEffectTarget; }
 private:
 	Unique<GLContext> m_pContext;
 	Shared<Camera> m_pCamera;
 	Shared<Light> m_pLight;
 	GLBuffer* m_pCameraGpu;
 	GLBuffer* m_pLightGpu;
-	Texture2D* m_pComputeColorTarget;
-	Texture2D* m_pComputeDepthTarget;
+	GLBuffer* m_pComputeColorTarget;
+	GLBuffer* m_pComputeDepthTarget;
 	RenderTarget* m_pRenderTarget;
+	RenderTarget* m_pPostEffectTarget;
 	ShaderTable m_pShaderTable;
 	RenderTextureNode* m_pTexturePlane;
+	RenderTarget* m_pTmpComputeTarget; // コンピュートシェーダの描画結果をマージするときに一時的に使うターゲット 
+	RenderTarget* m_pTmpPostEffectTarget;
 };
 }
 

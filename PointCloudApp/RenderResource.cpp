@@ -17,9 +17,10 @@ void GLContext::SetupStatus(const GLStatus& status)
 	SetLineWidth(status.lineWidth);
 }
 
-void GLContext::SetViewport(const Vector2& size)
+void GLContext::SetViewport(const Vector2i& size)
 {
 	glViewport(0, 0, size.x, size.y);
+	viewportSize = size;
 }
 void GLContext::EnablePolygonOffset(int factor, int units)
 {
@@ -78,6 +79,12 @@ void GLContext::SetupShading()
 void RenderResource::Build()
 {
 	m_pShaderTable.Build();
+	m_pComputeColorTarget = new GLBuffer();
+	m_pComputeDepthTarget = new GLBuffer();
+	m_pPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
+	m_pTmpComputeTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
+	m_pTmpPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
+
 };
 void RenderResource::UpdateCamera()
 {
@@ -124,36 +131,60 @@ void RenderResource::UpdateLight()
 
 void RenderResource::Finalize()
 {
-	delete m_pCameraGpu;
-	m_pCameraGpu = nullptr;
-
-	delete m_pLightGpu;
-	m_pLightGpu = nullptr;
-}
-void RenderResource::Resize(const Vector2& size)
-{
-	if (m_pRenderTarget) { m_pRenderTarget->Resize(size); }
+	RELEASE_INSTANCE(m_pCameraGpu);
+	RELEASE_INSTANCE(m_pLightGpu);
+	RELEASE_INSTANCE(m_pComputeColorTarget);
+	RELEASE_INSTANCE(m_pComputeDepthTarget);
+	RELEASE_INSTANCE(m_pTmpComputeTarget);
+	RELEASE_INSTANCE(m_pPostEffectTarget);
 }
 
-void GLContext::PushRenderTarget(RenderTarget* pTarget)
-{
-	m_pRenderTargetStack.push(pTarget);
 
-	pTarget->Bind();
+void GLContext::PushRenderTarget(RenderTarget* pTarget, int drawTargetNum)
+{
+	RenderTargetStack stack;
+	stack.pRenderTarget = pTarget;
+	stack.drawTargetNum = drawTargetNum;
+	m_pRenderTargetStack.push(stack);
+	pTarget->Bind(drawTargetNum);
 }
 void GLContext::PopRenderTarget()
 {
-	if (m_pRenderTargetStack.empty()) { return; }
+	if (m_pRenderTargetStack.empty()) {
+		FrameBuffer::UnBind();
+		return;
+	}
+	m_pRenderTargetStack.pop();
+	if (m_pRenderTargetStack.empty()) {
+		FrameBuffer::UnBind();
+		return;
+	}
 
 	auto pTarget = m_pRenderTargetStack.top();
-	m_pRenderTargetStack.pop();
 
-	pTarget->UnBind();
+	pTarget.pRenderTarget->Bind(pTarget.drawTargetNum);
 }
 
-void RenderResource::InitComputeTarget()
+void RenderResource::InitRenderTarget(const Vector2& size)
 {
-	if (m_pComputeColorTarget) { m_pComputeColorTarget->ClearMaxValue(); }
-	if (m_pComputeDepthTarget) { m_pComputeDepthTarget->ClearMaxValue(); }
+	if (m_pRenderTarget) {
+		m_pRenderTarget->Resize(size);
+		m_pRenderTarget->Bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+	if (m_pComputeColorTarget) {
+		m_pComputeColorTarget->Resize(size.x * size.y, sizeof(unsigned int));
+		m_pComputeColorTarget->SetData(0x7F7FFFFF);
+	}
+	if (m_pComputeDepthTarget) {
+		m_pComputeDepthTarget->Resize(size.x * size.y, sizeof(unsigned int));
+		m_pComputeDepthTarget->SetData(0x7F7FFFFF);
+	}
+
+	m_pTmpComputeTarget->Resize(size);
+	m_pTmpPostEffectTarget->Resize(size);
+	m_pPostEffectTarget->Resize(size);
+
 }
 }

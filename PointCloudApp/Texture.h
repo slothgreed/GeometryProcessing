@@ -70,7 +70,7 @@ public:
 		}
 
 		Sampler(FILTER _f)
-			:wrap(WRAP::REPEAT)
+			: wrap(WRAP::REPEAT)
 			, filter(_f)
 		{
 		}
@@ -87,7 +87,7 @@ public:
 	Vector2 Size() const { return Vector2(m_format.width, m_format.height); }
 	const Format& GetFormat() const { return m_format; }
 	void Set(const Format& format, unsigned char* data);
-
+	void GetPixel(std::vector<unsigned char>& data);
 protected:
 	Sampler m_sampler;
 	Format m_format;
@@ -108,7 +108,7 @@ class Texture2D : public Texture
 {
 public:
 	Texture2D();
-	Texture2D(const Sampler& sampler);
+	Texture2D(const Format& format, const Sampler& sampler);
 
 	~Texture2D() {};
 

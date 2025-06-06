@@ -9,6 +9,7 @@
 #include "GLBuffer.h"
 namespace KI
 {
+class RenderTarget;
 class Texture;
 enum SHADER_PROGRAM
 {
@@ -44,6 +45,7 @@ public:
 	int GetUniformLocation(const char* str);
 	void Bind(int location, GLBuffer* pBuffer);
 	void BindUniform(int location, const Matrix4x4& value);
+	void BindUniform(int location, const Vector2& value);
 	void BindUniform(int location, const Vector2i& value);
 	void BindUniform(int location, const Vector3i& value);
 	void BindUniform(int location, const Vector3& value);
@@ -65,10 +67,10 @@ public:
 
 	IShadingShader();
 	virtual ~IShadingShader();
-
 	virtual void Build();
 	virtual void FetchUniformLocation() = 0;
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
+	virtual int GetDrawTargetNum() const { return 1; }
 	void BindTexture(int location, int unit, const Texture& texture);
 	void BindIndexBuffer(const GLBuffer* pBuffer);
 	void SetVertexFormat(const VertexFormats& format);
@@ -96,12 +98,16 @@ public:
 
 	virtual void FetchUniformLocation() = 0;
 
-	static Vector3i GetDispatchNum1D(const Vector3i& localSize, int value);
+	virtual Vector3i GetLocalThreadNum() const;
+	Vector3i GetDispatchNum2D(const Vector2i& value);
+	Vector3i GetDispatchNum1D(int value);
 	virtual void Build();
 	void Dispatch(GLuint x, GLuint y, GLuint z);
 	void Dispatch(const Vector3i& value);
-	void BindImage(int location, const Texture* pTexture, GLuint access);
+	void BindTexture(int location, const Texture* pTexture, GLuint access);
 	void BarrierImage();
+	void BarrierSSBO();
+
 private:
 
 };

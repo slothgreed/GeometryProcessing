@@ -31,8 +31,16 @@ public:
 	void PickNode(const PickContext& context);
 	bool CollectPickedNode(PickResult& result);
 	void DrawPartsNode(const DrawContext& context, const RenderParts& parts);
-
+protected:
+	virtual void ShowUI(UIContext& ui);
 private:
+	struct UI
+	{
+		UI() : visible(true) {}
+		bool visible;
+	};
+
+	UI m_ui;
 	bool m_pickTarget;
 	Shared<GLStatus> m_gl;
 	void BuildGLBuffer();

@@ -5,6 +5,7 @@
 namespace KI
 {
 
+// MEMO : FaceShader‚ªŒp³‚µ‚Ä‚¢‚éB
 class SimpleShader : public IShadingShader
 {
 public:
@@ -29,6 +30,18 @@ private:
 
 	GLuint m_uniform[UNIFORM::NUM];
 
+};
+
+class FaceShader : public SimpleShader
+{
+public:
+	FaceShader() {};
+	~FaceShader() {};
+
+	void SetNormal(GLBuffer* pBuffer);
+	virtual int GetDrawTargetNum() const { return 3; }
+	virtual ShaderPath GetShaderPath() override;
+private:
 };
 class VertexColorShader : public IShadingShader
 {

@@ -388,5 +388,25 @@ int GLUtil::GetPrimitiveSize(int value)
 	return 0;
 }
 
+int GLUtil::GetFormatSize(int value)
+{
+	if (value == GL_RED ||
+		value == GL_DEPTH_COMPONENT) {
+		return 1;
+	} else if (
+		value == GL_RGB ||
+		value == GL_BGR) {
+		return 3;
+	} else if (
+		value == GL_RGBA ||
+		value == GL_BGRA) {
+		return 4;
+	} else {
+		assert(0);
+	}
+
+	return 1;
+}
+
 
 }

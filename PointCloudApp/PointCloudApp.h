@@ -31,14 +31,18 @@ private:
 	{
 		UI()
 		:pickMode(false)
-		,animation(false){}
+		,animation(false)
+		,visibleSkyBox(true){}
 		~UI() {}
 		bool pickMode;
+		bool visibleSkyBox;
 		bool animation;
 	};
 
 	PickResult m_pick;
 	UI m_ui;
+	Shared<RenderNode> CreateSpaceTest();
+	Shared<RenderNode> CreateGLTFAnimationTest();
 	Shared<RenderNode> CreateGLTFNodeTest();
 	Shared<RenderNode> CreateCSFNodeTest();
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
@@ -46,11 +50,11 @@ private:
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<PointCloudNode> CreateDelaunayTest();
 	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();
-	void ShowUI();
 	Shared<RenderResource> m_pResource;
 	CPUProfiler m_cpuProfiler;
 	Unique<RenderNode> m_pRoot;
 	RenderNode* m_pSelect;
+	void ShowUI(UIContext& ui);
 };
 }
 

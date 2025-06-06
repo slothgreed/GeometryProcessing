@@ -233,7 +233,7 @@ std::vector<unsigned int> Voxelizer::ComputeShader::Execute(const BDB& bdb, int 
 	BindShaderStorage(0, pointBuffer->Handle());
 	BindShaderStorage(1, indexBuffer->Handle());
 	BindShaderStorage(2, m_pVoxelBuffer->Handle());
-	Dispatch(IComputeShader::GetDispatchNum1D(Vector3i(1, 1, 1), triangleNum));
+	Dispatch(GetDispatchNum1D(triangleNum));
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	UnUse();
@@ -392,7 +392,7 @@ ShaderPath Voxelizer::ComputeShader::GetShaderPath()
 {
 	ShaderPath path;
 	path.version = "version.h";
-	path.extension[SHADER_PROGRAM_COMPUTE].push_back("#extension GL_NV_gpu_shader5 : enable");
+	path.extension[SHADER_PROGRAM_COMPUTE].push_back("#extension GL_NV_gpu_shader5 : enable\n");
 	path.shader[SHADER_PROGRAM_COMPUTE] = "algorithm/voxelizer.comp";
 	return path;
 }

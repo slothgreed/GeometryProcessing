@@ -91,12 +91,13 @@ const glm::ivec3& GLAPIExt::GetMaxComputeWorkGroupCount()
 	return m_maxComputeWorkGroupCount;
 }
 
-const glm::ivec3& GLAPIExt::GetMaxComputeLocalSize()
+const glm::ivec4& GLAPIExt::GetMaxComputeLocalSize()
 {
 	if (m_maxComputeLocalSize.x == 0) {
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &m_maxComputeLocalSize.x);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &m_maxComputeLocalSize.y);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &m_maxComputeLocalSize.z);
+		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &m_maxComputeLocalSize.w);
 	}
 
 	return m_maxComputeLocalSize;

@@ -27,16 +27,19 @@ struct UIContext
 	struct UIRect
 	{
 		UIRect() {}
-		UIRect(const Vector2i p, const Vector2i s) : Position(p),Size(s){}
+		UIRect(const Vector2i& p, const Vector2i& s) : Position(p), Size(s) {}
 		Vector2i GetRightBottom() const { return Position + Size; }
 		Vector2i GetLeftBottom() const { return Position + Vector2i(0, Size.y); }
 		Vector2i Position;
 		Vector2i Size;
 	};
 
+	void SetViewport(const Vector2i& size) { m_viewport = UIRect(Vector2i(), size); }
 	void SetRoot(const UIRect& rect) { m_root = rect; }
 	const UIRect& GetRoot() const { return m_root; }
+	const UIRect& GetViewport() const { return m_viewport; }
 private:
+	UIRect m_viewport;
 	UIRect m_root;
 };
 

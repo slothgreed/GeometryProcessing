@@ -4,20 +4,25 @@
 #include "PrimitiveNode.h"
 #include "Texture.h"
 #include "Utility.h"
+//#define GPU_DEBUG
 namespace KI
 {
 SignedDistanceField::SignedDistanceField(HalfEdgeNode* pHalfEdge)
 	: m_pHalfEdge(pHalfEdge)
-	, m_resolute(16)
+	, m_resolute(4)
+	, m_frequency(2.0f)
 {
 	auto sampler = Texture::Sampler(Texture::Sampler::FILTER::NEAREST);
-	m_gpu.xTexture = std::make_shared<Texture2D>(sampler);
-	m_gpu.yTexture = std::make_shared<Texture2D>(sampler);
-	m_gpu.zTexture = std::make_shared<Texture2D>(sampler);
-	
+	m_gpu.xTexture = std::make_shared<Texture2D>(Texture2D::CreateRGBA(1, 1), sampler);
+	m_gpu.yTexture = std::make_shared<Texture2D>(Texture2D::CreateRGBA(1, 1), sampler);
+	m_gpu.zTexture = std::make_shared<Texture2D>(Texture2D::CreateRGBA(1, 1), sampler);
+	m_gpu.pDebugBuffer = std::make_unique<GLBuffer>();
+
 	m_pShader = nullptr;
 	m_pShader = std::make_unique<Shader>();
 	m_pShader->Build();
+	CreateTexure(m_resolute);
+
 }
 
 SignedDistanceField::~SignedDistanceField()
@@ -37,17 +42,31 @@ SignedDistanceField::UI::UI()
 
 }
 
-BVH::IntersectResult SignedDistanceField::CalcMinDistance(const Vector3& pos) const
+float SignedDistanceField::CalcMinDistance(const Vector3& pos) const
 {
-	return m_pHalfEdge->GetBVH()->CalcMinDistance(pos);
+	return m_pHalfEdge->GetBVH()->CalcMinDistance(pos).distance;
 }
 
 void SignedDistanceField::CreateSDFTexture(int resolute, Axis axis, float position, Texture2D* pTexture)
 {
+#ifdef GPU_DEBUG
+	std::vector<unsigned char> gpuPixel;
+	std::vector<float> gpuminDist(resolute * resolute);
+	std::vector<float> cpuminDist(resolute * resolute);
+#endif // GPU_DEBUG
+
 	if (m_pShader) {
-		m_pShader->Execute(m_pHalfEdge, resolute, axis, position, pTexture);
+#ifdef GPU_DEBUG
+		m_pShader->Execute(m_pHalfEdge, resolute, axis, position, pTexture, m_frequency, m_gpu.pDebugBuffer.get());
+		pTexture->GetPixel(gpuPixel);
+		m_gpu.pDebugBuffer->GetBufferData(gpuminDist);
+#else
+		m_pShader->Execute(m_pHalfEdge, resolute, axis, position, pTexture, m_frequency, nullptr);
 		return;
+#endif // GPU_DEBUG
+
 	}
+
 	auto bdb = m_pHalfEdge->GetBoundBox();
 	auto diag = bdb.Max() - bdb.Min();
 	auto pitch = diag / (float)resolute;
@@ -55,6 +74,7 @@ void SignedDistanceField::CreateSDFTexture(int resolute, Axis axis, float positi
 	std::vector<unsigned char> image(resolute * resolute * 4);
 	Vector3 pixelPos;
 	auto maxLength = bdb.MaxLength();
+	
 	if (axis == Axis::X) { pixelPos.x = position; }
 	if (axis == Axis::Y) { pixelPos.y = position; }
 	if (axis == Axis::Z) { pixelPos.z = position; }
@@ -71,8 +91,11 @@ void SignedDistanceField::CreateSDFTexture(int resolute, Axis axis, float positi
 			auto pixel = j + (i * resolute);
 
 			auto minDist = CalcMinDistance(pixelPos);
-			float frequency = 5.0f;
-			auto dist = abs(mod(minDist.distance, frequency) - (frequency * 0.5f));
+#ifdef GPU_DEBUG
+			cpuminDist[pixel] = minDist;
+#endif // GPU_DEBUG
+
+			auto dist = abs(mod(minDist, m_frequency) - (m_frequency * 0.5f));
 			if (dist < 0.1f) {
 				image[4 * pixel] = 255;
 				image[4 * pixel + 1] = 255;
@@ -87,7 +110,18 @@ void SignedDistanceField::CreateSDFTexture(int resolute, Axis axis, float positi
 		}
 	}
 
-	pTexture->Build(resolute, resolute, image.data());
+#ifdef GPU_DEBUG
+	for (int i = 0; i < cpuminDist.size(); i++) {
+		if (std::abs(gpuminDist[i] - cpuminDist[i]) > 0.0001) {
+			int a = 0;
+		}
+	}
+#endif // GPU_DEBUG
+
+
+	if (!m_pShader) {
+		pTexture->Build(resolute, resolute, image.data());
+	}
 }
 
 
@@ -97,6 +131,8 @@ void SignedDistanceField::CreateTexure(int resolute)
 	m_gpu.xTexture->Resize(resolute, resolute);
 	m_gpu.yTexture->Resize(resolute, resolute);
 	m_gpu.zTexture->Resize(resolute, resolute);
+	m_gpu.pDebugBuffer->Create(resolute * resolute, sizeof(float));
+	m_gpu.pDebugBuffer->SetData(0);
 }
 void SignedDistanceField::ShowUI(UIContext& ui)
 {
@@ -171,7 +207,13 @@ void SignedDistanceField::ShowUI(UIContext& ui)
 ShaderPath SignedDistanceField::Shader::GetShaderPath()
 {
 	ShaderPath path;
-	path.shader[SHADER_PROGRAM_COMPUTE] = "algorithm/sdf.comp";
+	path.version = "version.h";
+	path.header.push_back("algorithm/bvh.h");
+#ifdef GPU_DEBUG
+	path.extension[SHADER_PROGRAM_COMPUTE].push_back("#define DEBUG\n");
+#endif // GPU_DEBUG
+
+	path.shader[SHADER_PROGRAM_COMPUTE] = "algorithm/signedDistanceField.comp";
 	return path;
 }
 
@@ -188,7 +230,7 @@ void SignedDistanceField::Shader::FetchUniformLocation()
 
 }
 
-void SignedDistanceField::Shader::Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture)
+void SignedDistanceField::Shader::Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer)
 {
 	auto bdb = pNode->GetBoundBox();
 	auto diag = bdb.Max() - bdb.Min();
@@ -200,13 +242,18 @@ void SignedDistanceField::Shader::Execute(const HalfEdgeNode* pNode, int resolut
 	BindUniform(m_uniform[AXIS], (int)axis);
 	BindUniform(m_uniform[RESOLUTE], resolute);
 	BindUniform(m_uniform[MAXTRIANGLE], (int)pNode->GetData()->GetFaceNum());
-	BindUniform(m_uniform[FREQUENCY], 0.5f);
+	BindUniform(m_uniform[FREQUENCY], frequency);
 	BindUniform(m_uniform[MODEL], pNode->GetMatrix());
 	BindShaderStorage(0, pNode->GetPositionGpu()->Handle());
 	BindShaderStorage(1, pNode->GetFaceIndexGpu()->Handle());
 	BindShaderStorage(2, pNode->GetBVHGpu()->Handle());
-	BindShaderStorage(3, pTexture->Handle());
-	Dispatch(Vector3(resolute, resolute, 1));
+	BindTexture(3, pTexture, GL_WRITE_ONLY);
+#ifdef GPU_DEBUG
+	BindShaderStorage(4, pDebugBuffer->Handle());
+#endif // GPU_DEBUG
+
+	Dispatch(GetDispatchNum2D(Vector2i(resolute,resolute)));
+	BarrierImage();
 	glFlush();
 	UnUse();
 }

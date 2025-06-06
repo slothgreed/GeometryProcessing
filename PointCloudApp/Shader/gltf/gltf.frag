@@ -1,4 +1,4 @@
-out vec4 FragColor;
+layout(location = 0)out vec4 FragColor;
 in vec3 f_worldPos;
 in vec2 f_texcoord;
 in vec4 f_tangent;
@@ -188,7 +188,11 @@ void main()
 	
 	
 	if(u_debugView == 1){
-		resultColor = vec4(texture(u_colorTexture,f_texcoord).rgb,1.0);
+		if(material.baseTexture == -1){
+			resultColor = vec4(material.baseColor.rgb,1.0);
+		}else{
+			resultColor = vec4(texture(u_colorTexture,f_texcoord).rgb,1.0);
+		}
 	}else if(u_debugView == 2){
 		resultColor = vec4(texture(u_normalTexture,f_texcoord).rgb,1.0);
 	}else if(u_debugView == 3){

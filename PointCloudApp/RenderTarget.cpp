@@ -12,10 +12,14 @@ RenderTarget::~RenderTarget()
 {
 }
 
-void RenderTarget::Bind()
+void RenderTarget::Bind(int drawTarget)
 {
 	m_pFrameBuffer->Bind();
-	glDrawBuffers(m_attachment.size(), m_attachment.data());
+	if (drawTarget == -1) {
+		glDrawBuffers(m_attachment.size(), m_attachment.data());
+	} else {
+		glDrawBuffers(drawTarget, m_attachment.data());
+	}
 }
 
 void RenderTarget::UnBind()
@@ -23,7 +27,28 @@ void RenderTarget::UnBind()
 	m_pFrameBuffer->UnBind();
 	glDrawBuffer(GL_BACK);
 }
-void RenderTarget::Build(const Shared<Texture2D>& pColor, const Shared<Texture2D>& pDepth)
+
+void RenderTarget::Build(Shared<Texture2D>&& pColor)
+{
+	m_pColor.push_back(std::move(pColor));
+	Build();
+}
+void RenderTarget::Build(Shared<Texture2D>&& pColor, Shared<Texture2D>&& pDepth)
+{
+	m_pColor.push_back(std::move(pColor));
+	m_pDepth = pDepth;
+
+	Build();
+}
+void RenderTarget::Build(std::vector<Shared<Texture2D>>&& pColor, Shared<Texture2D>&& pDepth)
+{
+	m_pColor = std::move(pColor);
+	m_pDepth = std::move(pDepth);
+
+	Build();
+}
+
+void RenderTarget::Build()
 {
 	m_attachment.clear();
 	m_pFrameBuffer = nullptr;
@@ -31,8 +56,6 @@ void RenderTarget::Build(const Shared<Texture2D>& pColor, const Shared<Texture2D
 	m_pFrameBuffer = std::make_unique<FrameBuffer>();
 	m_pFrameBuffer->Build();
 	m_pFrameBuffer->Bind();
-	m_pColor.push_back(std::move(pColor));
-	m_pDepth = std::move(pDepth);
 	for (int i = 0; i < m_pColor.size(); i++) {
 		m_pColor[i]->Bind();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, m_pColor[i]->Handle(), 0);
@@ -66,7 +89,7 @@ RenderTarget* RenderTarget::CreatePickTarget(const Vector2i& size)
 	auto pTarget = new RenderTarget();
 	auto pColor = std::shared_ptr<Texture2D>(CreateColorTexture(size));
 	auto pDepth = std::shared_ptr<Texture2D>(CreateDepthTexture(size));
-	pTarget->Build(pColor, pDepth);
+	pTarget->Build(std::move(pColor), std::move(pDepth));
 	return pTarget;
 }
 
@@ -74,11 +97,41 @@ RenderTarget* RenderTarget::CreateForwardTarget(const Vector2i& size)
 {
 	auto pTarget = new RenderTarget();
 	auto pColor = std::shared_ptr<Texture2D>(CreateColorTexture(size));
+	auto pPosition = std::shared_ptr<Texture2D>(CreateColorFloatTexture(size));
+	auto pNormal = std::shared_ptr<Texture2D>(CreateColorTexture(size));
+	std::vector<Shared<Texture2D>> color;
+	color.push_back(pColor);
+	color.push_back(pPosition);
+	color.push_back(pNormal);
 	auto pDepth = std::shared_ptr<Texture2D>(CreateDepthTexture(size));
-	pTarget->Build(pColor, pDepth);
+	pTarget->Build(std::move(color), std::move(pDepth));
 	return pTarget;
 }
 
+RenderTarget* RenderTarget::CreatePostEffectTarget(const Vector2i& size)
+{
+	auto pTarget = new RenderTarget();
+	auto pColor = std::shared_ptr<Texture2D>(CreateColorTexture(size));
+	pTarget->Build(std::move(pColor));
+	return pTarget;
+}
+
+Texture2D* RenderTarget::CreateColorFloatTexture(const Vector2i& size)
+{
+	auto pTexture = new Texture2D();
+	pTexture->Build(size.x, size.y);
+	Texture::Format format;
+	format.target = GL_TEXTURE_2D;
+	format.level = 0;
+	format.internalformat = GL_RGB32F;
+	format.width = size.x;
+	format.height = size.y;
+	format.border = 0;
+	format.format = GL_RGBA;
+	format.type = GL_FLOAT;
+	pTexture->Set(format, nullptr);
+	return pTexture;
+}
 Texture2D* RenderTarget::CreateColorTexture(const Vector2i& size)
 {
 	auto pTexture = new Texture2D();
@@ -103,44 +156,6 @@ Texture2D* RenderTarget::CreatePickTexture(const Vector2i& size)
 
 	return pTexture;
 }
-
-
-Texture2D* RenderTarget::CreateComputeColorTexture(const Vector2i& size)
-{
-	auto pTexture = new Texture2D();
-	pTexture->Build(size.x, size.y);
-	Texture::Format format;
-	format.target = GL_TEXTURE_2D;
-	format.level = 0;
-	format.internalformat = GL_R32UI;
-	format.width = size.x;
-	format.height = size.y;
-	format.border = 0;
-	format.format = GL_RED_INTEGER;
-	format.type = GL_UNSIGNED_INT;
-	pTexture->Set(format, nullptr);
-
-	return pTexture;
-}
-
-Texture2D* RenderTarget::CreateComputeDepthTexture(const Vector2i& size)
-{
-	auto pTexture = new Texture2D();
-	pTexture->Build(size.x, size.y);
-	Texture::Format format;
-	format.target = GL_TEXTURE_2D;
-	format.level = 0;
-	format.internalformat = GL_R32UI;
-	format.width = size.x;
-	format.height = size.y;
-	format.border = 0;
-	format.format = GL_RED_INTEGER;
-	format.type = GL_UNSIGNED_INT;
-	pTexture->Set(format, nullptr);
-
-	return pTexture;
-}
-
 
 
 Texture2D* RenderTarget::CreateDepthTexture(const Vector2i& size)

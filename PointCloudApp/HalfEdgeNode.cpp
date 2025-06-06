@@ -127,17 +127,26 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 {
 	if (!m_ui.visible) { return; }
 	auto pResource = context.pResource;
+	if (m_ui.visibleMesh) {
+		auto pFaceShader = pResource->GetShaderTable()->GetFaceShader();
+		context.pResource->GetRenderTarget()->Bind();
+		context.pResource->GL()->PushRenderTarget(context.pResource->GetRenderTarget(), pFaceShader->GetDrawTargetNum());
+		pFaceShader->Use();
+		pFaceShader->SetPosition(m_gpu.position.get());
+		pFaceShader->SetNormal(m_gpu.normal.get());
+		pFaceShader->SetCamera(pResource->GetCameraBuffer());
+		pFaceShader->SetModel(GetMatrix());
+		pFaceShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
+		pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
+		context.pResource->GL()->PopRenderTarget();
+	}
+
 	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 	pSimpleShader->Use();
-
 	pSimpleShader->SetPosition(m_gpu.position.get());
 	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
 	pSimpleShader->SetModel(GetMatrix());
 	pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
-	if (m_ui.visibleMesh) {
-		pSimpleShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
-	}
-
 	if (m_ui.visibleEdge) {
 		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawElement(GL_LINES, m_gpu.edgeIndexBuffer.get());
@@ -183,7 +192,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		pVertexColor->SetCamera(pResource->GetCameraBuffer());
 		pVertexColor->SetModel(GetMatrix());
 		pVertexColor->SetColor(m_morton.gpuColor.get());
-		pSimpleShader->DrawArray(GL_LINE_STRIP, 0, m_pHalfEdge->GetFaceNum());
+		pVertexColor->DrawArray(GL_LINE_STRIP, 0, m_pHalfEdge->GetFaceNum());
 	}
 
 	if (m_ui.visibleNormal) {

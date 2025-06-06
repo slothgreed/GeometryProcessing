@@ -84,6 +84,7 @@ String PrimitiveNode::Parts::ToString()
 
 void PrimitiveNode::PickNode(const PickContext& context)
 {
+	if (!m_ui.visible) { return; }
 	if (!m_pickTarget) { return; }
 	auto pResource = context.pResource;
 	auto pPickShader = pResource->GetShaderTable()->GetPointPickByID();
@@ -114,11 +115,14 @@ void PrimitiveNode::DrawPartsNode(const DrawContext& context, const RenderParts&
 
 }
 
+void PrimitiveNode::ShowUI(UIContext& ui)
+{
+	ImGui::Checkbox("visible", &m_ui.visible);
+}
 void PrimitiveNode::DrawNode(const DrawContext& context)
 {
-	if (m_pPrimitive->Position().size() == 0) {
-		return;
-	}
+	if (!m_ui.visible) { return; }
+	if (m_pPrimitive->Position().size() == 0) { return; }
 	UpdateRenderData();
 	if (m_gl) {
 		context.pResource->GL()->SetupStatus(*m_gl.get());

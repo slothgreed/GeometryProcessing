@@ -24,7 +24,7 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "../implot/implot.h"
 #include "imgui.h"
-
+#define EIGEN_DONT_PARALLELIZE
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>

@@ -111,7 +111,7 @@ public:
 	~GLUtil();
 
 	static int GetPrimitiveSize(int value);
-
+	static int GetFormatSize(int value);
 private:
 
 };

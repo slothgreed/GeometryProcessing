@@ -28,9 +28,10 @@ private:
 		Shader() {};
 		virtual ~Shader() {};
 
+		virtual Vector3i GetLocalThreadNum() const { return Vector3i(32, 32, 1); }
 		virtual ShaderPath GetShaderPath();
 		virtual void FetchUniformLocation();
-		void Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture);
+		void Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer);
 		enum UNIFORM
 		{
 			MINBOX,
@@ -45,14 +46,13 @@ private:
 		};
 
 	private:
-
 		GLuint m_uniform[UNIFORM::NUM];
 	};
 
 
 
 
-	BVH::IntersectResult CalcMinDistance(const Vector3& pos) const;
+	float CalcMinDistance(const Vector3& pos) const;
 	void CreateTexure(int resolute);
 	void CreateSDFTexture(int resolute, Axis axis, float position, Texture2D* pTexture);
 
@@ -78,6 +78,7 @@ private:
 
 	struct Gpu
 	{
+		Unique<GLBuffer> pDebugBuffer;
 		Shared<Texture2D> xTexture;
 		Shared<Texture2D> yTexture;
 		Shared<Texture2D> zTexture;
@@ -86,8 +87,10 @@ private:
 	Gpu m_gpu;
 	UI m_ui;
 	HalfEdgeNode* m_pHalfEdge;
+	float m_frequency;
 	float m_resolute;
 	Unique<Shader> m_pShader;
+
 };
 
 }

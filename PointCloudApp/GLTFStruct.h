@@ -83,11 +83,11 @@ public:
 		, m_localMatrix(Matrix4x4(1.0f)){ };
 	~GLTFNode() {};
 	void SetIndex(int id) { m_index = id; }
-	void SetScale(const Vector3& local) { m_scale = local; m_localMatrix = CreateLocalMatrix(); }
+	void SetScale(const Vector3& local); 
+	void SetRotate(const Matrix4x4& local);
+	void SetTranslate(const Vector3& local);
 	const Vector3& GetScale() const { return m_scale; }
-	void SetRotate(const Matrix4x4& local) { m_rotate = local;  m_localMatrix = CreateLocalMatrix();}
 	const Matrix4x4& GetRotate() const { return m_rotate; }
-	void SetTranslate(const Vector3& local) { m_translate = local; m_localMatrix = CreateLocalMatrix(); }
 	const Vector3& GetTranslate() const { return m_translate; }
 
 	void SetMatrix(const Matrix4x4& matrix) { m_matrix = matrix; }
@@ -96,8 +96,7 @@ public:
 	int GetSkinId() const { return m_skinId; }
 	int GetMeshId() const { return m_meshId; }
 	int GetIndex() const { return m_index; }
-	void SetBaseMatrix(const Matrix4x4& baseMatrix) { m_baseMatrix = baseMatrix; m_localMatrix = CreateLocalMatrix();
-	}
+	void SetBaseMatrix(const Matrix4x4& baseMatrix) { m_baseMatrix = baseMatrix; m_localMatrix = CreateLocalMatrix(); }
 	const Matrix4x4& GetBaseMatrix() const { return m_baseMatrix; }
 	const Matrix4x4& GetMatrix() const { return m_matrix; }
 	const Vector<int>& GetChild() const { return m_child; }
@@ -137,7 +136,7 @@ struct GLTFMaterial
 	};
 
 	GLTFMaterial()
-		:baseTexture(0)
+		: baseTexture(-1)
 		, metallic(0.0f)
 		, roughness(0.0f)
 		, metalRoughnessTexture(-1)
@@ -149,7 +148,7 @@ struct GLTFMaterial
 		, alphaMode(0)
 		, doubleSided(0)
 	{
-
+		std::memset(padding, 0, sizeof(padding));
 	}
 
 	Vector4 baseColor;		// 16
@@ -260,7 +259,7 @@ public:
 	typedef Channel ChannelGpuObject;
 
 
-	void SetSampler(Vector<Sampler>&& sampler) { m_samplers = std::move(sampler); }
+	void SetSampler(Vector<Sampler>&& sampler) { m_samplers = std::move(sampler); UpdateSampler(); }
 	void SetChannel(Vector<Channel>&& channel) { m_chennels = std::move(channel); }
 
 	const Vector<Sampler>& GetSamplers() const { return m_samplers; }
@@ -268,9 +267,13 @@ public:
 
 	Vector<SamplerGpuObject> CreateSamplerGpuObject();
 	Vector<ChannelGpuObject> CreateChannelGpuObject();
+	float GetMaxTime() const { return m_maxTime; }
 	static void Update(const Vector<GLTFAnimation>& animations, Vector<GLTFNode>& nodes, float time);
 	
 private:
+	void UpdateSampler() { CalcMaxTime(); }
+	void CalcMaxTime();
+	float m_maxTime;
 	Vector<Sampler> m_samplers;
 	Vector<Channel> m_chennels;
 };

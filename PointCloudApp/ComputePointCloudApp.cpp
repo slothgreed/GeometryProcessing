@@ -12,6 +12,7 @@ namespace KI
 ShaderPath CreateTextureComputeShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
 	path.shader[SHADER_PROGRAM_COMPUTE] = "sample\\texture.comp";
 	return path;
 }

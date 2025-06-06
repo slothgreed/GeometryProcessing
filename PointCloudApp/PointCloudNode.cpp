@@ -23,6 +23,7 @@ PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitiv
 	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(this, 3);
 	m_normal = m_pPointCloud->Normal();
 	BuildGLBuffer();
+	SetBoundBox(m_pPointCloud->GetBDB());
 }
 
 PointCloudNode::~PointCloudNode()
@@ -208,6 +209,7 @@ ShaderPath PointCloudNode::Shader::GetShaderPath()
 
 void PointCloudNode::Shader::FetchUniformLocation()
 {
+	m_uImageSize = GetUniformLocation("u_ImageSize");
 	m_uVP = GetUniformLocation("u_VP");
 	m_uPositionNum = GetUniformLocation("u_PositionNum");
 }
@@ -218,18 +220,18 @@ void PointCloudNode::Shader::Execute(const DrawContext& context, const PointClou
 	auto pDepthTarget = context.pResource->GetComputeDepthTarget();
 	Matrix4x4 vp = context.pResource->GetCamera()->Projection() * context.pResource->GetCamera()->ViewMatrix();
 	Use();
-	BarrierImage();
 	if (depthPhase) {
-		BindImage(1, pDepthTarget, GL_WRITE_ONLY);
+		BindShaderStorage(1, pDepthTarget->Handle());
 	} else {
-		BindImage(0, pColorTarget, GL_WRITE_ONLY);
-		BindImage(1, pDepthTarget, GL_READ_ONLY);
+		BindShaderStorage(0, pColorTarget->Handle());
+		BindShaderStorage(1, pDepthTarget->Handle());
 	}
 	BindShaderStorage(2, positionBuffer);
+	BindUniform(m_uImageSize, context.pResource->GL()->GetViewportSize());
 	BindUniform(m_uVP, vp * node.GetMatrix());
 	BindUniform(m_uPositionNum, (int)node.GetData()->Position().size());
 	Dispatch(Vector3(node.GetData()->Position().size() / 256, 1, 1));
-	BarrierImage();
+	BarrierSSBO();
 	UnUse();
 }
 }

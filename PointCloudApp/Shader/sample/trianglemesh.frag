@@ -1,6 +1,6 @@
 #version 450
 #extension GL_NV_fragment_shader_barycentric : enable
-out vec4 FragColor;
+layout(location = 0)out vec4 FragColor;
 
 void main()
 {

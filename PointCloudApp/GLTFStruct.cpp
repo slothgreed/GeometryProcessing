@@ -96,6 +96,25 @@ void GLTFNode::UpdateMatrixRecursive(Vector<GLTFNode>& nodes, int index, const M
 		UpdateMatrixRecursive(nodes, child, node.GetMatrix());
 	}
 }
+
+void GLTFNode::SetScale(const Vector3& local)
+{
+	if (m_scale == local) { return; }
+	m_scale = local; 
+	m_localMatrix = CreateLocalMatrix();
+}
+void GLTFNode::SetRotate(const Matrix4x4& local)
+{
+	if (m_rotate == local) { return; }
+	m_rotate = local;
+	m_localMatrix = CreateLocalMatrix();
+}
+void GLTFNode::SetTranslate(const Vector3& local)
+{
+	if (m_translate == local) { return; }
+	m_translate = local;
+	m_localMatrix = CreateLocalMatrix();
+}
 Vector<GLTFNode::GpuObject> GLTFNode::CreateGpuObject(const Vector<GLTFNode>& nodes, const Vector<GLTFSkin>& skins)
 {
 	Vector<GLTFNode::GpuObject> bufferObject(nodes.size());
@@ -144,6 +163,7 @@ Vector<GLTFAnimation::ChannelGpuObject> GLTFAnimation::CreateChannelGpuObject()
 void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFNode>& nodes, float time)
 {
 	for (const auto& animation : animations) {
+		time = fmod(time, animation.GetMaxTime());
 		for (size_t i = 0; i < animation.GetChannels().size(); i++) {
 			const auto& channel = animation.GetChannels()[i];
 			const auto& sampler = animation.GetSamplers()[channel.sampler];
@@ -179,6 +199,14 @@ void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFN
 				}
 			}
 		}
+	}
+}
+
+void GLTFAnimation::CalcMaxTime()
+{
+	m_maxTime = 0;
+	for (const auto& sampler : m_samplers) {
+		m_maxTime = std::max(sampler.timer[sampler.timer.size() - 1],m_maxTime);
 	}
 }
 

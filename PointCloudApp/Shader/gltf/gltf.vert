@@ -34,26 +34,26 @@ out vec4 f_tangent;
 void main()
 {
 	if (nodes[u_ssboIndex.x].skinId >= 0) {
-		/*
+	
+		/*	
 		mat4 skinMatrix =
 			weight.x * jointMatrix[int(joint.x)] +
 			weight.y * jointMatrix[int(joint.y)] +
 			weight.z * jointMatrix[int(joint.z)] +
 			weight.w * jointMatrix[int(joint.w)];
 		*/
+
 		mat4 skinMatrix =
 			weight.x * GetJointMatrix(skins,0,int(joint.x)) +
 			weight.y * GetJointMatrix(skins,0,int(joint.y)) +
 			weight.z * GetJointMatrix(skins,0,int(joint.z)) +
 			weight.w * GetJointMatrix(skins,0,int(joint.w));
 
-
 		gl_Position = camera.VP * u_Model * nodes[u_ssboIndex.x].matrix * skinMatrix * vec4(position.x, position.y, position.z, 1.0);
 	} else 	{
 		gl_Position = camera.VP * u_Model * nodes[u_ssboIndex.x].matrix * vec4(position.x, position.y, position.z, 1.0);
 	}
 	
-	gl_Position = camera.VP * u_Model * vec4(position.x, position.y, position.z, 1.0);
 	f_worldPos = (u_Model * vec4(position.x,position.y,position.z,1.0)).xyz;
 	f_normal = normal;
 	f_texcoord = texcoord;

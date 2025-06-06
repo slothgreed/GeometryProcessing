@@ -142,6 +142,18 @@ void GLBuffer::GetBufferData(void* value, int memorySize)
 	OUTPUT_GLERROR;
 }
 
+void GLBuffer::Resize(int size, int sizeOfData)
+{
+	if (m_memorySize == size * sizeOfData) { return; }
+	m_memorySize = size * sizeOfData;
+	if (m_handle == 0) {
+		glCreateBuffers(1, &m_handle);
+		OUTPUT_GLERROR;
+	}
+	assert(m_handle != 0);
+	glNamedBufferData(m_handle, m_memorySize, NULL, GL_STATIC_DRAW);
+	OUTPUT_GLERROR;
+}
 void GLBuffer::SetData(unsigned int value)
 {
 	assert(m_handle != 0);

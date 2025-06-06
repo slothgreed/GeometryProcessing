@@ -26,7 +26,7 @@ struct GLTFMaterial
 	float alphaCuttoff;
 	int alphaMode;
 	int doubleSided;
-	float padding[46];
+	float padding[45];
 };
 
 #define CHANNEL_PATH_TRANSLATE 0

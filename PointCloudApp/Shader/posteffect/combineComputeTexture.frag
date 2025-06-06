@@ -2,21 +2,30 @@
 layout (binding = 0) uniform sampler2D u_colorForward;
 layout (binding = 1) uniform sampler2D u_depthForward;
 
-layout (binding = 2) uniform usampler2D u_colorCompute;
-layout (binding = 3) uniform usampler2D u_depthCompute;
+layout(std430, binding = 2) buffer colorImageBuffer
+{
+	uint u_colorCompute[];
+};
+
+layout(std430, binding = 3) buffer depthImageBuffer
+{
+	uint u_depthCompute[];
+};
 
 in vec2 f_texcoord;
-
-out vec4 FragColor;
+uniform ivec2 u_ImageSize;
+layout(location = 0)out vec4 FragColor;
 
 void main()
 {
-	float depthCompute = uintBitsToFloat(texture(u_depthCompute,f_texcoord).r);
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+    uint index = uint(pixel.y * u_ImageSize.x + pixel.x);
+	float depthCompute = uintBitsToFloat(u_depthCompute[index]);
 	float depthForward = texture(u_depthForward,f_texcoord).r;
 	
 	if(depthForward < depthCompute){
 		FragColor = texture(u_colorForward,f_texcoord);
 	}else{
-		FragColor = unpackColor(uintBitsToFloat(texture(u_colorCompute,f_texcoord).r));
+		FragColor = unpackColor(uintBitsToFloat(u_colorCompute[index]));
 	}
 }
