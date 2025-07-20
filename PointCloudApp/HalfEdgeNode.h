@@ -44,11 +44,11 @@ public:
 	HalfEdgeStruct* GetData() { return m_pHalfEdge.get(); }
 	const HalfEdgeStruct* GetData() const { return m_pHalfEdge.get(); }
 
-	const BVH* GetBVH() const { return m_pBVH; }
+	BVH* GetBVH();
 	const MortonCode& GetMorton() const { return m_morton.data; }
 	GLBuffer* GetPositionGpu() const { return m_gpu.position.get(); }
 	GLBuffer* GetFaceIndexGpu() const { return m_gpu.faceIndexBuffer.get(); }
-	GLBuffer* GetBVHGpu() const { return m_gpu.bvh.get(); }
+	GLBuffer* GetBVHGpu();
 protected:
 	virtual void ShowUI(UIContext& ui);
 	virtual void DrawNode(const DrawContext& context);
@@ -107,9 +107,9 @@ private:
 	struct MeshletGpu
 	{
 		Unique<MeshletShader> shader;
-		Unique<GLBuffer> color;
 		Unique<GLBuffer> position;
-		Unique<GLBuffer> culster;
+		Unique<GLBuffer> cluster;
+		Unique<GLBuffer> taskNum; // TaskShaderì‡Ç≈é¿çsÇ∑ÇÈMeshletÇÃêîÇäiî[Çµ,MeshShaderÇ≈èàóùÇ∑ÇÈîzóÒ
 		Unique<GLBuffer> index;
 	};
 
@@ -169,11 +169,17 @@ private:
 			bool visible;
 			int resolute;
 		};
+
+		struct Meshlet
+		{
+			Meshlet() :visible(false), level(7), cullSize(5) {}
+			bool visible;
+			int level;
+			int cullSize;
+		};
 		UI()
 			: visible(true)
 			, visibleBVH(false)
-			, visibleMeshlet(false)
-			, meshlet(0)
 			, visibleMesh(true)
 			, visibleEdge(false)
 			, visibleVertex(false)
@@ -187,10 +193,8 @@ private:
 		}
 		bool visible;
 		bool visibleBVH;
-		bool visibleMeshlet;
 		bool visibleMorton;
 		bool visibleSignedDistanceField;
-		int meshlet;
 		bool visibleMesh;
 		bool visibleEdge;
 		bool visibleVertex;
@@ -198,11 +202,12 @@ private:
 		float normalLength;
 		int vertexValue;
 		int vertexDirection;
+		Meshlet meshlet;
 		Voxel voxel;
 		HeatMethod heatMethod;
 		Poisson poisson;
 	};
-
+	Unique<MeshletProfiler> m_meshletProfiler;
 	Parameter m_vertexParameter;
 	UI m_ui;
 };

@@ -1,0 +1,61 @@
+
+uniform int u_MeshletNum;
+
+
+
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+
+layout(std430, binding  = 2) buffer meshletBuffer
+{
+	Meshlet meshlet[];
+};
+
+layout(std430, binding = 4) buffer taskNumBuffer{
+	uint taskNum[];
+};
+
+TaskNV out Task
+{
+	uint baseID;
+	uint drawID[32];
+}OUT;
+
+uniform mat4 u_Model;
+uniform mat3 u_Normal;
+uniform int u_CullSize;
+void main()
+{
+	/*
+	OUT.baseID = gl_GlobalInvocationID.x;
+	if(dot(u_Normal * meshlet[meshletIndex].normal.xyz,normalize(camera.center.xyz-camera.eye.xyz)) < 0) {
+		gl_TaskCountNV = 1;
+	}else{
+		gl_TaskCountNV = 0;
+	}}
+	*/
+	uint meshletIndex = gl_WorkGroupSize.x * gl_WorkGroupID.x + gl_LocalInvocationID.x;
+	if(meshletIndex < u_MeshletNum)
+	{
+	
+	vec3 viewDir = normalize(camera.center.xyz-camera.eye.xyz);
+	Meshlet data = meshlet[meshletIndex];
+	vec3 meshNormal = u_Normal * data.normal.xyz;
+	if(dot(meshNormal,viewDir) <= 0 && !allCull(data.boxMin.xyz,data.boxMax.xyz, camera.VP * u_Model,camera.viewSize,u_CullSize)) 
+	{
+		uint ret = atomicAdd(taskNum[gl_WorkGroupID.x],1);
+		OUT.drawID[ret] = meshletIndex;
+	}
+	
+	}
+	
+	barrier();
+	memoryBarrierBuffer();
+	if(gl_LocalInvocationID.x == 0){
+		gl_TaskCountNV = taskNum[gl_WorkGroupID.x];
+		OUT.baseID = gl_WorkGroupID.x;
+	}
+}

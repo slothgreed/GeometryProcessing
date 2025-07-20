@@ -4,7 +4,9 @@ struct Camera
 	mat4x4 proj;
 	mat4x4 VP;
 	vec4 eye;
-	float padding[44];
+	vec4 center;
+	vec2 viewSize;
+	float padding[6];
 };
 
 struct Light

@@ -6,6 +6,7 @@ namespace KI
 
 Texture::Texture()
 	:m_handle(0)
+	,m_genMip(false)
 {
 
 }
@@ -33,6 +34,17 @@ void Texture::GetPixel(std::vector<unsigned char>& data)
 	data.resize(m_format.width * m_format.height * GLUtil::GetFormatSize(m_format.format));
 	glGetTexImage(m_format.target, m_format.level, m_format.format, m_format.type, data.data());
 	OUTPUT_GLERROR;
+}
+
+int Texture::CalcMipmapLevel(const Vector2i& resolute)
+{
+	return 1 + static_cast<int>(std::floor(std::log2(std::max(resolute.x, resolute.y))));
+}
+Vector2i Texture::CalcMipmapResolute(const Vector2i& resolute, int mipLevel)
+{
+	return Vector2i(
+		std::max(1, resolute.x >> mipLevel),
+		std::max(1, resolute.y >> mipLevel));
 }
 void Texture::Bind()
 {
@@ -64,6 +76,11 @@ void TextureBuffer::Bind(int bufferId)
 Texture2D::Texture2D()
 {
 	glGenTextures(1, &m_handle);
+}
+
+Texture2D::~Texture2D()
+{
+	Delete();
 }
 
 Texture2D::Texture2D(const Format& format, const Sampler& sampler)
@@ -198,24 +215,138 @@ CubemapTexture::CubemapTexture()
 	glGenTextures(1, &m_handle);
 	OUTPUT_GLERROR;
 }
-void CubemapTexture::Build(const Vector<String>& path)
+
+CubemapTexture::~CubemapTexture()
 {
+	Delete();
+}
+
+void CubemapTexture::Build(const Vector2i& resolute, bool mipmap)
+{
+	m_format.target = GL_TEXTURE_CUBE_MAP;
+	m_format.format = GL_RGB;
+	m_format.internalformat = GL_RGBA32F;
+	m_format.level = 1;
+	if (mipmap) {
+		m_format.level = Texture::CalcMipmapLevel(resolute);
+	}
+
+	glBindTexture(m_format.target, m_handle);
+	OUTPUT_GLERROR;
+
+	for (size_t i = 0; i < 6; i++) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+			0, m_format.internalformat, resolute.x, resolute.y, 0, m_format.format, GL_FLOAT, nullptr);
+	}
+	OUTPUT_GLERROR;
+
+	if (mipmap) {
+		glTexParameteri(m_format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	} else {
+		glTexParameteri(m_format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	glTexParameteri(m_format.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	OUTPUT_GLERROR;
+
+	if (mipmap) {
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	}
+
+}
+void CubemapTexture::Build(const Vector<String>& path, bool mipmap)
+{
+	m_format.target = GL_TEXTURE_CUBE_MAP;
+	m_format.format = GL_RGB;
+	m_format.internalformat = GL_RGB;
+	m_format.level = 1;
 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
+	OUTPUT_GLERROR;
 
 	for (size_t i = 0; i < path.size(); i++) {
 		auto pixelData  = TextureLoader::LoadData(path[i], 0);
 
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-			0, GL_RGB, pixelData->width, pixelData->height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelData->data);
+			0, m_format.internalformat, pixelData->width, pixelData->height, 0, m_format.format, GL_UNSIGNED_BYTE, pixelData->data);
+		m_format.width = pixelData->width;
+		m_format.height = pixelData->height;
+	}
+	OUTPUT_GLERROR;
+
+	if (mipmap) {
+		glTexParameteri(m_format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	} else {
+		glTexParameteri(m_format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+	glTexParameteri(m_format.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	OUTPUT_GLERROR;
+	
+	if (mipmap) {
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	}
+	OUTPUT_GLERROR;
+	
+}
+
+void CubemapTexture::BuildArray(const Vector2i& resolute, bool mipmap)
+{
+	m_format.target = GL_TEXTURE_2D_ARRAY;
+	m_format.internalformat = GL_RGBA32F;
+	m_format.width = resolute.x;
+	m_format.height = resolute.y;
+	m_format.level = 1;
+	if (mipmap) {
+		m_format.level = Texture::CalcMipmapLevel(resolute);
 	}
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(m_format.target, m_handle);
+	OUTPUT_GLERROR;
+
+	glTexStorage3D(m_format.target, m_format.level, m_format.internalformat, resolute.x, resolute.y, 6);
+	OUTPUT_GLERROR;
+
+
+	if (mipmap) {
+		glTexParameteri(m_format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	} else {
+		glTexParameteri(m_format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+
+	glTexParameteri(m_format.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(m_format.target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	OUTPUT_GLERROR;
 
 }
 
+CubemapTexture* CubemapTexture::ConvertCubemap(const CubemapTexture* arr)
+{
+	auto pCubemap = new CubemapTexture();
+	pCubemap->Build(Vector2i(arr->GetFormat().width, arr->GetFormat().height), arr->GetFormat().level > 1);
+	assert(arr->GetFormat().internalformat == pCubemap->GetFormat().internalformat);
+	for (int level = 0; level < arr->GetFormat().level; level++) {
+		float width = std::max(1, arr->GetFormat().width >> level);
+		float height = std::max(1, arr->GetFormat().height >> level);
+		for (int i = 0; i < 6; i++) {
+			glCopyImageSubData(
+				arr->Handle(), GL_TEXTURE_2D_ARRAY, level,
+				0, 0, i,
+				pCubemap->Handle(), GL_TEXTURE_CUBE_MAP, level,
+				0, 0, i,
+				width, height, 1);
+			OUTPUT_GLERROR;
+		}
+	}
+
+
+	return pCubemap;
+}
 
 }

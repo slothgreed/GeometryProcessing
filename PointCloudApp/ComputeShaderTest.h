@@ -20,7 +20,7 @@ private:
 		~Shader() {};
 
 		virtual ShaderPath GetShaderPath() override;
-		virtual Vector3i GetLocalThreadNum() const { return Vector3i(256, 1, 1); }
+		virtual Vector3i GetLocalThreadNum() const { return Vector3i(1024, 1, 1); }
 		void Execute(const Vector<float>& in, Vector<float>& out);
 		virtual void FetchUniformLocation() override;
 	private:
@@ -28,6 +28,21 @@ private:
 		Vector3i m_dimension;
 		GLuint m_uniform;
 	};
+
+	class PrefixSumShader : public IComputeShader
+	{
+	public:
+		PrefixSumShader() {};
+		virtual ~PrefixSumShader() {};
+
+		virtual ShaderPath GetShaderPath() override;
+		virtual Vector3i GetLocalThreadNum() const;
+		void Execute(const Vector<int>& in, Vector<int>& out);
+		virtual void FetchUniformLocation() override;
+	private:
+		GLuint m_num;
+	};
+
 
 };
 }

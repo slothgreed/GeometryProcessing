@@ -1,5 +1,6 @@
 #include "GLTFLoader.h"
 #include <GLTFSDK/GLTFResourceReader.h>
+#include <GLTFSDK/GLBResourceReader.h>
 #include <GLTFSDK/Deserialize.h>
  //Replace this with <filesystem> (and use std::filesystem rather than
  //std::experimental::filesystem) if your toolchain fully supports C++17
@@ -134,6 +135,8 @@ RenderNode* GLTFLoader::Load(const String& name)
 
     auto gltfStream = streamReader->GetInputStream(name);
     auto gltfResourceReader = std::make_unique<GLTFResourceReader>(std::move(streamReader));
+    
+    //auto gltfResourceReader = std::make_unique<GLBResourceReader>(std::move(streamReader), gltfStream);
 
     std::stringstream manifestStream;
 
@@ -165,6 +168,15 @@ RenderNode* GLTFLoader::Load(const String& name)
     return pScene;
 }
 
+GLTFNode::MatrixType Convert(TransformationType type)
+{
+    if (type == TRANSFORMATION_TRS) {
+        return GLTFNode::TRS;
+    } 
+
+    return GLTFNode::Base;
+}
+
 Vector<GLTFNode> GLTFLoader::LoadNode(const Microsoft::glTF::Document* pDocument)
 {
     Vector<GLTFNode> nodes(pDocument->nodes.Size());
@@ -173,6 +185,7 @@ Vector<GLTFNode> GLTFLoader::LoadNode(const Microsoft::glTF::Document* pDocument
         nodes[i].SetRotate(Convert(pDocument->nodes[i].rotation));
         nodes[i].SetScale(Convert(pDocument->nodes[i].scale));
         nodes[i].SetTranslate(Convert(pDocument->nodes[i].translation));
+        nodes[i].SetMatrixType(Convert(pDocument->nodes[i].GetTransformationType()));
         nodes[i].SetBaseMatrix(Convert(pDocument->nodes[i].matrix));
         nodes[i].SetSkinId(ConvertIndex(pDocument->nodes[i].skinId));
         nodes[i].SetMeshId(ConvertIndex(pDocument->nodes[i].meshId));
@@ -292,7 +305,8 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
         Vector4 weight;
     };
 
-    Vector<unsigned short> indexBuffer;
+    Vector<unsigned short> ushortBuffer;
+    Vector<unsigned int> uintBuffer;
     Vector<Vertex> vertexBuffer;
     size_t vertexOffset = 0;
     bool hasPosition = false;
@@ -311,17 +325,25 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
             primitives[j].primitiveType = ConvertPrimitiveType(gltfMesh.primitives[j].mode);
             primitives[j].materialIndex = StringToInt(gltfMesh.primitives[j].materialId);
             primitives[j].drawNum = indices.count;
-            primitives[j].drawOffset = drawOffset * sizeof(unsigned short);
+            if (indices.componentType == DATA_USHORT) {
+                primitives[j].drawOffset = drawOffset * sizeof(unsigned short);
+            } else if (indices.componentType == DATA_UINT) {
+                primitives[j].drawOffset = drawOffset * sizeof(unsigned int);
+            }
             primitives[j].baseVertex = vertexBuffer.size();
             drawOffset += indices.count;
             if (indices.componentType == DATA_USHORT) {
                 const auto& binary = pResource->ReadBinaryData<unsigned short>(*pDocument, indices);
-                indexBuffer.insert(
-                    indexBuffer.end(),
+                ushortBuffer.insert(
+                    ushortBuffer.end(),
                     std::make_move_iterator(binary.begin()),
                     std::make_move_iterator(binary.end()));
             } else {
-                assert(0);
+                const auto& binary = pResource->ReadBinaryData<unsigned int>(*pDocument, indices);
+                uintBuffer.insert(
+                    uintBuffer.end(),
+                    std::make_move_iterator(binary.begin()),
+                    std::make_move_iterator(binary.end()));
             }
 
             if (gltfMesh.primitives[j].HasAttribute("POSITION")) {
@@ -399,7 +421,14 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
     }
 
     auto pIndexBuffer = std::make_unique<GLBuffer>();
-    pIndexBuffer->Create(indexBuffer);
+    if (ushortBuffer.size() != 0 && uintBuffer.size() != 0) {
+        assert(0);
+    }
+    if (ushortBuffer.size() != 0) {
+        pIndexBuffer->Create(ushortBuffer);
+    } else if(uintBuffer.size() != 0) {
+        pIndexBuffer->Create(uintBuffer);
+    }
 
     auto pVertexBuffer = std::make_unique<GLBuffer>();
     pVertexBuffer->Create<Vertex>(vertexBuffer);

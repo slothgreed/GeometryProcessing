@@ -81,10 +81,22 @@ public:
 	bool ReadLine(String& contents);
 	void ReadAll(String& contents);
 	int ReadInt();
+	Vector<int> ReadInt(int num);
 	float ReadFloat();
 	vec2 ReadVec2();
 	Vector3 ReadVec3();
 	vec4 ReadVec4();
+	template <typename T>
+	Vector<T> ReadStruct(int num)
+	{
+		static_assert(std::is_trivially_copyable<T>::value, "T must be trivially copyable");
+		static_assert(std::is_standard_layout<T>::value, "T must have standard layout");
+
+		Vector<T> data(num);
+		m_fileStream.read(reinterpret_cast<char*>(data.data()), sizeof(T) * num);
+		return data;
+	}
+
 	bool EndOfFile();
 	void Close();
 private:

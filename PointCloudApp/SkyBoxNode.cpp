@@ -54,10 +54,11 @@ void SkyBoxNode::Shader::SetTexcoord(GLBuffer* pTexcoord)
 	glBindVertexBuffer(ATTRIB_TEXCOORD, pTexcoord->Handle(), 0, pTexcoord->SizeOfData());
 }
 
-SkyBoxNode::SkyBoxNode()
+SkyBoxNode::SkyBoxNode(const Vector3& scale)
 	: RenderNode("SkyBox")
 	, m_pShader(nullptr)
 	, m_pCubemap(nullptr)
+	, m_scale(scale)
 {
 }
 
@@ -79,7 +80,7 @@ Vector<String> SkyBoxNode::GetTexturePath()
 	return path;
 }
 
-void SkyBoxNode::BuildGLBuffer()
+void SkyBoxNode::BuildResource()
 {
 	if (m_skybox != nullptr) { return; }
 	m_skybox = std::make_unique<SkyBox>();
@@ -94,13 +95,13 @@ void SkyBoxNode::BuildGLBuffer()
 }
 void SkyBoxNode::Draw(const DrawContext& context)
 {
-	BuildGLBuffer();
+	BuildResource();
 	context.pResource->GL()->EnableCullFace();
 	m_pShader->Use();
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetTexture(m_pCubemap.get());
-	m_pShader->SetModel(glmUtil::CreateScale(30000));
+	m_pShader->SetModel(glmUtil::CreateScale(m_scale));
 	m_pShader->DrawArray(m_skybox->GetDrawType(), m_pPositionBuffer->Num());
 }
 

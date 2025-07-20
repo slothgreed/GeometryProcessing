@@ -16,7 +16,7 @@ public:
 	void Output();
 	float GetFPS();
 	float GetMilli();
-
+	float GetUsage();
 private:
 	LARGE_INTEGER m_freq;
 	LARGE_INTEGER m_start;
@@ -32,6 +32,7 @@ public:
 	void Start();
 	void Stop();
 	float GetFPS();
+	float GetUsage();
 
 private:
 	String m_name;

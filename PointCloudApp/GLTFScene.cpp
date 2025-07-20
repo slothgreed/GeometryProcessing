@@ -95,7 +95,7 @@ void GLTFScene::ShowUI(UIContext& ui)
 
 	static Vector<String> itemList =
 	{
-		"None", "Color","Normal","Roughness","Occlusion","Emissive","F","G","D"
+		"None", "Color","Normal","Roughness","Occlusion","Emissive","F","G","D","IBL"
 	};
 
 	float scale = GetScale();
@@ -132,13 +132,18 @@ void GLTFScene::DrawNode(const DrawContext& context)
 		m_pShader->Build();
 		CreateMaterialBuffer();
 	}
+
 	m_pShader->Use();
+	m_pShader->SetPBRResource(context.pResource->GetPBRBuffer());
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetLight(context.pResource->GetLightBuffer());
 	m_pShader->SetModel(GetMatrix());
 	m_pShader->SetNodeBuffer(m_gpu.nodeBuffer);
 	m_pShader->SetMaterialBuffer(m_gpu.materialBuffer);
 	m_pShader->BindDebugView(m_debugView);
+	m_pShader->BindBRDF(*context.pResource->GetPBR()->GetBRDFLUT());
+	m_pShader->BindIrradiance(*context.pResource->GetPBR()->GetIrradiance());
+	m_pShader->BindPrefilter(*context.pResource->GetPBR()->GetPrefiltered());
 	if (m_gpu.skinBuffer) {
 		m_pShader->SetSkinBuffer(m_gpu.skinBuffer);
 	}

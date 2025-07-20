@@ -74,7 +74,7 @@ void MeshShaderTest::TriangleShader::Draw(const GpuObject& gpu)
 	BindShaderStorage(0, gpu.position->Handle());
 	BindShaderStorage(1, gpu.index->Handle());
 	BindShaderStorage(2, gpu.meshlet->Handle());
-	DrawMeshTasks(0, gpu.meshlet->Num());
+	IMeshShader::Draw(0, gpu.meshlet->Num());
 	UnUse();
 }
 

@@ -1,0 +1,43 @@
+
+layout(std430, binding = 3) buffer Chunk{
+	uint chunk[];
+};
+
+uniform int u_gridNum;
+uniform int u_blockNum;
+void main() {
+#ifdef PHASE_1
+	int id = int(gl_GlobalInvocationID.x);
+	if(id * u_blockNum >= u_gridNum){return;}
+	setOffset(grids[id * u_blockNum],0);
+	for(int i = 1; i < u_blockNum; i++) {
+		int index = id * u_blockNum + i;
+		if(index >= u_gridNum){return;}
+		Grid g = grids[index - 1];
+		setOffset(grids[index], getOffset(g) + getNum(g));
+	}
+#endif 
+
+#ifdef PHASE_2
+	int id = int(gl_GlobalInvocationID.x);
+	if(id >= u_gridNum){return;}
+	chunk[0] = 0;
+	for(int i = 1; i < u_blockNum; i++) {
+		int index = i * u_blockNum;
+		if(index >= u_gridNum){return;}
+		Grid g = grids[index - 1];
+		chunk[i] = getOffset(g) + getNum(g) + chunk[i - 1];
+	}
+#endif
+
+#ifdef PHASE_3
+	int id = int(gl_GlobalInvocationID.x);
+	if(id * u_blockNum >= u_gridNum){return;}
+	
+	for(int i = 0; i < u_blockNum; i++) {
+		int index = id * u_blockNum + i;
+		if(index >= u_gridNum){return;}
+		setOffset(grids[index], getOffset(g) + chunk[id]);
+	}
+#endif
+}

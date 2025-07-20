@@ -35,6 +35,9 @@ void ShaderTable::Build()
 	m_pTextureViewShader = std::make_shared<TextureViewShader>();
 	m_pTextureViewShader->Build();
 
+	m_pCubemapViewShader = std::make_shared<CubemapViewShader>();
+	m_pCubemapViewShader->Build();
+
 	m_pVertexVectorShader = std::make_shared<VertexVectorShader>();
 	m_pVertexVectorShader->Build();
 }

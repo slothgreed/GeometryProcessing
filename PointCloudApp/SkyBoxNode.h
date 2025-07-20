@@ -36,17 +36,19 @@ public:
 
 
 
-	SkyBoxNode();
+	SkyBoxNode(const Vector3& scale);
 	~SkyBoxNode();
 
 	virtual void Draw(const DrawContext& context);
 	Vector<String> GetTexturePath();
-private:
-	void BuildGLBuffer();
 
+	CubemapTexture* GetCubemapTexture() { return m_pCubemap.get(); }
+	void BuildResource();
+private:
+	Vector3 m_scale;
 	Unique<SkyBox> m_skybox;
 	Unique<GLBuffer> m_pPositionBuffer;
-	Unique<CubemapTexture> m_pCubemap;;
+	Unique<CubemapTexture> m_pCubemap;
 	Unique<SkyBoxNode::Shader> m_pShader;
 };
 

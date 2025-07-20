@@ -1,0 +1,48 @@
+
+
+
+void main()
+{
+	int index = int(gl_GlobalInvocationID.x);
+	if(index >= u_particleNum){return;}
+	
+	addVelocity(particles[index], gravity * DT);
+	addPosition(particles[index], getVelocity(particles[index]) * DT);
+	
+	if (particles[index].position.x < u_spaceMin.x)
+	{
+		particles[index].position.x = u_spaceMin.x;
+		particles[index].velocity.x *= -0.5;
+	}
+	
+	if (particles[index].position.y < u_spaceMin.y)
+	{
+		particles[index].position.y = u_spaceMin.y;
+		particles[index].velocity.y *= -0.5;
+	}
+	
+	if (particles[index].position.z < u_spaceMin.z)
+	{
+		particles[index].position.z = u_spaceMin.z;
+		particles[index].velocity.z *= -0.5;
+	}
+	
+	
+	if (particles[index].position.x > u_spaceMax.x)
+	{
+		particles[index].position.x = u_spaceMax.x;
+		particles[index].velocity.x *= -0.5;
+	}
+	
+	if (particles[index].position.y > u_spaceMax.y)
+	{
+		particles[index].position.y = u_spaceMax.y;
+		particles[index].velocity.y *= -0.5;
+	}
+	
+	if (particles[index].position.z > u_spaceMax.z)
+	{
+		particles[index].position.z = u_spaceMax.z;
+		particles[index].velocity.z *= -0.5;
+	}
+} 

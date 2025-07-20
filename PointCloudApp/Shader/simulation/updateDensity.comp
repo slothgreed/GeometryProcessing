@@ -1,0 +1,36 @@
+
+
+float Poly6FromR2(float r, float h)
+{
+    if (r >= 0 && r <= h) {
+        float x = (h * h - r * r);
+        return 315.0f / (64.0f * PI * pow(h, 9)) * x * x * x;
+    } else {
+        return 0.0f;
+    }
+}
+
+void main()
+{
+	int index = int(gl_GlobalInvocationID.x);
+	if(index >= u_particleNum){return;}
+	vec3 pressure_force(0.0);
+	vec3 position = getPosition(m_particles[index]);
+	
+	ivec3 minCell = getCellID(p - RADIUS);
+    ivec3 maxCell = getCellID(p + RADIUS);
+
+	for (int x = minCell.x; x <= maxCell.x; x++)
+    for (int y = minCell.y; y <= maxCell.y; y++)
+    for (int z = minCell.z; z <= maxCell.z; z++) {
+        if (x < 0 || y < 0 || z < 0) { continue; }
+        if (x >= m_cellNum.x || y >= m_cellNum.y || z >= m_cellNum.z) { continue; }
+
+        vec3 center = getCellCenter(ivec3(x, y, z));
+        float dist2 = glm::length2(center - p);
+        if (dist2 < RADIUS2) {
+			addDensity(ToIndex1D(ivec3(x,y,z)),Poly6FromR2(dist2,RADIUS2));
+        }
+    }
+} 
+

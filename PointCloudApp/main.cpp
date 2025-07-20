@@ -3,9 +3,12 @@
 #include "ComputePointCloudApp.h"
 #include "ComputeShaderTest.h"
 #include "MeshShaderTest.h"
+
+#include <random>
+
 int main()
 {
-	//KI::ComputeShaderTest app;
+    //KI::ComputeShaderTest app;
 	//KI::ComputePointCloudApp app;
 	KI::PointCloudApp app;
 	//KI::MeshShaderTest app;

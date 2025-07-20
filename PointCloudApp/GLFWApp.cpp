@@ -118,14 +118,13 @@ void GLFWApp::Initialize()
 	// OpenGLバージョンとGLSLバージョンの確認
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-
+	std::cout << "Driver version: " << glGetString(GL_RENDERER) << std::endl;
 	g_instance = this;
 	glfwSetCursorPosCallback(m_window, CursorPosCallBack);
 	glfwSetMouseButtonCallback(m_window, MouseButtonCallBack);
 	glfwSetScrollCallback(m_window, ScrollCallBack);
 	glfwSetWindowSizeCallback(m_window, WindowSizeCallBack);
 	glfwSwapInterval(0);
-
 
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();

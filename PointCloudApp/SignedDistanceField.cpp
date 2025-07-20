@@ -230,7 +230,7 @@ void SignedDistanceField::Shader::FetchUniformLocation()
 
 }
 
-void SignedDistanceField::Shader::Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer)
+void SignedDistanceField::Shader::Execute(HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer)
 {
 	auto bdb = pNode->GetBoundBox();
 	auto diag = bdb.Max() - bdb.Min();

@@ -324,6 +324,15 @@ bool FileReader::ReadLine(String& contents)
 	}
 }
 
+Vector<int> FileReader::ReadInt(int num)
+{
+	Vector<int> data(num);
+	assert(m_fileStream.is_open());
+	m_fileStream.read((char*)data.data(), sizeof(int) * num);
+	return data;
+
+}
+
 int FileReader::ReadInt()
 {
 	assert(m_fileStream.is_open());

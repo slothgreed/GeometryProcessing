@@ -382,20 +382,41 @@ ShaderPath TextureViewShader::GetShaderPath()
 
 void TextureViewShader::FetchUniformLocation()
 {
-	m_uniform[UNIFORM::TEXTURE] = GetUniformLocation("tex");
+	m_uTexture = GetUniformLocation("tex");
 }
 
 void TextureViewShader::BindTexture(const Texture& texture)
 {
-	IShadingShader::BindTexture(m_uniform[UNIFORM::TEXTURE], 0, texture);
-	/*
-	glActiveTexture(GL_TEXTURE0);
-	OUTPUT_GLERROR;
-	glUniform1i(m_uniform[UNIFORM::TEXTURE], 0);
-	OUTPUT_GLERROR;
-	glBindTexture(GL_TEXTURE_2D, texture.Handle());
-	OUTPUT_GLERROR;
-	*/
+	IShadingShader::BindTexture(m_uTexture, 0, texture);
+}
+
+
+ShaderPath CubemapViewShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+
+	path.shader[SHADER_PROGRAM_VERTEX] = "posteffect\\posteffect.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "posteffect\\viewcubemap.frag";
+
+	return path;
+}
+
+void CubemapViewShader::FetchUniformLocation()
+{
+	m_uCubeMap = GetUniformLocation("uCubemap");
+	m_uMipmap = GetUniformLocation("uMipmap");
+}
+
+void CubemapViewShader::BindTexture(const CubemapTexture& texture)
+{
+	BindCubemap(m_uCubeMap, 0, texture);
+}
+
+void CubemapViewShader::BindMipmapLevel(int level)
+{
+	BindUniform(m_uMipmap, level);
 }
 
 }

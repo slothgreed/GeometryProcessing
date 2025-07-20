@@ -100,8 +100,29 @@ const glm::ivec4& GLAPIExt::GetMaxComputeLocalSize()
 		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &m_maxComputeLocalSize.w);
 	}
 
+	GetMeshletMaxVertex();
+	GetMeshletMaxPrimitive();
+
 	return m_maxComputeLocalSize;
 
+}
+
+int GLAPIExt::GetMeshletMaxVertex()
+{
+	if (m_meshletMaxVertex == 0) {
+		glGetIntegerv(GL_MAX_MESH_OUTPUT_VERTICES_NV, &m_meshletMaxVertex);
+	}
+
+	return m_meshletMaxVertex;
+}
+
+int GLAPIExt::GetMeshletMaxPrimitive()
+{
+	if (m_meshletMaxPrimitive == 0) {
+		glGetIntegerv(GL_MAX_MESH_OUTPUT_PRIMITIVES_NV, &m_meshletMaxPrimitive);
+	}
+	
+	return m_meshletMaxPrimitive;
 }
 
 GLAPIExt* g_instance = nullptr;

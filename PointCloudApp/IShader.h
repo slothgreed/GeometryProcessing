@@ -11,11 +11,13 @@ namespace KI
 {
 class RenderTarget;
 class Texture;
+class CubemapTexture;
 enum SHADER_PROGRAM
 {
 	SHADER_PROGRAM_VERTEX,
 	SHADER_PROGRAM_GEOM,
 	SHADER_PROGRAM_FRAG,
+	SHADER_PROGRAM_TASK,
 	SHADER_PROGRAM_MESH,
 	SHADER_PROGRAM_COMPUTE
 };
@@ -72,6 +74,7 @@ public:
 	virtual void SetModel(const Matrix4x4& value) { assert(0); };
 	virtual int GetDrawTargetNum() const { return 1; }
 	void BindTexture(int location, int unit, const Texture& texture);
+	void BindCubemap(int location, int unit, const CubemapTexture& texture);
 	void BindIndexBuffer(const GLBuffer* pBuffer);
 	void SetVertexFormat(const VertexFormats& format);
 	void SetVertexFormat(const VertexFormat& format);
@@ -105,6 +108,7 @@ public:
 	void Dispatch(GLuint x, GLuint y, GLuint z);
 	void Dispatch(const Vector3i& value);
 	void BindTexture(int location, const Texture* pTexture, GLuint access);
+	void BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access);
 	void BarrierImage();
 	void BarrierSSBO();
 
@@ -130,10 +134,17 @@ public:
 	IMeshShader() {};
 	virtual ~IMeshShader() {};
 
+	virtual int GetTaskThreadNum() const { return 1; }
+	virtual int GetMeshThreadNum() const { return 1; }
+	virtual int GetMaxVertices() const;
+	virtual int GetMaxPrimitives() const;
+	int GetDispatchNum(int num);
+	void BarrierSSBO();
 	virtual void FetchUniformLocation() {};
 	virtual void Build();
 
-	void DrawMeshTasks(int first, int count);
+	void Draw(int first, int count);
+	void DrawWithAutoTask(int first, int count);
 private:
 
 };

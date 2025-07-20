@@ -12,6 +12,7 @@ class PrimitiveColorShader;
 class InstancedPrimitiveShader;
 class PointPickShader;
 class TextureViewShader;
+class CubemapViewShader;
 class ShaderTable
 {
 public:
@@ -31,6 +32,8 @@ public:
 	const Shared<PointPickShader>& GetPointPickByID() const { return m_pPointPickByID; }
 	const Shared<TextureShader>& GetTextureUINTShader() const { return m_pTextureUINTShader; }
 	const Shared<TextureViewShader>& GetTextureViewShader() const { return m_pTextureViewShader; }
+	const Shared<CubemapViewShader>& GetCubemapViewShader() const { return m_pCubemapViewShader; }
+
 private:
 	Shared<FaceShader> m_pFaceShader;
 	Shared<VertexVectorShader> m_pVertexVectorShader;
@@ -43,6 +46,8 @@ private:
 	Shared<TextureShader> m_pTextureShader;
 	Shared<TextureShader> m_pTextureUINTShader;
 	Shared<TextureViewShader> m_pTextureViewShader;
+	Shared<CubemapViewShader> m_pCubemapViewShader;
+
 };
 }
 

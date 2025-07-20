@@ -1,4 +1,5 @@
 #include "Profiler.h"
+#include <nvml.h>
 namespace KI
 {
 CPUProfiler::CPUProfiler()
@@ -34,14 +35,36 @@ float CPUProfiler::GetMilli()
 	return static_cast<double>(m_end.QuadPart - m_start.QuadPart) * 1000.0 / m_freq.QuadPart;
 }
 
+float CPUProfiler::GetUsage()
+{
+	static FILETIME prevIdleTime, prevKernelTime, prevUserTime;
+	FILETIME idleTime, kernelTime, userTime;
+
+	if (!GetSystemTimes(&idleTime, &kernelTime, &userTime)) return 0.0f;
+
+	ULONGLONG idle = *((ULONGLONG*)&idleTime) - *((ULONGLONG*)&prevIdleTime);
+	ULONGLONG kernel = *((ULONGLONG*)&kernelTime) - *((ULONGLONG*)&prevKernelTime);
+	ULONGLONG user = *((ULONGLONG*)&userTime) - *((ULONGLONG*)&prevUserTime);
+
+	ULONGLONG total = kernel + user;
+
+	prevIdleTime = idleTime;
+	prevKernelTime = kernelTime;
+	prevUserTime = userTime;
+
+	return total ? (100.0f * (total - idle) / total) : 0.0f;
+}
 GPUProfiler::GPUProfiler(const String& name)
 {
 	glGenQueries(1, &m_handle);
+
+	nvmlInit();
 }
 
 GPUProfiler::~GPUProfiler()
 {
 	glGenQueries(1, &m_handle);
+	nvmlShutdown();
 }
 
 void GPUProfiler::Start()
@@ -64,6 +87,17 @@ void GPUProfiler::Stop()
 	m_fps = nanoTime / 1000000;
 	//printf(m_name.data());
 	//printf("%lf mili second \n", (double)nanoTime / 1000000);
+}
+
+float GPUProfiler::GetUsage()
+{
+	nvmlDevice_t device;
+	nvmlDeviceGetHandleByIndex(0, &device);
+
+	nvmlUtilization_t utilization;
+	nvmlDeviceGetUtilizationRates(device, &utilization);
+
+	return utilization.gpu; // 使用率（%）
 }
 
 float GPUProfiler::GetFPS()

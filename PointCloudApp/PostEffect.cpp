@@ -13,6 +13,14 @@ void TextureDrawer::Execute(const DrawContext& context, const Texture* pTexture)
 	pShader->Draw(*context.pResource->GetTexturePlane());
 }
 
+void TextureDrawer::Execute(const DrawContext& context, const CubemapTexture* pTexture, int mipmap)
+{
+	auto pShader = context.pResource->GetShaderTable()->GetCubemapViewShader();
+	pShader->Use();
+	pShader->BindMipmapLevel(mipmap);
+	pShader->BindTexture(*pTexture);
+	pShader->Draw(*context.pResource->GetTexturePlane());
+}
 RenderTextureNode::RenderTextureNode()
 {
 	BuildGLBuffer();

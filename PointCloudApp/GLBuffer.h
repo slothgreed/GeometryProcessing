@@ -44,6 +44,7 @@ public:
 	{
 		BufferSubData(DATA_UNKNOWN, (int)value.size(), sizeof(T), value.data());
 	}
+	void GetBufferData(Vector<unsigned int>& value);
 	void GetBufferData(Vector<int>& value);
 	void GetBufferData(Vector<float>& value);
 	void GetBufferData(Vector<Vector3>& value);

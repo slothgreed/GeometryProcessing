@@ -25,6 +25,8 @@ public:
 	~TextureDrawer() {};
 
 	static void Execute(const DrawContext& context, const Texture* pTexture);
+	static void Execute(const DrawContext& context, const CubemapTexture* pTexture, int mipmap);
+
 private:
 
 };

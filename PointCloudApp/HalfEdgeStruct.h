@@ -37,6 +37,7 @@ public:
 		Num
 	};
 
+	static HalfEdgeStruct* DeepCopy(const HalfEdgeStruct& halfEdge);
 	static String ToString(HalfEdgeStruct::VertexValue param);
 	static const char* const* GetVertexValueString();
 	static const char* const* GetVertexDirectionString();

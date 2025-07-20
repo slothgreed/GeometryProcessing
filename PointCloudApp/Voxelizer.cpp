@@ -428,7 +428,7 @@ void Voxelizer::MeshShader::Draw(int camera, const Matrix4x4& matrix, const BDB&
 	BindUniform(m_uniform[UNIFORM::ARRAYSIZE], voxelBuffer->Num());
 	BindShaderStorage(0, camera);
 	BindShaderStorage(1, voxelBuffer->Handle());
-	DrawMeshTasks(0, voxelBuffer->Num());
+	IMeshShader::Draw(0, voxelBuffer->Num());
 	UnUse();
 }
 

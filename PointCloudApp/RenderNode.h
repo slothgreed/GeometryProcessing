@@ -86,6 +86,7 @@ public:
 		m_rotate = Vector3(0.0f);
 		m_translate = Vector3(0.0f);
 		m_matrix = Matrix4x4(1.0f); 
+		m_normalMatrix = Matrix3x3(1.0f);
 	};
 	RenderNode(const String& name, const Matrix4x4& matrix) : m_name(name), m_matrix(matrix) {}
 	virtual ~RenderNode() {};
@@ -98,8 +99,9 @@ public:
 	virtual void CollectPicked(PickResult& result);
 	virtual void Update(float time);
 	const Matrix4x4& GetMatrix() const { return m_matrix; }
+	const Matrix3x3& GetNormalMatrix() const { return m_normalMatrix; }
 	void SetMatrix(float scale, const Vector3& rotate, const Vector3& translate);
-	void SetMatrix(const Matrix4x4& mat) { m_matrix = mat; }
+	void SetMatrix(const Matrix4x4& matrix);
 	void SetScale(float scale) { m_scale = scale; UpdateModelMatrix(); }
 	void SetRotate(const Vector3& rotate) { m_rotate = rotate; UpdateModelMatrix(); }
 	void SetRotateAngle(const Vector3& rotate);
@@ -132,6 +134,7 @@ private:
 	Vector3 m_rotate;
 	Vector3 m_translate;
 	Matrix4x4 m_matrix;
+	Matrix3x3 m_normalMatrix;
 	BDB m_bdb;
 	std::unordered_map<String, Shared<RenderNode>> m_child;
 };

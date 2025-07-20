@@ -19,65 +19,66 @@ ShaderPath GLTFShader::GetShaderPath()
 void GLTFShader::BindBaseColor(const Texture& texture)
 {
 	assert(texture.Type() == TEXTURE_2D);
-	glBindTextureUnit(0, texture.Handle());
-	glUniform1i(m_uniform[UNIFORM::COLOR_TEXTURE], 0);
-	OUTPUT_GLERROR;
+	BindTexture(m_uColorTexture, 0, texture);
 }
 void GLTFShader::BindNormal(const Texture& texture)
 {
-	assert(texture.Type() == TEXTURE_2D);
-	glBindTextureUnit(1, texture.Handle());
-	glUniform1i(m_uniform[UNIFORM::NORMAL_TEXTURE], 1);
-	OUTPUT_GLERROR;
+	BindTexture(m_uNormalTexture, 1, texture);
 }
 void GLTFShader::BindMetalRoughness(const Texture& texture)
 {
-	assert(texture.Type() == TEXTURE_2D);
-	glBindTextureUnit(2, texture.Handle());
-	glUniform1i(m_uniform[UNIFORM::METAL_ROUGHNESS_TEXTURE], 2);
-	OUTPUT_GLERROR;
+	BindTexture(m_uMetalRoughnessTexture, 2, texture);
 }
 
 void GLTFShader::BindOcclusion(const Texture& texture)
 {
-	assert(texture.Type() == TEXTURE_2D);
-	glBindTextureUnit(3, texture.Handle());
-	glUniform1i(m_uniform[UNIFORM::OCCLUSION_TEXTURE], 3);
-	OUTPUT_GLERROR;
+	BindTexture(m_uOcclusionTexture, 3, texture);
 }
 void GLTFShader::BindEmissive(const Texture& texture)
 {
-	assert(texture.Type() == TEXTURE_2D);
-	glBindTextureUnit(4, texture.Handle());
-	glUniform1i(m_uniform[UNIFORM::EMISSIVE_TEXTURE], 4);
-	OUTPUT_GLERROR;
+	BindTexture(m_uEmissiveTexture, 4, texture);
+}
+
+void GLTFShader::BindBRDF(const Texture& texture)
+{
+	BindTexture(m_uBRDF, 5, texture);
+}
+void GLTFShader::BindIrradiance(const CubemapTexture& texture)
+{
+	BindCubemap(m_uIrradiance, 6, texture);
+}
+void GLTFShader::BindPrefilter(const CubemapTexture& texture)
+{
+	BindCubemap(m_uPrefilter, 7, texture);
 }
 void GLTFShader::BindBufferIndex(int matrix, int material)
 {
-	GLint vec[2] = { matrix, material };
-	glUniform2iv(m_uniform[UNIFORM::SSBO_INDEX], 1, vec);
+	BindUniform(m_uSSBOIndex, Vector2i(matrix, material));
 }
 
 void GLTFShader::BindDebugView(int value)
 {
-	glUniform1i(m_uniform[UNIFORM::DEBUG_VIEW], value);
+	BindUniform(m_uDebugView, value);
 }
 
 void GLTFShader::FetchUniformLocation()
 {
-	m_uniform[UNIFORM::MODEL] = glGetUniformLocation(Handle(), "u_Model");
-	m_uniform[UNIFORM::SSBO_INDEX] = glGetUniformLocation(Handle(), "u_ssboIndex");
-	m_uniform[UNIFORM::COLOR_TEXTURE] = glGetUniformLocation(Handle(), "u_colorTexture");
-	m_uniform[UNIFORM::NORMAL_TEXTURE] = glGetUniformLocation(Handle(), "u_normalTexture");
-	m_uniform[UNIFORM::METAL_ROUGHNESS_TEXTURE] = glGetUniformLocation(Handle(), "u_metalRoughnessTexture");
-	m_uniform[UNIFORM::OCCLUSION_TEXTURE] = glGetUniformLocation(Handle(), "u_occlusionTexture");
-	m_uniform[UNIFORM::EMISSIVE_TEXTURE] = glGetUniformLocation(Handle(), "u_emissiveTexture");
-	m_uniform[UNIFORM::DEBUG_VIEW] = glGetUniformLocation(Handle(), "u_debugView");
+	m_uModel = GetUniformLocation("u_Model");
+	m_uSSBOIndex = GetUniformLocation("u_ssboIndex");
+	m_uColorTexture = GetUniformLocation("u_colorTexture");
+	m_uNormalTexture = GetUniformLocation("u_normalTexture");
+	m_uMetalRoughnessTexture = GetUniformLocation("u_metalRoughnessTexture");
+	m_uOcclusionTexture = GetUniformLocation("u_occlusionTexture");
+	m_uEmissiveTexture = GetUniformLocation("u_emissiveTexture");
+	m_uDebugView = GetUniformLocation("u_debugView");
+	m_uPrefilter = GetUniformLocation("u_prefilter");
+	m_uIrradiance = GetUniformLocation("u_irradiance");
+	m_uBRDF = GetUniformLocation("u_brdf");
 }
 
 void GLTFShader::SetModel(const Matrix4x4& value)
 {
-	glUniformMatrix4fv(m_uniform[UNIFORM::MODEL], 1, GL_FALSE, &value[0][0]);
+	BindUniform(m_uModel, value);
 }
 
 void GLTFShader::SetCamera(const GLBuffer* pBuffer)
@@ -103,6 +104,11 @@ void GLTFShader::SetNodeBuffer(const GLBuffer* pBuffer)
 void GLTFShader::SetSkinBuffer(const GLBuffer* pBuffer)
 {
 	BindShaderStorage(5, pBuffer->Handle());
+}
+
+void GLTFShader::SetPBRResource(const GLBuffer* pBuffer)
+{
+	BindShaderStorage(6, pBuffer->Handle());
 }
 
 void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)

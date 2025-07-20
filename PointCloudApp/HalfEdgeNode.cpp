@@ -16,12 +16,12 @@ namespace KI
 HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pStruct)
 	: RenderNode(name)
 	, m_pHalfEdge(pStruct)
+	, m_pBVH(nullptr)
+	, m_pVoxelizer(nullptr)
+	, m_pSignedDistanceField(nullptr)
+	, m_pShapeDiameterFunction(nullptr)
 
 {
-	m_pShapeDiameterFunction = new ShapeDiameterFunction(this);
-	m_pVoxelizer = new Voxelizer(this);
-	m_pBVH = new BVH(this);
-	m_pSignedDistanceField = new SignedDistanceField(this);
 
 	BuildGLBuffer();
 	SetBoundBox(pStruct->CreateBDB());
@@ -34,7 +34,6 @@ HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pSt
 
 	m_pickIds.vertex.begin = m_pickIds.face.num + m_pickIds.edge.num;
 	m_pickIds.vertex.num = m_pHalfEdge->GetVertexNum();
-	BuildBVH();
 }
 
 HalfEdgeNode::~HalfEdgeNode()
@@ -114,8 +113,25 @@ void HalfEdgeNode::BuildMorton()
 	m_morton.gpuColor->Create(color);
 }
 
+BVH* HalfEdgeNode::GetBVH()
+{
+	if (m_pBVH == nullptr) {
+		BuildBVH();
+	}
+	return m_pBVH;
+}
+GLBuffer* HalfEdgeNode::GetBVHGpu()
+{
+	if (m_pBVH == nullptr) {
+		BuildBVH();
+	}
+
+	return m_gpu.bvh.get();
+}
 void HalfEdgeNode::BuildBVH()
 {
+	if (m_pBVH) { return; }
+	m_pBVH = new BVH(this);
 	BuildMorton();
 	m_pBVH->Execute();
 	m_gpu.bvh = std::make_unique<GLBuffer>();
@@ -127,61 +143,67 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 {
 	if (!m_ui.visible) { return; }
 	auto pResource = context.pResource;
-	if (m_ui.visibleMesh) {
-		auto pFaceShader = pResource->GetShaderTable()->GetFaceShader();
-		context.pResource->GetRenderTarget()->Bind();
-		context.pResource->GL()->PushRenderTarget(context.pResource->GetRenderTarget(), pFaceShader->GetDrawTargetNum());
-		pFaceShader->Use();
-		pFaceShader->SetPosition(m_gpu.position.get());
-		pFaceShader->SetNormal(m_gpu.normal.get());
-		pFaceShader->SetCamera(pResource->GetCameraBuffer());
-		pFaceShader->SetModel(GetMatrix());
-		pFaceShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
-		pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
-		context.pResource->GL()->PopRenderTarget();
+	auto pFaceShader = pResource->GetShaderTable()->GetFaceShader();
+	context.pResource->GetRenderTarget()->Bind();
+	context.pResource->GL()->PushRenderTarget(context.pResource->GetRenderTarget(), pFaceShader->GetDrawTargetNum());
+	if (!m_ui.visibleMesh) {
+		context.pResource->GL()->ColorMask(false);
+	}
+	pFaceShader->Use();
+	pFaceShader->SetPosition(m_gpu.position.get());
+	pFaceShader->SetNormal(m_gpu.normal.get());
+	pFaceShader->SetCamera(pResource->GetCameraBuffer());
+	pFaceShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
+	pFaceShader->SetModel(GetMatrix());
+	pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
+	context.pResource->GL()->PopRenderTarget();
+	if (!m_ui.visibleMesh) {
+		context.pResource->GL()->ColorMask(true);
 	}
 
-	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
-	pSimpleShader->Use();
-	pSimpleShader->SetPosition(m_gpu.position.get());
-	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
-	pSimpleShader->SetModel(GetMatrix());
-	pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
-	if (m_ui.visibleEdge) {
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawElement(GL_LINES, m_gpu.edgeIndexBuffer.get());
-	}
-
-	if (m_ui.visibleVertex) {
-
-		if ((HalfEdgeStruct::VertexValue)m_ui.vertexValue == HalfEdgeStruct::VertexValue::None) {
-			pSimpleShader->SetPosition(m_gpu.position.get());
-			pSimpleShader->SetCamera(pResource->GetCameraBuffer());
-			pSimpleShader->SetModel(GetMatrix());
-			pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
-			pSimpleShader->DrawArray(GL_POINTS, m_pHalfEdge->GetVertexNum());
-		} else {
-			auto pVertexColor = pResource->GetShaderTable()->GetVertexColorShader();
-			pVertexColor->Use();
-			pVertexColor->SetPosition(m_gpu.position.get());
-			pVertexColor->SetCamera(pResource->GetCameraBuffer());
-			pVertexColor->SetModel(GetMatrix());
-			pVertexColor->SetColor(m_gpu.vertexColor.get());
-			pVertexColor->DrawArray(GL_POINTS, m_pHalfEdge->GetVertexNum());
+	if (m_ui.visibleEdge || m_ui.visibleVertex) {
+		auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+		pSimpleShader->Use();
+		pSimpleShader->SetPosition(m_gpu.position.get());
+		pSimpleShader->SetCamera(pResource->GetCameraBuffer());
+		pSimpleShader->SetModel(GetMatrix());
+		pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
+		if (m_ui.visibleEdge) {
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawElement(GL_LINES, m_gpu.edgeIndexBuffer.get());
 		}
 
-		if ((HalfEdgeStruct::VertexDirection)m_ui.vertexDirection != HalfEdgeStruct::VertexDirection::None) {
-			auto pVertexVector = context.pResource->GetShaderTable()->GetVertexVectorShader();
-			pVertexVector->Use();
-			pVertexVector->SetLength(m_ui.normalLength);
-			pVertexVector->SetModel(GetMatrix());
-			pVertexVector->SetPosition(m_gpu.position.get());
-			pVertexVector->SetColor(Vector4(0, 1, 0, 1));
-			pVertexVector->SetVector(m_gpu.vertexDir1.get());
-			pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
-			pVertexVector->SetColor(Vector4(0, 0, 1, 1));
-			pVertexVector->SetVector(m_gpu.vertexDir2.get());
-			pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
+		if (m_ui.visibleVertex) {
+
+			if ((HalfEdgeStruct::VertexValue)m_ui.vertexValue == HalfEdgeStruct::VertexValue::None) {
+				pSimpleShader->SetPosition(m_gpu.position.get());
+				pSimpleShader->SetCamera(pResource->GetCameraBuffer());
+				pSimpleShader->SetModel(GetMatrix());
+				pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
+				pSimpleShader->DrawArray(GL_POINTS, m_pHalfEdge->GetVertexNum());
+			} else {
+				auto pVertexColor = pResource->GetShaderTable()->GetVertexColorShader();
+				pVertexColor->Use();
+				pVertexColor->SetPosition(m_gpu.position.get());
+				pVertexColor->SetCamera(pResource->GetCameraBuffer());
+				pVertexColor->SetModel(GetMatrix());
+				pVertexColor->SetColor(m_gpu.vertexColor.get());
+				pVertexColor->DrawArray(GL_POINTS, m_pHalfEdge->GetVertexNum());
+			}
+
+			if ((HalfEdgeStruct::VertexDirection)m_ui.vertexDirection != HalfEdgeStruct::VertexDirection::None) {
+				auto pVertexVector = context.pResource->GetShaderTable()->GetVertexVectorShader();
+				pVertexVector->Use();
+				pVertexVector->SetLength(m_ui.normalLength);
+				pVertexVector->SetModel(GetMatrix());
+				pVertexVector->SetPosition(m_gpu.position.get());
+				pVertexVector->SetColor(Vector4(0, 1, 0, 1));
+				pVertexVector->SetVector(m_gpu.vertexDir1.get());
+				pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
+				pVertexVector->SetColor(Vector4(0, 0, 1, 1));
+				pVertexVector->SetVector(m_gpu.vertexDir2.get());
+				pVertexVector->DrawArray(GL_POINTS, m_gpu.position->Num());
+			}
 		}
 	}
 
@@ -199,29 +221,44 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		ShowNormal(context);
 	}
 
-	auto pPrimitiveColorShader = pResource->GetShaderTable()->GetPrimitiveColorShader();
-	//if (pPrimitiveColorShader &&  m_meshletGpu.shader) {
-	//	pPrimitiveColorShader->Use();
-	//	pPrimitiveColorShader->SetPosition(m_meshletGpu.position.get());
-	//	pPrimitiveColorShader->SetColor(m_meshletGpu.color.get());
-	//	pPrimitiveColorShader->SetViewProj(proj * view);
-	//	pPrimitiveColorShader->SetModel(Matrix4x4(1.0f));
-	//	pPrimitiveColorShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
-	//}
-
 	if (m_ui.voxel.visible) {
-		m_pVoxelizer->Draw(m_gpu.position.get(), m_gpu.faceIndexBuffer.get(), pResource->GetCameraBuffer()->Handle());
+		if (m_pVoxelizer) {
+			m_pVoxelizer->Draw(m_gpu.position.get(), m_gpu.faceIndexBuffer.get(), pResource->GetCameraBuffer()->Handle());
+		}
 	}
 
 
-	if (m_ui.visibleMeshlet && m_meshletGpu.shader) {
+	if (m_ui.meshlet.visible && m_meshletGpu.shader) {
+		m_meshletProfiler->BeginQuery();
 		m_meshletGpu.shader->Use();
+		m_meshletGpu.taskNum->SetData(0);
 		m_meshletGpu.shader->SetPosition(m_meshletGpu.position.get());
-		m_meshletGpu.shader->SetMeshlet(m_meshletGpu.culster.get());
+		m_meshletGpu.shader->SetMeshlet(m_meshletGpu.cluster.get());
+		m_meshletGpu.shader->SetTaskToMeshNum(m_meshletGpu.taskNum.get());
 		m_meshletGpu.shader->SetIndex(m_meshletGpu.index.get());
 		m_meshletGpu.shader->SetCamera(pResource->GetCameraBuffer());
-		m_meshletGpu.shader->SetModel(Matrix4x4(1.0f));
-		m_meshletGpu.shader->Draw(0, m_meshletGpu.culster->Num());
+		m_meshletGpu.shader->SetModel(GetMatrix());
+		m_meshletGpu.shader->SetNormalMatrix(GetNormalMatrix());
+		m_meshletGpu.shader->SetMeshletNum(m_meshletGpu.cluster->Num());
+		m_meshletGpu.shader->SetCullSize(m_ui.meshlet.cullSize);
+		//for (int x = -10; x < 10; x++) 
+		//for (int y = -10; y < 10; y++) 
+		//for (int z = -10; z < 10; z++)
+		{
+			m_meshletGpu.shader->DrawWithAutoTask(0, m_meshletGpu.cluster->Num());
+		}
+		/*
+		std::vector<unsigned int> taskNum(m_meshletGpu.taskNum->Num());
+		m_meshletGpu.taskNum->GetBufferData(taskNum);
+		auto totalSize = 0;
+		for (int i = 0; i < taskNum.size(); i++) {
+			totalSize+=taskNum[i];
+		}
+		printf("TaskNum : %d\n", totalSize);
+		*/
+
+		m_meshletGpu.shader->BarrierSSBO();
+		m_meshletProfiler->EndQuery();
 	}
 	
 }
@@ -319,6 +356,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 				m_pHalfEdge->CreateVertexArea();
 				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pHalfEdge->GetVertexArea());
 			} else if (param == HalfEdgeStruct::VertexValue::SDF) {
+				if (m_pShapeDiameterFunction == nullptr) m_pShapeDiameterFunction = new ShapeDiameterFunction(this);
 				m_pShapeDiameterFunction->Execute();
 				m_vertexParameter = Parameter(HalfEdgeStruct::ToString(param), m_pShapeDiameterFunction->GetResult());
 			} else if (param == HalfEdgeStruct::VertexValue::MinCurvature) {
@@ -363,28 +401,36 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		ImGui::SliderFloat("NormalLength", &m_ui.normalLength, 0.0f, 1.0f);
 	}
 
-	ImGui::Checkbox("VisibleMeshlet", &m_ui.visibleMeshlet);
-	if (ImGui::SliderInt("MeshLetGenerate", &m_ui.meshlet, 0, 14)) {
-		MeshletGenerator exec;
-		auto meshlet = exec.Execute(*m_pHalfEdge.get(), 7);
-		m_meshletGpu.culster = std::make_unique<GLBuffer>();
-		m_meshletGpu.culster->Create<glm::ivec4>(meshlet.data);
-		m_meshletGpu.color = std::make_unique<GLBuffer>();
-		m_meshletGpu.color->Create(meshlet.color);
+	ImGui::Checkbox("VisibleMeshlet", &m_ui.meshlet.visible);
+	if (m_ui.meshlet.visible) {
+		if (ImGui::SliderInt("MeshLetGenerate", &m_ui.meshlet.level, 0, 7)) {
+			if (!m_meshletProfiler) { m_meshletProfiler = std::make_unique<MeshletProfiler>(); }
+			auto meshlet = MeshletGenerator::Execute(*m_pHalfEdge.get(), m_ui.meshlet.level);
+			m_meshletGpu.cluster = std::make_unique<GLBuffer>();
+			m_meshletGpu.cluster->Create<Meshlet::Cluster>(meshlet.cluster);
 
-		m_meshletGpu.index = std::make_unique<GLBuffer>();
-		m_meshletGpu.index->Create<int>(meshlet.index);
-		m_meshletGpu.position = std::make_unique<GLBuffer>();
-		m_meshletGpu.position->Create(TypeConverter::Convert4f(m_pHalfEdge->GetVertex()));
-		m_meshletGpu.shader = std::make_unique<MeshletShader>();
-		m_meshletGpu.shader->Build();
+			m_meshletGpu.index = std::make_unique<GLBuffer>();
+			m_meshletGpu.index->Create<int>(meshlet.index);
+			m_meshletGpu.position = std::make_unique<GLBuffer>();
+			m_meshletGpu.position->Create(TypeConverter::Convert4f(m_pHalfEdge->GetVertex()));
+			m_meshletGpu.taskNum = std::make_unique<GLBuffer>();
+			m_meshletGpu.taskNum->Create(meshlet.cluster.size(), sizeof(unsigned int));
+			m_meshletGpu.shader = std::make_unique<MeshletShader>();
+			m_meshletGpu.shader->Build();
+		}
+		ImGui::SliderInt("MeshLetCullSize", &m_ui.meshlet.cullSize, 0, 100);
+		if (m_meshletProfiler) {
+			m_meshletProfiler->ShowUI();
+		}
 	}
 
 	if (ImGui::Checkbox("ShowBVH", &m_ui.visibleBVH)) {
 		if (m_ui.visibleBVH) {
 			BuildBVH();
 		} else {
-			m_pBVH->DeleteUINode();
+			if (m_pBVH) {
+				m_pBVH->DeleteUINode();
+			}
 		}
 	} 
 
@@ -394,6 +440,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 
 	ImGui::Checkbox("ShowSignedDistanceField", &m_ui.visibleSignedDistanceField);
 	if (m_ui.visibleSignedDistanceField) {
+		if(m_pSignedDistanceField == nullptr) m_pSignedDistanceField = new SignedDistanceField(this);
 		m_pSignedDistanceField->ShowUI(ui);
 	}
 
@@ -403,6 +450,9 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 
 	ImGui::Checkbox("ShowVoxel", &m_ui.voxel.visible);
 	if (m_ui.voxel.visible) {
+		if (m_pVoxelizer == nullptr) {
+			m_pVoxelizer = new Voxelizer(this);
+		}
 		if (ImGui::SliderInt("Resolution (2^x)", &m_ui.voxel.resolute, 1, 9)) {
 			m_pVoxelizer->Execute(1 << m_ui.voxel.resolute);
 		}
@@ -434,5 +484,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 			RemoveNode("PoissonPoint");
 		}
 	} 
+
+	
 }
 }

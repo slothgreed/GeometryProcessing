@@ -215,6 +215,17 @@ void IShadingShader::BindTexture(int location, int unit, const Texture& texture)
 	glBindTexture(texture.GetFormat().target, texture.Handle());
 	OUTPUT_GLERROR;
 }
+
+
+void IShadingShader::BindCubemap(int location, int unit, const CubemapTexture& texture)
+{
+	glActiveTexture(GL_TEXTURE0 + unit);
+	OUTPUT_GLERROR;
+	glUniform1i(location, unit);
+	OUTPUT_GLERROR;
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture.Handle());
+	OUTPUT_GLERROR;
+}
 void IShadingShader::BindIndexBuffer(const GLBuffer* pBuffer)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pBuffer->Handle());
@@ -222,6 +233,35 @@ void IShadingShader::BindIndexBuffer(const GLBuffer* pBuffer)
 }
 
 
+int IMeshShader::GetMaxVertices() const
+{
+	return GLAPIExt::Info()->GetMeshletMaxVertex();
+}
+int IMeshShader::GetMaxPrimitives() const
+{
+	return GLAPIExt::Info()->GetMeshletMaxPrimitive();
+}
+
+int IMeshShader::GetDispatchNum(int num)
+{
+	return (num / GetTaskThreadNum()) + 1;
+}
+
+void IMeshShader::BarrierSSBO()
+{
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	OUTPUT_GLERROR;
+}
+void IMeshShader::Draw(int first, int count)
+{
+	glDrawMeshTasksNV(first, count);
+	OUTPUT_GLERROR;
+}
+
+void IMeshShader::DrawWithAutoTask(int first, int count)
+{
+	Draw(first, GetDispatchNum(count));
+}
 void IMeshShader::Build()
 {
 	auto shaderPath = GetShaderPath();
@@ -230,17 +270,37 @@ void IMeshShader::Build()
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
 
 	auto meshEx = Join(shaderPath.extension[SHADER_PROGRAM_MESH]);
+	auto taskEx = Join(shaderPath.extension[SHADER_PROGRAM_TASK]);
 	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
-	auto meshCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_MESH]);
-	auto fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
-	GLuint meshId = ShaderUtility::Compile(version + meshEx + headerCode + meshCode, GL_MESH_SHADER_NV);
-	GLuint fragId = ShaderUtility::Compile(version + fragEx + headerCode + fragCode, GL_FRAGMENT_SHADER);
 
-	m_programId = ShaderUtility::Link(meshId, fragId);
+	auto taskLocalSize = String("layout(local_size_x=" + IntToString(GetTaskThreadNum()) + ") in;\n");
+	auto meshLocalSize = String("layout(local_size_x="+ IntToString(GetMeshThreadNum()) + ") in;\n");
+	auto maxVertex = GetMaxVertices();
+	if (maxVertex > GLAPIExt::Info()->GetMeshletMaxVertex()) {
+		assert(0);
+		maxVertex = GLAPIExt::Info()->GetMeshletMaxVertex();
+	}
+	auto maxPrimitive = GetMaxPrimitives();
+	if (maxPrimitive > GLAPIExt::Info()->GetMeshletMaxPrimitive()) {
+		assert(0);
+		maxPrimitive = GLAPIExt::Info()->GetMeshletMaxPrimitive();
+	}
+	auto meshOutSize = String("layout(max_vertices="+IntToString(maxVertex) + ", max_primitives="+IntToString(maxPrimitive) + ") out;\n");
+	auto meshCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_MESH]);
+	auto taskCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_TASK]);
+	auto fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
+	GLuint meshId = ShaderUtility::Compile(version + meshEx + headerCode + meshLocalSize + meshOutSize + meshCode, GL_MESH_SHADER_NV);
+	GLuint fragId = ShaderUtility::Compile(version + fragEx + headerCode + fragCode, GL_FRAGMENT_SHADER);
+	GLuint taskId = 0;
+	if (!taskCode.empty()) {
+		taskId = ShaderUtility::Compile(version + taskEx + headerCode + taskLocalSize + taskCode, GL_TASK_SHADER_NV);
+	}
+	m_programId = ShaderUtility::Link(meshId, taskId, fragId);
 	FetchUniformLocation();
 
-	glDeleteShader(meshId);
-	glDeleteShader(fragId);
+	if (meshId != 0) glDeleteShader(meshId); meshId = 0;
+	if (taskId != 0) glDeleteShader(taskId); taskId = 0;
+	if (fragId != 0) glDeleteShader(fragId); fragId = 0;
 	return;
 }
 
@@ -353,8 +413,7 @@ Vector3i IComputeShader::GetDispatchNum1D(int value)
 	return Vector3i((value + localSize.x - 1) / localSize.x, 1, 1);
 }
 
-
-void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint access)
+void IComputeShader::BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access)
 {
 	if (!(access == GL_WRITE_ONLY ||
 		access == GL_READ_ONLY ||
@@ -362,8 +421,20 @@ void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint a
 		assert(0);
 		return;
 	}
-	glBindImageTexture(location, pTexture->Handle(), 0, GL_FALSE, 0, access, pTexture->GetFormat().internalformat);
+
+	GLboolean layerd = GL_FALSE;
+	if (pTexture->GetFormat().target == GL_TEXTURE_CUBE_MAP_ARRAY ||
+		pTexture->GetFormat().target == GL_TEXTURE_2D_ARRAY) {
+		layerd = GL_TRUE;
+	}
+
 	OUTPUT_GLERROR;
+	glBindImageTexture(location, pTexture->Handle(), mipmap, layerd, 0, access, pTexture->GetFormat().internalformat);
+	OUTPUT_GLERROR;
+}
+void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint access)
+{
+	BindTexture(location, 0, pTexture, access);
 }
 
 void IComputeShader::BarrierSSBO()
@@ -418,11 +489,6 @@ void IPostEffectShader::SetTexcoord(GLBuffer* pTexture)
 	OUTPUT_GLERROR;
 }
 
-void IMeshShader::DrawMeshTasks(int first, int count)
-{
-	glDrawMeshTasksNV(first, count);
-	OUTPUT_GLERROR;
-}
 
 
 }

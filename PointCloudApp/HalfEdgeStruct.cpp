@@ -35,6 +35,12 @@ String HalfEdgeStruct::ToString(HalfEdgeStruct::VertexValue param)
 	return GetVertexValueString()[(int)param];
 }
 
+HalfEdgeStruct* HalfEdgeStruct::DeepCopy(const HalfEdgeStruct& halfEdge)
+{
+	auto pNew = new HalfEdgeStruct();
+	*pNew = halfEdge;
+	return pNew;
+}
 HalfEdgeStruct::Edge HalfEdgeStruct::GetEdge(int edgeIndex) const
 {
 	HalfEdgeStruct::Edge edge;
@@ -123,6 +129,15 @@ Vector<int> HalfEdgeStruct::GetAroundEdge(int posIndex) const
 		const auto& edge = m_halfEdge[edgeIndex];
 		edgeIndex = m_halfEdge[edge.oppositeEdge].nextEdge;
 		if (edgeIndex == loopEdge[0]) {
+			break;
+		}
+		if (edge.beforeEdge == edge.nextEdge ||
+			edge.beforeEdge == edge.oppositeEdge ||
+			edge.nextEdge == edge.oppositeEdge) {
+			//assert(0);
+			break;
+		}
+		if (loopEdge.size() == 6) {
 			break;
 		}
 		loopEdge.push_back(edgeIndex);

@@ -60,6 +60,12 @@ private:
 class GLTFNode
 {
 public:
+
+	enum MatrixType
+	{
+		Base,
+		TRS
+	};
 	struct GpuObject
 	{
 		Matrix4x4 matrix;	 // 16
@@ -80,12 +86,13 @@ public:
 		, m_translate(Vector3(0.0f))
 		, m_matrix(Matrix4x4(1.0f))
 		, m_baseMatrix(Matrix4x4(1.0f))
-		, m_localMatrix(Matrix4x4(1.0f)){ };
+		, m_trsMatrix(Matrix4x4(1.0f)){ };
 	~GLTFNode() {};
 	void SetIndex(int id) { m_index = id; }
 	void SetScale(const Vector3& local); 
 	void SetRotate(const Matrix4x4& local);
 	void SetTranslate(const Vector3& local);
+	void SetMatrixType(MatrixType type) { m_matrixType = type; }
 	const Vector3& GetScale() const { return m_scale; }
 	const Matrix4x4& GetRotate() const { return m_rotate; }
 	const Vector3& GetTranslate() const { return m_translate; }
@@ -96,7 +103,7 @@ public:
 	int GetSkinId() const { return m_skinId; }
 	int GetMeshId() const { return m_meshId; }
 	int GetIndex() const { return m_index; }
-	void SetBaseMatrix(const Matrix4x4& baseMatrix) { m_baseMatrix = baseMatrix; m_localMatrix = CreateLocalMatrix(); }
+	void SetBaseMatrix(const Matrix4x4& baseMatrix) { m_baseMatrix = baseMatrix; }
 	const Matrix4x4& GetBaseMatrix() const { return m_baseMatrix; }
 	const Matrix4x4& GetMatrix() const { return m_matrix; }
 	const Vector<int>& GetChild() const { return m_child; }
@@ -106,18 +113,19 @@ public:
 	static void UpdateMatrix(const Vector<int>& roots, Vector<GLTFNode>& nodes);
 	static Matrix4x4 CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, const Vector3& translate);
 
-	const Matrix4x4& GetLocalMatrix() const { return m_localMatrix; }
+	const Matrix4x4& GetLocalMatrix() const;
 protected:
-	Matrix4x4 CreateLocalMatrix() const;
+	Matrix4x4 CreateTRSMatrix() const;
 
 	static void UpdateMatrixRecursive(Vector<GLTFNode>& nodes, int index, const Matrix4x4& matrix);
 	int m_skinId;
 	Vector3 m_scale;
 	Vector3 m_translate;
 	Matrix4x4 m_rotate;
-	Matrix4x4 m_localMatrix;
+	Matrix4x4 m_trsMatrix;
 	Matrix4x4 m_baseMatrix;
 	Matrix4x4 m_matrix;
+	MatrixType m_matrixType;
 	int m_meshId;
 	int m_index;
 	Vector<int> m_child;

@@ -19,32 +19,26 @@ HalfEdgeStruct* HalfEdgeLoader::Load(const String& filePath)
 		assert(0);
 	}
 
-
-
 	Vector<HalfEdge> halfEdge(edgeSize);
 	Vector<Vector3> position(vertexSize);
 	Vector<int> positionToEdge(edgeSize);
 	Vector<int> faceToEdge(faceSize);
+	struct IndexedVertex
+	{
+		float x;
+		float y;
+		float z;
+		int index;
+	};
 
+	auto vertexData = reader.ReadStruct<IndexedVertex>(vertexSize);
 	for (int i = 0; i < vertexSize; i++) {
-		position[i] = vec3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
-		positionToEdge[i] = reader.ReadInt();
+		position[i] = Vector3(vertexData[i].z, vertexData[i].y, vertexData[i].x);
+		positionToEdge[i] = vertexData[i].index;
 	}
 
-	int end = 0, next = 0, before = 0, opposite = 0, face = 0;
-	for (int i = 0; i < edgeSize; i++) {
-		HalfEdge edge;
-		edge.endPos = reader.ReadInt();
-		edge.nextEdge = reader.ReadInt();
-		edge.beforeEdge = reader.ReadInt();
-		edge.oppositeEdge = reader.ReadInt();
-		edge.face = reader.ReadInt();
-		halfEdge[i] = std::move(edge);
-	}
-
-	for (int i = 0; i < faceSize; i++) {
-		faceToEdge[i] = reader.ReadInt();
-	}
+	halfEdge = reader.ReadStruct<HalfEdge>(edgeSize);
+	faceToEdge = reader.ReadInt(faceSize);
 	reader.Close();
 
 	HalfEdgeStruct* data = new HalfEdgeStruct();

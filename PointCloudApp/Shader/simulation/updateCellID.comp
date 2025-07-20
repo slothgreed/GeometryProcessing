@@ -1,0 +1,18 @@
+
+void main()
+{
+	int index = int(gl_GlobalInvocationID.x);
+	if(index >= u_particleNum){return;}
+
+#ifdef STEP1
+    ivec3 cellID = getCellID(getPosition(particles[index]));
+    m_grid.AddNum(ToIndex1D(cellID));
+#endif
+
+#ifdef STEP2
+
+#endif
+
+#ifdef STEP3
+#endif
+} 

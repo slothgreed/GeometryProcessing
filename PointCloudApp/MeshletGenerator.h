@@ -12,10 +12,20 @@ struct Meshlet
 		:maxVertex(1)
 	{
 	}
-	typedef glm::ivec4 Cluster;
+
+	struct Cluster
+	{
+		int offset;
+		int size;
+		int meshletIndex;
+		int padding;
+		Vector4 boxMin;
+		Vector4 boxMax;
+		Vector4 normal;
+	};
+
 	size_t maxVertex;
-	std::vector<Vector4> color;
-	std::vector<glm::ivec4> data; // vec4(offset, size, 0, 0);
+	std::vector<Cluster> cluster; // vec4(offset, size, meshletIndex, 0);
 	std::vector<int> index;
 };
 
@@ -24,22 +34,26 @@ class MeshletShader : public IMeshShader
 public:
 	MeshletShader() {};
 	~MeshletShader() {};
-	enum UNIFORM
-	{
-		MODEL,
-		NUM
-	};
+
+	virtual int GetTaskThreadNum() const { return 32; }
+	virtual int GetMeshThreadNum() const { return 32; }
 
 	virtual ShaderPath GetShaderPath();
 	void FetchUniformLocation();
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
+	void SetNormalMatrix(const Matrix3x3& value);
+	void SetMeshletNum(int num);
+	void SetTaskToMeshNum(const GLBuffer* pBuffer);
 	void SetPosition(GLBuffer* pBuffer);
 	void SetIndex(GLBuffer* pBuffer);
 	void SetMeshlet(GLBuffer* pBuffer);
-	void Draw(int first, int count);
+	void SetCullSize(int cullSize);
 private:
-	GLuint m_uniform[UNIFORM::NUM];
+	GLuint u_CullSize;
+	GLuint u_Model;
+	GLuint u_NormalMatrix;
+	GLuint u_MeshletNum;
 };
 
 
@@ -52,10 +66,28 @@ public:
 
 
 
-	Meshlet Execute(const HalfEdgeStruct& halfEdge, int loopNum);
+	static Meshlet Execute(const HalfEdgeStruct& halfEdge, int loopNum);
 private:
+	static Meshlet ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int loopNum);
+};
 
-	Meshlet ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int loopNum);
+
+class MeshletProfiler
+{
+public:
+    MeshletProfiler();
+    ~MeshletProfiler();
+
+    void BeginQuery();
+    void EndQuery();
+    void ShowUI(); // ImGui‚ÅŒ‹‰Ê‚ð•\Ž¦
+
+private:
+    GLuint m_primitiveQuery = 0;
+    GLuint m_vertexQuery = 0;
+
+    GLuint64 m_primitives = 0;
+    GLuint64 m_vertices = 0;
 };
 
 }

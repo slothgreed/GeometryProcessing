@@ -1,7 +1,5 @@
 
 
-layout(local_size_x=1) in;
-layout(max_vertices=60, max_primitives=20) out;
 layout(triangles) out;
 
 layout(std430, binding = 0) buffer CameraBuffer
@@ -16,7 +14,7 @@ layout(std430, binding  = 1) buffer posBuffer
 
 layout(std430, binding  = 2) buffer meshletBuffer
 {
-	ivec4 meshlet[];
+	Meshlet meshlet[];
 };
 
 layout(std430, binding  = 3) buffer indexBuffer
@@ -44,30 +42,29 @@ layout (location = 0) out PerVertexData
 } v_out[];
 
 uniform mat4 u_Model;
-
-
+TaskNV in Task
+{
+	uint baseID;
+	uint drawID[32];
+}IN;
 
 void main()
 {
-	uint globalID = gl_GlobalInvocationID.x;
-	int vertexOffset = meshlet[globalID].x;
-	int vertexSize = meshlet[globalID].y;
-	int meshletIndex = meshlet[globalID].z;
-	for(int i = 0; i < vertexSize; i++) {
+	//uint globalID = IN.baseID;
+	int laneID = int(gl_LocalInvocationID.x);
+	uint globalID = IN.drawID[gl_WorkGroupID.x];
+	int vertexOffset = meshlet[globalID].offset;
+	int vertexSize = meshlet[globalID].size;
+	int meshletIndex = meshlet[globalID].meshletIndex;
+
+	for(int i = laneID; i < vertexSize; i+=int(gl_WorkGroupSize.x))
+	{
 		gl_MeshVerticesNV[i].gl_Position = camera.VP * u_Model * position[index[vertexOffset + i]];
 		gl_PrimitiveIndicesNV[i] = i;
 		v_out[i].color =  vec4(meshletcolors[meshletIndex%MAX_COLORS], 1.0);
+		//v_out[i].color =  meshlet[meshletIndex].normal;
 	}
-	gl_PrimitiveCountNV = vertexSize / 3;
-
-	/*
-	gl_MeshVerticesNV[0].gl_Position = position[0];
-	gl_MeshVerticesNV[1].gl_Position = position[1];
-	gl_MeshVerticesNV[2].gl_Position = position[2];
-	gl_PrimitiveIndicesNV[0] = 0;
-	gl_PrimitiveIndicesNV[1] = 1;
-	gl_PrimitiveIndicesNV[2] = 2;
-
-	gl_PrimitiveCountNV = 1;
-	*/
+	if(laneID == 0){
+		gl_PrimitiveCountNV = vertexSize / 3;
+	}
 }

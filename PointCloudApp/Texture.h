@@ -88,7 +88,10 @@ public:
 	const Format& GetFormat() const { return m_format; }
 	void Set(const Format& format, unsigned char* data);
 	void GetPixel(std::vector<unsigned char>& data);
+	static int CalcMipmapLevel(const Vector2i& resolute);
+	static Vector2i CalcMipmapResolute(const Vector2i& resolute, int mipLevel);
 protected:
+	bool m_genMip;
 	Sampler m_sampler;
 	Format m_format;
 	GLuint m_handle;
@@ -110,7 +113,7 @@ public:
 	Texture2D();
 	Texture2D(const Format& format, const Sampler& sampler);
 
-	~Texture2D() {};
+	~Texture2D();
 
 	virtual TEXTURE_TYPE Type() const { return TEXTURE_2D; }
 	static Texture2D* Create(const Vector2i& resolute, const Vector4& color);
@@ -133,10 +136,15 @@ class CubemapTexture : public Texture
 {
 public:
 	CubemapTexture();
-	~CubemapTexture() {};
+	~CubemapTexture();
 	virtual TEXTURE_TYPE Type() const { return TEXTURE_CUBE_MAP; }
 
-	void Build(const Vector<String>& path);
+	void Build(const Vector2i& resolute, bool mipmap = true);
+	void Build(const Vector<String>& path, bool mipmap = true);
+	void BuildArray(const Vector2i& resolute, bool mipmap = true);
+
+	static CubemapTexture* ConvertCubemap(const CubemapTexture* arr);
+
 private:
 
 };

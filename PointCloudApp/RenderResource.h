@@ -3,6 +3,7 @@
 #include "ShaderTable.h"
 #include "Texture.h"
 #include "RenderTarget.h"
+#include "PBR.h"
 namespace KI
 {
 struct GLStatus
@@ -47,6 +48,7 @@ public:
 
 	void PushRenderTarget(RenderTarget* pTarget, int drawTargetNum = -1);
 	void PopRenderTarget();
+	void ColorMask(bool value);
 	const Vector2i& GetViewportSize() const { return viewportSize; }
 private:
 	Vector2i viewportSize;
@@ -74,7 +76,8 @@ public:
 		, m_pComputeColorTarget(nullptr)
 		, m_pComputeDepthTarget(nullptr)
 		, m_pRenderTarget(nullptr)
-		, m_pTexturePlane(nullptr) {};
+		, m_pTexturePlane(nullptr)
+		, m_pPBRGpu(nullptr) {};
 	~RenderResource() {};
 	void Build();
 
@@ -88,6 +91,7 @@ public:
 	const ShaderTable* GetShaderTable() const { return &m_pShaderTable; };
 	const GLBuffer* GetCameraBuffer() const { return m_pCameraGpu; }
 	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
+	const GLBuffer* GetPBRBuffer() const { return m_pPBRGpu; }
 	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	RenderTarget* GetRenderTarget() { return m_pRenderTarget; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
@@ -97,16 +101,20 @@ public:
 	RenderTarget* GetTmpPostEffectTarget() { return m_pTmpPostEffectTarget; }
 	void UpdateLight();
 	void UpdateCamera();
+	void UpdatePBR();
 	void InitRenderTarget(const Vector2& size);
 	void SetTexturePlane(RenderTextureNode* pPlane) { m_pTexturePlane = pPlane; };
 	const RenderTextureNode* GetTexturePlane() const { return m_pTexturePlane; }
 	RenderTarget* GetPostEffectTarget() { return m_pPostEffectTarget; }
+	PBRResource* GetPBR() { return m_pPBR; }
 private:
+	PBRResource* m_pPBR;
 	Unique<GLContext> m_pContext;
 	Shared<Camera> m_pCamera;
 	Shared<Light> m_pLight;
 	GLBuffer* m_pCameraGpu;
 	GLBuffer* m_pLightGpu;
+	GLBuffer* m_pPBRGpu;
 	GLBuffer* m_pComputeColorTarget;
 	GLBuffer* m_pComputeDepthTarget;
 	RenderTarget* m_pRenderTarget;

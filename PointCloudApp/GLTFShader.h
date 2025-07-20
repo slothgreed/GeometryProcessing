@@ -6,6 +6,7 @@ namespace KI
 struct GLTFMaterial;
 struct GLTFPrimitive;
 class Texture;
+class CubemapTexture;
 class GLTFShader : public IShadingShader
 {
 public:
@@ -45,9 +46,24 @@ public:
 	void BindOcclusion(const Texture& texture);
 	void BindEmissive(const Texture& texture);
 
-
+	void SetPBRResource(const GLBuffer* pBuffer);
+	void BindBRDF(const Texture& texture);
+	void BindIrradiance(const CubemapTexture& texture);
+	void BindPrefilter(const CubemapTexture& texture);
 private:
-	GLuint m_uniform[UNIFORM::NUM];
+	GLuint m_uModel;
+	GLuint m_uSSBOIndex;
+	GLuint m_uColorTexture;
+	GLuint m_uNormalTexture;
+	GLuint m_uMetalRoughnessTexture;
+	GLuint m_uOcclusionTexture;
+	GLuint m_uEmissiveTexture;
+	GLuint m_uDebugView;
+
+	GLuint m_uPrefilter;
+	GLuint m_uIrradiance;
+	GLuint m_uBRDF;
+
 };
 
 }

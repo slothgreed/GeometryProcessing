@@ -31,7 +31,7 @@ private:
 		virtual Vector3i GetLocalThreadNum() const { return Vector3i(32, 32, 1); }
 		virtual ShaderPath GetShaderPath();
 		virtual void FetchUniformLocation();
-		void Execute(const HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer);
+		void Execute(HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer);
 		enum UNIFORM
 		{
 			MINBOX,

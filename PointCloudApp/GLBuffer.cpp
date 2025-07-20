@@ -107,6 +107,13 @@ void GLBuffer::BufferSubData(int offset, int size, int sizeofData, const void* d
 	OUTPUT_GLERROR;
 }
 
+void GLBuffer::GetBufferData(Vector<unsigned int>& value)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(unsigned int), value.data());
+	OUTPUT_GLERROR;
+
+}
 void GLBuffer::GetBufferData(Vector<int>& value)
 {
 	assert(m_handle != 0);

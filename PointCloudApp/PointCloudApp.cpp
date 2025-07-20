@@ -29,6 +29,7 @@
 #include "STEPNode.h"
 #include "Utility.h"
 #include "SimulationNode.h"
+#include "PBR.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -109,7 +110,7 @@ void APIENTRY MyGLDebugCallback(GLenum source, GLenum type, GLuint id,
 	GLenum severity, GLsizei length,
 	const GLchar* message, const void* userParam)
 {
-	fprintf(stderr, "GL DEBUG: %s\n", message);
+	//fprintf(stderr, "GL DEBUG: %s\n", message);
 }
 
 void PointCloudApp::Execute()
@@ -118,35 +119,50 @@ void PointCloudApp::Execute()
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	m_pRoot = std::make_unique<RenderNode>("Root");
-	BDB bdb;
-	{
-		//m_pRoot->AddNode(CreateSpaceTest());
-		//m_pRoot->AddNode(CreateCSFNodeTest());
-		//m_pRoot->AddNode(CreateGLTFAnimationTest());
-		//m_pRoot->AddNode(CreateGLTFNodeTest());
-		m_pRoot->AddNode(CreateBunnyNodeTest());
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-	}
+	Vector3 boxScale = Vector3(30000, 30000, 30000);
 
-	//m_pRoot->AddNode(CreateCSFNodeTest());
-	//m_pRoot->AddNode(CreateGLTFNodeTest());
-	//m_pRoot->AddNode(CreateBunnyNodeTest());
+	BDB bdb;
+	// Default Scene Demo.
+	//{
+	//	m_pRoot->AddNode(CreateSpaceTest());
+	//	m_pRoot->AddNode(CreateCSFNodeTest());
+	//	m_pRoot->AddNode(CreateGLTFAnimationTest());
+	//	m_pRoot->AddNode(CreateGLTFNodeTest());
+	//	m_pRoot->AddNode(CreateBunnyNodeTest());
+	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+	//}
+	
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
 	{
-		Shared<Primitive> pAxis = std::make_shared<Axis>(50);
-		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 		//m_pRoot->AddNode(CreateBunnyNodeTest());
-		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
+		m_pRoot->AddNode(std::make_shared<SimulationNode>());
 		//m_pRoot->AddNode(CreateSTEPNodeTest());
 	}
+
+	// PBR
+	{
+		m_pRoot->AddNode(CreatePBRTest());
+	}
+
+	// Large Scene Demo.
+	{
+		//for (int x = -10; x < 10; x++) 
+		//for (int y = -10; y < 10; y++) 
+		//for (int z = -10; z < 10; z++)
+		//{
+		//	m_pRoot->AddNode(CreateBunnyNodeTest(Vector3(x, y, z) * 200.0f));
+		//}
+	}
+
 
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	//
 	
 	
 	
@@ -183,15 +199,14 @@ void PointCloudApp::Execute()
 
 	ImPlot::CreateContext();
 
-	GPUProfiler render = GPUProfiler("Render");
+	m_gpuProfiler = new GPUProfiler("Render");
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 	Timer timer;
 	float m_diff = 0;
 
-
-	auto pSkyBoxNode = std::make_unique<SkyBoxNode>();
+	auto pSkyBoxNode = std::make_unique<SkyBoxNode>(boxScale); pSkyBoxNode->BuildResource();
 	auto pForwardTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreateForwardTarget(m_windowSize));
 	Shared<Texture> pMain = pForwardTarget->GetColor(0);
 	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
@@ -219,6 +234,9 @@ void PointCloudApp::Execute()
 
 	UIContext ui;
 	PostEffect postEffect;
+
+	m_pResource->GetPBR()->Initialize(*pSkyBoxNode->GetCubemapTexture());
+	m_pResource->UpdatePBR();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		m_pResource->UpdateCamera();
 		m_pResource->UpdateLight();
@@ -226,7 +244,7 @@ void PointCloudApp::Execute()
 		m_pResource->GL()->PushRenderTarget(pForwardTarget.get(), 1);
 		m_pResource->GL()->SetupShading();
 		m_cpuProfiler.Start();
-		render.Start();
+		m_gpuProfiler->Start();
 		timer.Start();
 		if (m_ui.visibleSkyBox) {
 			pSkyBoxNode->Draw(drawContext);
@@ -234,7 +252,7 @@ void PointCloudApp::Execute()
 		m_pRoot->Draw(drawContext);
 
 
-		//combiner.Execute(drawContext);
+		combiner.Execute(drawContext);
 
 		m_pResource->GL()->PushRenderTarget(m_pResource->GetPostEffectTarget());
 		postEffect.Execute(drawContext);
@@ -272,8 +290,13 @@ void PointCloudApp::Execute()
 			TextureDrawer::Execute(drawContext, pTexture.get());
 		}
 
-		glViewport(0, 0, 256, 256);
-		TextureDrawer::Execute(drawContext, pForwardTarget->GetNormal().get());
+		if (m_ui.visibleTexture) {
+			glViewport(0, 0, 256, 256);
+			//TextureDrawer::Execute(drawContext, pForwardTarget->GetNormal().get());
+			//TextureDrawer::Execute(drawContext, pSkyBoxNode->GetCubemapTexture(),m_ui.mipmap);
+			//TextureDrawer::Execute(drawContext, m_pResource->GetPBR()->GetIrradiance(), m_ui.mipmap);
+			//TextureDrawer::Execute(drawContext, m_pResource->GetPBR()->GetPrefiltered(), m_ui.mipmap);
+		}
 		if (m_pSelect && m_ui.animation) {
 			m_pCameraController->RotateAnimation(m_diff, m_pSelect->CalcCameraFitBox());
 		}
@@ -283,7 +306,7 @@ void PointCloudApp::Execute()
 		m_pRoot->Update(m_diff);
 		if (m_diff > 100000.0) { m_diff = 0.0f; }
 		glFlush();
-		render.Stop();
+		m_gpuProfiler->Stop();
 
 		m_cpuProfiler.Stop();
 		//cpuProfiler.Output();
@@ -306,9 +329,9 @@ void PointCloudApp::Execute()
 		OUTPUT_GLERROR;
 	}
 
+	RELEASE_INSTANCE(m_gpuProfiler);
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
-
 }
 
 void PointCloudApp::ShowUI(UIContext& ui)
@@ -359,6 +382,10 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		ImGui::EndTooltip();
 	}
 
+	ImGui::Checkbox("VisibleTexture", &m_ui.visibleTexture);
+	if (m_ui.visibleTexture) {
+		ImGui::SliderInt("Mipmap", &m_ui.mipmap, 0, 11); // 11はCubemap準拠
+	}
 
 	auto pCamera = m_pResource->GetCamera();
 	ImGui::Text(
@@ -389,10 +416,11 @@ void PointCloudApp::ShowUI(UIContext& ui)
 	ImGui::Text("Milli %f, FPS %f", m_cpuProfiler.GetMilli(), m_cpuProfiler.GetFPS());
 	static RollingBuffer  ui_fpsDraw, ui_fps60, ui_fps120;
 	static float timeDelta = 0.0f;
+	timeDelta += ImGui::GetIO().DeltaTime;
+	
 	ui_fpsDraw.Span = 2.0f;
 	ui_fps60.Span = 2.0f;
 	ui_fps120.Span = 2.0f;
-	timeDelta += ImGui::GetIO().DeltaTime;
 	ui_fpsDraw.AddPoint(timeDelta, m_cpuProfiler.GetFPS());
 	ui_fps60.AddPoint(timeDelta, 60.0f);
 	ui_fps120.AddPoint(timeDelta, 120.0f);
@@ -402,6 +430,27 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		ImPlot::PlotLine("Draw FPS", &ui_fpsDraw.Data[0].x, &ui_fpsDraw.Data[0].y, ui_fpsDraw.Data.size(), 0, 2 * sizeof(float));
 		ImPlot::PlotLine("60 FPS", &ui_fps60.Data[0].x, &ui_fps60.Data[0].y, ui_fps60.Data.size(), 0, 2 * sizeof(float));
 		ImPlot::PlotLine("120 FPS", &ui_fps120.Data[0].x, &ui_fps120.Data[0].y, ui_fps120.Data.size(), 0, 2 * sizeof(float));
+		ImPlot::EndPlot();
+	}
+
+	static RollingBuffer ui_cpuUsage, ui_gpuUsage, ui_25Usage, ui_50Usage, ui_75SUage;
+	ui_cpuUsage.Span = 2.0f;
+	ui_25Usage.Span = 2.0f;
+	ui_50Usage.Span = 2.0f;
+	ui_75SUage.Span = 2.0f;
+	ui_cpuUsage.AddPoint(timeDelta, m_cpuProfiler.GetUsage());
+	ui_gpuUsage.AddPoint(timeDelta, m_gpuProfiler->GetUsage());
+	ui_25Usage.AddPoint(timeDelta, 25);
+	ui_50Usage.AddPoint(timeDelta, 50);
+	ui_75SUage.AddPoint(timeDelta, 75);
+	ImPlot::SetNextPlotLimitsX(0, 2.0f, ImGuiCond_Always);
+	ImPlot::SetNextPlotLimitsY(0, 100, ImGuiCond_Always);
+	if (ImPlot::BeginPlot("##Usage", NULL, NULL, ImVec2(0, 100), 0, ImPlotAxisFlags_NoTickLabels, ImPlotAxisFlags_NoTickLabels)) {
+		ImPlot::PlotLine("CPU Usage", &ui_cpuUsage.Data[0].x, &ui_cpuUsage.Data[0].y, ui_cpuUsage.Data.size(), 0, 2 * sizeof(float));
+		ImPlot::PlotLine("GPU Usage", &ui_gpuUsage.Data[0].x, &ui_gpuUsage.Data[0].y, ui_gpuUsage.Data.size(), 0, 2 * sizeof(float));
+		ImPlot::PlotLine("25 Usage", &ui_25Usage.Data[0].x, &ui_25Usage.Data[0].y, ui_25Usage.Data.size(), 0, 2 * sizeof(float));
+		ImPlot::PlotLine("50 Usage", &ui_50Usage.Data[0].x, &ui_50Usage.Data[0].y, ui_50Usage.Data.size(), 0, 2 * sizeof(float));
+		ImPlot::PlotLine("75 Usage", &ui_75SUage.Data[0].x, &ui_75SUage.Data[0].y, ui_75SUage.Data.size(), 0, 2 * sizeof(float));
 		ImPlot::EndPlot();
 	}
 
@@ -444,6 +493,15 @@ Shared<RenderNode> PointCloudApp::CreateLargePointCloudNodeTest()
 	pNode->SetRotateAngle(Vector3(-90, 0, 0));
 	return pNode;
 }
+
+Shared<RenderNode> PointCloudApp::CreatePBRTest()
+{
+	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\EnvironmentTest\\glTF\\EnvironmentTest.gltf"));
+	pNode->SetScale(100);
+	pNode->SetRotateAngle(Vector3(0, 90, -90));
+	pNode->SetTranslate(Vector3(-1000, 100, 0));
+	return pNode;
+}
 Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()
 {
 	//auto pNode = std::shared_ptr<RenderNode>(CSFLoader::Load("E:\\cgModel\\nv_pro\\downloaded_resources\\blade.csf.gz"));
@@ -457,11 +515,18 @@ Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()
 }
 Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
 {
+	return CreateBunnyNodeTest(Vector3(0.0f, 0.0f, 0.0f));
+}
+Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
+{
 	//String path = "E:\\cgModel\\Armadillo.half";
 	String path = "E:\\cgModel\\bunny6000.half";
-	auto data = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
-	auto node = std::make_shared<HalfEdgeNode>(path, data);
-	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)));
+	//String path = "E:\\cgModel\\model\\buddha\\buddha.half";
+	if (m_pBunny == nullptr) {
+		m_pBunny = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
+	}
+	auto node = std::make_shared<HalfEdgeNode>(path + glmUtil::ToString(pos), m_pBunny);
+	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)) * glmUtil::CreateTranslate(pos));
 	return node;
 }
 

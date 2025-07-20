@@ -8,6 +8,7 @@
 namespace KI
 {
 class CSFRenderNode;
+class HalfEdgeStruct;
 class HalfEdgeNode;
 class PointCloudNode;
 class InstancedPrimitiveNode;
@@ -16,6 +17,7 @@ class PointCloudApp : public GLFWApp
 public:
 	PointCloudApp()
 		: m_pSelect(nullptr)
+		, m_gpuProfiler(nullptr)
 	{
 	};
 	~PointCloudApp() {};
@@ -32,10 +34,14 @@ private:
 		UI()
 		:pickMode(false)
 		,animation(false)
-		,visibleSkyBox(true){}
+		,visibleSkyBox(true)
+		,visibleTexture(false)
+		,mipmap(0){}
 		~UI() {}
 		bool pickMode;
 		bool visibleSkyBox;
+		bool visibleTexture;
+		int mipmap;
 		bool animation;
 	};
 
@@ -45,16 +51,21 @@ private:
 	Shared<RenderNode> CreateGLTFAnimationTest();
 	Shared<RenderNode> CreateGLTFNodeTest();
 	Shared<RenderNode> CreateCSFNodeTest();
+	Shared<RenderNode> CreatePBRTest();
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
 	Shared<RenderNode> CreateSTEPNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
+	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);
 	Shared<PointCloudNode> CreateDelaunayTest();
 	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();
 	Shared<RenderResource> m_pResource;
 	CPUProfiler m_cpuProfiler;
+	GPUProfiler* m_gpuProfiler;
 	Unique<RenderNode> m_pRoot;
 	RenderNode* m_pSelect;
 	void ShowUI(UIContext& ui);
+	Shared<RenderNode> m_pGLTFAnimation;
+	Shared<HalfEdgeStruct> m_pBunny;
 };
 }
 

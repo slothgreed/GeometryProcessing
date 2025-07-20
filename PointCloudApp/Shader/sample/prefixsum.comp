@@ -1,0 +1,45 @@
+layout(std430, binding = 0) buffer Input {
+    int counts[];   // 入力データ（Num）
+};
+
+layout(std430, binding = 1) buffer Output {
+    int offsets[];  // 出力データ（Offset）
+};
+
+uniform int u_num;
+shared int temp[1024];  // ワークグループ内で共有
+
+void main() {
+    int tid = int(gl_LocalInvocationID.x);
+	if(tid >= u_gridNum) return;
+    // Load input to shared memory
+    temp[tid] = counts[tid];
+    barrier();
+
+    // Up-sweep phase (build sum tree)
+    for (int d = 1; d < 1024; d <<= 1) {
+        int index = (tid + 1) * d * 2 - 1;
+        if (index < 1024)
+            temp[index] += temp[index - d];
+        barrier();
+    }
+
+    // Clear last element to convert to exclusive scan
+    if (tid == 0)
+        temp[1023] = 0;
+    barrier();
+
+    // Down-sweep phase
+    for (int d = 512; d >= 1; d >>= 1) {
+        int index = (tid + 1) * d * 2 - 1;
+        if (index < 1024) {
+            int left = temp[index - d];
+            int right = temp[index];
+            temp[index - d] = right;
+            temp[index] = left + right;
+        }
+        barrier();
+    }
+
+    offsets[tid] = temp[tid];
+}

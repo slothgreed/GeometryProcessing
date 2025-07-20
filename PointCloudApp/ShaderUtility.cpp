@@ -14,13 +14,17 @@ ShaderUtility::~ShaderUtility()
 
 GLuint ShaderUtility::Compile(const String& code, GLuint shaderType)
 {
+	if (code.empty()) { return 0; }
 	GLuint id = glCreateShader(shaderType);
+	OUTPUT_GLERROR;
 
 	const GLchar* sourceCode = code.c_str();
 	GLint size = (GLint)code.size();
 	glShaderSource(id, 1, &sourceCode, &size);
+	OUTPUT_GLERROR;
 
 	glCompileShader(id);
+	OUTPUT_GLERROR;
 	GLint result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	if (result == GL_FALSE)
@@ -36,6 +40,7 @@ GLuint ShaderUtility::Compile(const String& code, GLuint shaderType)
 		errorLog = nullptr;
 	}
 
+	OUTPUT_GLERROR;
 	return id;
 }
 GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
@@ -116,7 +121,9 @@ GLuint ShaderUtility::LinkCompute(GLuint computeId)
 {
 	GLuint programId = glCreateProgram();
 	glAttachShader(programId, computeId);
+	OUTPUT_GLERROR;
 	glLinkProgram(programId);
+	OUTPUT_GLERROR;
 	GLint links;
 	GLint result;
 	glGetProgramiv(programId, GL_LINK_STATUS, &result);

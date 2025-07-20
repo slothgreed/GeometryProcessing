@@ -82,6 +82,13 @@ void RenderNode::UpdateModelMatrix()
 		glmUtil::CreateScale(m_scale));
 }
 
+void RenderNode::SetMatrix(const Matrix4x4& mat)
+{
+	m_matrix = mat;
+	m_normalMatrix = glm::transpose(glm::inverse(glm::mat3(mat)));
+}
+
+
 BDB RenderNode::GetCameraFitBox() const
 {
 	return m_bdb.CreateRotate(m_matrix);

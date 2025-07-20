@@ -72,19 +72,25 @@ class GLAPIExt
 public:
 	GLAPIExt()
 	:m_maxComputeLocalSize(glm::ivec4(0))
-	,m_maxComputeWorkGroupCount(glm::ivec3(0)){};
+	,m_maxComputeWorkGroupCount(glm::ivec3(0))
+	,m_meshletMaxPrimitive(0)
+	,m_meshletMaxVertex(0){};
 	~GLAPIExt() {};
 
 	static bool Initialize();
 	static void Finalize();
 	const glm::ivec3& GetMaxComputeWorkGroupCount();
 	const glm::ivec4& GetMaxComputeLocalSize();
+	int GetMeshletMaxVertex();
+	int GetMeshletMaxPrimitive();
 	static GLAPIExt* Info();
 
 private:
 	static GLAPIExt* m_pInfo;
 	glm::ivec3 m_maxComputeWorkGroupCount;
 	glm::ivec4 m_maxComputeLocalSize; // w�͐ς̍ő�l
+	int m_meshletMaxVertex;
+	int m_meshletMaxPrimitive;
 };
 
 

@@ -272,6 +272,9 @@
     <ClCompile Include="PostEffect.cpp">
       <Filter>ソース ファイル\GL\Shader</Filter>
     </ClCompile>
+    <ClCompile Include="PBR.cpp">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -501,6 +504,9 @@
     </ClInclude>
     <ClInclude Include="PostEffect.h">
       <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="PBR.h">
+      <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

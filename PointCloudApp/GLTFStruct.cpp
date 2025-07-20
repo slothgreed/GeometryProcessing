@@ -76,9 +76,17 @@ Matrix4x4 GLTFNode::CreateMatrix(const Vector3& scale, const Matrix4x4& rotate, 
 	return matrix;
 }
 
-Matrix4x4 GLTFNode::CreateLocalMatrix() const
+const Matrix4x4& GLTFNode::GetLocalMatrix() const
 {
-	return m_baseMatrix * CreateMatrix(m_scale, m_rotate, m_translate);
+	if (m_matrixType == Base) {
+		return m_baseMatrix;
+	} else {
+		return m_trsMatrix;
+	}
+}
+Matrix4x4 GLTFNode::CreateTRSMatrix() const
+{
+	return CreateMatrix(m_scale, m_rotate, m_translate);
 }
 
 void GLTFNode::UpdateMatrix(const Vector<int>& roots, Vector<GLTFNode>& nodes)
@@ -101,19 +109,19 @@ void GLTFNode::SetScale(const Vector3& local)
 {
 	if (m_scale == local) { return; }
 	m_scale = local; 
-	m_localMatrix = CreateLocalMatrix();
+	m_trsMatrix = CreateTRSMatrix();
 }
 void GLTFNode::SetRotate(const Matrix4x4& local)
 {
 	if (m_rotate == local) { return; }
 	m_rotate = local;
-	m_localMatrix = CreateLocalMatrix();
+	m_trsMatrix = CreateTRSMatrix();
 }
 void GLTFNode::SetTranslate(const Vector3& local)
 {
 	if (m_translate == local) { return; }
 	m_translate = local;
-	m_localMatrix = CreateLocalMatrix();
+	m_trsMatrix = CreateTRSMatrix();
 }
 Vector<GLTFNode::GpuObject> GLTFNode::CreateGpuObject(const Vector<GLTFNode>& nodes, const Vector<GLTFSkin>& skins)
 {
@@ -174,9 +182,6 @@ void GLTFAnimation::Update(const Vector<GLTFAnimation>& animations, Vector<GLTFN
 				if (!InTime(sampler.timer[j], sampler.timer[j + 1], time)) { continue; }
 				float u = std::max(0.0f, time - sampler.timer[j]) / (sampler.timer[j + 1] - sampler.timer[j]);
 				if (u > 1.0f) continue;
-				if (channel.node == 1) {
-					int a = 0;
-				}
 				switch (channel.path) {
 				case Channel::Path::Translate:
 					nodes[channel.node].SetTranslate(

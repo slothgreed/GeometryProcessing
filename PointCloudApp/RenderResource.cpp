@@ -79,6 +79,7 @@ void GLContext::SetupShading()
 void RenderResource::Build()
 {
 	m_pShaderTable.Build();
+	m_pPBR = new PBRResource();
 	m_pComputeColorTarget = new GLBuffer();
 	m_pComputeDepthTarget = new GLBuffer();
 	m_pPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
@@ -99,7 +100,9 @@ void RenderResource::UpdateCamera()
 		Matrix4x4 proj;
 		Matrix4x4 vp;
 		Vector4 eye;
-		float padding[12];
+		Vector4 center;
+		Vector2 viewSize;
+		float padding[6];
 	};
 
 	CameraGPU gpu;
@@ -107,7 +110,38 @@ void RenderResource::UpdateCamera()
 	gpu.proj = m_pCamera->Projection();
 	gpu.vp = m_pCamera->Projection() * m_pCamera->ViewMatrix();
 	gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
+	gpu.center = Vector4(m_pCamera->Center(), 1.0f);
+	gpu.viewSize = m_pCamera->ViewSize();
 	m_pCameraGpu->BufferSubData(0, 1, sizeof(CameraGPU), &gpu);
+}
+
+void RenderResource::UpdatePBR()
+{
+	struct PBRGpu
+	{
+		PBRGpu()
+			: prefilteredMaxMip(0)
+			, exposure(1.0f)
+			, pad1(0.0f), pad2(0.0f)
+		{
+		}
+			
+		int prefilteredMaxMip;
+		float exposure;
+		float pad1;
+		float pad2;
+	};
+
+	if (!m_pPBRGpu) {
+		m_pPBRGpu = new GLBuffer();
+		m_pPBRGpu->Create(1, sizeof(PBRGpu));
+	}
+
+
+	PBRGpu gpu;
+	gpu.prefilteredMaxMip = GetPBR()->GetPrefiltered()->GetFormat().level;
+	gpu.exposure = 5.0f;
+	m_pPBRGpu->BufferSubData(0, 1, sizeof(PBRGpu), &gpu);
 }
 
 void RenderResource::UpdateLight()
@@ -137,6 +171,8 @@ void RenderResource::Finalize()
 	RELEASE_INSTANCE(m_pComputeDepthTarget);
 	RELEASE_INSTANCE(m_pTmpComputeTarget);
 	RELEASE_INSTANCE(m_pPostEffectTarget);
+	RELEASE_INSTANCE(m_pPBRGpu);
+	RELEASE_INSTANCE(m_pPBR);
 }
 
 
@@ -147,6 +183,15 @@ void GLContext::PushRenderTarget(RenderTarget* pTarget, int drawTargetNum)
 	stack.drawTargetNum = drawTargetNum;
 	m_pRenderTargetStack.push(stack);
 	pTarget->Bind(drawTargetNum);
+}
+
+void GLContext::ColorMask(bool value)
+{
+	if (value) {
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	} else {
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	}
 }
 void GLContext::PopRenderTarget()
 {

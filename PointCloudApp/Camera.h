@@ -26,6 +26,7 @@ public:
 	Vector3 XDirection();
 	Vector3 YDirection();
 	Vector3 ZDirection();
+	Vector2i ViewSize() const { return Vector2(m_viewport.z - m_viewport.x, m_viewport.w - m_viewport.y); }
 	const Vector3& Eye() { return m_eye; };
 	const Vector3& Center() { return m_center; };
 	const Vector3& Up() { return m_up; };

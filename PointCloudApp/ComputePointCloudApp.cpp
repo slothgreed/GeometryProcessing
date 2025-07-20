@@ -49,6 +49,7 @@ PointCloudComputeShader::~PointCloudComputeShader()
 ShaderPath PointCloudComputeShader::GetShaderPath()
 {
 	ShaderPath path;
+	path.version = "version.h";
 	path.shader[SHADER_PROGRAM_COMPUTE] = "pointcloud.comp";
 
 	return path;
@@ -136,8 +137,12 @@ void ComputePointCloudApp::Execute()
 	DrawContext context;
 	auto pShader = std::make_unique<PointCloudComputeShader>(pPointCloud);
 	pShader->Build();
+	auto m_pResource = std::make_unique<RenderResource>();
+	m_pResource->Build();
+
 	GPUProfiler profiler("Render");
 	auto pNode = std::make_unique<RenderTextureNode>();
+	context.pResource = m_pResource.get();
 	context.pResource->SetTexturePlane(pNode.get());
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

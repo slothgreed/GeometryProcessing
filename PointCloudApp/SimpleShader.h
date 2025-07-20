@@ -212,19 +212,29 @@ class TextureViewShader : public IPostEffectShader
 {
 public:
 
-	enum UNIFORM
-	{
-		TEXTURE,
-		NUM
-	};
-
-	TextureViewShader()	{};
+	TextureViewShader()
+		: m_uTexture(0) {};
 	virtual ~TextureViewShader() {};
 	virtual ShaderPath GetShaderPath();
 	virtual void FetchUniformLocation();
 	void BindTexture(const Texture& texture);
 private:
-	GLuint m_uniform[UNIFORM::NUM];
+	GLuint m_uTexture;
+};
+
+class CubemapViewShader : public IPostEffectShader
+{
+public:
+
+	CubemapViewShader() {};
+	virtual ~CubemapViewShader() {};
+	virtual ShaderPath GetShaderPath();
+	virtual void FetchUniformLocation();
+	void BindMipmapLevel(int level);
+	void BindTexture(const CubemapTexture& texture);
+private:
+	GLuint m_uMipmap;
+	GLuint m_uCubeMap;
 };
 
 }
