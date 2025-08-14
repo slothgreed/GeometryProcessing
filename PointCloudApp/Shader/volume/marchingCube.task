@@ -1,0 +1,82 @@
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+layout(std430, binding  = 1) buffer voxelBuffer
+{
+	Voxel voxel;
+};
+
+
+layout(std430, binding  = 2) buffer volumeBuffer
+{
+	unsigned short data[];
+};
+
+
+layout(std430, binding = 4) buffer cubeIndexBuffer{
+	ivec2 cubeIndexs[];
+};
+
+layout(std430, binding = 5) buffer taskNumBuffer{
+	uint taskNum[];
+};
+
+unsigned short getData(Voxel voxel, vec3 index)
+{
+	return data[getIndex(voxel, int(index.x),int(index.y),int(index.z))];
+}
+
+TaskNV out Task
+{
+	uint baseID;
+}OUT;
+uniform float u_threshold;
+uniform uint u_taskNum;
+void main()
+{
+
+	int id = int(gl_GlobalInvocationID.x);
+	int taskIndex = int(gl_WorkGroupID.x);
+	int taskOffset = int(u_taskNum * gl_WorkGroupID.x); // (i * local_thread) 
+	int localOffset = int(gl_LocalInvocationID.x);
+	if(id > voxel.resolute.x * voxel.resolute.y * voxel.resolute.z){gl_TaskCountNV = 0; return;}
+	vec3 coord = getCoordinate(voxel,id);
+	float x = coord.x; float y = coord.y; float z = coord.z;
+	vec3 index;
+	unsigned short value[8];
+	index = vec3(x,y,z); 			 value[0] = getData(voxel,index);
+	index = vec3(x + 1,y,z);		 value[1] = getData(voxel,index);
+	index = vec3(x + 1,y + 1,z);	 value[2] = getData(voxel,index);
+	index = vec3(x,y + 1,z);		 value[3] = getData(voxel,index);
+	index = vec3(x,y,z + 1);		 value[4] = getData(voxel,index);
+	index = vec3(x + 1,y,z + 1);	 value[5] = getData(voxel,index);
+	index = vec3(x + 1,y + 1,z + 1); value[6] = getData(voxel,index);
+	index = vec3(x,y + 1,z + 1); 	 value[7] = getData(voxel,index);
+	
+	int cubeIndex = 0;
+	cubeIndex |= int(value[0] < u_threshold) << 0;
+	cubeIndex |= int(value[1] < u_threshold) << 1;
+	cubeIndex |= int(value[2] < u_threshold) << 2;
+	cubeIndex |= int(value[3] < u_threshold) << 3;
+	cubeIndex |= int(value[4] < u_threshold) << 4;
+	cubeIndex |= int(value[5] < u_threshold) << 5;
+	cubeIndex |= int(value[6] < u_threshold) << 6;
+	cubeIndex |= int(value[7] < u_threshold) << 7;
+	if(cubeIndex != 0)
+	{
+		uint ret = atomicAdd(taskNum[taskIndex],1);
+		memoryBarrierAtomicCounter();
+		int voxelIndex = taskOffset + localOffset;
+		cubeIndexs[taskOffset + ret] = ivec2(voxelIndex, cubeIndex);
+	}
+
+	barrier();
+	memoryBarrierBuffer();
+	if(gl_LocalInvocationID.x == 0)
+	{
+		gl_TaskCountNV = taskNum[taskIndex];
+		OUT.baseID = taskOffset;
+	}
+}

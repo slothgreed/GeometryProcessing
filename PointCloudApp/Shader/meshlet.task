@@ -47,6 +47,7 @@ void main()
 	if(dot(meshNormal,viewDir) <= 0 && !allCull(data.boxMin.xyz,data.boxMax.xyz, camera.VP * u_Model,camera.viewSize,u_CullSize)) 
 	{
 		uint ret = atomicAdd(taskNum[gl_WorkGroupID.x],1);
+		//memoryBarrierAtomicCounter(); // need?
 		OUT.drawID[ret] = meshletIndex;
 	}
 	

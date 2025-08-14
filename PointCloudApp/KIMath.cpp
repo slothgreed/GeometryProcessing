@@ -30,12 +30,12 @@ float MathHelper::CalcTriangleArea(const Vector3& v1, const Vector3& v2, const V
 	return area;
 }
 
-void MathHelper::CalcNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3, Vector3& normal)
+Vector3 MathHelper::CalcNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3)
 {
 	Vector3 vector1 = normalize(v2 - v1);
 	Vector3 vector2 = normalize(v3 - v1);
 
-	normal = cross(vector1,vector2);
+	return cross(vector1,vector2);
 }
 
 float MathHelper::CalcRadian(const Vector3& v1, const Vector3& v2) 

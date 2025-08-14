@@ -210,6 +210,63 @@ void Texture2D::BindSampler(const Sampler& sampler)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.filter);
 }
 
+Texture3D::Texture3D()
+{
+	glGenTextures(1, &m_handle);
+}
+Texture3D::~Texture3D()
+{
+	glDeleteTextures(1, &m_handle);
+}
+void Texture3D::Build(const Vector3i& size, Vector4* data)
+{
+	glBindTexture(GL_TEXTURE_3D, m_handle);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	m_format.target = GL_TEXTURE_3D;
+	m_format.width = size.x;
+	m_format.height = size.y;
+	m_format.depth = size.z;
+	m_format.internalformat = GL_RGBA8;
+	m_format.format = GL_RGBA;
+	m_format.type = GL_FLOAT;
+	glTexImage3D(GL_TEXTURE_3D,
+		0, m_format.internalformat,
+		m_format.width, m_format.height, m_format.depth,
+		0, m_format.format, m_format.type, data);
+
+	glBindTexture(GL_TEXTURE_3D, 0);
+	OUTPUT_GLERROR;
+}
+void Texture3D::Build(const Vector3i& size, unsigned short* data)
+{
+	glBindTexture(GL_TEXTURE_3D, m_handle);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	m_format.target = GL_TEXTURE_3D;
+	m_format.width = size.x;
+	m_format.height = size.y;
+	m_format.depth = size.z;
+	m_format.internalformat = GL_R16;
+	m_format.format = GL_RED;
+	m_format.type = GL_UNSIGNED_SHORT;
+	glTexImage3D(GL_TEXTURE_3D,
+		0, m_format.internalformat,
+		m_format.width, m_format.height, m_format.depth,
+		0, m_format.format, m_format.type, data);
+
+	glBindTexture(GL_TEXTURE_3D, 0);
+}
 CubemapTexture::CubemapTexture()
 {
 	glGenTextures(1, &m_handle);

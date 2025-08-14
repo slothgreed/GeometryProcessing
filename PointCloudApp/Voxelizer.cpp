@@ -412,7 +412,6 @@ ShaderPath Voxelizer::MeshShader::GetShaderPath()
 	path.header.push_back("common.h");
 	path.shader[SHADER_PROGRAM_MESH] = "algorithm/voxelizer.mesh";
 	path.shader[SHADER_PROGRAM_FRAG] = "algorithm/voxelizer.frag";
-	path.extension[SHADER_PROGRAM_MESH].push_back("#extension GL_NV_mesh_shader : require\n");
 
 	return path;
 }

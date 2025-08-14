@@ -1,45 +1,36 @@
 
 
-layout(std430, binding = 3) buffer Node
-{
-	GLTFNode nodes[];
-};
-
-layout(std430, binding = 4) buffer Skin
-{
-	float skins[];
-};
-
 void main()
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if(index >= u_particleNum){return;}
+	if(index >= setting.particleNum){return;}
 	
-	vec3 pressure_force(0.0);
+	vec3 pressure_force = vec3(0.0);
 	
-	vec3 position = getPosition(m_particles[index]);
+	vec3 position = getPosition(particles[index]);
     ivec3 cellIndex = getCellID(position);
 	for (int i = -1; i <= 1; i++)
     for (int j = -1; j <= 1; j++)
 	for (int k = -1; k <= 1; k++) {
         ivec3 dIndex = ivec3(cellIndex.x + i, cellIndex.y + j, cellIndex.z + k);
         if (dIndex.x < 0 || dIndex.y < 0 || dIndex.z < 0) { continue; }
-        if (dIndex.x >= u_cellNum.x || dIndex.y >= u_cellNum.y || dIndex.z >= u_cellNum.z) { continue; }
+        if (dIndex.x >= setting.cellNum.x || dIndex.y >= setting.cellNum.y || dIndex.z >= setting.cellNum.z) { continue; }
         int index1D = ToIndex1D(dIndex);
         for (int offset = 0; offset < grids[index1D].num; offset++) {
-            int other = sortParticles[grids[index1D].offset + offset)];
+            uint other = sortParticles[grids[index1D].offset + offset];
             if (index == other) continue;
-            vec3 pos2 = getPosition(m_particles[other]);
+            vec3 pos2 = getPosition(particles[other]);
+			vec3 dir = position - pos2;
 			float dist = distance(position, pos2);
-			if(dist < RADIUS && dist > 0.0)
+			if(dist > 0.0)
 			{
-				vec3 dir = (position - pos) / dist;
+				dir /= dist;
 				pressure_force += dir * (RADIUS - dist) * PRESSURE_STRENGTH;
 			}
         }
     }
 	
-	addVelocity(m_particles[index],pressure_force * DT);
+	addVelocity(particles[index],pressure_force * DT);
 	
 } 
 

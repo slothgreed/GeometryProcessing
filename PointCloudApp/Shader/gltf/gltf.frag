@@ -185,7 +185,7 @@ float getOcculusion(GLTFMaterial material)
 	if(material.occlusionTexture != -1){
 		return texture(u_occlusionTexture,f_texcoord).r;
 	}else{
-		return 1.0f;
+		return 0.0f;
 	}
 }
 void main()
@@ -260,9 +260,7 @@ void main()
 	vec4 resultColor = vec4(NdotL * light.color.rgb * (diffuseContrib + specContrib),1.0);
 	vec4 ibl = vec4(getIBLColor(pbrInputs, normal, reflectValue),1.0);
 	resultColor += ibl;
-	if(material.occlusionTexture != -1){
-		resultColor += getOcculusion(material) * resultColor;
-	}
+	resultColor += getOcculusion(material) * resultColor;
 	
 	resultColor += vec4(getEmissive(material),0.0);
 	

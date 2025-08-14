@@ -20,6 +20,7 @@
 #include <sstream>
 #include <iomanip>
 #include <stack>
+#include <bitset>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "../implot/implot.h"
@@ -56,6 +57,7 @@ template <typename T> using Unique = std::unique_ptr<T>;
 template <typename T> using Vector = std::vector<T>;
 template <typename T> using Optional = std::optional<T>;
 template <typename T> using USet = std::unordered_set<T>;
+template <std::size_t T> using BitSet = std::bitset<T>;
 using String = std::string;
 using Matrix3x3 = glm::mat3x3;
 using Matrix4x4 = glm::mat4x4;
@@ -79,6 +81,10 @@ inline String IntToString(int value)
 	return std::to_string(value);
 }
 
+inline int CeilDiv(int a, int b)
+{
+	return (a + b - 1) / b;
+}
 
 
 

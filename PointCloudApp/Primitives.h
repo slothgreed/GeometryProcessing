@@ -25,9 +25,11 @@ public:
 	{
 		X,Y,Z
 	};
-
+	Plane() {}
 	Plane(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord = false);
 	~Plane() {};
+	
+	static Matrix4x4 CreateMatrix(const Vector3& min, const Vector3& max, float position, Axis axis);
 
 private:
 

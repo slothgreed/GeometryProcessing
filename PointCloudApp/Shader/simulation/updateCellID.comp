@@ -1,18 +1,24 @@
 
+layout(std430, binding = 4) buffer offsetBuffer{
+	uint offset[];
+};
+
 void main()
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if(index >= u_particleNum){return;}
+	if(index >= setting.particleNum){return;}
 
-#ifdef STEP1
+#ifdef PHASE_1
     ivec3 cellID = getCellID(getPosition(particles[index]));
-    m_grid.AddNum(ToIndex1D(cellID));
+    atomicAdd(grids[ToIndex1D(cellID)].num, 1);
 #endif
 
-#ifdef STEP2
+	// Need PrefixSum;
 
+#ifdef PHASE_2
+    ivec3 cellID = getCellID(getPosition(particles[index]));
+    int cellIndex = ToIndex1D(cellID);
+	sortParticles[grids[ToIndex1D(cellID)].offset + atomicAdd(offset[cellIndex],1)] = index;
 #endif
 
-#ifdef STEP3
-#endif
 } 

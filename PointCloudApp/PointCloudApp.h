@@ -52,6 +52,7 @@ private:
 	Shared<RenderNode> CreateGLTFNodeTest();
 	Shared<RenderNode> CreateCSFNodeTest();
 	Shared<RenderNode> CreatePBRTest();
+	Shared<RenderNode> CreateVolumeTest();
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
 	Shared<RenderNode> CreateSTEPNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();

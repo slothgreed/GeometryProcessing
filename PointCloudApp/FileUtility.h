@@ -87,7 +87,7 @@ public:
 	Vector3 ReadVec3();
 	vec4 ReadVec4();
 	template <typename T>
-	Vector<T> ReadStruct(int num)
+	Vector<T> ReadVector(int num)
 	{
 		static_assert(std::is_trivially_copyable<T>::value, "T must be trivially copyable");
 		static_assert(std::is_standard_layout<T>::value, "T must have standard layout");
@@ -95,6 +95,16 @@ public:
 		Vector<T> data(num);
 		m_fileStream.read(reinterpret_cast<char*>(data.data()), sizeof(T) * num);
 		return data;
+	}
+
+	template <typename T>
+	bool ReadVector(T* data, int num)
+	{
+		static_assert(std::is_trivially_copyable<T>::value, "T must be trivially copyable");
+		static_assert(std::is_standard_layout<T>::value, "T must have standard layout");
+
+		m_fileStream.read(reinterpret_cast<char*>(data), sizeof(T) * num);
+		return m_fileStream.good();
 	}
 
 	bool EndOfFile();

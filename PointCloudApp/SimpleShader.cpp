@@ -42,7 +42,7 @@ void SimpleShader::SetColor(const Vector3& value)
 {
 	glUniform3fv(m_uniform[UNIFORM::COLOR], 1, &value[0]);
 }
-void SimpleShader::SetPosition(GLBuffer* pBuffer)
+void SimpleShader::SetPosition(const GLBuffer* pBuffer)
 {
 	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pBuffer));
 	glBindVertexBuffer(ATTRIB_POSITION, pBuffer->Handle(), 0, pBuffer->SizeOfData());
@@ -60,7 +60,7 @@ ShaderPath FaceShader::GetShaderPath()
 	return path;
 }
 
-void FaceShader::SetNormal(GLBuffer* pBuffer)
+void FaceShader::SetNormal(const GLBuffer* pBuffer)
 {
 	SetVertexFormat(VertexFormat(ATTRIB_NORMAL, pBuffer));
 	glBindVertexBuffer(ATTRIB_NORMAL, pBuffer->Handle(), 0, pBuffer->SizeOfData());

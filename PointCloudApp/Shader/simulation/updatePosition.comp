@@ -4,45 +4,44 @@
 void main()
 {
 	int index = int(gl_GlobalInvocationID.x);
-	if(index >= u_particleNum){return;}
+	if(index >= setting.particleNum){return;}
 	
-	addVelocity(particles[index], gravity * DT);
+	addVelocity(particles[index], GRAVITY * DT);
 	addPosition(particles[index], getVelocity(particles[index]) * DT);
-	
-	if (particles[index].position.x < u_spaceMin.x)
+	if (particles[index].position.x < setting.spaceMin.x)
 	{
-		particles[index].position.x = u_spaceMin.x;
+		particles[index].position.x = setting.spaceMin.x;
 		particles[index].velocity.x *= -0.5;
 	}
 	
-	if (particles[index].position.y < u_spaceMin.y)
+	if (particles[index].position.y < setting.spaceMin.y)
 	{
-		particles[index].position.y = u_spaceMin.y;
+		particles[index].position.y = setting.spaceMin.y;
 		particles[index].velocity.y *= -0.5;
 	}
 	
-	if (particles[index].position.z < u_spaceMin.z)
+	if (particles[index].position.z < setting.spaceMin.z)
 	{
-		particles[index].position.z = u_spaceMin.z;
+		particles[index].position.z = setting.spaceMin.z;
 		particles[index].velocity.z *= -0.5;
 	}
 	
 	
-	if (particles[index].position.x > u_spaceMax.x)
+	if (particles[index].position.x > setting.spaceMax.x)
 	{
-		particles[index].position.x = u_spaceMax.x;
+		particles[index].position.x = setting.spaceMax.x;
 		particles[index].velocity.x *= -0.5;
 	}
 	
-	if (particles[index].position.y > u_spaceMax.y)
+	if (particles[index].position.y > setting.spaceMax.y)
 	{
-		particles[index].position.y = u_spaceMax.y;
+		particles[index].position.y = setting.spaceMax.y;
 		particles[index].velocity.y *= -0.5;
 	}
 	
-	if (particles[index].position.z > u_spaceMax.z)
+	if (particles[index].position.z > setting.spaceMax.z)
 	{
-		particles[index].position.z = u_spaceMax.z;
+		particles[index].position.z = setting.spaceMax.z;
 		particles[index].velocity.z *= -0.5;
 	}
 } 

@@ -87,7 +87,8 @@ public:
 	static Matrix4x4 CreateScale(const Vector3& value);
 	static Matrix4x4 CreateScale(float value);
 	static Matrix4x4 CreateRotate(float rad, const Vector3& axis);
-	static Matrix4x4 CreateRotate(const Vector3& angle);
+	static Matrix4x4 CreateRotate(const Vector3& rad);
+	static Matrix4x4 CreateRotateAngle(const Vector3& angle);
 	static Matrix4x4 CreateTranslate(const Vector3& translate);
 	static Matrix4x4 CreateTransform(float scale, const Vector3& translate);
 	static Matrix4x4 CreateRotate(Vector3 from, Vector3 to);

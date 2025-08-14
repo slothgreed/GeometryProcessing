@@ -1,5 +1,6 @@
 #ifndef TEXTURE_LOADER_H
 #define TEXTURE_LOADER_H
+#include "Voxel.h"
 namespace KI
 {
 class Texture;
@@ -23,6 +24,7 @@ public:
 
 	static Texture* Load(const String& name);
 	static PixelData* LoadData(const String& name, int comp);
+	static Voxel* LoadVolume(const String& name);
 private:
 
 };

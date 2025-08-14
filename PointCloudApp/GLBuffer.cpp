@@ -128,6 +128,13 @@ void GLBuffer::GetBufferData(Vector<float>& value)
 	OUTPUT_GLERROR;
 }
 
+void GLBuffer::GetBufferData(Vector<Vector2i>& value)
+{
+	assert(m_handle != 0);
+	glGetNamedBufferSubData(m_handle, 0, value.size() * sizeof(Vector2i), value.data());
+	OUTPUT_GLERROR;
+}
+
 void GLBuffer::GetBufferData(Vector<Vector3>& value)
 {
 	assert(m_handle != 0);

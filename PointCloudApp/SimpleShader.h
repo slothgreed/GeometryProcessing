@@ -25,7 +25,7 @@ public:
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
 	void SetColor(const Vector3& value);
-	void SetPosition(GLBuffer* pBuffer);
+	void SetPosition(const GLBuffer* pBuffer);
 private:
 
 	GLuint m_uniform[UNIFORM::NUM];
@@ -38,7 +38,7 @@ public:
 	FaceShader() {};
 	~FaceShader() {};
 
-	void SetNormal(GLBuffer* pBuffer);
+	void SetNormal(const GLBuffer* pBuffer);
 	virtual int GetDrawTargetNum() const { return 3; }
 	virtual ShaderPath GetShaderPath() override;
 private:

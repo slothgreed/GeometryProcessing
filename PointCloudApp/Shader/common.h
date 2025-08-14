@@ -3,10 +3,11 @@ struct Camera
 	mat4x4 view;
 	mat4x4 proj;
 	mat4x4 VP;
+	mat4x4 invVP;
 	vec4 eye;
 	vec4 center;
 	vec2 viewSize;
-	float padding[6];
+	float padding[2];
 };
 
 struct Light
@@ -45,4 +46,8 @@ vec4 unpackColor(float f) {
     fi -= color.g * 256.0;
     color.b = fi;
     return vec4(color / 255.0, 1.0);
+}
+
+bool IsSame(float lhs, float rhs) {
+    return abs(lhs - rhs) < 1e-5;
 }

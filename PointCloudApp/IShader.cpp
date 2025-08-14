@@ -92,7 +92,7 @@ void IShadingShader::DrawArrayInstaced(GLuint primitiveType, int count, int inst
 	OUTPUT_GLERROR;
 }
 
-void IShadingShader::DrawArray(GLuint primitiveType, GLBuffer* pPositionBuffer)
+void IShadingShader::DrawArray(GLuint primitiveType, const GLBuffer* pPositionBuffer)
 {
 	DrawArray(primitiveType, pPositionBuffer->Num());
 }
@@ -244,7 +244,7 @@ int IMeshShader::GetMaxPrimitives() const
 
 int IMeshShader::GetDispatchNum(int num)
 {
-	return (num / GetTaskThreadNum()) + 1;
+	return (num + GetTaskThreadNum() - 1) / GetTaskThreadNum();
 }
 
 void IMeshShader::BarrierSSBO()
@@ -265,6 +265,8 @@ void IMeshShader::DrawWithAutoTask(int first, int count)
 void IMeshShader::Build()
 {
 	auto shaderPath = GetShaderPath();
+	shaderPath.extension[SHADER_PROGRAM_TASK].push_back("#extension GL_NV_mesh_shader : require\n");
+	shaderPath.extension[SHADER_PROGRAM_MESH].push_back("#extension GL_NV_mesh_shader : require\n");
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
@@ -310,9 +312,10 @@ int IShader::GetUniformLocation(const char* str)
 	OUTPUT_GLERROR;
 	return val;
 }
-void IShader::Bind(int location, GLBuffer* pBuffer)
+void IShader::Bind(int location, const GLBuffer* pBuffer)
 {
-
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, location, pBuffer->Handle());
+	OUTPUT_GLERROR;
 }
 
 void IShader::BindUniform(int location, const Matrix4x4& value)
@@ -336,6 +339,13 @@ void IShader::BindUniform(int location, const Vector3& value)
 	glUniform3f(location, value.x, value.y, value.z);
 	OUTPUT_GLERROR;
 }
+
+void IShader::BindUniform(int location, const Vector4& value)
+{
+	glUniform4f(location, value.x, value.y, value.z, value.w);
+	OUTPUT_GLERROR;
+}
+
 void IShader::BindUniform(int location, const Vector3i& value)
 {
 	glUniform3i(location, value.x, value.y, value.z);
@@ -440,6 +450,12 @@ void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint a
 void IComputeShader::BarrierSSBO()
 {
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	OUTPUT_GLERROR;
+}
+
+void IComputeShader::Dispatch1D(GLuint x)
+{
+	glDispatchCompute(x, 1, 1);
 	OUTPUT_GLERROR;
 }
 void IComputeShader::Dispatch(GLuint x, GLuint y, GLuint z)

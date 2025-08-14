@@ -16,6 +16,7 @@ public:
 		GLint internalformat;
 		GLsizei width;
 		GLsizei height;
+		GLsizei depth;
 		GLint border;
 		GLenum format;
 		GLenum type;
@@ -25,6 +26,7 @@ public:
 			internalformat(GL_RGBA),
 			width(1),
 			height(1),
+			depth(1),
 			border(0),
 			format(GL_RGBA),
 			type(GL_UNSIGNED_BYTE) {}
@@ -131,6 +133,20 @@ public:
 private:
 
 };
+
+class Texture3D : public Texture
+{
+public:
+	Texture3D();
+	~Texture3D();
+	virtual TEXTURE_TYPE Type() const { return TEXTURE_3D; }
+	void Build(const Vector3i& size, Vector4* data);
+	void Build(const Vector3i& size, unsigned short* data);
+
+private:
+
+};
+
 
 class CubemapTexture : public Texture
 {

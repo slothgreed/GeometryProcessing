@@ -1,0 +1,105 @@
+layout(triangles) out;
+
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+layout(std430, binding  = 1) buffer voxelBuffer
+{
+	Voxel voxel;
+};
+
+layout(std430, binding  = 2) buffer volumeBuffer
+{
+	unsigned short data[];
+};
+
+layout(std430, binding = 3) buffer triTableBuffer
+{
+	int triTable[];
+};
+
+layout(std430, binding = 4) buffer cubeIndexBuffer{
+	ivec2 cubeIndexs[];
+};
+
+layout(std430, binding = 5) buffer taskNumBuffer{
+	uint taskNum[];
+};
+
+unsigned short getData(Voxel voxel, vec3 index)
+{
+	return data[getIndex(voxel, int(index.x),int(index.y),int(index.z))];
+}
+
+
+
+uniform mat4 u_Model;
+uniform float u_threshold;
+TaskNV in Task
+{
+	uint baseID;
+}IN;
+
+layout (location = 0) out PerVertexData
+{
+  vec4 color;
+} v_out[];
+
+
+void main()
+{
+	int id = cubeIndexs[IN.baseID + gl_WorkGroupID.x].x;
+	int cubeIndex = cubeIndexs[IN.baseID + gl_WorkGroupID.x].y;
+	if (id > voxel.resolute.x * voxel.resolute.y * voxel.resolute.z) {gl_PrimitiveCountNV = 0; return;}
+	if (edgeTable[cubeIndex] == 0) { gl_PrimitiveCountNV = 0; return; }
+	vec3 coord = getCoordinate(voxel,id);
+	float x = coord.x; float y = coord.y; float z = coord.z;
+
+	unsigned short value[8];
+	vec3 position[8];
+	vec3 index;
+	index = vec3(x,y,z); 			 value[0] = getData(voxel,index); position[0] = getPosition(voxel,index);
+	index = vec3(x + 1,y,z);		 value[1] = getData(voxel,index); position[1] = getPosition(voxel,index);
+	index = vec3(x + 1,y + 1,z);	 value[2] = getData(voxel,index); position[2] = getPosition(voxel,index);
+	index = vec3(x,y + 1,z);		 value[3] = getData(voxel,index); position[3] = getPosition(voxel,index);
+	index = vec3(x,y,z + 1);		 value[4] = getData(voxel,index); position[4] = getPosition(voxel,index);
+	index = vec3(x + 1,y,z + 1);	 value[5] = getData(voxel,index); position[5] = getPosition(voxel,index);
+	index = vec3(x + 1,y + 1,z + 1); value[6] = getData(voxel,index); position[6] = getPosition(voxel,index);
+	index = vec3(x,y + 1,z + 1); 	 value[7] = getData(voxel,index); position[7] = getPosition(voxel,index);
+
+
+	vec3 vertlist[12];
+	vertlist[0] =  VertexInterp(u_threshold, position[0], position[1], value[0], value[1]);
+	vertlist[1] =  VertexInterp(u_threshold, position[1], position[2], value[1], value[2]);
+	vertlist[2] =  VertexInterp(u_threshold, position[2], position[3], value[2], value[3]);
+	vertlist[3] =  VertexInterp(u_threshold, position[3], position[0], value[3], value[0]);
+	vertlist[4] =  VertexInterp(u_threshold, position[4], position[5], value[4], value[5]);
+	vertlist[5] =  VertexInterp(u_threshold, position[5], position[6], value[5], value[6]);
+	vertlist[6] =  VertexInterp(u_threshold, position[6], position[7], value[6], value[7]);
+	vertlist[7] =  VertexInterp(u_threshold, position[7], position[4], value[7], value[4]);
+	vertlist[8] =  VertexInterp(u_threshold, position[0], position[4], value[0], value[4]);
+	vertlist[9] =  VertexInterp(u_threshold, position[1], position[5], value[1], value[5]);
+	vertlist[10] = VertexInterp(u_threshold, position[2], position[6], value[2], value[6]);
+	vertlist[11] = VertexInterp(u_threshold, position[3], position[7], value[3], value[7]);
+	
+
+	int primitiveNum = 0;
+	int base = cubeIndex * 16;
+	for (int i = 0; triTable[base + i] != -1; i += 3)
+	{
+		gl_MeshVerticesNV[i].gl_Position = camera.VP * u_Model * vec4(vertlist[triTable[base + i]],1.0);
+		gl_MeshVerticesNV[i + 1].gl_Position = camera.VP * u_Model * vec4(vertlist[triTable[base + i + 1]],1.0);
+		gl_MeshVerticesNV[i + 2].gl_Position = camera.VP * u_Model * vec4(vertlist[triTable[base + i +2]],1.0);
+		gl_PrimitiveIndicesNV[i] = i;
+		gl_PrimitiveIndicesNV[i + 1] = i + 1;
+		gl_PrimitiveIndicesNV[i + 2] = i + 2;
+		v_out[i].color =     vec4(1,0,0,1);
+		v_out[i + 1].color = vec4(0,1,0,1);
+		v_out[i + 2].color = vec4(0,0,1,1);
+		primitiveNum++;
+	}
+	gl_PrimitiveCountNV = primitiveNum;
+
+}

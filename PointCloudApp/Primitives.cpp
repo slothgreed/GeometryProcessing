@@ -1,4 +1,5 @@
 #include "Primitives.h"
+#include "Utility.h"
 namespace KI
 {
 Cube::Cube(const Vector3& min, const Vector3& max)
@@ -111,6 +112,20 @@ Plane::Plane(const Vector3& min, const Vector3& max, float position, Axis axis, 
 	m_primitiveType = GL_TRIANGLES;
 }
 
+Matrix4x4 Plane::CreateMatrix(const Vector3& min, const Vector3& max, float position, Axis axis)
+{
+	// Step 1: ïùÇ∆çÇÇ≥ÅiëºÇÃ2é≤ÅjÇãÅÇﬂÇÈ
+	switch (axis) {
+	case Axis::X:
+		return glmUtil::CreateTranslate(Vector3(position, 0.0f, 0.0f)); // XYÅ®YZñ Ç÷
+	case Axis::Y:
+		return glmUtil::CreateTranslate(Vector3(0.0f, position, 0.0f)) * glmUtil::CreateRotateAngle(Vector3(0, 0, -90)); // XYÅ®XZñ Ç÷
+	case Axis::Z:
+		return glmUtil::CreateTranslate(Vector3(0.0f, 0.0f, position)) * glmUtil::CreateRotateAngle(Vector3(0, 90, 0)); // ÇªÇÃÇ‹Ç‹XYïΩñ 
+	}
+
+	return Matrix4x4();
+}
 
 Cone::Cone(float _radius, float _height, int _partition)
 	: radius(_radius)

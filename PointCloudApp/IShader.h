@@ -45,17 +45,18 @@ public:
 	void UnUse();
 	void Delete();
 	int GetUniformLocation(const char* str);
-	void Bind(int location, GLBuffer* pBuffer);
-	void BindUniform(int location, const Matrix4x4& value);
-	void BindUniform(int location, const Vector2& value);
-	void BindUniform(int location, const Vector2i& value);
-	void BindUniform(int location, const Vector3i& value);
-	void BindUniform(int location, const Vector3& value);
-	void BindUniform(int location, float value);
-	void BindUniform(int location, int value);
-	void BindUniform(int location, uint64 value);
-	void BindUniform(int location, uint value);
-	void BindShaderStorage(int location, int handle);
+	static void Bind(int location, const GLBuffer* pBuffer);
+	static void BindUniform(int location, const Matrix4x4& value);
+	static void BindUniform(int location, const Vector2& value);
+	static void BindUniform(int location, const Vector2i& value);
+	static void BindUniform(int location, const Vector3i& value);
+	static void BindUniform(int location, const Vector3& value);
+	static void BindUniform(int location, const Vector4& value);
+	static void BindUniform(int location, float value);
+	static void BindUniform(int location, int value);
+	static void BindUniform(int location, uint64 value);
+	static void BindUniform(int location, uint value);
+	static void BindShaderStorage(int location, int handle);
 protected:
 	String LoadHeaderCode(const String& localPath, const Vector<String>& header);
 	GLuint Handle() const { return m_programId; };
@@ -82,7 +83,7 @@ public:
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer, int num, int offset);
 	void DrawElementInstaced(GLuint primitiveType, GLBuffer* pIndexBuffer, int instanceNum);
 	void DrawArrayInstaced(GLuint primitiveType, int count, int instanceNum);
-	void DrawArray(GLuint primitiveType, GLBuffer* pIndexBuffer);
+	void DrawArray(GLuint primitiveType, const GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, int count);
 	void DrawArray(GLuint primitiveType, int offset, int count);
 	void DrawElementsBaseVertex(const DrawArgs& args);
@@ -99,18 +100,19 @@ public:
 	IComputeShader() {};
 	virtual ~IComputeShader() {};
 
-	virtual void FetchUniformLocation() = 0;
+	virtual void FetchUniformLocation() {};
 
 	virtual Vector3i GetLocalThreadNum() const;
 	Vector3i GetDispatchNum2D(const Vector2i& value);
 	Vector3i GetDispatchNum1D(int value);
 	virtual void Build();
-	void Dispatch(GLuint x, GLuint y, GLuint z);
-	void Dispatch(const Vector3i& value);
-	void BindTexture(int location, const Texture* pTexture, GLuint access);
-	void BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access);
-	void BarrierImage();
-	void BarrierSSBO();
+	static void Dispatch1D(GLuint x);
+	static void Dispatch(GLuint x, GLuint y, GLuint z);
+	static void Dispatch(const Vector3i& value);
+	static void BindTexture(int location, const Texture* pTexture, GLuint access);
+	static void BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access);
+	static void BarrierImage();
+	static void BarrierSSBO();
 
 private:
 

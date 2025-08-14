@@ -31,13 +31,13 @@ HalfEdgeStruct* HalfEdgeLoader::Load(const String& filePath)
 		int index;
 	};
 
-	auto vertexData = reader.ReadStruct<IndexedVertex>(vertexSize);
+	auto vertexData = reader.ReadVector<IndexedVertex>(vertexSize);
 	for (int i = 0; i < vertexSize; i++) {
 		position[i] = Vector3(vertexData[i].z, vertexData[i].y, vertexData[i].x);
 		positionToEdge[i] = vertexData[i].index;
 	}
 
-	halfEdge = reader.ReadStruct<HalfEdge>(edgeSize);
+	halfEdge = reader.ReadVector<HalfEdge>(edgeSize);
 	faceToEdge = reader.ReadInt(faceSize);
 	reader.Close();
 

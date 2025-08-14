@@ -21,6 +21,7 @@
 #include "TextureLoader.h"
 #include "PostEffect.h"
 #include "GLTFLoader.h"
+#include "VolumeNode.h"
 #include "HalfEdgeLoader.h"
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
@@ -119,14 +120,13 @@ void PointCloudApp::Execute()
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	m_pRoot = std::make_unique<RenderNode>("Root");
-	Vector3 boxScale = Vector3(30000, 30000, 30000);
 
 	BDB bdb;
 	// Default Scene Demo.
 	//{
 	//	m_pRoot->AddNode(CreateSpaceTest());
 	//	m_pRoot->AddNode(CreateCSFNodeTest());
-	//	m_pRoot->AddNode(CreateGLTFAnimationTest());
+		m_pRoot->AddNode(CreateGLTFAnimationTest());
 	//	m_pRoot->AddNode(CreateGLTFNodeTest());
 	//	m_pRoot->AddNode(CreateBunnyNodeTest());
 	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
@@ -138,13 +138,14 @@ void PointCloudApp::Execute()
 		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
 		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 		//m_pRoot->AddNode(CreateBunnyNodeTest());
-		m_pRoot->AddNode(std::make_shared<SimulationNode>());
+		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
 		//m_pRoot->AddNode(CreateSTEPNodeTest());
 	}
 
 	// PBR
 	{
-		m_pRoot->AddNode(CreatePBRTest());
+		//m_pRoot->AddNode(CreatePBRTest());
+		m_pRoot->AddNode(CreateVolumeTest());
 	}
 
 	// Large Scene Demo.
@@ -205,8 +206,7 @@ void PointCloudApp::Execute()
 	glBindVertexArray(VertexArrayID);
 	Timer timer;
 	float m_diff = 0;
-
-	auto pSkyBoxNode = std::make_unique<SkyBoxNode>(boxScale); pSkyBoxNode->BuildResource();
+	auto pSkyBoxNode = std::make_unique<SkyBoxNode>(Vector3(30000, 30000, 30000)); pSkyBoxNode->BuildResource();
 	auto pForwardTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreateForwardTarget(m_windowSize));
 	Shared<Texture> pMain = pForwardTarget->GetColor(0);
 	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
@@ -500,6 +500,13 @@ Shared<RenderNode> PointCloudApp::CreatePBRTest()
 	pNode->SetScale(100);
 	pNode->SetRotateAngle(Vector3(0, 90, -90));
 	pNode->SetTranslate(Vector3(-1000, 100, 0));
+	return pNode;
+}
+Shared<RenderNode> PointCloudApp::CreateVolumeTest()
+{
+	auto pVoxel = std::unique_ptr<Voxel>(TextureLoader::LoadVolume("E:\\cgModel\\volume\\sample\\dataset-stagbeetle-416x416x247.dat"));
+	auto pNode = std::make_shared<VolumeNode>(std::move(pVoxel));
+	pNode->SetScale(100);
 	return pNode;
 }
 Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()

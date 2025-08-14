@@ -35,6 +35,13 @@ public:
 		Create((int)value.size(), sizeof(T));
 		BufferSubData(0, value);
 	}
+
+	template <typename T> void Create(const T& value)
+	{
+		Create(1, sizeof(T));
+		BufferSubData(0, 1, sizeof(T), &value);
+	}
+
 	void BufferSubData(int offset, const Vector<int>& value);
 	void BufferSubData(int offset, int size, int sizeofData, const void* data);
 	void BufferSubData(int offset, const Vector<Vector3>& value);
@@ -42,11 +49,12 @@ public:
 	template <typename T>
 	void BufferSubData(int offset, const Vector<T>& value)
 	{
-		BufferSubData(DATA_UNKNOWN, (int)value.size(), sizeof(T), value.data());
+		BufferSubData(offset, (int)value.size(), sizeof(T), value.data());
 	}
 	void GetBufferData(Vector<unsigned int>& value);
 	void GetBufferData(Vector<int>& value);
 	void GetBufferData(Vector<float>& value);
+	void GetBufferData(Vector<Vector2i>& value);
 	void GetBufferData(Vector<Vector3>& value);
 	void GetBufferData(Vector<glm::vec4>& value);
 	void GetBufferData(void* value, int memorySize);

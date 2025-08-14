@@ -12,7 +12,7 @@ public:
 	static void SphericalToCartesian(float radius, float x, float y, Vector3& result);
 	static void CartesianToSpherical(const Vector3& position, float& radian, float& theta, float& phi);
 	static float CalcTriangleArea(const Vector3& v1, const Vector3& v2, const Vector3& v3); // counter cloclk wise
-	static void CalcNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3, Vector3& normal); // counter cloclk wise
+	static Vector3 CalcNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3); // counter cloclk wise
 	static float CalcRadian(const Vector3& v1, const Vector3& v2);
 	static Matrix4x4 CreateRotateMatrix(const Vector3& source, const Vector3& target);
 	static float Round(float value, float eps = 0.0001f);

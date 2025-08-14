@@ -244,13 +244,15 @@ Matrix4x4 glmUtil::CreateRotate(float rad, const Vector3& axis)
 	return glm::rotate(glm::mat4(1), rad, axis);
 }
 
-Matrix4x4 glmUtil::CreateRotate(const Vector3& angle)
+Matrix4x4 glmUtil::CreateRotateAngle(const Vector3& angle)
 {
-	Matrix4x4 rotX = glm::rotate(Matrix4x4(1.0f), angle.x, Vector3(1.0f, 0.0f, 0.0f));
-	Matrix4x4 rotY = glm::rotate(Matrix4x4(1.0f), angle.y, Vector3(0.0f, 1.0f, 0.0f));
-	Matrix4x4 rotZ = glm::rotate(Matrix4x4(1.0f), angle.z, Vector3(0.0f, 0.0f, 1.0f));
-
-	//return rotZ * rotY * rotX;
+	return CreateRotate(Vector3(glm::radians(angle.x), glm::radians(angle.y), glm::radians(angle.z)));
+}
+Matrix4x4 glmUtil::CreateRotate(const Vector3& rad)
+{
+	Matrix4x4 rotX = glm::rotate(Matrix4x4(1.0f), rad.x, Vector3(1.0f, 0.0f, 0.0f));
+	Matrix4x4 rotY = glm::rotate(Matrix4x4(1.0f), rad.y, Vector3(0.0f, 1.0f, 0.0f));
+	Matrix4x4 rotZ = glm::rotate(Matrix4x4(1.0f), rad.z, Vector3(0.0f, 0.0f, 1.0f));
 
 	return rotZ * rotX * rotY;
 }

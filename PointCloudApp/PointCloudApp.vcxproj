@@ -241,6 +241,8 @@
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="VolumeNode.cpp" />
+    <ClCompile Include="Voxel.cpp" />
     <ClCompile Include="Voxelizer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -320,6 +322,8 @@
     <ClInclude Include="Utility.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="SimpleShader.h" />
+    <ClInclude Include="VolumeNode.h" />
+    <ClInclude Include="Voxel.h" />
     <ClInclude Include="Voxelizer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

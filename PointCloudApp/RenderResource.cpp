@@ -89,26 +89,29 @@ void RenderResource::Build()
 };
 void RenderResource::UpdateCamera()
 {
-	if (!m_pCameraGpu) {
-		m_pCameraGpu = new GLBuffer();
-		m_pCameraGpu->Create(1, 256);
-	}
-
 	struct CameraGPU
 	{
 		Matrix4x4 view;
 		Matrix4x4 proj;
 		Matrix4x4 vp;
+		Matrix4x4 invVP;
 		Vector4 eye;
 		Vector4 center;
 		Vector2 viewSize;
-		float padding[6];
+		float padding[2];
 	};
+
+	if (!m_pCameraGpu) {
+		m_pCameraGpu = new GLBuffer();
+		m_pCameraGpu->Create(1, sizeof(CameraGPU));
+	}
+
 
 	CameraGPU gpu;
 	gpu.view = m_pCamera->ViewMatrix();
 	gpu.proj = m_pCamera->Projection();
 	gpu.vp = m_pCamera->Projection() * m_pCamera->ViewMatrix();
+	gpu.invVP = glm::inverse(gpu.vp);
 	gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
 	gpu.center = Vector4(m_pCamera->Center(), 1.0f);
 	gpu.viewSize = m_pCamera->ViewSize();

@@ -1,0 +1,40 @@
+
+layout(std430, binding = 4) buffer BlockoffsetBuffer{
+	uint blockOffset[];
+};
+
+void main() {
+	int blockNum = int(gl_WorkGroupSize.x);
+	int id = int(gl_GlobalInvocationID.x);
+	if(id * blockNum >= setting.gridNum){return;}
+#ifdef PHASE_1
+	// calculate sum per block
+	for(int i = 1; i < blockNum; i++) {
+		int index = id * blockNum + i;
+		if(index >= setting.gridNum){return;}
+		Grid g = grids[index - 1];
+		setOffset(grids[index], getOffset(g) + getNum(g));
+	}
+#endif 
+
+#ifdef PHASE_2
+	// calculate offset of block work thread = local thread = (1,1,1)
+	blockOffset[0] = 0;
+	for(int i = 1; i < blockNum; i++) {
+		int index = i * blockNum;
+		if(index >= setting.gridNum){return;}
+		Grid g = grids[index - 1];
+		blockOffset[i] = getOffset(g) + getNum(g) + blockOffset[i - 1];
+	}
+#endif
+
+#ifdef PHASE_3
+	// calculate grid offset;
+	for(int i = 0; i < blockNum; i++) {
+		int index = id * blockNum + i;
+		if(index >= setting.gridNum){return;}
+		Grid g = grids[index - 1];
+		setOffset(grids[index], getOffset(g) + blockOffset[id]);
+	}
+#endif
+}

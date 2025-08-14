@@ -38,8 +38,6 @@ SignedDistanceField::UI::UI()
 {
 	glStatus = std::make_shared<GLStatus>();
 	glStatus->SetBackCull(false);
-	resolute = 0;
-
 }
 
 float SignedDistanceField::CalcMinDistance(const Vector3& pos) const
