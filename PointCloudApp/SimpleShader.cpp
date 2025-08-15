@@ -30,8 +30,9 @@ void SimpleShader::FetchUniformLocation()
 
 void SimpleShader::SetCamera(const GLBuffer* pBuffer)
 {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	BindShaderStorage(0, pBuffer->Handle());
 }
+
 
 void SimpleShader::SetModel(const Matrix4x4& value)
 {
@@ -55,6 +56,7 @@ ShaderPath FaceShader::GetShaderPath()
 	ShaderPath path;
 	path.version = "version.h";
 	path.header.push_back("common.h");
+	path.header.push_back("pbr\\pbr.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "face.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "face.frag";
 	return path;
@@ -67,6 +69,36 @@ void FaceShader::SetNormal(const GLBuffer* pBuffer)
 	OUTPUT_GLERROR;
 }
 
+void FaceShader::FetchUniformLocation()
+{
+	SimpleShader::FetchUniformLocation();
+	m_uPrefilter = GetUniformLocation("u_prefilter");
+	m_uIrradiance = GetUniformLocation("u_irradiance");
+	m_uBRDF = GetUniformLocation("u_brdf");
+}
+
+void FaceShader::SetLight(const GLBuffer* pBuffer)
+{
+	BindShaderStorage(1, pBuffer->Handle());
+}
+
+void FaceShader::SetPBRResource(const GLBuffer* pBuffer)
+{
+	BindShaderStorage(2, pBuffer->Handle());
+}
+
+void FaceShader::BindBRDF(const Texture& texture)
+{
+	BindTexture(m_uBRDF, 5, texture);
+}
+void FaceShader::BindIrradiance(const CubemapTexture& texture)
+{
+	BindCubemap(m_uIrradiance, 6, texture);
+}
+void FaceShader::BindPrefilter(const CubemapTexture& texture)
+{
+	BindCubemap(m_uPrefilter, 7, texture);
+}
 
 
 VertexColorShader::VertexColorShader()

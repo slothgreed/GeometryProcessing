@@ -123,14 +123,14 @@ void PointCloudApp::Execute()
 
 	BDB bdb;
 	// Default Scene Demo.
-	//{
-	//	m_pRoot->AddNode(CreateSpaceTest());
-	//	m_pRoot->AddNode(CreateCSFNodeTest());
+	{
+		m_pRoot->AddNode(CreateSpaceTest());
+		m_pRoot->AddNode(CreateCSFNodeTest());
 		m_pRoot->AddNode(CreateGLTFAnimationTest());
-	//	m_pRoot->AddNode(CreateGLTFNodeTest());
-	//	m_pRoot->AddNode(CreateBunnyNodeTest());
-	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-	//}
+		m_pRoot->AddNode(CreateGLTFNodeTest());
+		m_pRoot->AddNode(CreateBunnyNodeTest());
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+	}
 	
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 

@@ -150,6 +150,11 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		context.pResource->GL()->ColorMask(false);
 	}
 	pFaceShader->Use();
+	pFaceShader->SetLight(context.pResource->GetLightBuffer());
+	pFaceShader->SetPBRResource(context.pResource->GetPBRBuffer());
+	pFaceShader->BindBRDF(*context.pResource->GetPBR()->GetBRDFLUT());
+	pFaceShader->BindIrradiance(*context.pResource->GetPBR()->GetIrradiance());
+	pFaceShader->BindPrefilter(*context.pResource->GetPBR()->GetPrefiltered());
 	pFaceShader->SetPosition(m_gpu.position.get());
 	pFaceShader->SetNormal(m_gpu.normal.get());
 	pFaceShader->SetCamera(pResource->GetCameraBuffer());

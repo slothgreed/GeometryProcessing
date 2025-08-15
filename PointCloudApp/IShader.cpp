@@ -58,7 +58,6 @@ void IShadingShader::SetVertexFormat(const VertexFormat& format)
 {
 	glEnableVertexAttribArray(format.location);
 	glVertexAttribFormat(format.location, format.componentSize, format.type, format.normalized, format.offset);
-	// 色がおかしいのはglVertexAttribBindingのせい。コメントアウトすると正常になる。
 	glVertexAttribBinding(format.location, format.binding);
 }
 

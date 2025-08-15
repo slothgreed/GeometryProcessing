@@ -214,10 +214,13 @@ void VolumeNode::BuildResource()
 }
 void VolumeNode::Draw(const DrawContext& context)
 {
+	if (!m_ui.visible) { return; }
+
 	BuildResource();
 	context.pResource->GL()->EnableCullFace();
 
 	// BDB
+	if (m_ui.visibleBDB)
 	{
 		auto pSimple = context.pResource->GetShaderTable()->GetSimpleShader();
 		pSimple->Use();
@@ -226,10 +229,6 @@ void VolumeNode::Draw(const DrawContext& context)
 		pSimple->SetColor(Vector3(0, 0, 1));
 		pSimple->SetPosition(m_gpu.pBDBLine.get());
 		pSimple->DrawElement(GL_LINES, m_gpu.pBDBLineIndex.get());
-		if (m_marching.GetPositionBuffer()) {
-			pSimple->SetPosition(m_marching.GetPositionBuffer());
-			pSimple->DrawArray(GL_TRIANGLES, m_marching.GetPositionBuffer());
-		}
 	}
 
 	if (m_ui.marching.visible) {
@@ -257,6 +256,11 @@ void VolumeNode::Draw(const DrawContext& context)
 				auto pFace = context.pResource->GetShaderTable()->GetFaceShader();
 				pFace->Use();
 				pFace->SetCamera(context.pResource->GetCameraBuffer());
+				pFace->SetLight(context.pResource->GetLightBuffer());
+				pFace->SetPBRResource(context.pResource->GetPBRBuffer());
+				pFace->BindBRDF(*context.pResource->GetPBR()->GetBRDFLUT());
+				pFace->BindIrradiance(*context.pResource->GetPBR()->GetIrradiance());
+				pFace->BindPrefilter(*context.pResource->GetPBR()->GetPrefiltered());
 				pFace->SetModel(GetMatrix());
 				pFace->SetColor(Vector3(0, 0, 1));
 				pFace->SetPosition(m_marching.GetPositionBuffer());
@@ -305,6 +309,9 @@ void VolumeNode::Draw(const DrawContext& context)
 }
 void VolumeNode::ShowUI(UIContext& ui)
 {
+	ImGui::Checkbox("Visible", &m_ui.visible);
+	if (!m_ui.visible) { return; }
+	ImGui::Checkbox("VisibleBDB", &m_ui.visibleBDB);
 	ImGui::Checkbox("VisibleX", &m_ui.xPlane.visible);
 	if (m_ui.xPlane.visible) {
 		if (ImGui::SliderFloat("XPlane", &m_ui.xPlane.position, GetBoundBox().Min().x, GetBoundBox().Max().x, "%lf", 1.0f)) {

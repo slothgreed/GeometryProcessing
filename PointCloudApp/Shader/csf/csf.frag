@@ -25,7 +25,7 @@ vec4 shade(CSFMaterial material)
 	color += material.ambient + material.emissive;
 	vec3 eyePos = camera.eye.xyz;
 
-	vec3 lightDir = normalize(light.direction.xyz - f_position.xyz);
+	vec3 lightDir = normalize(light.direction.xyz);
 	vec3 viewDir = normalize(eyePos - f_position.xyz);
 	vec3 halfDir = normalize(lightDir + viewDir);
 	vec3 normal = normalize(f_normal.xyz) * (gl_FrontFacing ? 1 : -1);;

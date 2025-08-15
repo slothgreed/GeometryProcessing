@@ -57,11 +57,19 @@ void main() {
 	vec3 worldDir = rayDir;
 	vec3 invBDBLength = 1 / (bdbMax.xyz - bdbMin.xyz);
 	vec3 stepPos = worldPos + worldDir * tMin;
+	bool hit = false;
+	float hitDepth = 1.0;
     for (int i = 0; i < maxSteps; ++i) {
 		vec3 local = (stepPos - bdbMin.xyz) * invBDBLength;
 
 		vec4 col = vec4(texture(volumeTex, local).r);
 		
+		  if (col.r > 0.1 && !hit) {
+        	vec4 clipPos = camera.VP * vec4(stepPos, 1.0);
+			float depth = (clipPos.z / clipPos.w) * 0.5 + 0.5; 
+			hitDepth = depth;
+			hit = true;
+		}
         // Pre-multiplied alpha blending
         accumulatedColor.rgb += (1.0 - accumulatedColor.a) * col.rgb * col.a;
         accumulatedColor.a += (1.0 - accumulatedColor.a) * col.a;
@@ -74,4 +82,5 @@ void main() {
 	
 	if(accumulatedColor.a < 0.01){discard;}
     FragColor = accumulatedColor;
+	gl_FragDepth = hitDepth;
 }

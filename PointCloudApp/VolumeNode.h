@@ -131,12 +131,16 @@ private:
 			bool visible;
 		};
 
-		UI() {};
+		UI() 
+			: visible(true) 
+			, visibleBDB(false) {};
 		Plane xPlane;
 		Plane yPlane;
 		Plane zPlane;
 		MarchingCube marching;
 		RayCast rayCast;
+		bool visible;
+		bool visibleBDB;
 	};
 
 	UI m_ui;

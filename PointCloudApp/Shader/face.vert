@@ -14,7 +14,7 @@ layout(std430, binding = 0) buffer CameraBuffer
 void main()
 {
 	f_position = u_Model * vec4(position.x, position.y, position.z, 1.0);
-	f_color = vec4(normal,1.0);
-	f_normal = normal;
+	f_color = vec4(u_Color,1.0);
+	f_normal = normalize(transpose(inverse(mat3(u_Model))) * normal);
     gl_Position = camera.VP * f_position;
 }

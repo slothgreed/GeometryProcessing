@@ -70,7 +70,7 @@ Voxel* TextureLoader::LoadVolume(const String& name)
 		return new Voxel(Vector3(sizeX, sizeY, sizeZ), BDB(Vector3(0), Vector3(1)), std::move(volume));
 	}
 	*/
-
+	
 	FileReader reader;
 	reader.Open(name, true);
 	auto size =  reader.ReadVector<unsigned short>(3);

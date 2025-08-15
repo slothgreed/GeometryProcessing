@@ -21,7 +21,7 @@ public:
 
 	virtual ShaderPath GetShaderPath() override;
 	
-	void FetchUniformLocation();
+	virtual void FetchUniformLocation();
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetModel(const Matrix4x4& value);
 	void SetColor(const Vector3& value);
@@ -38,10 +38,21 @@ public:
 	FaceShader() {};
 	~FaceShader() {};
 
+	void SetLight(const GLBuffer* pBuffer);
+	void SetPBRResource(const GLBuffer* pBuffer);
 	void SetNormal(const GLBuffer* pBuffer);
+	void BindBRDF(const Texture& texture);
+	void BindIrradiance(const CubemapTexture& texture);
+	void BindPrefilter(const CubemapTexture& texture);
+
 	virtual int GetDrawTargetNum() const { return 3; }
 	virtual ShaderPath GetShaderPath() override;
+	virtual void FetchUniformLocation();
+
 private:
+	GLuint m_uPrefilter;
+	GLuint m_uIrradiance;
+	GLuint m_uBRDF;
 };
 class VertexColorShader : public IShadingShader
 {

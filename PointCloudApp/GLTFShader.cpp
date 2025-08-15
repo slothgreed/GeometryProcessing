@@ -9,6 +9,7 @@ ShaderPath GLTFShader::GetShaderPath()
 	ShaderPath path;
 	path.version = "version.h";
 	path.header.push_back("common.h");
+	path.header.push_back("pbr\\pbr.h");
 	path.header.push_back("gltf\\gltf.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "gltf\\gltf.vert";
 	path.shader[SHADER_PROGRAM_FRAG] = "gltf\\gltf.frag";

@@ -460,7 +460,7 @@ void MarchingCube::Build(const Voxel& voxel, float threshold)
 	m_gpu.pPosition = std::make_unique<GLBuffer>();
 	m_gpu.pPosition->Create(triangles);
 	m_gpu.pNormal = std::make_unique<GLBuffer>();
-	m_gpu.pNormal->Create(triangles);
+	m_gpu.pNormal->Create(normals);
 }
 
 }
