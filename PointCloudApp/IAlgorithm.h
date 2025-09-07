@@ -23,7 +23,7 @@ public:
 	virtual ~IAlgorithm() {};
 	virtual ALGORITHM_TYPE GetType() = 0;
 	virtual void Execute() {};
-	virtual void ShowUI(UIContext& ui) = 0;
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui) = 0;
 private:
 
 };

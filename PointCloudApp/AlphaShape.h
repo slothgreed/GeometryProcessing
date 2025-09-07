@@ -12,7 +12,7 @@ public:
 
 	virtual ALGORITHM_TYPE GetType() { return ALGORITHM_ALPHASHAPE; }
 	virtual void Execute();
-	virtual void ShowUI(UIContext& ui);
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 private:
 
 	struct UI

@@ -264,5 +264,54 @@ Ray::IntersectResult Ray::Intersect(const BDB& bdb) const
 	return Ray::IntersectResult::CreateFailed();
 
 }
+void MathHelper::CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right)
+{
+	auto edge = end - begin;
+	for (int i = 0; i < points.size(); i++) {
+		auto edge2 = end - points[i];
+		auto cross = glm::cross(edge, edge2);
+		if (glm::dot(cross, glm::vec3(0, 0, 1)) > 0) {
+			left.push_back(points[i]);
+		} else {
+			right.push_back(points[i]);
+		}
+	}
+}
+bool MathHelper::InPolyline(const Vector<Vector3>& polyline, const Vector3& point, bool isLoop)
+{
+	if (polyline.size() < 3) return false; // ‘½ŠpŒ`‚Å‚È‚¢
 
+	double angleSum = 0.0;
+	size_t fin = polyline.size() - 1;
+	if (isLoop) fin = polyline.size();
+	for (size_t i = 0; i < fin; ++i) {
+		int index0 = i;
+		int index1 = i + 1;
+		if (index1 == polyline.size()) {
+			index1 = 0;
+		}
+		auto v1 = glm::normalize(polyline[index0] - point);
+		auto v2 = glm::normalize(polyline[index1] - point);
+
+		// “àÏ‚©‚çŠp“x‚ğ‹‚ß‚é
+		auto dot = std::clamp(glm::dot(v1, v2), -1.0f, 1.0f); // ”’lŒë·‘Îô
+		double angle = std::acos(dot);
+
+		// ŠOÏ‚Å•„†‚ğŒˆ‚ß‚éiz¬•ª‚Å”»’èj
+		auto cross = glm::cross(v1, v2);
+		if (glm::dot(cross, glm::vec3(0, 0, 1)) < 0) {
+			angle = -angle;
+		}
+		angleSum += angle;
+	}
+
+	// Šp“x˜a‚ª 2ƒÎ (}Œë·) ‚È‚ç“à•”
+	return std::fabs(std::fabs(angleSum) - 2 * glm::pi<float>()) < 1e-3;
+}
+bool MathHelper::IsLoop(const Vector<Vector3>& polyline)
+{
+	// ÅŒã‚ª“¯‚¶‚©‚Ç‚¤‚©‚¾‚¯‚Å”»’f GL_LINE_STRIP‚Åƒ‹[ƒv•`‰æ‚Å‚«‚é‚æ‚¤‚È\¬‚©‚ğ\’z
+	if (polyline.size() == 0) return false;
+	return polyline[0] == polyline[polyline.size() - 1];
+}
 }

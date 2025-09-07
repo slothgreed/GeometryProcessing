@@ -118,12 +118,30 @@ const BDB& Primitive::GetBDB()
 
 	return m_bdb;
 }
-int Primitive::GetTriangleNum()
+int Primitive::GetTriangleNum() const
 {
 	if (m_index.size() != 0) {
 		return m_index.size() / 3;
 	} else {
 		return m_position.size() / 3;
+	}
+}
+
+int Primitive::GetLineNum() const
+{
+	if (m_index.size() != 0) {
+		return m_index.size() / 2;
+	} else {
+		return m_position.size() / 2;
+	}
+}
+
+int Primitive::GetNum() const
+{
+	if (m_index.size() != 0) {
+		return m_index.size();
+	} else {
+		return m_position.size();
 	}
 }
 

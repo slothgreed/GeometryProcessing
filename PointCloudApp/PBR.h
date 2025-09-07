@@ -47,15 +47,20 @@ private:
 class PBRResource
 {
 public:
-	PBRResource() {};
-	~PBRResource() {};
+	PBRResource()
+		:m_pGlobal(nullptr)
+	{
+	};
+	~PBRResource();
 
 	void Initialize(const CubemapTexture& global);
+	const GLBuffer* GetGlobalParam() const { return m_pGlobal; }
 	const Texture* GetBRDFLUT() const { return m_pBRDFLUT.get(); }
 	const CubemapTexture* GetIrradiance() const { return m_pIrradiance.get(); }
 	const CubemapTexture* GetPrefiltered() const { return m_pPrefiltered.get(); }
+	void Update();
 private:
-
+	GLBuffer* m_pGlobal;
 	Unique<Texture> m_pBRDFLUT;
 	Unique<CubemapTexture> m_pIrradiance;
 	Unique<CubemapTexture> m_pPrefiltered;

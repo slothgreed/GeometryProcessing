@@ -81,7 +81,7 @@ Vector<int> KDTreeNanoFlann::GetRadiusNeighbor(const Vector3& query, float rad)
 }
 
 
-void KDTreeNanoFlann::ShowUI(UIContext& ui)
+void KDTreeNanoFlann::ShowUI(RenderNode* pNode, UIContext& ui)
 {
 	if (ImGui::Button("KDTree")) {
 		if (!m_pImpl) {

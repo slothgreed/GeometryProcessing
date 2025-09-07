@@ -1,6 +1,7 @@
 #include "GLTFShader.h"
 #include "GLTFStruct.h"
 #include "Texture.h"
+#include "PBR.h"
 namespace KI
 {
 
@@ -40,18 +41,6 @@ void GLTFShader::BindEmissive(const Texture& texture)
 	BindTexture(m_uEmissiveTexture, 4, texture);
 }
 
-void GLTFShader::BindBRDF(const Texture& texture)
-{
-	BindTexture(m_uBRDF, 5, texture);
-}
-void GLTFShader::BindIrradiance(const CubemapTexture& texture)
-{
-	BindCubemap(m_uIrradiance, 6, texture);
-}
-void GLTFShader::BindPrefilter(const CubemapTexture& texture)
-{
-	BindCubemap(m_uPrefilter, 7, texture);
-}
 void GLTFShader::BindBufferIndex(int matrix, int material)
 {
 	BindUniform(m_uSSBOIndex, Vector2i(matrix, material));
@@ -107,9 +96,12 @@ void GLTFShader::SetSkinBuffer(const GLBuffer* pBuffer)
 	BindShaderStorage(5, pBuffer->Handle());
 }
 
-void GLTFShader::SetPBRResource(const GLBuffer* pBuffer)
+void GLTFShader::SetPBRResource(const PBRResource* pPBR)
 {
-	BindShaderStorage(6, pBuffer->Handle());
+	BindShaderStorage(6, pPBR->GetGlobalParam()->Handle());
+	BindTexture(m_uBRDF, 5, *pPBR->GetBRDFLUT());
+	BindCubemap(m_uIrradiance, 6, *pPBR->GetIrradiance());
+	BindCubemap(m_uPrefilter, 7, *pPBR->GetPrefiltered());
 }
 
 void GLTFShader::DrawElement(const GLTFPrimitive& primitive, GLuint dataType)

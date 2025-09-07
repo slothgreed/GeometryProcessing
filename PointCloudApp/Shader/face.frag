@@ -21,9 +21,9 @@ layout(std430, binding = 1) buffer LightBuffer
 	Light light;
 };
 
-layout(std430, binding = 2) buffer PBRReourceBuffer
+layout(std430, binding = 2) buffer PBRGlobalBuffer
 {
-	PBRReource pbrResource;
+	PBRGlobal pbrGlobal;
 };
 
 void main()
@@ -32,7 +32,7 @@ void main()
 	CalcPBRAngle(pbrInputs, camera.eye.xyz, normalize(light.direction.xyz), f_normal, f_position.xyz);
 	CalcPBRMaterial(pbrInputs, f_color.xyz, 0.4, 0.0);
 	vec4 resultColor = vec4(getPBRColor(pbrInputs,light.color.rgb),1.0);
-	vec4 ibl = vec4(getIBLColor(pbrInputs, pbrResource, u_brdf, u_irradiance, u_prefilter),1.0);
+	vec4 ibl = vec4(getIBLColor(pbrInputs, pbrGlobal, u_brdf, u_irradiance, u_prefilter),1.0);
 	resultColor += ibl;
 	
     FragColor = resultColor;

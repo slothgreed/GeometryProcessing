@@ -58,7 +58,9 @@ public:
 	void Multi(const Matrix4x4& matrix);
 	void Convert(StoreType type);
 	Shared<Primitive> Clone();
-	int GetTriangleNum();
+	int GetTriangleNum() const;
+	int GetLineNum() const;
+	int GetNum() const;
 	void SetType(GLuint primitive) { m_primitiveType = primitive; }
 	GLuint GetType() const { return m_primitiveType; }
 	bool NeedUpdate() const { return m_update; }

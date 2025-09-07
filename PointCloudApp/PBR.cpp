@@ -125,5 +125,37 @@ void PBRResource::Initialize(const CubemapTexture& global)
 
 }
 
+PBRResource::~PBRResource()
+{
+	RELEASE_INSTANCE(m_pGlobal);
+}
+void PBRResource::Update()
+{
+	struct PBRGpu
+	{
+		PBRGpu()
+			: prefilteredMaxMip(0)
+			, exposure(1.0f)
+			, pad1(0.0f), pad2(0.0f)
+		{
+		}
+
+		int prefilteredMaxMip;
+		float exposure;
+		float pad1;
+		float pad2;
+	};
+
+	if (!m_pGlobal) {
+		m_pGlobal = new GLBuffer();
+		m_pGlobal->Create(1, sizeof(PBRGpu));
+	}
+
+
+	PBRGpu gpu;
+	gpu.prefilteredMaxMip = GetPrefiltered()->GetFormat().level;
+	gpu.exposure = 5.0f;
+	m_pGlobal->BufferSubData(0, 1, sizeof(PBRGpu), &gpu);
+}
 
 }

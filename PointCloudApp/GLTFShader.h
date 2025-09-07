@@ -7,6 +7,7 @@ struct GLTFMaterial;
 struct GLTFPrimitive;
 class Texture;
 class CubemapTexture;
+class PBRResource;
 class GLTFShader : public IShadingShader
 {
 public:
@@ -46,10 +47,7 @@ public:
 	void BindOcclusion(const Texture& texture);
 	void BindEmissive(const Texture& texture);
 
-	void SetPBRResource(const GLBuffer* pBuffer);
-	void BindBRDF(const Texture& texture);
-	void BindIrradiance(const CubemapTexture& texture);
-	void BindPrefilter(const CubemapTexture& texture);
+	void SetPBRResource(const PBRResource* pPBR);
 private:
 	GLuint m_uModel;
 	GLuint m_uSSBOIndex;

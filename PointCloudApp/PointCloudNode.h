@@ -3,6 +3,7 @@
 #include "RenderNode.h"
 #include "SimpleShader.h"
 #include "IAlgorithm.h"
+#include "DelaunayGenerator.h"
 namespace KI
 {
 class PointCloud;
@@ -44,6 +45,7 @@ private:
 	void ComputeTangent();
 	void BuildGLBuffer();
 	void UpdateRenderData();
+	DelaunayGenerator m_delaunay;
 	Vector<Vector3> m_normal;
 	Vector<Vector3> m_tangentX;
 	Vector<Vector3> m_tangentY;

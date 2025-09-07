@@ -207,7 +207,7 @@ void BVH::CreateGPUBuffer()
 	m_gpu.pBuffer = std::make_unique<GLBuffer>();
 	//m_gpu.pBuffer->Create()
 }
-void BVH::ShowUI(UIContext& ui)
+void BVH::ShowUI(RenderNode* pNode, UIContext& ui)
 {
 	if (ImGui::SliderInt("ShowLevel", &m_ui.showLevel, -1, m_levelRange.size() - 1)) {
 		if (m_ui.showLevel == -1) { return; }
@@ -230,9 +230,9 @@ void BVH::ShowUI(UIContext& ui)
 		pCube->SetPosition(std::move(position));
 		pCube->SetIndex(std::move(indexs));
 		pCube->SetType(GL_LINES);
-		auto pNode = std::make_shared<PrimitiveNode>("BVH", pCube, ColorUtility::CreatePrimary(2));
-		pNode->SetMatrix(m_pHalfEdge->GetMatrix());
-		m_pHalfEdge->AddNode(pNode);
+		auto pPrimitive = std::make_shared<PrimitiveNode>("BVH", pCube, ColorUtility::CreatePrimary(2));
+		pPrimitive->SetMatrix(m_pHalfEdge->GetMatrix());
+		m_pHalfEdge->AddNode(pPrimitive);
 	}
 }
 }

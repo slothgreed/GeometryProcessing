@@ -132,7 +132,7 @@ void SignedDistanceField::CreateTexure(int resolute)
 	m_gpu.pDebugBuffer->Create(resolute * resolute, sizeof(float));
 	m_gpu.pDebugBuffer->SetData(0);
 }
-void SignedDistanceField::ShowUI(UIContext& ui)
+void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 {
 	
 	const char* resolutions[] = { "4", "16", "32", "64", "128", "256", "512", "1024" };

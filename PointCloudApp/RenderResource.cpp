@@ -120,31 +120,7 @@ void RenderResource::UpdateCamera()
 
 void RenderResource::UpdatePBR()
 {
-	struct PBRGpu
-	{
-		PBRGpu()
-			: prefilteredMaxMip(0)
-			, exposure(1.0f)
-			, pad1(0.0f), pad2(0.0f)
-		{
-		}
-			
-		int prefilteredMaxMip;
-		float exposure;
-		float pad1;
-		float pad2;
-	};
-
-	if (!m_pPBRGpu) {
-		m_pPBRGpu = new GLBuffer();
-		m_pPBRGpu->Create(1, sizeof(PBRGpu));
-	}
-
-
-	PBRGpu gpu;
-	gpu.prefilteredMaxMip = GetPBR()->GetPrefiltered()->GetFormat().level;
-	gpu.exposure = 5.0f;
-	m_pPBRGpu->BufferSubData(0, 1, sizeof(PBRGpu), &gpu);
+	if (m_pPBR) { m_pPBR->Update(); }
 }
 
 void RenderResource::UpdateLight()
@@ -174,7 +150,6 @@ void RenderResource::Finalize()
 	RELEASE_INSTANCE(m_pComputeDepthTarget);
 	RELEASE_INSTANCE(m_pTmpComputeTarget);
 	RELEASE_INSTANCE(m_pPostEffectTarget);
-	RELEASE_INSTANCE(m_pPBRGpu);
 	RELEASE_INSTANCE(m_pPBR);
 }
 

@@ -185,7 +185,7 @@ const char* const* Voxelizer::GetLabelString()
 
 	return parameter;
 }
-void Voxelizer::ShowUI(UIContext& ui)
+void Voxelizer::ShowUI(RenderNode* pNode, UIContext& ui)
 {
 	bool createLabelPoint = false;
 	if (ImGui::Checkbox("VisibleLabel", &m_ui.visibleInOut)) {
@@ -206,9 +206,9 @@ void Voxelizer::ShowUI(UIContext& ui)
 		CreateLabelPoint(position, color,(Voxelizer::Label)m_ui.label);
 		pLabel->SetPosition(std::move(position));
 		pLabel->SetColor(std::move(color));
-		auto pNode = std::make_shared<PrimitiveNode>("Voxelizer::Label", pLabel);
-		pNode->SetMatrix(m_pNode->GetMatrix());
-		m_pNode->AddNode(pNode);
+		auto pPrimitive = std::make_shared<PrimitiveNode>("Voxelizer::Label", pLabel);
+		pPrimitive->SetMatrix(m_pNode->GetMatrix());
+		m_pNode->AddNode(pPrimitive);
 	}
 
 }

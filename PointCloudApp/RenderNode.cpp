@@ -88,6 +88,23 @@ void RenderNode::SetMatrix(const Matrix4x4& mat)
 	m_normalMatrix = glm::transpose(glm::inverse(glm::mat3(mat)));
 }
 
+void RenderNode::ShowMatrixUI(UIContext& context)
+{
+	float scale = m_scale;
+	Vector3 rotate = m_rotate;
+	Vector3 translate = m_translate;
+	if (ImGui::SliderFloat("scale", &scale, 1, 100)) {
+		SetScale(scale);
+	}
+
+	if (ImGui::SliderFloat3("rotate", &rotate[0], -360, 360)) {
+		SetRotateAngle(rotate);
+	}
+
+	if (ImGui::SliderFloat3("translate", &translate[0], -500, 500)) {
+		SetTranslate(translate);
+	}
+}
 
 BDB RenderNode::GetCameraFitBox() const
 {

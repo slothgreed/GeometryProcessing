@@ -14,7 +14,7 @@ public:
 
 	virtual ALGORITHM_TYPE GetType() override { return ALGORITHM_SIGNED_DISTANCE_FIELD; }
 	virtual void Execute();
-	virtual void ShowUI(UIContext& ui);
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 private:
 
 	enum Axis

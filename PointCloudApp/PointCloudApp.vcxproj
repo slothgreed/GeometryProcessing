@@ -185,6 +185,7 @@
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
     <ClCompile Include="CSFNode.cpp" />
+    <ClCompile Include="DebugNode.cpp" />
     <ClCompile Include="DelaunayGenerator.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="GeometryBuffer.cpp" />
@@ -205,6 +206,7 @@
     <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="PBR.cpp" />
+    <ClCompile Include="Polyline.cpp" />
     <ClCompile Include="PostEffect.cpp" />
     <ClCompile Include="PrimitiveTable.cpp" />
     <ClCompile Include="RenderResource.cpp" />
@@ -260,6 +262,7 @@
     <ClInclude Include="BVH.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
     <ClInclude Include="CSFNode.h" />
+    <ClInclude Include="DebugNode.h" />
     <ClInclude Include="DelaunayGenerator.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GeometryBuffer.h" />
@@ -281,6 +284,7 @@
     <ClInclude Include="MeshShaderTest.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="PBR.h" />
+    <ClInclude Include="Polyline.h" />
     <ClInclude Include="PostEffect.h" />
     <ClInclude Include="PrimitiveTable.h" />
     <ClInclude Include="RenderTarget.h" />

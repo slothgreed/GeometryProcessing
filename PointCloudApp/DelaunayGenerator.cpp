@@ -4,72 +4,224 @@
 #include "PointCloud.h"
 #include "Primitives.h"
 #include "Utility.h"
+#include "KIMath.h"
 namespace KI
 {
 
-
-DelaunayGenerator::DelaunayGenerator(PointCloudNode* pPointCloud)
-	:m_pPointCloud(pPointCloud)
-	,m_positions(m_pPointCloud->GetData()->Position())
+Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& position, int iterate)
 {
-}
-
-DelaunayGenerator::~DelaunayGenerator()
-{
-
-}
-
-Vector<unsigned int> DelaunayGenerator::Execute2D(int iterate)
-{
-	m_HugeTriangle = CreateHugeTriangle2D();
+	m_HugeTriangle = CreateHugeTriangle2D(position);
 
 	m_Delaunay.clear();
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS0, HUGE_POS1));
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS1, HUGE_POS2));
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS2, HUGE_POS0));
-	if (m_positions.size() < iterate) { iterate = m_positions.size(); }
+	if (position.size() < iterate) { iterate = position.size(); }
 	for (int i = 1; i < iterate; i++) {
-		Division(i);
+		Division(position, i);
 	}
 
 	RemoveHugeTriangle();
+	// position外にある三角形を削除する。
+	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
+		if (!MathHelper::InPolyline(position, it->GetGravity(this),true)) {
+			it = m_Delaunay.erase(it);
+		} else {
+			++it;
+		}
+	}
 	return Vector<unsigned int>();
 }
 
-
-bool DelaunayGenerator::InnerByCircle(const DelaunayGenerator::Circumscribe& circle, const Vector3& point)
+DelaunayGenerator::IndexedTriangle DelaunayGenerator::IndexedTriangle::Create(int p0, int p1, int p2, const Vector<IndexedEdge>& constraints)
 {
-	return glm::length2(point - circle.center) < circle.radius * circle.radius;
+	IndexedTriangle tri;
+	tri.pos0 = p0;
+	tri.pos1 = p1;
+	tri.pos2 = p2;
+
+	auto e0 = IndexedEdge(p0, p1);
+	auto e1 = IndexedEdge(p1, p2);
+	auto e2 = IndexedEdge(p2, p0);
+	tri.const0 = false;
+	tri.const1 = false;
+	tri.const2 = false;
+
+	for (size_t i = 0; i < constraints.size(); i++) {
+		if (constraints[i] == e0) { tri.const0 = true; }
+		if (constraints[i] == e1) { tri.const1 = true; }
+		if (constraints[i] == e2) { tri.const2 = true; }
+	}
+	return tri;
 }
 
-
-void DelaunayGenerator::Division(int index)
+Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
 {
-	const auto& addPoint = m_positions[index];
-	Vector<IndexedTriangle> addTri;
+	Vector<Vector3> merge = polyline;
+	for (size_t i = 0; i < inPolyline.size(); i++) {
+		for (size_t j = 0; j < inPolyline[i]->size(); j++) {
+			merge.push_back(inPolyline[i]->at(j));
+		}
+	}
+
+
+	m_HugeTriangle = CreateHugeTriangle2D(merge);
+	m_Delaunay.clear();
+	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS0, HUGE_POS1));
+	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS1, HUGE_POS2));
+	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS2, HUGE_POS0));
+	if (merge.size() < iterate) { iterate = merge.size(); }
+	for (int i = 1; i < merge.size(); i++) {
+		Division(merge, i);
+	}
+
+
+	int edgeCount = 0;
+	for (int i = 0; i < polyline.size() - 1; i++) {
+		m_ConstraintEdge.insert(IndexedEdge(edgeCount, edgeCount + 1));
+		edgeCount++;
+	}
+
+	edgeCount++;
+	for (int i = 0; i < inPolyline.size(); i++) {
+		for (int j = 0; j < inPolyline[i]->size(); j++) {
+			m_ConstraintEdge.insert(IndexedEdge(edgeCount, edgeCount + 1));
+			edgeCount++;
+		}
+
+		edgeCount++;
+	}
+
+	for (auto& delaunay : m_Delaunay) {
+		if (m_ConstraintEdge.erase(delaunay.GetEdge0()) > 0) { delaunay.const0 = true; }
+		if (m_ConstraintEdge.erase(delaunay.GetEdge1()) > 0) { delaunay.const1 = true; }
+		if (m_ConstraintEdge.erase(delaunay.GetEdge2()) > 0) { delaunay.const2 = true; }
+	}
+
+	for (const auto& edge : m_ConstraintEdge) {
+		
+	}
+
+
+	RemoveHugeTriangle();
+
+
+	// polyline外にある三角形を削除する。
 	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
-		if (InnerByCircle(CalcCircumscribedCircle(*it), addPoint)) {
-			addTri.push_back(IndexedTriangle(index, it->pos0, it->pos1));
-			addTri.push_back(IndexedTriangle(index, it->pos1, it->pos2));
-			addTri.push_back(IndexedTriangle(index, it->pos2, it->pos0));
+		if (!MathHelper::InPolyline(polyline, it->GetGravity(this), true)) {
 			it = m_Delaunay.erase(it);
 		} else {
 			++it;
 		}
 	}
 
-	for (int i = 0; i < addTri.size(); i++) {
-		bool isUnique = true;
-		for (int j = 0; j < addTri.size(); j++) {
-			if (i == j) { continue; }
-			if (addTri[i].IsSame(addTri[j])) {
-				isUnique = false;
-				break;
+	// inner内にある三角形を削除する。
+	for (int i = 0; i < inPolyline.size(); i++) {
+		for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
+			if (MathHelper::InPolyline(*inPolyline[i], it->GetGravity(this), true)) {
+				it = m_Delaunay.erase(it);
+			} else {
+				++it;
+			}
+		}
+	}
+	return Vector<unsigned int>();
+}
+
+bool DelaunayGenerator::InnerByCircle(const DelaunayGenerator::Circumscribe& circle, const Vector3& point)
+{
+	float dist2 = glm::length2(point - circle.center);
+	float radius2 = circle.radius * circle.radius;
+
+	const float EPS = 1e-6; // 浮動小数点誤差対策
+
+	if (dist2 < radius2 - EPS) return true;   // 明確に内側
+	if (dist2 > radius2 + EPS) return false;  // 明確に外側
+
+	// ---- タイブレーク規則 ----
+	// 外接円上にちょうどある場合
+	// 例: 座標の辞書順で内側扱いにする
+	if (point.x < circle.center.x ||
+	   (point.x == circle.center.x && point.y < circle.center.y)) {
+		return true;   // 内側に含める
+	}
+
+	return false; // 外側にする
+	return glm::length2(point - circle.center) < circle.radius * circle.radius;
+}
+
+void DelaunayGenerator::DivisionConstraint(const Vector<Vector3>& position, int index)
+{
+	std::unordered_set<IndexedEdge, IndexedEdge::Hash> boundEdge; // 境界辺
+	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
+		auto inner = InnerByCircle(CalcCircumscribedCircle(*it), position[index]);
+		if (inner) {
+			auto e0 = IndexedEdge(it->pos0, it->pos1);
+			auto e1 = IndexedEdge(it->pos1, it->pos2);
+			auto e2 = IndexedEdge(it->pos2, it->pos0);
+			if (!boundEdge.insert(e0).second) { boundEdge.erase(e0); }
+			if (!boundEdge.insert(e1).second) { boundEdge.erase(e1); }
+			if (!boundEdge.insert(e2).second) { boundEdge.erase(e2); }
+			it = m_Delaunay.erase(it);
+		} else {
+			++it;
+		}
+	}
+
+	for (auto& edge : boundEdge) {
+		m_Delaunay.push_back(IndexedTriangle(index, edge.pos0, edge.pos1));
+	}
+}
+void DelaunayGenerator::Division(const Vector<Vector3>& position, int index)
+{
+	int pattern = 0;
+	if (pattern == 0) {
+		std::unordered_set<IndexedEdge, IndexedEdge::Hash> boundEdge; // 境界辺
+		for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
+			auto inner = InnerByCircle(CalcCircumscribedCircle(*it), position[index]);
+			if (inner) {
+				auto e0 = IndexedEdge(it->pos0, it->pos1);
+				auto e1 = IndexedEdge(it->pos1, it->pos2);
+				auto e2 = IndexedEdge(it->pos2, it->pos0);
+				if (!boundEdge.insert(e0).second) { boundEdge.erase(e0); }
+				if (!boundEdge.insert(e1).second) { boundEdge.erase(e1); }
+				if (!boundEdge.insert(e2).second) { boundEdge.erase(e2); }
+				it = m_Delaunay.erase(it);
+			} else {
+				++it;
 			}
 		}
 
-		if (isUnique) {
-			m_Delaunay.push_back(addTri[i]);
+		for (auto& edge : boundEdge) {
+			m_Delaunay.push_back(IndexedTriangle(index, edge.pos0, edge.pos1));
+		}
+	} else if (pattern == 1) {
+
+		Vector<IndexedTriangle> addTri;
+		for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
+			if (InnerByCircle(CalcCircumscribedCircle(*it), position[index])) {
+				addTri.push_back(IndexedTriangle(index, it->pos0, it->pos1));
+				addTri.push_back(IndexedTriangle(index, it->pos1, it->pos2));
+				addTri.push_back(IndexedTriangle(index, it->pos2, it->pos0));
+				it = m_Delaunay.erase(it);
+			} else {
+				++it;
+			}
+		}
+
+		for (int i = 0; i < addTri.size(); i++) {
+			bool isUnique = true;
+			for (int j = 0; j < addTri.size(); j++) {
+				if (i == j) { continue; }
+				if (addTri[i].IsSame(addTri[j])) {
+					isUnique = false;
+					break;
+				}
+			}
+
+			if (isUnique) {
+				m_Delaunay.push_back(addTri[i]);
+			}
 		}
 	}
 }
@@ -83,35 +235,20 @@ void DelaunayGenerator::RemoveHugeTriangle()
 		}
 	}
 }
-DelaunayGenerator::Triangle DelaunayGenerator::CreateHugeTriangle2D()
+DelaunayGenerator::Triangle DelaunayGenerator::CreateHugeTriangle2D(const Vector<Vector3>& position)
 {
-	Vector3 center = Vector3(0);
-	for (const auto& p : m_positions) {
-		center += p;
+	BDB bdb;
+	for (const auto& p : position) {
+		bdb.Add(p);
 	}
 
-	center /= m_positions.size();
-
+	auto center = bdb.Center();
+	auto bdbLength = bdb.MaxLength() * 10.0f;
 	float maxLength = 0;
-	Vector3 maxPos;
-	for (const auto& p : m_positions) {
-		auto len = glm::length2(p - center);
-		if (maxLength < len) {
-			maxLength = len;
-			maxPos = p;
-		}
-	}
-
-	// 点を覆う三角形を構築
 	Triangle tri;
-	auto radDir = (center - maxPos) * 1.5f;
-	maxPos *= 1.5f;
-	float radius = glm::length(radDir);
-	float root3 = sqrtf(radius);
-	tri.pos0 = center + (root3 * radDir);
-	tri.pos1 = maxPos + (root3 * Vector3(radDir.x, -radDir.y, 0.0));
-	tri.pos2 = maxPos - (root3 * Vector3(radDir.x, -radDir.y, 0.0));
-
+	tri.pos0 = center + Vector3(-bdbLength, -bdbLength, 0);
+	tri.pos1 = center + Vector3(bdbLength, -bdbLength, 0);
+	tri.pos2 = center + Vector3(0, bdbLength, 0);
 	return tri;
 }
 
@@ -146,46 +283,88 @@ DelaunayGenerator::Circumscribe DelaunayGenerator::CalcCircumscribedCircle(const
 
 }
 
-int g_iterateNum = 0;
-void DelaunayGenerator::ShowUI(UIContext& ui)
+Vector3 DelaunayGenerator::IndexedTriangle::Convert(int index, DelaunayGenerator* pGen) const
 {
-	if (ImGui::SliderInt("DelaunayGenerator", &g_iterateNum, 3, m_positions.size())) {
-		Execute2D(g_iterateNum);
+	if (index == HUGE_POS0) { return pGen->m_HugeTriangle.pos0; }
+	if (index == HUGE_POS1) { return pGen->m_HugeTriangle.pos1; }
+	if (index == HUGE_POS2) { return pGen->m_HugeTriangle.pos2; }
+
+	if (index < pGen->m_target->size()) {
+		return pGen->m_target->at(index);
+	}
+	int sum = pGen->m_target->size();
+	for (int i = 0; i < pGen->m_inner.size(); i++) {
+		if (index < sum + pGen->m_inner[i]->size()) {
+			return pGen->m_inner[i]->at(index - sum);
+		}
+		sum += pGen->m_inner[i]->size();
+	}
+
+	assert(0);
+	return Vector3();
+}
+
+DelaunayGenerator::Triangle DelaunayGenerator::IndexedTriangle::Convert(DelaunayGenerator* pGen) const
+{
+	Triangle tri;
+	tri.pos0 = Convert(pos0, pGen);
+	tri.pos1 = Convert(pos1, pGen);
+	tri.pos2 = Convert(pos2, pGen);
+
+	return tri;
+}
+
+Vector3 DelaunayGenerator::IndexedTriangle::GetGravity(DelaunayGenerator* pGen) const
+{
+	Triangle tri = Convert(pGen);
+	return (tri.pos0 + tri.pos1 + tri.pos2) / 3.0f;
+}
+
+void DelaunayGenerator::ShowUI(RenderNode* pNode, UIContext& ui)
+{
+	if (ImGui::Button("Delete")) {
+		pNode->RemoveNode("HugeTriangle");
+		pNode->RemoveNode("DelaunayCircle");
+		pNode->RemoveNode("InstancedNode");
+		pNode->RemoveNode("DelaunayTriangle");
+
+	}
+	if (ImGui::SliderInt("DelaunayGenerator", &m_ui.iterate, 3, m_target->size())) {
+		Execute2D(*m_target, m_inner, m_ui.iterate);
 		// Huge Triangle
-		//{
-		//	auto pTriangle = std::make_shared<Primitive>();
-		//	Vector<Vector3> pos;
-		//	pos.push_back(m_HugeTriangle.pos0);
-		//	pos.push_back(m_HugeTriangle.pos1);
-		//	pos.push_back(m_HugeTriangle.pos2);
-		//	Vector<unsigned int> index;
-		//	index.push_back(0); index.push_back(1);
-		//	index.push_back(1); index.push_back(2);
-		//	index.push_back(2); index.push_back(0);
+		{
+			auto pTriangle = std::make_shared<Primitive>();
+			Vector<Vector3> pos;
+			pos.push_back(m_HugeTriangle.pos0);
+			pos.push_back(m_HugeTriangle.pos1);
+			pos.push_back(m_HugeTriangle.pos2);
+			Vector<unsigned int> index;
+			index.push_back(0); index.push_back(1);
+			index.push_back(1); index.push_back(2);
+			index.push_back(2); index.push_back(0);
 
-		//	pTriangle->SetPosition(std::move(pos));
-		//	pTriangle->SetIndex(std::move(index));
+			pTriangle->SetPosition(std::move(pos));
+			pTriangle->SetIndex(std::move(index));
 
-		//	pTriangle->SetType(GL_LINES);
-		//	m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("DelaunayTriangle", pTriangle, ColorUtility::CreatePrimary(4)));
+			pTriangle->SetType(GL_LINES);
+			pNode->AddNode(std::make_shared<PrimitiveNode>("HugeTriangle", pTriangle, ColorUtility::CreatePrimary(4)));
 
-		//	auto c = CalcCircumscribedCircle(m_HugeTriangle);
-		//	Shared<Primitive> pCircle = std::make_shared<Circle>(c.radius, c.center);
-		//	m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("DelaunayCircle", pCircle, ColorUtility::CreatePrimary(3)));
-		//}
-
+			auto c = CalcCircumscribedCircle(m_HugeTriangle);
+			Shared<Primitive> pCircle = std::make_shared<Circle>(c.radius, c.center);
+			pNode->AddNode(std::make_shared<PrimitiveNode>("DelaunayCircle", pCircle, ColorUtility::CreatePrimary(3)));
+		}
 		// Delaunay Circle;
 		{
 			//Shared<Primitive> pCircle = std::make_shared<Circle>(1, Vector3(0.0f));
-			//auto pNode = std::make_shared<InstancedPrimitiveNode>("InstancedNode", pCircle, ColorUtility::CreatePrimary(6));
+			//auto pInstanceNode = std::make_shared<InstancedPrimitiveNode>("InstancedNode", pCircle, ColorUtility::CreatePrimary(6));
 			//Vector<Matrix4x4> matrixs;
 			//for (const auto& delaunay : m_Delaunay) {
-			//	auto c = CalcCircumscribedCircle(delaunay);
+			//	auto c = CalcCircumscribedCircle(positions, delaunay);
 			//	matrixs.push_back(glmUtil::CreateTransform(c.radius, c.center));
 			//}
 
-			//pNode->SetMatrixs(std::move(matrixs));
-			//m_pPointCloud->AddNode(pNode);
+			//pInstanceNode->SetMatrixs(std::move(matrixs));
+			//pNode->AddNode(pInstanceNode);
 		
 			Shared<Primitive> pTriangle = std::make_shared<Primitive>();
 			Vector<Vector3> pos(m_Delaunay.size() * 3 * 2);
@@ -207,15 +386,9 @@ void DelaunayGenerator::ShowUI(UIContext& ui)
 			pTriangle->SetPosition(std::move(pos));
 			pTriangle->SetType(GL_LINES);
 
-			m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("DelaunayTriangle", pTriangle, ColorUtility::CreatePrimary(2)));
+			pNode->AddNode(std::make_shared<PrimitiveNode>("DelaunayTriangle", pTriangle, ColorUtility::CreatePrimary(2)));
 		}
-
 	}
-}
-
-Delaunay3DGenerator::Delaunay3DGenerator(HalfEdgeNode* pNode)
-	:m_pNode(pNode)
-{
 }
 
 Delaunay3DGenerator::Circumsphere Delaunay3DGenerator::CreateCircumsphere(const Tetrahedron& tet)

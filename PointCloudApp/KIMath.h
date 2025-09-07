@@ -20,7 +20,9 @@ public:
 	static float ToRadian(float angle);
 	static float ToAngle(float rad);
 	static Vector4 WorldToScreenPos(const Matrix4x4& proj, const Matrix4x4& view, const Matrix4x4& model, const Vector3& value);
-
+	static bool InPolyline(const Vector<Vector3>& polyline, const Vector3& point, bool isLoop);
+	static void CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right);
+	static bool IsLoop(const Vector<Vector3>& polyline);
 	
 private:
 

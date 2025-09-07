@@ -281,6 +281,12 @@
     <ClCompile Include="Voxel.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="DebugNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="Polyline.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -519,6 +525,12 @@
     </ClInclude>
     <ClInclude Include="Voxel.h">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="Polyline.h">
+      <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

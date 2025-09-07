@@ -1,7 +1,8 @@
 const float M_PI = 3.141592653589793;
 const float c_minRoughness = 0.04;
 const float c_f0 = 0.04;
-struct PBRReource
+
+struct PBRGlobal
 {
 	int prefilteredMaxMip;
 	float exposure;
@@ -40,9 +41,9 @@ vec3 Uncharted2Tonemap(vec3 color)
 	return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
 }
 
-vec4 tonemapPBR(PBRReource pbrResource, vec4 color)
+vec4 tonemapPBR(PBRGlobal pbrGlobal, vec4 color)
 {
-	vec3 outcol = Uncharted2Tonemap(color.rgb * pbrResource.exposure);
+	vec3 outcol = Uncharted2Tonemap(color.rgb * pbrGlobal.exposure);
 	outcol = outcol * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
 	return vec4(pow(outcol, vec3(1.0f /2.2)), color.a);
 }
@@ -53,14 +54,14 @@ vec4 SRGBtoLINEAR(vec4 srgbIn)
 	return vec4(pow(srgbIn.xyz,vec3(2.2)),srgbIn.w);
 }
 
-vec3 getIBLColor(PBRInfo pbrInputs, PBRReource pbrResource, sampler2D brdfTex, samplerCube irradiance, samplerCube prefilter)
+vec3 getIBLColor(PBRInfo pbrInputs, PBRGlobal pbrGlobal, sampler2D brdfTex, samplerCube irradiance, samplerCube prefilter)
 {
-	float lod = (pbrInputs.perceptualRoughness * pbrResource.prefilteredMaxMip);
+	float lod = (pbrInputs.perceptualRoughness * pbrGlobal.prefilteredMaxMip);
 	// retrieve a scale and bias to F0. See [1], Figure 3
 	vec3 brdf = (texture(brdfTex, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness))).rgb;
-	vec3 diffuseLight = SRGBtoLINEAR(tonemapPBR(pbrResource, texture(irradiance, pbrInputs.normal))).rgb;
+	vec3 diffuseLight = SRGBtoLINEAR(tonemapPBR(pbrGlobal, texture(irradiance, pbrInputs.normal))).rgb;
 
-	vec3 specularLight = SRGBtoLINEAR(tonemapPBR(pbrResource, textureLod(prefilter, pbrInputs.reflect, lod))).rgb;
+	vec3 specularLight = SRGBtoLINEAR(tonemapPBR(pbrGlobal, textureLod(prefilter, pbrInputs.reflect, lod))).rgb;
 
 	vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
 	vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);

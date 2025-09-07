@@ -8,9 +8,7 @@ struct CSFNode
 
 struct CSFMaterial
 {
-	vec4 ambient;
 	vec4 diffuse;
-	vec4 specular;
-	vec4 emissive;
-	float padding[192];
+	float roughness;
+	float metallic;
 };

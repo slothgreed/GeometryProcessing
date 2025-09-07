@@ -18,7 +18,6 @@ AlphaShape2D::~AlphaShape2D()
 
 void AlphaShape2D::Execute()
 {
-    return;
     m_edges.clear();
     float alpha = m_ui.alpha;
     float alpha_2 = alpha * alpha;
@@ -56,7 +55,7 @@ void AlphaShape2D::Execute()
     }
 }
 
-void AlphaShape2D::ShowUI(UIContext& ui)
+void AlphaShape2D::ShowUI(RenderNode* pNode, UIContext& ui)
 {
     ImGui::Text("AlphaShape");
     if (ImGui::SliderFloat("Alpha", &m_ui.alpha, 0.0f, 80.0f, "%lf")) {
@@ -70,7 +69,7 @@ void AlphaShape2D::ShowUI(UIContext& ui)
         }
         pPoint->SetPosition(std::move(pos));
         pPoint->SetType(GL_LINES);
-        m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("AlphaLine", pPoint, ColorUtility::CreatePrimary(4)));
+        pNode->AddNode(std::make_shared<PrimitiveNode>("AlphaLine", pPoint, ColorUtility::CreatePrimary(4)));
     }
 }
 }

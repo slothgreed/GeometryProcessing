@@ -24,9 +24,8 @@ RenderNode* CSFLoader::Load(const String& fileName)
             csf->materials[i].color[1],
             csf->materials[i].color[2],
             csf->materials[i].color[3]);
-        materials[i].specular = ColorUtility::CreateRandom4() * 0.05f;
-        materials[i].ambient = materials[i].diffuse * 0.05f;
-        materials[i].emissive = materials[i].diffuse * 0.05f;
+		materials[i].roughness = 0.4f;
+		materials[i].metallic = 0.0f;
     }
 
 
@@ -158,6 +157,7 @@ public:
 		ShaderPath path;
 		path.version = "version.h";
 		path.header.push_back("common.h");
+		path.header.push_back("pbr\\pbr.h");
 		path.header.push_back("csf/csf.h");
 		path.shader[SHADER_PROGRAM_VERTEX] = "csf/csf.vert";
 		path.shader[SHADER_PROGRAM_FRAG] = "csf/csf.frag";
@@ -167,8 +167,11 @@ public:
 
 	void FetchUniformLocation()
 	{
-		m_uniform[UNIFORM::MODEL] = GetUniformLocation("u_Model");
-		m_uniform[UNIFORM::NODE] = GetUniformLocation("u_node");
+		m_uModel = GetUniformLocation("u_Model");
+		m_uNode = GetUniformLocation("u_node");
+		m_uPrefilter = GetUniformLocation("u_prefilter");
+		m_uIrradiance = GetUniformLocation("u_irradiance");
+		m_uBRDF = GetUniformLocation("u_brdf");
 	}
 
 	void SetCameraBuffer(const GLBuffer* pBuffer)
@@ -190,15 +193,22 @@ public:
 		BindShaderStorage(3, pBuffer->Handle());
 	}
 
+	void SetPBRResource(const PBRResource* pPBR)
+	{
+		BindShaderStorage(4, pPBR->GetGlobalParam()->Handle());
+		BindTexture(m_uBRDF, 5, *pPBR->GetBRDFLUT());
+		BindCubemap(m_uIrradiance, 6, *pPBR->GetIrradiance());
+		BindCubemap(m_uPrefilter, 7, *pPBR->GetPrefiltered());
 
+	}
 	void SetModel(const Matrix4x4& node)
 	{
-		BindUniform(m_uniform[UNIFORM::MODEL], node);
+		BindUniform(m_uModel, node);
 	}
 
 	void SetNode(const Vector2i& node)
 	{
-		BindUniform(m_uniform[UNIFORM::NODE], node);
+		BindUniform(m_uNode, node);
 	}
 
 	void SetVertexBuffer(const GLBuffer* pBuffer)
@@ -222,7 +232,11 @@ public:
 		OUTPUT_GLERROR;
 	}
 private:
-	GLuint m_uniform[UNIFORM::NUM];
+	GLuint m_uModel;
+	GLuint m_uNode;
+	GLuint m_uPrefilter;
+	GLuint m_uIrradiance;
+	GLuint m_uBRDF;
 };
 
 const CSFRenderNode::CSFRenderParts* CSFRenderNode::CSFRenderParts::Cast(const RenderParts* pParts)
@@ -377,6 +391,7 @@ void CSFRenderNode::DrawNode(const DrawContext& context)
 	context.pResource->GL()->DisableCullFace();
 	m_pShader->Use();
 	m_pShader->SetModel(GetMatrix());
+	m_pShader->SetPBRResource(context.pResource->GetPBR());
 	m_pShader->SetCameraBuffer(context.pResource->GetCameraBuffer());
 	m_pShader->SetLightBuffer(context.pResource->GetLightBuffer());
 	m_pShader->SetMaterialBuffer(m_gpu.pMaterialBuffer.get());

@@ -32,6 +32,7 @@ private:
 
 };
 
+class PBRResource;
 class FaceShader : public SimpleShader
 {
 public:
@@ -39,11 +40,8 @@ public:
 	~FaceShader() {};
 
 	void SetLight(const GLBuffer* pBuffer);
-	void SetPBRResource(const GLBuffer* pBuffer);
+	void SetPBRResource(const PBRResource* pBuffer);
 	void SetNormal(const GLBuffer* pBuffer);
-	void BindBRDF(const Texture& texture);
-	void BindIrradiance(const CubemapTexture& texture);
-	void BindPrefilter(const CubemapTexture& texture);
 
 	virtual int GetDrawTargetNum() const { return 3; }
 	virtual ShaderPath GetShaderPath() override;

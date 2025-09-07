@@ -31,7 +31,7 @@ public:
 	void Execute(int resolute);
 
 	void Draw(GLBuffer* pointBuffer, GLBuffer* indexBuffer, int camera);
-	virtual void ShowUI(UIContext& ui);
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 
 	void CreateLabelPoint(Vector<Vector3>& position, Vector<Vector3>& color, Voxelizer::Label type);
 	

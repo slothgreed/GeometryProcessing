@@ -36,9 +36,9 @@ layout(std430, binding = 3) buffer Material
 	GLTFMaterial materials[];
 };
 
-layout(std430, binding = 6) buffer PBRReourceBuffer
+layout(std430, binding = 6) buffer PBRGlobalBuffer
 {
-	PBRReource pbrResource;
+	PBRGlobal pbrGlobal;
 };
 
 
@@ -123,7 +123,7 @@ void main()
 	float G = 0.0;
 	float D = 0.0;
 	vec4 resultColor = vec4(getPBRColor(pbrInputs,light.color.rgb,F,G,D),1.0);
-	vec4 ibl = vec4(getIBLColor(pbrInputs, pbrResource, u_brdf, u_irradiance, u_prefilter),1.0);
+	vec4 ibl = vec4(getIBLColor(pbrInputs, pbrGlobal, u_brdf, u_irradiance, u_prefilter),1.0);
 	resultColor += ibl;
 	resultColor += getOcculusion(material) * resultColor;
 	resultColor += vec4(getEmissive(material),0.0);

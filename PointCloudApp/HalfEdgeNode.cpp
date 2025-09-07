@@ -150,14 +150,11 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		context.pResource->GL()->ColorMask(false);
 	}
 	pFaceShader->Use();
+	pFaceShader->SetCamera(pResource->GetCameraBuffer());
 	pFaceShader->SetLight(context.pResource->GetLightBuffer());
-	pFaceShader->SetPBRResource(context.pResource->GetPBRBuffer());
-	pFaceShader->BindBRDF(*context.pResource->GetPBR()->GetBRDFLUT());
-	pFaceShader->BindIrradiance(*context.pResource->GetPBR()->GetIrradiance());
-	pFaceShader->BindPrefilter(*context.pResource->GetPBR()->GetPrefiltered());
+	pFaceShader->SetPBRResource(context.pResource->GetPBR());
 	pFaceShader->SetPosition(m_gpu.position.get());
 	pFaceShader->SetNormal(m_gpu.normal.get());
-	pFaceShader->SetCamera(pResource->GetCameraBuffer());
 	pFaceShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
 	pFaceShader->SetModel(GetMatrix());
 	pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
@@ -440,13 +437,13 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 	} 
 
 	if (m_ui.visibleBVH) {
-		m_pBVH->ShowUI(ui);
+		m_pBVH->ShowUI(this, ui);
 	}
 
 	ImGui::Checkbox("ShowSignedDistanceField", &m_ui.visibleSignedDistanceField);
 	if (m_ui.visibleSignedDistanceField) {
 		if(m_pSignedDistanceField == nullptr) m_pSignedDistanceField = new SignedDistanceField(this);
-		m_pSignedDistanceField->ShowUI(ui);
+		m_pSignedDistanceField->ShowUI(this, ui);
 	}
 
 	if (ImGui::Checkbox("ShowMorton", &m_ui.visibleMorton)) {
@@ -461,7 +458,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		if (ImGui::SliderInt("Resolution (2^x)", &m_ui.voxel.resolute, 1, 9)) {
 			m_pVoxelizer->Execute(1 << m_ui.voxel.resolute);
 		}
-		m_pVoxelizer->ShowUI(ui);
+		m_pVoxelizer->ShowUI(this, ui);
 	}
 
 	if (ImGui::Checkbox("CreatePoissonSampleVolume", &m_ui.poisson.volume)) {

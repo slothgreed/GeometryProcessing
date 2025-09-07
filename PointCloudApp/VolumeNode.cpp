@@ -257,10 +257,7 @@ void VolumeNode::Draw(const DrawContext& context)
 				pFace->Use();
 				pFace->SetCamera(context.pResource->GetCameraBuffer());
 				pFace->SetLight(context.pResource->GetLightBuffer());
-				pFace->SetPBRResource(context.pResource->GetPBRBuffer());
-				pFace->BindBRDF(*context.pResource->GetPBR()->GetBRDFLUT());
-				pFace->BindIrradiance(*context.pResource->GetPBR()->GetIrradiance());
-				pFace->BindPrefilter(*context.pResource->GetPBR()->GetPrefiltered());
+				pFace->SetPBRResource(context.pResource->GetPBR());
 				pFace->SetModel(GetMatrix());
 				pFace->SetColor(Vector3(0, 0, 1));
 				pFace->SetPosition(m_marching.GetPositionBuffer());
@@ -360,6 +357,7 @@ void VolumeNode::ShowUI(UIContext& ui)
 	}
 
 	ImGui::Checkbox("VisibleRayCast", &m_ui.rayCast.visible);
+	RenderNode::ShowMatrixUI(ui);
 }
 
 void VolumeNode::BuildVoxelResource(bool withData)

@@ -48,7 +48,7 @@ public:
 	virtual ~BVH() {};
 	virtual ALGORITHM_TYPE GetType() { return ALGORITHM_BVH; }
 	virtual void Execute();
-	virtual void ShowUI(UIContext& ui);
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 
 	struct IntersectResult
 	{

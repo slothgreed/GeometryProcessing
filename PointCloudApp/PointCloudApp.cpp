@@ -29,6 +29,7 @@
 #include "CSFNode.h"
 #include "STEPNode.h"
 #include "Utility.h"
+#include "DebugNode.h"
 #include "SimulationNode.h"
 #include "PBR.h"
 #include <Eigen/Core>
@@ -123,14 +124,15 @@ void PointCloudApp::Execute()
 
 	BDB bdb;
 	// Default Scene Demo.
-	{
-		m_pRoot->AddNode(CreateSpaceTest());
-		m_pRoot->AddNode(CreateCSFNodeTest());
-		m_pRoot->AddNode(CreateGLTFAnimationTest());
-		m_pRoot->AddNode(CreateGLTFNodeTest());
-		m_pRoot->AddNode(CreateBunnyNodeTest());
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-	}
+	//{
+	//	m_pRoot->AddNode(CreateSpaceTest());
+	//	m_pRoot->AddNode(CreateCSFNodeTest());
+	//	m_pRoot->AddNode(CreateGLTFAnimationTest());
+	//	m_pRoot->AddNode(CreateGLTFNodeTest());
+	//	m_pRoot->AddNode(CreateBunnyNodeTest());
+	//  m_pRoot->AddNode(CreateVolumeTest());
+	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+	//}
 	
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
@@ -139,13 +141,13 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 		//m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
-		//m_pRoot->AddNode(CreateSTEPNodeTest());
+		m_pRoot->AddNode(CreateSTEPNodeTest());
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
 	}
 
 	// PBR
 	{
 		//m_pRoot->AddNode(CreatePBRTest());
-		m_pRoot->AddNode(CreateVolumeTest());
 	}
 
 	// Large Scene Demo.
@@ -159,7 +161,7 @@ void PointCloudApp::Execute()
 	}
 
 
-	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), m_pCamera->Up());
+	m_pCamera->SetLookAt(Vector3(0, 0, -500), Vector3(0, 0, 0), m_pCamera->Up());
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
@@ -177,6 +179,7 @@ void PointCloudApp::Execute()
 	// Test
 	{
 		//m_pRoot->AddNode(CreateDelaunayTest());
+		m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
 	}
 	
@@ -473,7 +476,7 @@ Shared<RenderNode> PointCloudApp::CreateSpaceTest()
 Shared<RenderNode> PointCloudApp::CreateGLTFAnimationTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\BrainStem\\glTF\\BrainStem.gltf"));
-	pNode->SetScale(50);
+	pNode->SetScale(100);
 	pNode->SetTranslate(Vector3(500, 0, 0));
 	return pNode;
 }
@@ -507,6 +510,7 @@ Shared<RenderNode> PointCloudApp::CreateVolumeTest()
 	auto pVoxel = std::unique_ptr<Voxel>(TextureLoader::LoadVolume("E:\\cgModel\\volume\\sample\\dataset-stagbeetle-416x416x247.dat"));
 	auto pNode = std::make_shared<VolumeNode>(std::move(pVoxel));
 	pNode->SetScale(100);
+	pNode->SetTranslate(Vector3(300, 500, 0));
 	return pNode;
 }
 Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()
@@ -540,6 +544,7 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\123Block_Color.stp"));
+	pNode->SetScale(100);
 	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cube.stp"));
 	return pNode;
 }
@@ -552,6 +557,12 @@ Shared<PointCloudNode> PointCloudApp::CreateDelaunayTest()
 	point2DPrim->SetType(GL_POINTS);
 	return std::make_shared<PointCloudNode>("2DPointCloud", point2DPrim);
 }
+
+Shared<RenderNode> PointCloudApp::CreateConstrainDelaunayTest()
+{
+	return std::make_shared<DelaunayDebugNode>("DelaunayDebugNode");
+}
+
 Shared<InstancedPrimitiveNode> PointCloudApp::CreateInstacedNodeTest()
 {
 	Shared<Primitive> pCube = std::make_shared<Cube>(vec3(0, 0, 0), vec3(10, 10, 10));

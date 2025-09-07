@@ -109,17 +109,7 @@ void GLTFScene::ShowUI(UIContext& ui)
 		ImGui::EndCombo();
 	}
 	
-	if (ImGui::SliderFloat("scale", &scale, 1, 100)) {
-		SetScale(scale);
-	}
-
-	if (ImGui::SliderFloat3("rotate", &rotate[0], -360, 360)) {
-		SetRotateAngle(rotate);
-	}
-
-	if (ImGui::SliderFloat3("translate", &translate[0], -100, 100)) {
-		SetTranslate(translate);
-	}
+	RenderNode::ShowMatrixUI(ui);
 }
 
 
@@ -134,16 +124,13 @@ void GLTFScene::DrawNode(const DrawContext& context)
 	}
 
 	m_pShader->Use();
-	m_pShader->SetPBRResource(context.pResource->GetPBRBuffer());
+	m_pShader->SetPBRResource(context.pResource->GetPBR());
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetLight(context.pResource->GetLightBuffer());
 	m_pShader->SetModel(GetMatrix());
 	m_pShader->SetNodeBuffer(m_gpu.nodeBuffer);
 	m_pShader->SetMaterialBuffer(m_gpu.materialBuffer);
 	m_pShader->BindDebugView(m_debugView);
-	m_pShader->BindBRDF(*context.pResource->GetPBR()->GetBRDFLUT());
-	m_pShader->BindIrradiance(*context.pResource->GetPBR()->GetIrradiance());
-	m_pShader->BindPrefilter(*context.pResource->GetPBR()->GetPrefiltered());
 	if (m_gpu.skinBuffer) {
 		m_pShader->SetSkinBuffer(m_gpu.skinBuffer);
 	}

@@ -13,13 +13,12 @@ namespace KI
 {
 
 PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitive)
-	:RenderNode(name)
+	: RenderNode(name)
 {
 	m_pPointCloud = std::move(pPrimitive);
 	m_algorithm[ALGORITHM_KDTREE] = new KDTreeNanoFlann(this, 3);
 	m_algorithm[ALGORITHM_HARRIS3D] = new Harris3D(this);
 	m_algorithm[ALGORITHM_ALPHASHAPE] = new AlphaShape2D(this);
-	m_algorithm[ALGORITHM_DELAUNAY] = new DelaunayGenerator(this);
 	//m_algorithm[ALGORITHM_KDTREE] = new KDTree(this, 3);
 	m_normal = m_pPointCloud->Normal();
 	BuildGLBuffer();
@@ -91,9 +90,10 @@ void PointCloudNode::ShowUI(UIContext& ui)
 {
 	ImGui::Text("PointNum: %d", m_pPointCloud->Position().size());
 	for (auto& algorithm : m_algorithm) {
-		algorithm.second->ShowUI(ui);
+		algorithm.second->ShowUI(this, ui);
 	}
-
+	m_delaunay.SetTarget(&m_pPointCloud->Position());
+	m_delaunay.ShowUI(this, ui);
 	if (ImGui::Button("ShowNormal")) {
 		ShowNormal();
 	}

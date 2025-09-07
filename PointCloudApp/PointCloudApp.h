@@ -58,6 +58,7 @@ private:
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);
 	Shared<PointCloudNode> CreateDelaunayTest();
+	Shared<RenderNode> CreateConstrainDelaunayTest();
 	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();
 	Shared<RenderResource> m_pResource;
 	CPUProfiler m_cpuProfiler;

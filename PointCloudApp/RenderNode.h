@@ -117,6 +117,7 @@ public:
 	virtual BDB GetCameraFitBox() const;
 	BDB CalcCameraFitBox();
 	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
+	void ShowMatrixUI(UIContext& context);
 protected:
 	virtual void ShowUIParameter(const Parameter& parameter, UIContext& ui);
 	virtual void ShowUI(UIContext& ui) {};

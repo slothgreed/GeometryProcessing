@@ -76,7 +76,7 @@ void Harris3D::Execute()
 	}
 }
 
-void Harris3D::ShowUI(UIContext& ui)
+void Harris3D::ShowUI(RenderNode* pNode, UIContext& ui)
 {
 	if (ImGui::Button("ShowCorner:Harris3D")) {
 		if (m_result.size() == 0) { Execute(); }

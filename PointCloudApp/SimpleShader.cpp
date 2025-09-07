@@ -1,6 +1,6 @@
 #include "SimpleShader.h"
 #include "ShaderUtility.h"
-
+#include "PBR.h"
 using namespace std;
 namespace KI
 {
@@ -82,22 +82,12 @@ void FaceShader::SetLight(const GLBuffer* pBuffer)
 	BindShaderStorage(1, pBuffer->Handle());
 }
 
-void FaceShader::SetPBRResource(const GLBuffer* pBuffer)
+void FaceShader::SetPBRResource(const PBRResource* pBuffer)
 {
-	BindShaderStorage(2, pBuffer->Handle());
-}
-
-void FaceShader::BindBRDF(const Texture& texture)
-{
-	BindTexture(m_uBRDF, 5, texture);
-}
-void FaceShader::BindIrradiance(const CubemapTexture& texture)
-{
-	BindCubemap(m_uIrradiance, 6, texture);
-}
-void FaceShader::BindPrefilter(const CubemapTexture& texture)
-{
-	BindCubemap(m_uPrefilter, 7, texture);
+	BindShaderStorage(2, pBuffer->GetGlobalParam()->Handle());
+	BindTexture(m_uBRDF, 5, *pBuffer->GetBRDFLUT());
+	BindCubemap(m_uIrradiance, 6, *pBuffer->GetIrradiance());
+	BindCubemap(m_uPrefilter, 7, *pBuffer->GetPrefiltered());
 }
 
 

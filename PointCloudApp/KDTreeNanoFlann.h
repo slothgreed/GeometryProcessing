@@ -22,7 +22,7 @@ public:
 
 	virtual ALGORITHM_TYPE GetType() { return ALGORITHM_KDTREE; };
 	virtual void Execute();
-	virtual void ShowUI(UIContext& ui);
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 	Vector<int> GetRadiusNeighbor(const Vector3& query, float rad);
 private:
 	struct UI
