@@ -110,7 +110,8 @@ void KDTreeNanoFlann::ShowUI(RenderNode* pNode, UIContext& ui)
 
 			Shared<Primitive> pCircle = std::make_shared<Circle>(glm::length(target - ret), target);
 			m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("Range" + std::to_string(i), pCircle, ColorUtility::CreatePrimary(i)));
-			Printf::Vec3(std::to_string(i), target);
+			DebugPrintf::Vec3(std::to_string(i), target);
+			DebugPrintf::NewLine();
 		}
 	}
 

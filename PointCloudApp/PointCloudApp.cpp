@@ -543,9 +543,10 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 
 Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest()
 {
-	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\123Block_Color.stp"));
-	pNode->SetScale(100);
+	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\123Block_Color.stp"));
 	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cube.stp"));
+	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\angle1.stp"));
+	pNode->SetScale(100);
 	return pNode;
 }
 

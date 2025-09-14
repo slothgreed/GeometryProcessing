@@ -7,8 +7,8 @@
 #include <functional>
 namespace KI
 {
-#define FIND_STEP_DATA(a,b,c,d) { auto x = step.c.find(d); if(x == step.c.end()){assert(0);return a;} a.b = x->second->ToData(step);}
-#define FIND_STEP_DATA2(a,b,c) { auto x = step.b.find(c); if(x == step.b.end()){assert(0);} else { a = x->second->ToData(step);}}
+#define FIND_SET_DATA(a,b,c,d) { auto x = step.c.find(d); if(x == step.c.end()){assert(0);return a;} a.b = x->second->ToData(step);}
+#define FIND_SET_DATA2(a,b,c) { auto x = step.b.find(c); if(x == step.b.end()){assert(0);} else { a = x->second->ToData(step);}}
 
 
 
@@ -28,6 +28,7 @@ struct STEPEdgeCurve;
 struct STEPVertexPoint;
 struct STEPEdgeLoop;
 struct STEPFaceOuterBound;
+struct STEPFaceBound;
 struct STEPOrientedEdge;
 struct STEPAdvancedFace;
 struct STEPClosedShell;
@@ -43,6 +44,7 @@ struct STEPStruct
 	std::unordered_map<int, STEPVertexPoint*> vertexPoint;
 	std::unordered_map<int, STEPEdgeLoop*> edgeLoop;
 	std::unordered_map<int, STEPFaceOuterBound*> faceOuterBound;
+	std::unordered_map<int, STEPFaceBound*> faceBound;
 	std::unordered_map<int, STEPOrientedEdge*> orientedEdge;
 	std::unordered_map<int, STEPAdvancedFace*> advancedFace;
 	std::unordered_map<int, STEPClosedShell*> closedShell;
@@ -241,7 +243,7 @@ struct STEPVector
 	Vector3 ToData(const STEPStruct& step)
 	{
 		Vector3 vector;
-		FIND_STEP_DATA2(vector, directions, idRef);
+		FIND_SET_DATA2(vector, directions, idRef);
 		vector = glm::normalize(vector);
 		vector *= length;
 		return vector;
@@ -276,8 +278,8 @@ struct STEPLine
 	STEPLine::Data ToData(const STEPStruct& step)
 	{
 		STEPLine::Data data;
-		FIND_STEP_DATA(data, begin, points, beginRef);
-		FIND_STEP_DATA(data, vector, vectors, endRef);
+		FIND_SET_DATA(data, begin, points, beginRef);
+		FIND_SET_DATA(data, vector, vectors, endRef);
 		return data;
 	}
 };
@@ -316,9 +318,9 @@ struct STEPAxis2Placement3D
 	STEPAxis2Placement3D::Data ToData(const STEPStruct& step)
 	{
 		STEPAxis2Placement3D::Data data;
-		FIND_STEP_DATA(data, point, points, pointRef);
-		FIND_STEP_DATA(data, dir1, directions, dirRef1);
-		FIND_STEP_DATA(data, dir2, directions, dirRef2);
+		FIND_SET_DATA(data, point, points, pointRef);
+		FIND_SET_DATA(data, dir1, directions, dirRef1);
+		FIND_SET_DATA(data, dir2, directions, dirRef2);
 		return data;
 	}
 };
@@ -351,7 +353,7 @@ struct STEPPlane
 	{
 		STEPPlane::Data data;
 		step.axis2Placement3D;
-		FIND_STEP_DATA(data, axis, axis2Placement3D, idRef);
+		FIND_SET_DATA(data, axis, axis2Placement3D, idRef);
 		return data;
 	}
 };
@@ -378,7 +380,7 @@ struct STEPVertexPoint
 	Vector3 ToData(const STEPStruct& step)
 	{
 		Vector3 pos;
-		FIND_STEP_DATA2(pos, points, idRef);
+		FIND_SET_DATA2(pos, points, idRef);
 		return pos;
 	}
 };
@@ -421,9 +423,9 @@ struct STEPEdgeCurve
 	STEPEdgeCurve::Data ToData(const STEPStruct& step)
 	{
 		STEPEdgeCurve::Data data;
-		FIND_STEP_DATA(data, begin, vertexPoint, vertRef0);
-		FIND_STEP_DATA(data, end, vertexPoint, vertRef1);
-		FIND_STEP_DATA(data, line, lines, lineRef2);
+		FIND_SET_DATA(data, begin, vertexPoint, vertRef0);
+		FIND_SET_DATA(data, end, vertexPoint, vertRef1);
+		FIND_SET_DATA(data, line, lines, lineRef2);
 
 		data.orient = orient;
 		return data;
@@ -470,6 +472,14 @@ struct STEPOrientedEdge
 		}
 	};
 
+	static void Printf(const STEPOrientedEdge::Data& data)
+	{
+		DebugPrintf::Bool("Orient", data.orient);
+		DebugPrintf::Vec3("Begin", data.begin);
+		DebugPrintf::Vec3("End", data.end);
+		DebugPrintf::NewLine();
+	}
+
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPOrientedEdge();
@@ -486,28 +496,30 @@ struct STEPOrientedEdge
 	STEPOrientedEdge::Data ToData(const STEPStruct& step)
 	{
 		STEPOrientedEdge::Data data;
-		FIND_STEP_DATA(data, edgeCurve, edgeCurve, edgeCurveRef2);
+		FIND_SET_DATA(data, edgeCurve, edgeCurve, edgeCurveRef2);
 		if (vertRef0 == STEPEnum::ASTERISK) {
 			data.begin = data.edgeCurve.begin;
 		} else {
-			FIND_STEP_DATA(data, begin, vertexPoint, vertRef0);
+			FIND_SET_DATA(data, begin, vertexPoint, vertRef0);
 		}
 
 		if (vertRef1 == STEPEnum::ASTERISK) {
 			data.end = data.edgeCurve.end;
 		} else {
-			FIND_STEP_DATA(data, end, vertexPoint, vertRef1);
+			FIND_SET_DATA(data, end, vertexPoint, vertRef1);
 		}
 
 		data.orient = orient;
 		return data;
 	}
 
+
+
 };
 
 struct STEPEdgeLoop
 {
-	STEPEdgeLoop() {};
+	STEPEdgeLoop() :id(-1) {};
 	~STEPEdgeLoop() {};
 
 	static constexpr const char* EntityName = "EDGE_LOOP";
@@ -522,20 +534,18 @@ struct STEPEdgeLoop
 		{
 			Polyline polyline;
 			for (const auto& edge : orientedEdges) {
-				if (polyline.Num() != 0) {
-					if (edge.GetBegin() != polyline.Last()) {
-						int a = 0;
-					}
-				}
 				polyline.Add(edge.GetBegin());
-				
-				mesh.edges.push_back(edge.GetBegin());
-				mesh.edges.push_back(edge.GetEnd());
-				Printf::Vec3("Begin", edge.GetBegin());
-				Printf::Vec3("End", edge.GetEnd());
 			}
+			mesh.polylines.push_back(std::move(polyline));
 		}
 
+		void CreateEdges(STEPMesh& mesh) const
+		{
+			for (const auto& edge : orientedEdges) {
+				mesh.edges.push_back(edge.GetBegin());
+				mesh.edges.push_back(edge.GetEnd());
+			}
+		}
 	};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -557,7 +567,7 @@ struct STEPEdgeLoop
 		STEPEdgeLoop::Data data;
 		data.orientedEdges.resize(idRef.size());
 		for (auto i = 0; i < idRef.size(); i++) {
-			FIND_STEP_DATA(data, orientedEdges[i], orientedEdge, idRef[i]);
+			FIND_SET_DATA(data, orientedEdges[i], orientedEdge, idRef[i]);
 		}
 		return data;
 	}
@@ -577,9 +587,9 @@ struct STEPFaceOuterBound
 
 	struct Data
 	{
+		Data() :orient(false) {}
 		STEPEdgeLoop::Data edgeLoop;
 		bool orient;
-
 	};
 
 
@@ -596,29 +606,48 @@ struct STEPFaceOuterBound
 	STEPFaceOuterBound::Data ToData(const STEPStruct& step)
 	{
 		STEPFaceOuterBound::Data data;
-		FIND_STEP_DATA(data, edgeLoop, edgeLoop, idRef0);
+		FIND_SET_DATA(data, edgeLoop, edgeLoop, idRef0);
 		data.orient = orient;
 		return data;
 	}
+};
 
-	static Polyline CreateLineStrip(const STEPFaceOuterBound::Data& data)
+struct STEPFaceBound
+{
+	STEPFaceBound() {};
+	~STEPFaceBound() {};
+
+	static constexpr const char* EntityName = "FACE_BOUND";
+
+	int id;
+	int idRef0;
+	bool orient;
+
+	struct Data
 	{
-		Vector<Vector3> strip;
-		if (data.edgeLoop.orientedEdges.size() == 0) { return Vector<Vector3>(); }
-		const auto& orientedEdges = data.edgeLoop.orientedEdges;
-		for (int i = 0; i < orientedEdges.size(); i++) {
-			if (orientedEdges[i].begin != orientedEdges[i - 1].end) {
-				assert(0);
-			}
+		Data() :orient(false) {}
+		STEPEdgeLoop::Data edgeLoop;
+		bool orient;
+	};
 
-			strip.push_back(orientedEdges[i].begin);
-		}
 
-		strip.push_back(orientedEdges[orientedEdges.size() - 1].end);
-
-		return Polyline(std::move(strip));
+	static void Fetch(STEPStruct& step, const STEPString& stepStr)
+	{
+		auto data = new STEPFaceBound();
+		auto values = STEPString::SplitValue(stepStr.value);
+		if (!STEPString::ValueToRef(values[1], data->idRef0)) { assert(0); return; }
+		if (!STEPString::ValueToBool(values[2], data->orient)) { assert(0); return; }
+		data->id = stepStr.id;
+		step.faceBound[data->id] = data;
 	}
 
+	STEPFaceBound::Data ToData(const STEPStruct& step)
+	{
+		STEPFaceBound::Data data;
+		FIND_SET_DATA(data, edgeLoop, edgeLoop, idRef0);
+		data.orient = orient;
+		return data;
+	}
 };
 
 struct STEPAdvancedFace
@@ -634,6 +663,7 @@ struct STEPAdvancedFace
 
 	struct Data
 	{
+		Vector<STEPFaceBound::Data> faceBound;
 		Vector<STEPFaceOuterBound::Data> faceOuterBound;
 		STEPPlane::Data plane;
 		bool orient;
@@ -660,9 +690,9 @@ struct STEPAdvancedFace
 
 		data.faceOuterBound.resize(faceRef0.size());
 		for (auto i = 0; i < faceRef0.size(); i++) {
-			FIND_STEP_DATA(data, faceOuterBound[i], faceOuterBound, faceRef0[i]);
+			FIND_SET_DATA(data, faceOuterBound[i], faceOuterBound, faceRef0[i]);
 		}
-		FIND_STEP_DATA(data, plane, planes, planeRef1);
+		FIND_SET_DATA(data, plane, planes, planeRef1);
 		data.orient = orient;
 		return data;
 	}
@@ -703,7 +733,7 @@ struct STEPClosedShell
 
 		data.advancedFace.resize(faceRef.size());
 		for (auto i = 0; i < faceRef.size(); i++) {
-			FIND_STEP_DATA(data, advancedFace[i], advancedFace, faceRef[i]);
+			FIND_SET_DATA(data, advancedFace[i], advancedFace, faceRef[i]);
 		}
 		return data;
 	}
@@ -714,9 +744,8 @@ struct STEPClosedShell
 		auto data = ToData(step);
 		for (const auto& advancedFace : data.advancedFace) {
 			for (const auto& face : advancedFace.faceOuterBound) {
-				for (const auto& edge : face.edgeLoop.orientedEdges) {
-					face.edgeLoop.CreatePolyline(mesh);
-				}
+				face.edgeLoop.CreateEdges(mesh);
+				face.edgeLoop.CreatePolyline(mesh);
 			}
 		}
 
@@ -729,8 +758,10 @@ void NotDefineEntity(const String& str)
 	// 形状に不必要なEntity
 	// マテリアル情報も含まれる。
 	static const std::unordered_set<std::string> handlers = {
+		"APPLICATION_CONTEXT",
 		"PRODUCT",
 		"PRODUCT_CONTEXT",
+		"DESIGN_CONTEXT",
 		"PRODUCT_DEFINITION",
 		"PRODUCT_DEFINITION_CONTEXT",
 		"PRODUCT_DEFINITION_SHAPE",
@@ -738,6 +769,15 @@ void NotDefineEntity(const String& str)
 		"STYLED_ITEM",
 		"PRESENTATION_STYLE_ASSIGNMENT",
 		"DIMENSIONAL_EXPONENTS",
+		"DATA_TIME_ROLE",
+		"SECURITY_CLASSIFICATION",
+		"SECURITY_CLASSIFICATION_LEVEL",
+		"CC_DESIGN_SECURITY_CLASSIFICATION",
+		"CC_DESIGN_APPROVAL",
+		"APPROVAL_ROLE",
+		"APPROVAL_DATE_TIME",
+		"APPROVAL_STATUS",
+		"APPROVAL",
 		"SURFACE_STYLE_USAGE",
 		"SURFACE_SIDE_STYLE",	// 裏面表面両面
 		"SURFACE_STYLE_FILL_AREA", // 塗りつぶし
@@ -753,6 +793,8 @@ void NotDefineEntity(const String& str)
 		"SHAPE_DEFINITION_REPRESENTATION",
 		"PRODUCT_CATEGORY_RELATIONSHIP",
 		"LENGTH_MEASURE_WITH_UNIT",
+		"PERSON_AND_ORGANIZATION",
+		"CC_DESIGN_PERSON_AND_ORGANIZATION_ASSIGNMENT",
 		"PLANE_ANGLE_MEASURE_WITH_UNIT", // 角度orラジアン
 		"APPLICATION_PROTOCOL_DEFINITION",
 		"DRAUGHTING_PRE_DEFINED_COLOUR"
@@ -795,9 +837,25 @@ RenderNode* STEPLoader::Load(const String& name)
 
 	STEPStruct step;
 
-	for (int i = dataIndex + 1; contents.size(); i++) {
+	for (int i = dataIndex + 1; i < contents.size(); i++) {
 		if (contents[i] == "ENDSEC;")break;
-		auto stepStr = STEPString::Create(contents[i]);
+		auto content = contents[i];
+		if (i == 400) {
+			int a = 0;
+		}
+		if (content[content.size() - 1] != ';') {
+			int add = 0;
+			for (int j = i + 1; j < contents.size(); j++) {
+				content += contents[j];
+				add++;
+				if (contents[j][contents[j].size() - 1] == ';') {
+					break;
+				}
+			}
+			i += add;
+		}
+
+		auto stepStr = STEPString::Create(content);
 		if (StringUtility::Contains(stepStr.name, STEPPoint::EntityName)) { STEPPoint::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPDirection::EntityName)) { STEPDirection::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPVector::EntityName)) { STEPVector::Fetch(step, stepStr);}
@@ -807,11 +865,12 @@ RenderNode* STEPLoader::Load(const String& name)
 		else if (StringUtility::Contains(stepStr.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(step, stepStr); }
+		else if (StringUtility::Contains(stepStr.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
-		else { NotDefineEntity(contents[i]); }
+		else { NotDefineEntity(content); }
 	}
 
 	STEPClosedShell::Data data;
@@ -831,12 +890,34 @@ RenderNode* STEPLoader::Load(const String& name)
 void STEPRenderNode::BuildGLResource()
 {
 	if (m_mesh.size() == 0) { return; }
-	if (m_gpu.pTriangles != nullptr &&
-		m_gpu.pEdges != nullptr &&
+	if (m_gpu.pTriangles != nullptr ||
+		m_gpu.pEdges != nullptr ||
 		m_gpu.pVertexs != nullptr) {
 		return;
 	}
 
+	Vector<Vector3> triangles;
+	Vector<Vector3> edges;
+	for (const auto& mesh : m_mesh) {
+		for (const auto& polyline : mesh.polylines) {
+			auto polyTri = polyline.CreateTrianglePoints();
+			auto polyEdge = polyline.CreateLinePoints();
+			triangles.insert(triangles.end(), polyTri.begin(), polyTri.end());
+			edges.insert(edges.end(), polyEdge.begin(), polyEdge.end());
+		}
+	}
+
+	if (triangles.size() != 0) {
+		m_gpu.pTriangles = std::make_unique<GLBuffer>();
+		m_gpu.pTriangles->Create(DATA_FLOAT, triangles.size(), sizeof(Vector3), triangles.data());
+	}
+	if (edges.size() != 0) {
+		m_gpu.pEdges = std::make_unique<GLBuffer>();
+		m_gpu.pEdges->Create(DATA_FLOAT, edges.size(), sizeof(Vector3), edges.data());
+	}
+
+
+	/*
 	size_t triangleNum = 0;
 	size_t edgeNum = 0;
 	size_t vertexNum = 0;
@@ -878,6 +959,7 @@ void STEPRenderNode::BuildGLResource()
 			vertexOffset = mesh.vertexs.size();
 		}
 	}
+	*/
 }
 void STEPRenderNode::DrawNode(const DrawContext& context)
 {
@@ -885,12 +967,17 @@ void STEPRenderNode::DrawNode(const DrawContext& context)
 	auto pResource = context.pResource;
 	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 	pSimpleShader->Use();
-	pSimpleShader->SetPosition(m_gpu.pEdges.get());
 	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
 	pSimpleShader->SetModel(GetMatrix());
 	pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
 	pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+	pSimpleShader->SetPosition(m_gpu.pEdges.get());
 	pSimpleShader->DrawArray(GL_LINES, m_gpu.pEdges.get());
+
+
+	pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
+	pSimpleShader->SetPosition(m_gpu.pTriangles.get());
+	pSimpleShader->DrawArray(GL_TRIANGLES, m_gpu.pTriangles.get());
 }
 void STEPRenderNode::ShowUI(UIContext& ui)
 {

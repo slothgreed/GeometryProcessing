@@ -5,20 +5,34 @@ namespace KI
 {
 Vector<Vector3> g_RGB;
 
-void Printf::Vec3(const Vector3& value, bool newLine)
+void DebugPrintf::Bool(const String& name, bool value, bool newLine)
 {
-	printf(("% lf, % lf, % lf\n"), value.x, value.y, value.z);
+	std::cout << name << ":" << (value ? "True" : "False");
+	if (newLine) { std::cout << "\n"; }
 }
-void Printf::Vec3(const String& name, const Vector3& value, bool newLine)
+void DebugPrintf::Vec3(const Vector3& value, bool newLine)
 {
+	std::cout << value.x << "," << value.y << "," << value.z;
+	if (newLine) { std::cout << "\n"; }
+}
+void DebugPrintf::NewLine()
+{
+	std::cout << "\n";
+}
+void DebugPrintf::Vec3(const String& name, const Vector3& value, bool newLine)
+{
+	std::cout << name.data() << ":";
+	DebugPrintf::Vec3(value, newLine);
+	/*
 	if (newLine) {
 		printf((name + ":%lf,%lf,%lf\n").data(), value.x, value.y, value.z);
 	} else {
 		printf((name + ":%lf,%lf,%lf").data(), value.x, value.y, value.z);
 	}
+	*/
 }
 
-void Printf::Vec4(const String& name, const Vector4& value, bool newLine)
+void DebugPrintf::Vec4(const String& name, const Vector4& value, bool newLine)
 {
 	if (newLine) {
 		printf((name + ":%lf,%lf,%lf,%lf\n").data(), value.x, value.y, value.z, value.w);
@@ -27,7 +41,7 @@ void Printf::Vec4(const String& name, const Vector4& value, bool newLine)
 	}
 }
 
-void Printf::Mat4(const String& name, const Matrix4x4& mat, bool newLine)
+void DebugPrintf::Mat4(const String& name, const Matrix4x4& mat, bool newLine)
 {
 	printf(
 		"%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n",

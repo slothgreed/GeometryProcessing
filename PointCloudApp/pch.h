@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "GLAPIExt.h"
+#include <iostream>
 #include <algorithm>
 #include <String>
 #include <queue>

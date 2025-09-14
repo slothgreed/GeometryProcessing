@@ -7,10 +7,14 @@
 #include "KIMath.h"
 namespace KI
 {
-
+Vector<unsigned int> DelaunayGenerator::Execute2D()
+{
+	if (m_target == nullptr) { return Vector<unsigned int>(); }
+	return Execute2D(*m_target, m_target->size());
+}
 Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& position, int iterate)
 {
-	m_HugeTriangle = CreateHugeTriangle2D(position);
+	m_HugeTriangle = CreateHugeTriangle(position);
 
 	m_Delaunay.clear();
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS0, HUGE_POS1));
@@ -30,7 +34,19 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& positio
 			++it;
 		}
 	}
-	return Vector<unsigned int>();
+
+	Vector<unsigned int> indexs;
+	for (const auto& delaunay : m_Delaunay) {
+		indexs.push_back(delaunay.pos0);
+		if (m_ccw) {
+			indexs.push_back(delaunay.pos1);
+			indexs.push_back(delaunay.pos2);
+		} else {
+			indexs.push_back(delaunay.pos2);
+			indexs.push_back(delaunay.pos1);
+		}
+	}
+	return indexs;
 }
 
 DelaunayGenerator::IndexedTriangle DelaunayGenerator::IndexedTriangle::Create(int p0, int p1, int p2, const Vector<IndexedEdge>& constraints)
@@ -65,7 +81,7 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polylin
 	}
 
 
-	m_HugeTriangle = CreateHugeTriangle2D(merge);
+	m_HugeTriangle = CreateHugeTriangle(merge);
 	m_Delaunay.clear();
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS0, HUGE_POS1));
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS1, HUGE_POS2));
@@ -235,7 +251,7 @@ void DelaunayGenerator::RemoveHugeTriangle()
 		}
 	}
 }
-DelaunayGenerator::Triangle DelaunayGenerator::CreateHugeTriangle2D(const Vector<Vector3>& position)
+DelaunayGenerator::Triangle DelaunayGenerator::CreateHugeTriangle(const Vector<Vector3>& position)
 {
 	BDB bdb;
 	for (const auto& p : position) {

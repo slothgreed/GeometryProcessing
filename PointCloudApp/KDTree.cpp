@@ -96,7 +96,8 @@ void KDTree::ShowUI(UIContext& ui)
 
 			Shared<Primitive> pCircle = std::make_shared<Circle>(glm::length(target - ret), target);
 			m_pPointCloud->AddNode(std::make_shared<PrimitiveNode>("Range" + std::to_string(i), pCircle, ColorUtility::CreatePrimary(i)));
-			Printf::Vec3(std::to_string(i), target);
+			DebugPrintf::Vec3(std::to_string(i), target);
+			DebugPrintf::NewLine();
 		}
 	}
 	if (ImGui::SliderInt("Depth", &m_ui.depth, 0, std::log2(m_pPointCloud->GetData()->Position().size()) + 1)) {

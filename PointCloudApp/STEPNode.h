@@ -1,6 +1,7 @@
 #ifndef KI_STEP_NODE_H
 #define KI_STEP_NODE_H
 #include "RenderNode.h"
+#include "Polyline.h"
 namespace KI
 {
 class STEPLoader
@@ -19,6 +20,7 @@ struct STEPMesh
 {
 	Vector<Vector3> triangels;
 	Vector<Vector3> edges;
+	Vector<Polyline> polylines;
 	Vector<Vector3> vertexs;
 };
 

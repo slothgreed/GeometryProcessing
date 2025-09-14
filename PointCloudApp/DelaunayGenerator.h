@@ -11,13 +11,12 @@ class DelaunayGenerator : public IAlgorithm
 public:
 	DelaunayGenerator()
 		: m_target(nullptr)
+		, m_ccw(true)
 	{
 	}
 	~DelaunayGenerator() {};
 
 	ALGORITHM_TYPE GetType() { return ALGORITHM_DELAUNAY; }
-	void Execute() {};
-
 	struct UI
 	{
 		UI()
@@ -31,14 +30,16 @@ public:
 	};
 
 
-	Vector<unsigned int> Execute2D(const Vector<Vector3>& position, int iterate);
-	Vector<unsigned int> Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate);
-
+	Vector<unsigned int> Execute2D();
 	void ShowUI(RenderNode* pNode, UIContext& ui);
 	void Clear() { m_target = nullptr; m_inner.clear(); }
+	void SetTarget(const Vector<Vector3>* position, bool ccw) { m_target = position; m_ccw = ccw; }
 	void SetTarget(const Vector<Vector3>* position) { m_target = position; }
 	void AddInner(const Vector<Vector3>* inner) { m_inner.push_back(inner); }
 private:
+	Vector<unsigned int> Execute2D(const Vector<Vector3>& position, int iterate);
+	Vector<unsigned int> Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate);
+
 
 	struct Circumscribe
 	{
@@ -201,7 +202,7 @@ private:
 	bool InnerByCircle(const DelaunayGenerator::Circumscribe& circle, const Vector3& point);
 	Circumscribe CalcCircumscribedCircle(const Triangle& triangle);
 	Circumscribe CalcCircumscribedCircle(const IndexedTriangle& triangle);
-	Triangle CreateHugeTriangle2D(const Vector<Vector3>& position);
+	Triangle CreateHugeTriangle(const Vector<Vector3>& position);
 	void RemoveHugeTriangle();
 	
 	UI m_ui;
@@ -210,6 +211,7 @@ private:
 	std::unordered_set<IndexedEdge,IndexedEdge::Hash> m_ConstraintEdge;
 	Triangle m_HugeTriangle;
 	List<IndexedTriangle> m_Delaunay;
+	bool m_ccw;
 };
 
 class HalfEdgeNode;
