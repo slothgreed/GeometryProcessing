@@ -765,12 +765,10 @@ struct STEPEdgeLoop
 
 };
 
-struct STEPFaceOuterBound
+struct STEPFace
 {
-	STEPFaceOuterBound() :id(-1), idRef0(-1), orient(true) {};
-	~STEPFaceOuterBound() {};
-
-	static constexpr const char* EntityName = "FACE_OUTER_BOUND";
+	STEPFace() :id(-1), idRef0(-1), orient(true) {};
+	~STEPFace() {};
 
 	int id;
 	int idRef0;
@@ -793,71 +791,68 @@ struct STEPFaceOuterBound
 		}
 	};
 
-
-	static void Fetch(STEPStruct& step, const STEPString& stepStr)
+	static void Fetch(STEPStruct& step, const STEPString& stepStr, STEPFace* data)
 	{
-		auto data = new STEPFaceOuterBound();
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->idRef0)) { assert(0); return; }
 		if (!STEPString::ValueToBool(values[2], data->orient)) { assert(0); return; }
 		data->id = stepStr.id;
+	}
+
+	void ToData(const STEPStruct& step, STEPFace::Data* data)
+	{
+		FindSetData(step, step.edgeLoop, idRef0, data->edgeLoop);
+		data->orient = orient;
+	}
+};
+
+struct STEPFaceOuterBound : public STEPFace
+{
+	STEPFaceOuterBound() {};
+	~STEPFaceOuterBound() {};
+
+	static constexpr const char* EntityName = "FACE_OUTER_BOUND";
+
+	struct Data : public STEPFace::Data	{};
+
+
+	static void Fetch(STEPStruct& step, const STEPString& stepStr)
+	{
+		auto data = new STEPFaceOuterBound();
+		STEPFace::Fetch(step, stepStr, data);
 		step.faceOuterBound[data->id] = data;
 	}
 
 	STEPFaceOuterBound::Data ToData(const STEPStruct& step)
 	{
 		STEPFaceOuterBound::Data data;
-		FindSetData(step, step.edgeLoop, idRef0, data.edgeLoop);
-		data.orient = orient;
+		STEPFace::ToData(step, &data);
 		return data;
 	}
 };
 
-struct STEPFaceBound
+struct STEPFaceBound : public STEPFace
 {
-	STEPFaceBound() :id(-1), idRef0(-1), orient(true) {};
+	STEPFaceBound()  {};
 	~STEPFaceBound() {};
 
 	static constexpr const char* EntityName = "FACE_BOUND";
 
-	int id;
-	int idRef0;
-	bool orient;
-
-	struct Data
-	{
-		Data() :orient(false) {}
-		STEPEdgeLoop::Data edgeLoop;
-		bool orient;
-
-		void CreatePlane(STEPMesh& mesh) const
-		{
-			edgeLoop.CreatePlane(mesh, orient);
-		}
-
-		void CreateCylinder(STEPMesh& mesh, const STEPCylinderSurface::Data& cylinder) const
-		{
-			edgeLoop.CreateCylinder(mesh, orient, cylinder);
-		}
-	};
-
+	struct Data : public STEPFace::Data {};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPFaceBound();
-		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->idRef0)) { assert(0); return; }
-		if (!STEPString::ValueToBool(values[2], data->orient)) { assert(0); return; }
-		data->id = stepStr.id;
+		STEPFace::Fetch(step, stepStr, data);
 		step.faceBound[data->id] = data;
 	}
 
 	STEPFaceBound::Data ToData(const STEPStruct& step)
 	{
 		STEPFaceBound::Data data;
-		FindSetData(step, step.edgeLoop, idRef0, data.edgeLoop);
-		data.orient = orient;
+		STEPFace::ToData(step, &data);
 		return data;
+
 	}
 };
 
@@ -892,14 +887,25 @@ struct STEPAdvancedFace
 		bool orient;
 		GeomType type;
 
-		bool IsPlane() const
+		void CreateMesh(STEPMesh& mesh) const
 		{
-			return type == GeomType::Plane;
-		}
+			if (type == GeomType::Plane) {
+				for (const auto& face : faceBound) {
+					face.CreatePlane(mesh);
+				}
 
-		bool IsCylinder() const
-		{
-			return type == GeomType::Cylinder;
+				for (const auto& face : faceOuterBound) {
+					face.CreatePlane(mesh);
+				}
+			} else if (type == GeomType::Cylinder) {
+				for (const auto& face : faceBound) {
+					face.CreateCylinder(mesh, cylinder);
+				}
+
+				for (const auto& face : faceOuterBound) {
+					face.CreateCylinder(mesh, cylinder);
+				}
+			}
 		}
 	};
 
@@ -941,140 +947,102 @@ struct STEPAdvancedFace
 
 struct STEPShell
 {
-
-};
-struct STEPClosedShell : public STEPShell
-{
-	STEPClosedShell() :id(-1) {};
-	~STEPClosedShell() {};
-
-	static constexpr const char* EntityName = "CLOSED_SHELL";
-
+	STEPShell() :id(-1) {};
+	~STEPShell() {};
 	int id;
 	Vector<int> faceRef;
+
 
 	struct Data
 	{
 		Vector<STEPAdvancedFace::Data> advancedFace;
 	};
 
+	static void Fetch(STEPStruct& step, const STEPString& stepStr, STEPShell* pShell)
+	{
+		auto values = STEPString::SplitValue(stepStr.value);
+		values = STEPString::SplitValue(values[1]);
+		pShell->faceRef.resize(values.size());
+		for (int i = 0; i < values.size(); i++) {
+			if (!STEPString::ValueToRef(values[i], pShell->faceRef[i])) { assert(0); return; }
+		}
+		pShell->id = stepStr.id;
+	}
+
+	void ToData(const STEPStruct& step, STEPShell::Data* data)
+	{
+		data->advancedFace.resize(faceRef.size());
+		for (auto i = 0; i < faceRef.size(); i++) {
+			FindSetData(step, step.advancedFace, faceRef[i], data->advancedFace[i]);
+		}
+	}
+
+	void CreateMesh(const STEPShell::Data& data, STEPMesh& mesh)
+	{
+		for (const auto& advancedFace : data.advancedFace) {
+			advancedFace.CreateMesh(mesh);
+		}
+
+	}
+};
+struct STEPClosedShell : public STEPShell
+{
+	STEPClosedShell() {};
+	~STEPClosedShell() {};
+
+	static constexpr const char* EntityName = "CLOSED_SHELL";
+
+	struct Data : STEPShell::Data {};
+
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPClosedShell();
-		auto values = STEPString::SplitValue(stepStr.value);
-		values = STEPString::SplitValue(values[1]);
-		data->faceRef.resize(values.size());
-		for (int i = 0; i < values.size(); i++) {
-			if (!STEPString::ValueToRef(values[i], data->faceRef[i])) { assert(0); return; }
-		}
-		data->id = stepStr.id;
+		STEPShell::Fetch(step, stepStr, data);
 		step.closedShell[data->id] = data;
 	}
 
 	STEPClosedShell::Data ToData(const STEPStruct& step)
 	{
 		STEPClosedShell::Data data;
-
-		data.advancedFace.resize(faceRef.size());
-		for (auto i = 0; i < faceRef.size(); i++) {
-			FindSetData(step, step.advancedFace, faceRef[i], data.advancedFace[i]);
-		}
+		STEPShell::ToData(step, &data);
 		return data;
 	}
 
 	STEPMesh CreateMesh(const STEPStruct& step)
 	{
 		STEPMesh mesh;
-		auto data = ToData(step);
-		for (const auto& advancedFace : data.advancedFace) {
-			if (advancedFace.IsPlane()) {
-				for (const auto& face : advancedFace.faceBound) {
-					face.CreatePlane(mesh);
-				}
-
-				for (const auto& face : advancedFace.faceOuterBound) {
-					face.CreatePlane(mesh);
-				}
-			} else if (advancedFace.IsCylinder()) {
-				for (const auto& face : advancedFace.faceBound) {
-					face.CreateCylinder(mesh, advancedFace.cylinder);
-				}
-
-				for (const auto& face : advancedFace.faceOuterBound) {
-					face.CreateCylinder(mesh, advancedFace.cylinder);
-				}
-
-			}
-		}
-
+		STEPShell::CreateMesh(ToData(step), mesh);
 		return mesh;
 	}
 };
 
 struct STEPOpenShell : public STEPShell
 {
-	STEPOpenShell() :id(-1) {};
+	STEPOpenShell() {};
 	~STEPOpenShell() {};
 
-	static constexpr const char* EntityName = "CLOSED_SHELL";
+	static constexpr const char* EntityName = "OPEN_SHELL";
+	struct Data : STEPShell::Data {};
 
-	int id;
-	Vector<int> faceRef;
-
-	struct Data
-	{
-		Vector<STEPAdvancedFace::Data> advancedFace;
-	};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
-		auto data = new STEPClosedShell();
-		auto values = STEPString::SplitValue(stepStr.value);
-		values = STEPString::SplitValue(values[1]);
-		data->faceRef.resize(values.size());
-		for (int i = 0; i < values.size(); i++) {
-			if (!STEPString::ValueToRef(values[i], data->faceRef[i])) { assert(0); return; }
-		}
-		data->id = stepStr.id;
-		step.closedShell[data->id] = data;
+		auto data = new STEPOpenShell();
+		STEPShell::Fetch(step, stepStr, data);
+		step.openShell[data->id] = data;
 	}
 
-	STEPClosedShell::Data ToData(const STEPStruct& step)
+	STEPOpenShell::Data ToData(const STEPStruct& step)
 	{
-		STEPClosedShell::Data data;
-
-		data.advancedFace.resize(faceRef.size());
-		for (auto i = 0; i < faceRef.size(); i++) {
-			FindSetData(step, step.advancedFace, faceRef[i], data.advancedFace[i]);
-		}
+		STEPOpenShell::Data data;
+		STEPShell::ToData(step, &data);
 		return data;
 	}
 
 	STEPMesh CreateMesh(const STEPStruct& step)
 	{
 		STEPMesh mesh;
-		auto data = ToData(step);
-		for (const auto& advancedFace : data.advancedFace) {
-			if (advancedFace.IsPlane()) {
-				for (const auto& face : advancedFace.faceBound) {
-					face.CreatePlane(mesh);
-				}
-
-				for (const auto& face : advancedFace.faceOuterBound) {
-					face.CreatePlane(mesh);
-				}
-			} else if (advancedFace.IsCylinder()) {
-				for (const auto& face : advancedFace.faceBound) {
-					face.CreateCylinder(mesh, advancedFace.cylinder);
-				}
-
-				for (const auto& face : advancedFace.faceOuterBound) {
-					face.CreateCylinder(mesh, advancedFace.cylinder);
-				}
-
-			}
-		}
-
+		STEPShell::CreateMesh(ToData(step), mesh);
 		return mesh;
 	}
 };
@@ -1151,6 +1119,10 @@ RenderNode* STEPLoader::CreateRenderNode(const String& name, const STEPStruct& s
 		meshs.push_back(face.second->CreateMesh(step));
 	}
 
+	for (const auto& face : step.openShell) {
+		meshs.push_back(face.second->CreateMesh(step));
+	}
+
 	STEPRenderNode* pRenderNode = new STEPRenderNode(name);
 	pRenderNode->SetMesh(std::move(meshs));
 
@@ -1210,7 +1182,8 @@ RenderNode* STEPLoader::Load(const String& name, bool saveOriginal)
 		else if (StringUtility::Contains(stepStr.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); } 
+		else if (StringUtility::Contains(stepStr.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
+		else if (StringUtility::Contains(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
 		else if (StringUtility::Contains(stepStr.name, STEPCylinderSurface::EntityName)) { STEPCylinderSurface::Fetch(step, stepStr); }
 		else { NotDefineEntity(content); writeEntity = false; }
 
