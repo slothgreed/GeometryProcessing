@@ -25,12 +25,13 @@ public:
 	~DebugPrintf() {};
 
 	static void NewLine();
-	static void Bool(const String& name, bool value, bool newLine = true);
-	static void Vec3(const Vector3& value, bool newLine = true);
-	static void Vec3(const String& name, const Vector3& value, bool newLine = true);
-	static void Vec4(const String& name, const Vector4& value, bool newLine = true);
-	static void Mat4(const String& name, const Matrix4x4& value, bool newLine = true);
-	
+	static void Bool(const String& name, bool value);
+	static void Vec3(const Vector3& value);
+	static void Vec3(const String& name, const Vector3& value);
+	static void Vec4(const String& name, const Vector4& value);
+	static void Mat4(const String& name, const Matrix4x4& value);
+	static void StringStr(const String& name, const String& value);
+
 private:
 
 };

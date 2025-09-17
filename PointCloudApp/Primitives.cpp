@@ -255,6 +255,61 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 	m_primitiveType = GL_TRIANGLES;
 }
 
+Cylinder::Mesh Cylinder::CreateMeshs(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
+{
+	Cylinder::Mesh mesh;
+
+	// 軸から直交基底を構築
+	auto Z = glm::normalize(axis);
+	auto tmp = (fabs(Z.x) < 0.9f) ? Vector3(1, 0, 0) : Vector3(0, 1, 0);
+	auto X = glm::normalize(glm::cross(tmp, Z));
+	auto Y = glm::cross(Z, X);
+
+	// グリッド状に頂点を計算
+	Vector<Vector<Vector3>> grid(stacks + 1, Vector<Vector3>(slices + 1));
+	for (int j = 0; j <= stacks; ++j) {
+		float v = (float)j / stacks;
+		float h = v * height;
+
+		for (int i = 0; i <= slices; ++i) {
+			float u = (float)i / slices * glm::two_pi<float>();
+			auto pos = baseCenter + radius * (cos(u) * X + sin(u) * Y) + h * Z;
+			grid[j][i] = pos;
+		}
+	}
+
+	// 三角形とワイヤーを生成
+	for (int j = 0; j < stacks; ++j) {
+		for (int i = 0; i < slices; ++i) {
+			auto p0 = grid[j][i];
+			auto p1 = grid[j][i + 1];
+			auto p2 = grid[j + 1][i];
+			auto p3 = grid[j + 1][i + 1];
+
+			// 三角形1
+			mesh.triangles.push_back(p0);
+			mesh.triangles.push_back(p2);
+			mesh.triangles.push_back(p1);
+
+			// 三角形2
+			mesh.triangles.push_back(p1);
+			mesh.triangles.push_back(p2);
+			mesh.triangles.push_back(p3);
+
+			//// ワイヤー: 周方向（下）
+			//mesh.edges.push_back(p0);
+			//mesh.edges.push_back(p1);
+
+			//// ワイヤー: 周方向（上）
+			//mesh.edges.push_back(p2);
+			//mesh.edges.push_back(p3);
+
+		}
+	}
+
+	return mesh;
+}
+
 
 Sphere::Sphere(float _radius, int _slices, int _stacks) :
 	radius(_radius), slices(_slices), stacks(_stacks)
@@ -426,6 +481,19 @@ Circle::~Circle()
 {
 }
 
+Vector<Vector3> Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center)
+{
+	Vector<Vector3> points;
+	for (int i = 0; i < pointNum; i++) {
+		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
+		auto angle1 = ((i + 1) / (float)pointNum) * 3.14159f * 2.0f;
+		points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
+		points.push_back(center + radius * (cosf(angle1) * u + sinf(angle1) * v));
+	}
+
+	return points;
+
+}
 void Circle::Build(float radius, int pointNum, const Vector3& center)
 {
 	for (int i = 0; i < pointNum; i++) {

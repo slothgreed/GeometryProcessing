@@ -125,20 +125,20 @@ void PointCloudApp::Execute()
 	BDB bdb;
 	// Default Scene Demo.
 	//{
-	//	m_pRoot->AddNode(CreateSpaceTest());
-	//	m_pRoot->AddNode(CreateCSFNodeTest());
-	//	m_pRoot->AddNode(CreateGLTFAnimationTest());
-	//	m_pRoot->AddNode(CreateGLTFNodeTest());
-	//	m_pRoot->AddNode(CreateBunnyNodeTest());
-	//  m_pRoot->AddNode(CreateVolumeTest());
-	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+		//m_pRoot->AddNode(CreateSpaceTest());
+		//m_pRoot->AddNode(CreateCSFNodeTest());
+		//m_pRoot->AddNode(CreateGLTFAnimationTest());
+		//m_pRoot->AddNode(CreateGLTFNodeTest());
+		//m_pRoot->AddNode(CreateBunnyNodeTest());
+		//m_pRoot->AddNode(CreateVolumeTest());
+		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	//}
 	
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
 	{
-		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 		//m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
 		m_pRoot->AddNode(CreateSTEPNodeTest());
@@ -179,7 +179,7 @@ void PointCloudApp::Execute()
 	// Test
 	{
 		//m_pRoot->AddNode(CreateDelaunayTest());
-		m_pRoot->AddNode(CreateConstrainDelaunayTest());
+		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
 	}
 	
@@ -544,8 +544,11 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest()
 {
 	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\123Block_Color.stp"));
-	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cube.stp"));
-	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\angle1.stp"));
+	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cubsomcy.stp"));
+	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cubcylso.stp"));
+	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\angle1.stp"));
+	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\mycylinder.stp"));
+	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\fusion360\\Torus2D.step"));
 	pNode->SetScale(100);
 	return pNode;
 }

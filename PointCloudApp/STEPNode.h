@@ -4,14 +4,16 @@
 #include "Polyline.h"
 namespace KI
 {
+struct STEPStruct;
 class STEPLoader
 {
 public:
 	STEPLoader() {};
 	~STEPLoader() {};
 
-	static RenderNode* Load(const String& name);
+	static RenderNode* Load(const String& name, bool saveOriginal = false);
 private:
+	static RenderNode* CreateRenderNode(const String& name, const STEPStruct& step);
 
 };
 

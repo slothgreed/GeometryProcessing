@@ -5,51 +5,44 @@ namespace KI
 {
 Vector<Vector3> g_RGB;
 
-void DebugPrintf::Bool(const String& name, bool value, bool newLine)
+void DebugPrintf::Bool(const String& name, bool value)
 {
 	std::cout << name << ":" << (value ? "True" : "False");
-	if (newLine) { std::cout << "\n"; }
 }
-void DebugPrintf::Vec3(const Vector3& value, bool newLine)
+void DebugPrintf::Vec3(const Vector3& value)
 {
 	std::cout << value.x << "," << value.y << "," << value.z;
-	if (newLine) { std::cout << "\n"; }
 }
 void DebugPrintf::NewLine()
 {
 	std::cout << "\n";
 }
-void DebugPrintf::Vec3(const String& name, const Vector3& value, bool newLine)
+void DebugPrintf::Vec3(const String& name, const Vector3& value)
 {
 	std::cout << name.data() << ":";
-	DebugPrintf::Vec3(value, newLine);
-	/*
-	if (newLine) {
-		printf((name + ":%lf,%lf,%lf\n").data(), value.x, value.y, value.z);
-	} else {
-		printf((name + ":%lf,%lf,%lf").data(), value.x, value.y, value.z);
-	}
-	*/
 }
 
-void DebugPrintf::Vec4(const String& name, const Vector4& value, bool newLine)
+void DebugPrintf::Vec4(const String& name, const Vector4& value)
 {
-	if (newLine) {
-		printf((name + ":%lf,%lf,%lf,%lf\n").data(), value.x, value.y, value.z, value.w);
-	} else {
-		printf((name + ":%lf,%lf,%lf,%lf").data(), value.x, value.y, value.z, value.w);
-	}
+	printf((name + ":%lf,%lf,%lf,%lf").data(), value.x, value.y, value.z, value.w);
 }
 
-void DebugPrintf::Mat4(const String& name, const Matrix4x4& mat, bool newLine)
+void DebugPrintf::Mat4(const String& name, const Matrix4x4& mat)
 {
 	printf(
-		"%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n",
+		"%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf",
 		mat[0][0], mat[0][1], mat[0][2], mat[0][3],
 		mat[1][0], mat[1][1], mat[1][2], mat[1][3],
 		mat[2][0], mat[2][1], mat[2][2], mat[2][3],
 		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
 }
+
+void DebugPrintf::StringStr(const String& name, const String& str)
+{
+	std::cout << name << ":" << str;
+
+}
+
 
 Vector3 Random::Vec3(float min, float max)
 {

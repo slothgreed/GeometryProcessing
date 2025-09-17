@@ -57,6 +57,14 @@ public:
 	Cylinder(float _baseRad, float _topRad, float _height, int _slices);
 	~Cylinder() {};
 
+	struct Mesh
+	{
+		Vector<Vector3> triangles;
+		Vector<Vector3> edges;
+	};
+
+	static Mesh CreateMeshs(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
+
 private:
 	float baseRad;
 	float topRad;
@@ -121,6 +129,7 @@ public:
 
 	~Circle();
 
+	static Vector<Vector3> CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
 private:
 	void Build(float radius, int pointNum, const Vector3& center);
 };

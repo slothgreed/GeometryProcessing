@@ -5,17 +5,39 @@ namespace KI
 
 Polyline::Polyline(Vector<Vector3>&& points)
 	:m_points(std::move(points)) 
+    ,m_hint(Hint::None)
 {
     if (!IsPlane()) {
         assert(0);
     }
 }
 
+void Polyline::Add(Vector<Vector3>&& point)
+{
+    m_points.insert(m_points.end(), point.begin(), point.end()); 
+    m_hint = Hint::Arbitrary;
+}
+void Polyline::AddCircle(Vector<Vector3>&& circle)
+{
+    m_points.insert(m_points.end(), circle.begin(), circle.end());
+    if (m_hint == Hint::None) {
+        m_hint = Hint::Circle;
+    }
+}
+
+Vector3 Polyline::GetCenter() const
+{
+    Vector3 center = Vector3(0);
+    for (const auto& p : m_points) {
+        center += p;
+    }
+
+    return center /= m_points.size();
+}
 Vector<unsigned int> Polyline::CreateTriangles() const
 {
-	DelaunayGenerator delaunay;
-
     auto normal = GetNormal();
+    DelaunayGenerator delaunay;
     if (IsNormalZPlus()) {
         delaunay.SetTarget(&m_points);
         return delaunay.Execute2D();
@@ -28,14 +50,39 @@ Vector<unsigned int> Polyline::CreateTriangles() const
         return delaunay.Execute2D();
     }
 }
-Vector<Vector3> Polyline::CreateTrianglePoints() const
+Vector<Vector3> Polyline::CreateTrianglePoints(bool ccw) const
 {
-	Vector<Vector3> points;
-	auto indexs = CreateTriangles();
-	points.resize(indexs.size());
-	for (size_t i = 0; i < indexs.size(); i++) {
-		points[i] = m_points[indexs[i]];
-	}
+    Vector<Vector3> points;
+    if (m_hint == Hint::Circle) {
+        auto center = GetCenter();
+        for (size_t i = 0; i < m_points.size() - 1; i++) {
+            points.push_back(m_points[i]);
+            if (ccw) {
+                points.push_back(m_points[i + 1]);
+                points.push_back(center);
+            } else {
+                points.push_back(center);
+                points.push_back(m_points[i + 1]);
+            }
+        }
+
+        points.push_back(m_points[m_points.size() - 1]);
+        if (ccw) {
+            points.push_back(m_points[0]);
+            points.push_back(center);
+        } else {
+            points.push_back(center);
+            points.push_back(m_points[0]);
+        }
+        return points;
+    } else {
+        auto indexs = CreateTriangles();
+        points.resize(indexs.size());
+        for (size_t i = 0; i < indexs.size(); i++) {
+            points[i] = m_points[indexs[i]];
+        }
+    }
+
 
 	return points;
 }
