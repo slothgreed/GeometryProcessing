@@ -23,7 +23,16 @@ public:
 	static bool InPolyline(const Vector<Vector3>& polyline, const Vector3& point, bool isLoop);
 	static void CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right);
 	static bool IsLoop(const Vector<Vector3>& polyline);
-	
+	static bool IsSame(float v1, float v2);
+	static bool IsSame(const Vector3& v1, const Vector3& v2);
+	static bool IsZero(float v1);
+	static bool IsOne(float v1);
+	static bool IsZPlus(const Vector3& value);
+	static bool IsZMinus(const Vector3& value);
+	static bool IsZ(const Vector3& value);
+	static Vector<Vector3> To2D(const Vector<Vector3>& point);
+	static Vector<Vector3> Rotate(const Vector<Vector3>& point, const Matrix4x4& matrix);
+	static Matrix4x4 CreateZAxisMatrix(const Vector3& normal);
 private:
 
 };

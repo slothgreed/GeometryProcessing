@@ -120,7 +120,84 @@ Matrix4x4 MathHelper::CreateRotateMatrix(const Vector3& source, const Vector3& t
 
 }
 
+bool MathHelper::IsSame(float v1, float v2)
+{
+	return fabs(v1 - v2) < 1e-6f;
+}
 
+bool MathHelper::IsSame(const Vector3& v1, const Vector3& v2)
+{
+	return
+		IsSame(v1.x, v2.x) &&
+		IsSame(v1.y, v2.y) &&
+		IsSame(v1.z, v2.z);
+}
+
+bool MathHelper::IsZero(float v1)
+{
+	return fabs(v1) < 1e-6f;
+}
+
+bool MathHelper::IsOne(float v1)
+{
+	return IsSame(v1, 1.0f);
+}
+
+bool MathHelper::IsZPlus(const Vector3& value)
+{
+	// 平面の法線
+	// Z軸へ揃える回転
+	float dotVal = glm::clamp(glm::dot(value, Vector3(0, 0, 1)), -1.0f, 1.0f);
+	if (fabs(dotVal - 1.0f) < 1e-6f) { return true; }
+	return false;
+}
+bool MathHelper::IsZMinus(const Vector3& value)
+{
+	float dotVal = -glm::clamp(glm::dot(value, Vector3(0, 0, 1)), -1.0f, 1.0f);
+	if (fabs(dotVal - 1.0f) < 1e-6f) { return true; }
+	return false;
+}
+bool MathHelper::IsZ(const Vector3& value)
+{
+	float dotVal = glm::clamp(glm::dot(value, Vector3(0, 0, 1)), -1.0f, 1.0f);
+	return IsOne(fabs(dotVal));
+}
+
+Vector<Vector3> MathHelper::Rotate(const Vector<Vector3>& point, const Matrix4x4& matrix)
+{
+	if (matrix == Matrix4x4(1.0f)) { return point; }
+
+	Vector<Vector3> retPoints;
+	for (auto& p : point) {
+		glm::vec4 v = matrix * glm::vec4(p, 1.0f);
+		retPoints.push_back(glm::vec3(v));
+	}
+
+	return retPoints;
+}
+Vector<Vector3> MathHelper::To2D(const Vector<Vector3>& point)
+{
+	auto normal = MathHelper::CalcNormal(point[0], point[1], point[2]);
+	auto R = CreateZAxisMatrix(normal);
+	return Rotate(point, R);
+}
+
+Matrix4x4 MathHelper::CreateZAxisMatrix(const Vector3& normal)
+{
+	// 平面の法線
+	// Z軸へ揃える回転
+	glm::vec3 target(0, 0, 1);
+	float dotVal = glm::clamp(glm::dot(normal, target), -1.0f, 1.0f);
+
+	// 法線がすでにZ軸と平行ならスキップ
+	if (fabs(abs(dotVal) - 1.0f) < 1e-6f) { return Matrix4x4(1.0f); }
+
+	glm::vec3 axis = glm::normalize(glm::cross(normal, target));
+	float angle = acos(dotVal);
+
+	return glm::rotate(glm::mat4(1.0f), angle, axis);
+
+}
 Intersect::Result Intersect::PointToBox(const glm::vec3& P, const BDB& bdb, bool innerDist)
 {
 	// AABB 内部にいる場合は、表面までの最短距離を計算

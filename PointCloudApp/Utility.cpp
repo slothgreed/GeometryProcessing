@@ -43,6 +43,20 @@ void DebugPrintf::StringStr(const String& name, const String& str)
 
 }
 
+void DebugPrintf::Vec3Array(const String& name, const Vector<Vector3>& data)
+{
+	std::cout << "std::vector<glm::vec3> " << name << " = {\n";
+	for (size_t i = 0; i < data.size(); i++) {
+		std::cout << "    glm::vec3("
+			<< data[i].x << "f, "
+			<< data[i].y << "f, "
+			<< data[i].z << "f)";
+		if (i + 1 != data.size()) std::cout << ",";
+		std::cout << "\n";
+	}
+	std::cout << "};\n";
+}
+
 
 Vector3 Random::Vec3(float min, float max)
 {

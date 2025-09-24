@@ -1,5 +1,7 @@
 #include "Polyline.h"
+#include "KIMath.h"
 #include "DelaunayGenerator.h"
+#include "Utility.h"
 namespace KI
 {
 
@@ -14,17 +16,36 @@ Polyline::Polyline(Vector<Vector3>&& points)
 
 void Polyline::Add(Vector<Vector3>&& point)
 {
-    m_points.insert(m_points.end(), point.begin(), point.end()); 
+    STLUtil::Insert(m_points, point);
+    m_points = CreateUnique();
     m_hint = Hint::Arbitrary;
 }
-void Polyline::AddCircle(Vector<Vector3>&& circle)
+
+void Polyline::Add(Polyline&& polyline)
 {
-    m_points.insert(m_points.end(), circle.begin(), circle.end());
+    STLUtil::Insert(m_points, polyline.m_points);
+    m_points = CreateUnique();
+    m_hint = Hint::Arbitrary;
+}
+void Polyline::AddCircle(Polyline&& circle)
+{
+    STLUtil::Insert(m_points, circle.m_points);
     if (m_hint == Hint::None) {
         m_hint = Hint::Circle;
     }
 }
 
+Vector<Vector3> Polyline::CreateUnique() const
+{
+    Vector<Vector3> uniquePoints;
+    uniquePoints.push_back(m_points[0]);
+    for (int i = 0; i < m_points.size(); i++) {
+        if (!MathHelper::IsSame(m_points[i],uniquePoints[uniquePoints.size() - 1])) {
+            uniquePoints.push_back(m_points[i]);
+        }
+    }
+    return uniquePoints;
+}
 Vector3 Polyline::GetCenter() const
 {
     Vector3 center = Vector3(0);
@@ -38,17 +59,30 @@ Vector<unsigned int> Polyline::CreateTriangles() const
 {
     auto normal = GetNormal();
     DelaunayGenerator delaunay;
-    if (IsNormalZPlus()) {
+    if (MathHelper::IsZ(normal)) {
         delaunay.SetTarget(&m_points);
         return delaunay.Execute2D();
-    } else if (IsNormalZMinus()) {
-        delaunay.SetTarget(&m_points, false);
-        return delaunay.Execute2D();
     } else {
-        auto points = Rotate2D();
+        auto points = MathHelper::To2D(m_points);
         delaunay.SetTarget(&points);
         return delaunay.Execute2D();
     }
+}
+
+Vector<Vector3> Polyline::CraeteDelaunay(const Polyline& target, const Polyline& inner)
+{
+    DelaunayGenerator delaunay;
+    delaunay.SetTarget(&target.Get());
+    
+    if (inner.Get().size() != 0) {
+        auto targetNormal = target.GetNormal();
+        auto innerNormal = inner.GetNormal();
+        if (!MathHelper::IsOne(fabs(glm::dot(targetNormal, innerNormal)))) {
+            return Vector<Vector3>();
+        }
+        delaunay.AddInner(&inner.Get());
+    }
+    return delaunay.Execute2DTriangles();
 }
 Vector<Vector3> Polyline::CreateTrianglePoints(bool ccw) const
 {
@@ -89,6 +123,7 @@ Vector<Vector3> Polyline::CreateTrianglePoints(bool ccw) const
 
 Vector<Vector3> Polyline::CreateLinePoints() const
 {
+    if (m_points.size() == 0) { return Vector<Vector3>(); }
 	Vector<Vector3> points;
 	for (size_t i = 0; i < m_points.size() - 1; i++) {
 		points.push_back(m_points[i]);
@@ -108,20 +143,6 @@ Vector3 Polyline::GetNormal() const
 
 }
 
-bool Polyline::IsNormalZPlus() const
-{
-    // 平面の法線
-    // Z軸へ揃える回転
-    float dotVal = glm::clamp(glm::dot(GetNormal(), Vector3(0, 0, 1)), -1.0f, 1.0f);
-    if (fabs(dotVal - 1.0f) < 1e-6f) { return true; }
-    return false;
-}
-bool Polyline::IsNormalZMinus() const
-{
-    float dotVal = -glm::clamp(glm::dot(GetNormal(), Vector3(0, 0, 1)), -1.0f, 1.0f);
-    if (fabs(dotVal - 1.0f) < 1e-6f) { return true; }
-    return false;
-}
 bool Polyline::IsPlane() const
 {
     auto normal = GetNormal();
@@ -134,29 +155,5 @@ bool Polyline::IsPlane() const
 
     return true;
 }
-Vector<Vector3> Polyline::Rotate2D() const
-{
-    Vector<Vector3> points;
-    auto normal = GetNormal();
 
-    // 平面の法線
-    // Z軸へ揃える回転
-    glm::vec3 target(0, 0, 1);
-    float dotVal = glm::clamp(glm::dot(normal, target), -1.0f, 1.0f);
-
-    // 法線がすでにZ軸と平行ならスキップ
-    if (fabs(abs(dotVal) - 1.0f) < 1e-6f) { return m_points; }
-
-    glm::vec3 axis = glm::normalize(glm::cross(normal, target));
-    float angle = acos(dotVal);
-
-    glm::mat4 R = glm::rotate(glm::mat4(1.0f), angle, axis);
-
-    for (auto& p : m_points) {
-        glm::vec4 v = R * glm::vec4(p, 1.0f);
-        points.push_back(glm::vec3(v));
-    }
-
-    return points;
-}
 }

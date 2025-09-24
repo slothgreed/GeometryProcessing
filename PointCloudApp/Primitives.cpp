@@ -258,7 +258,8 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 Cylinder::Mesh Cylinder::CreateMeshs(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
 {
 	Cylinder::Mesh mesh;
-
+	Polyline top;
+	Polyline bottom;
 	// 軸から直交基底を構築
 	auto Z = glm::normalize(axis);
 	auto tmp = (fabs(Z.x) < 0.9f) ? Vector3(1, 0, 0) : Vector3(0, 1, 0);
@@ -296,16 +297,18 @@ Cylinder::Mesh Cylinder::CreateMeshs(const Vector3& baseCenter, const Vector3& a
 			mesh.triangles.push_back(p2);
 			mesh.triangles.push_back(p3);
 
-			//// ワイヤー: 周方向（下）
-			//mesh.edges.push_back(p0);
-			//mesh.edges.push_back(p1);
-
-			//// ワイヤー: 周方向（上）
-			//mesh.edges.push_back(p2);
-			//mesh.edges.push_back(p3);
-
+			if (j == 0) {
+				// ワイヤー: 周方向（下）
+				top.Add(p0);
+			} else if (j == stacks - 1) {
+				// ワイヤー: 周方向（上）
+				bottom.Add(p2);
+			}
 		}
 	}
+
+	mesh.polyline.Add(std::move(top));
+	mesh.polyline.Add(std::move(bottom));
 
 	return mesh;
 }
@@ -481,18 +484,46 @@ Circle::~Circle()
 {
 }
 
-Vector<Vector3> Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center)
+Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center)
 {
 	Vector<Vector3> points;
 	for (int i = 0; i < pointNum; i++) {
 		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
-		auto angle1 = ((i + 1) / (float)pointNum) * 3.14159f * 2.0f;
 		points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
-		points.push_back(center + radius * (cosf(angle1) * u + sinf(angle1) * v));
 	}
 
-	return points;
+	return Polyline(std::move(points));
+}
 
+Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end)
+{
+	Vector<Vector3> points;
+
+	// begin, end の角度を求める
+	auto toAngle = [&](const Vector3& p)
+	{
+		Vector3 d = p - center;
+		float x = glm::dot(d, u) / radius;
+		float y = glm::dot(d, v) / radius;
+		return std::atan2(y, x);
+	};
+
+	float beginAngle = toAngle(begin);
+	float endAngle = toAngle(end);
+
+	float delta = endAngle - beginAngle;
+	if (delta > 3.14159f) { assert(0); delta -= 2.0f * 3.14159f; }
+	if (delta < -3.14159f) { assert(0); delta += 2.0f * 3.14159f; }
+
+	// 円弧を分割して点を生成
+	for (int i = 0; i <= pointNum; i++) {
+		float t = i / (float)pointNum;
+		float angle = beginAngle + t * delta;
+		Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
+		points.push_back(p);
+	}
+
+	return Polyline(std::move(points));
 }
 void Circle::Build(float radius, int pointNum, const Vector3& center)
 {

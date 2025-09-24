@@ -13,7 +13,6 @@ public:
 	static Vector2 Vec2(const Vector2& min, const Vector2& max);
 	static Vector3 Vec3(float min, float max);
 	static Vector3 Vec3(const Vector3& min, const Vector3& max);
-
 private:
 
 };
@@ -27,6 +26,7 @@ public:
 	static void NewLine();
 	static void Bool(const String& name, bool value);
 	static void Vec3(const Vector3& value);
+	static void Vec3Array(const String& name, const Vector<Vector3>& data);
 	static void Vec3(const String& name, const Vector3& value);
 	static void Vec4(const String& name, const Vector4& value);
 	static void Mat4(const String& name, const Matrix4x4& value);
@@ -118,6 +118,16 @@ public:
 	static int GetFormatSize(int value);
 private:
 
+};
+
+class STLUtil
+{
+public:
+	template<class T>
+	static void Insert(Vector<T>& a, const Vector<T>& b)
+	{
+		a.insert(a.end(), b.begin(), b.end());
+	}
 };
 
 

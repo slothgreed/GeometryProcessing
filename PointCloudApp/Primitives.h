@@ -1,6 +1,7 @@
 #ifndef PRIMITIVE_H
 #define PRIMITIVE_H
 #include "Primitive.h"
+#include "Polyline.h"
 namespace KI
 {
 class Cube : public Primitive
@@ -60,7 +61,7 @@ public:
 	struct Mesh
 	{
 		Vector<Vector3> triangles;
-		Vector<Vector3> edges;
+		Polyline polyline;
 	};
 
 	static Mesh CreateMeshs(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
@@ -129,7 +130,9 @@ public:
 
 	~Circle();
 
-	static Vector<Vector3> CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
+	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
+	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end);
+
 private:
 	void Build(float radius, int pointNum, const Vector3& center);
 };

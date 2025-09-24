@@ -11,7 +11,6 @@ class DelaunayGenerator : public IAlgorithm
 public:
 	DelaunayGenerator()
 		: m_target(nullptr)
-		, m_ccw(true)
 	{
 	}
 	~DelaunayGenerator() {};
@@ -31,11 +30,13 @@ public:
 
 
 	Vector<unsigned int> Execute2D();
+	Vector<Vector3> Execute2DTriangles();
 	void ShowUI(RenderNode* pNode, UIContext& ui);
 	void Clear() { m_target = nullptr; m_inner.clear(); }
-	void SetTarget(const Vector<Vector3>* position, bool ccw) { m_target = position; m_ccw = ccw; }
 	void SetTarget(const Vector<Vector3>* position) { m_target = position; }
 	void AddInner(const Vector<Vector3>* inner) { m_inner.push_back(inner); }
+	Vector<unsigned int> GetResult() const;
+	void OutputTargetInner();
 private:
 	Vector<unsigned int> Execute2D(const Vector<Vector3>& position, int iterate);
 	Vector<unsigned int> Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate);
@@ -147,9 +148,9 @@ private:
 
 		static IndexedTriangle Create(int p0, int p1, int p2, const Vector<IndexedEdge>& constraints);
 
-		Triangle Convert(DelaunayGenerator* pGen) const;
-		Vector3 GetGravity(DelaunayGenerator* pGen) const;
-		Vector3 Convert(int index, DelaunayGenerator* pGen) const;
+		Triangle Convert(const DelaunayGenerator* pGen) const;
+		Vector3 GetGravity(const DelaunayGenerator* pGen) const;
+		Vector3 Convert(int index, const DelaunayGenerator* pGen) const;
 
 		bool IsSame(const IndexedTriangle& tri) const
 		{
@@ -211,7 +212,6 @@ private:
 	std::unordered_set<IndexedEdge,IndexedEdge::Hash> m_ConstraintEdge;
 	Triangle m_HugeTriangle;
 	List<IndexedTriangle> m_Delaunay;
-	bool m_ccw;
 };
 
 class HalfEdgeNode;

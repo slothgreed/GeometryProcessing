@@ -10,7 +10,77 @@ namespace KI
 Vector<unsigned int> DelaunayGenerator::Execute2D()
 {
 	if (m_target == nullptr) { return Vector<unsigned int>(); }
-	return Execute2D(*m_target, m_target->size());
+	if (m_target->size() < 3) { return Vector<unsigned int>(); }
+	if (MathHelper::IsZ(MathHelper::CalcNormal(m_target->at(0), m_target->at(1), m_target->at(2)))) {
+		return Execute2D(*m_target, m_inner, -1);
+	} else {
+		auto normal = MathHelper::CalcNormal(m_target->at(0), m_target->at(1), m_target->at(2));
+		auto matrix = MathHelper::CreateZAxisMatrix(normal);
+		auto target2D = MathHelper::Rotate(*m_target, matrix);
+		Vector<Vector<Vector3>> inner2Ds;
+		for (int i = 0; i < m_inner.size(); i++) {
+			inner2Ds.push_back(MathHelper::Rotate(*m_inner[i], matrix));
+		}
+
+		DelaunayGenerator delaunay2D;
+		delaunay2D.SetTarget(&target2D);
+		for (int i = 0; i < m_inner.size(); i++) {
+			delaunay2D.AddInner(&inner2Ds[i]);
+		}
+		delaunay2D.Execute2D();
+		m_Delaunay = delaunay2D.m_Delaunay;
+		return Vector<unsigned int>();
+	}
+}
+Vector<unsigned int> DelaunayGenerator::GetResult() const
+{
+	Vector<unsigned int> indexs;
+	auto targetNormal = MathHelper::CalcNormal(m_target->at(0), m_target->at(1), m_target->at(2));
+	for (const auto& delaunay : m_Delaunay) {
+		auto tri = delaunay.Convert(this);
+		auto inner = glm::dot(targetNormal, MathHelper::CalcNormal(tri.pos0, tri.pos1, tri.pos2));
+		if (MathHelper::IsOne(inner)) {
+			indexs.push_back(delaunay.pos0);
+			indexs.push_back(delaunay.pos1);
+			indexs.push_back(delaunay.pos2);
+		} else {
+			indexs.push_back(delaunay.pos0);
+			indexs.push_back(delaunay.pos2);
+			indexs.push_back(delaunay.pos1);
+		}
+	}
+	return indexs;
+}
+Vector<Vector3> DelaunayGenerator::Execute2DTriangles()
+{
+	if (m_target == nullptr) { return Vector<Vector3>(); }
+	Execute2D();
+	Vector<Vector3> triangles;
+	auto targetNormal = MathHelper::CalcNormal(m_target->at(0), m_target->at(1), m_target->at(2));
+	for (const auto& delaunay : m_Delaunay) {
+		auto tri = delaunay.Convert(this);
+		auto inner = glm::dot(targetNormal, MathHelper::CalcNormal(tri.pos0, tri.pos1, tri.pos2));
+		if (MathHelper::IsOne(inner)) {
+			triangles.push_back(tri.pos0);
+			triangles.push_back(tri.pos1);
+			triangles.push_back(tri.pos2);
+		} else {
+			triangles.push_back(tri.pos0);
+			triangles.push_back(tri.pos2);
+			triangles.push_back(tri.pos1);
+		}
+	}
+
+	return triangles;
+
+}
+
+void DelaunayGenerator::OutputTargetInner()
+{
+	DebugPrintf::Vec3Array("Target", *m_target);
+	for (int i = 0; i < m_inner.size(); i++) {
+		DebugPrintf::Vec3Array("Inner", *m_inner[i]);
+	}
 }
 Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& position, int iterate)
 {
@@ -28,25 +98,14 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& positio
 	RemoveHugeTriangle();
 	// position外にある三角形を削除する。
 	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
-		if (!MathHelper::InPolyline(position, it->GetGravity(this),true)) {
+		if (!MathHelper::InPolyline(position, it->GetGravity(this), true)) {
 			it = m_Delaunay.erase(it);
 		} else {
 			++it;
 		}
 	}
 
-	Vector<unsigned int> indexs;
-	for (const auto& delaunay : m_Delaunay) {
-		indexs.push_back(delaunay.pos0);
-		if (m_ccw) {
-			indexs.push_back(delaunay.pos1);
-			indexs.push_back(delaunay.pos2);
-		} else {
-			indexs.push_back(delaunay.pos2);
-			indexs.push_back(delaunay.pos1);
-		}
-	}
-	return indexs;
+	return GetResult();
 }
 
 DelaunayGenerator::IndexedTriangle DelaunayGenerator::IndexedTriangle::Create(int p0, int p1, int p2, const Vector<IndexedEdge>& constraints)
@@ -74,13 +133,14 @@ DelaunayGenerator::IndexedTriangle DelaunayGenerator::IndexedTriangle::Create(in
 Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
 {
 	Vector<Vector3> merge = polyline;
+	
 	for (size_t i = 0; i < inPolyline.size(); i++) {
 		for (size_t j = 0; j < inPolyline[i]->size(); j++) {
 			merge.push_back(inPolyline[i]->at(j));
 		}
 	}
 
-
+	if (iterate == -1) { iterate = merge.size(); }
 	m_HugeTriangle = CreateHugeTriangle(merge);
 	m_Delaunay.clear();
 	m_Delaunay.push_back(IndexedTriangle(0, HUGE_POS0, HUGE_POS1));
@@ -141,7 +201,8 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polylin
 			}
 		}
 	}
-	return Vector<unsigned int>();
+
+	return GetResult();
 }
 
 bool DelaunayGenerator::InnerByCircle(const DelaunayGenerator::Circumscribe& circle, const Vector3& point)
@@ -299,7 +360,7 @@ DelaunayGenerator::Circumscribe DelaunayGenerator::CalcCircumscribedCircle(const
 
 }
 
-Vector3 DelaunayGenerator::IndexedTriangle::Convert(int index, DelaunayGenerator* pGen) const
+Vector3 DelaunayGenerator::IndexedTriangle::Convert(int index, const DelaunayGenerator* pGen) const
 {
 	if (index == HUGE_POS0) { return pGen->m_HugeTriangle.pos0; }
 	if (index == HUGE_POS1) { return pGen->m_HugeTriangle.pos1; }
@@ -320,7 +381,7 @@ Vector3 DelaunayGenerator::IndexedTriangle::Convert(int index, DelaunayGenerator
 	return Vector3();
 }
 
-DelaunayGenerator::Triangle DelaunayGenerator::IndexedTriangle::Convert(DelaunayGenerator* pGen) const
+DelaunayGenerator::Triangle DelaunayGenerator::IndexedTriangle::Convert(const DelaunayGenerator* pGen) const
 {
 	Triangle tri;
 	tri.pos0 = Convert(pos0, pGen);
@@ -330,7 +391,7 @@ DelaunayGenerator::Triangle DelaunayGenerator::IndexedTriangle::Convert(Delaunay
 	return tri;
 }
 
-Vector3 DelaunayGenerator::IndexedTriangle::GetGravity(DelaunayGenerator* pGen) const
+Vector3 DelaunayGenerator::IndexedTriangle::GetGravity(const DelaunayGenerator* pGen) const
 {
 	Triangle tri = Convert(pGen);
 	return (tri.pos0 + tri.pos1 + tri.pos2) / 3.0f;

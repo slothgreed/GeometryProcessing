@@ -3,6 +3,7 @@
 #include "RenderNode.h"
 #include "SimpleShader.h"
 #include "Polyline.h"
+#include "KIMath.h"
 #include "Utility.h"
 #include "Primitives.h"
 #include <functional>
@@ -16,7 +17,7 @@ enum STEPEnum
 	DOLL = -1,
 	ASTERISK = -2,
 };
-
+const int CIRCLE_SUBDIVISION_NUM = 36;
 struct STEPLine;
 struct STEPPlane;
 struct STEPVector;
@@ -378,17 +379,16 @@ struct STEPCircle
 		STEPAxis2Placement3D::Data axis;
 		float rad;
 
-		Vector<Vector3> GetCircleEdge() const
+		Polyline CreatePolyline() const
 		{
-			const int CIRCLE_POINT_NUM = 36;
 			auto v = glm::cross(axis.dir1, axis.dir2);
-			return Circle::CreateLine(rad, CIRCLE_POINT_NUM, axis.dir2, v, axis.point);
+			return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM, axis.dir2, v, axis.point);
 		}
 
-		void CreateEdges(STEPMesh& mesh) const
+		Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const
 		{
-			auto lines = GetCircleEdge();
-			mesh.edges.insert(mesh.edges.begin(), lines.begin(), lines.end());
+			auto v = glm::cross(axis.dir1, axis.dir2);
+			return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM, axis.dir2, v, axis.point, begin, end);
 		}
 	};
 
@@ -605,14 +605,27 @@ struct STEPOrientedEdge
 			}
 		}
 
-		Vector<Vector3> GetCircleEdge() const
+		Vector3 GetEnd() const
+		{
+			if (orient) {
+				return end;
+			} else {
+				return begin;
+			}
+		}
+
+		Polyline CreateCirclePolyline() const
 		{
 			if (!IsCircle()) {
 				assert(0);
-				return Vector<Vector3>();
+				return Polyline();
 			}
 
-			return edgeCurve.circle.GetCircleEdge();
+			if (MathHelper::IsSame(begin, end)) {
+				return edgeCurve.circle.CreatePolyline();
+			} else {
+				return edgeCurve.circle.CreatePolyline(GetBegin(), GetEnd());
+			}
 		}
 
 		void CreateEdges(STEPMesh& mesh) const
@@ -626,7 +639,9 @@ struct STEPOrientedEdge
 					mesh.edges.push_back(begin);
 				}
 			} else if(IsCircle()){
-				edgeCurve.circle.CreateEdges(mesh);
+				auto polyline = edgeCurve.circle.CreatePolyline();
+				auto circle = polyline.CreateLinePoints();
+				STLUtil::Insert(mesh.edges, circle);
 			}
 		}
 
@@ -698,7 +713,7 @@ struct STEPEdgeLoop
 				if (edge.IsLine()) {
 					polyline.Add(edge.GetBegin());
 				} else if (edge.IsCircle()) {
-					polyline.AddCircle(edge.GetCircleEdge());
+					polyline.AddCircle(edge.CreateCirclePolyline());
 				}
 			}
 
@@ -712,30 +727,21 @@ struct STEPEdgeLoop
 			}
 			auto polyline = CreatePolyline();
 			auto triangle = polyline.CreateTrianglePoints(orient);
-			mesh.triangels.insert(mesh.triangels.end(), triangle.begin(), triangle.end());
+			STLUtil::Insert(mesh.triangels, triangle);
 		}
 
 		void CreateCylinder(STEPMesh& mesh, bool orient, const STEPCylinderSurface::Data& cylinder) const
 		{
-			std::array<const STEPOrientedEdge::Data*, 2> topBottom{};
-			int i = 0;
-			for (const auto& edge : orientedEdges) {
-				if (edge.IsCircle()) { topBottom[i++] = &edge; if (i == 2) break; }
-			}
-			Vector3 top, bottom;
 			float height = 0.0f;
-			if (glm::dot(cylinder.axis.Normal(), topBottom[1]->GetBegin() - topBottom[0]->GetBegin()) > 0.0f) {
-				top = topBottom[1]->GetBegin();
-				bottom = topBottom[0]->GetBegin();
-				height = -glm::length(top - bottom);
-			} else {
-				top = topBottom[0]->GetBegin();
-				bottom = topBottom[1]->GetBegin();
-				height = glm::length(top - bottom);
+			for (const auto& edge : orientedEdges) {
+				if (edge.IsLine()) { height = glm::length(edge.begin - edge.end); }
 			}
-			auto cylinderMesh = Cylinder::CreateMeshs(cylinder.axis.point, top - bottom, cylinder.rad, height, 32, 32);
-			mesh.edges.insert(mesh.edges.end(), cylinderMesh.edges.begin(), cylinderMesh.edges.end());
-			mesh.triangels.insert(mesh.triangels.end(), cylinderMesh.triangles.begin(), cylinderMesh.triangles.end());
+			if (MathHelper::IsZero(height)) { assert(0); }
+
+			auto cylinderMesh = Cylinder::CreateMeshs(cylinder.axis.point, cylinder.axis.Normal(), cylinder.rad, height, CIRCLE_SUBDIVISION_NUM, CIRCLE_SUBDIVISION_NUM);
+			auto polyline = cylinderMesh.polyline.CreateLinePoints();
+			STLUtil::Insert(mesh.edges, polyline);
+			STLUtil::Insert(mesh.triangels, cylinderMesh.triangles);
 		}
 	};
 
@@ -890,13 +896,21 @@ struct STEPAdvancedFace
 		void CreateMesh(STEPMesh& mesh) const
 		{
 			if (type == GeomType::Plane) {
-				for (const auto& face : faceBound) {
-					face.CreatePlane(mesh);
-				}
+				//Polyline bound;
+				//Polyline outerBound;
+				//for (const auto& face : faceBound) {
+				//	//face.CreatePlane(mesh);
+				//	bound.Add(face.edgeLoop.CreatePolyline());
+				//}
 
-				for (const auto& face : faceOuterBound) {
-					face.CreatePlane(mesh);
-				}
+				//for (const auto& face : faceOuterBound) {
+				//	//face.CreatePlane(mesh);
+				//	outerBound.Add(face.edgeLoop.CreatePolyline());
+				//}
+
+				//STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
+				//STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
+				//STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
 			} else if (type == GeomType::Cylinder) {
 				for (const auto& face : faceBound) {
 					face.CreateCylinder(mesh, cylinder);
@@ -929,7 +943,6 @@ struct STEPAdvancedFace
 	STEPAdvancedFace::Data ToData(const STEPStruct& step)
 	{
 		STEPAdvancedFace::Data data;
-
 		for (auto i = 0; i < faceRef0.size(); i++) {
 			STEPFaceOuterBound::Data faceOuterBound;
 			if (FindSetData(step, step.faceOuterBound, faceRef0[i], faceOuterBound)) { data.faceOuterBound.push_back(std::move(faceOuterBound)); }
@@ -1218,8 +1231,8 @@ void STEPRenderNode::BuildGLResource()
 			for (const auto& polyline : mesh.polylines) {
 				auto polyTri = polyline.CreateTrianglePoints(true);
 				auto polyEdge = polyline.CreateLinePoints();
-				triangles.insert(triangles.end(), polyTri.begin(), polyTri.end());
-				edges.insert(edges.end(), polyEdge.begin(), polyEdge.end());
+				STLUtil::Insert(triangles, polyTri);
+				STLUtil::Insert(edges, polyEdge);
 			}
 		}
 
