@@ -43,6 +43,7 @@ public:
 
 	static Vector<Vector3> CreatePoissonSampleOnFace(const HalfEdgeStruct& halfEdge);
 	static Vector<Vector3> CreatePoissonSampleVolume(HalfEdgeNode& halfEdge);
+	static Vector<Vector3> CreateKruskulMST(const HalfEdgeStruct& halfEdge, Vector<Vector3>& seam, float weight);
 private:
 
 };

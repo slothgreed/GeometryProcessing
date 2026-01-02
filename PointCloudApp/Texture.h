@@ -33,7 +33,7 @@ public:
 
 		~Format() {}
 
-		bool operator==(const Format& rhs)
+		bool operator==(const Format& rhs) const
 		{
 			return target == rhs.target &&
 				level == rhs.level &&
@@ -45,7 +45,7 @@ public:
 				type == rhs.type;
 		}
 
-		bool operator!=(const Format& rhs)
+		bool operator!=(const Format& rhs) const
 		{
 			return !(*this == rhs);
 		}
@@ -86,7 +86,7 @@ public:
 	void Delete();
 	virtual TEXTURE_TYPE Type() const = 0;
 	GLuint Handle() const { return m_handle; }
-	Vector2 Size() const { return Vector2(m_format.width, m_format.height); }
+	Vector2i Size() const { return Vector2i(m_format.width, m_format.height); }
 	const Format& GetFormat() const { return m_format; }
 	void Set(const Format& format, unsigned char* data);
 	void GetPixel(std::vector<unsigned char>& data);

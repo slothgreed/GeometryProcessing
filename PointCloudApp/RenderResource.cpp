@@ -32,6 +32,17 @@ void GLContext::EnableCullFace()
 {
 	glEnable(GL_CULL_FACE);
 }
+
+void GLContext::EnablePolygonWire()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+}
+void GLContext::EnablePolygonFill()
+{
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+}
 void GLContext::DisableCullFace()
 {
 	glDisable(GL_CULL_FACE);

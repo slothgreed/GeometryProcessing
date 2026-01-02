@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "TerrainNode.h"
 #include "Mouse.h"
 #include "MouseInput.h"
 #include "PointCloudApp.h"
@@ -42,20 +43,34 @@ void PointCloudApp::ResizeEvent(int width, int height)
 		m_pResource->GL()->SetViewport(Vector2(width, height));
 	}
 	if (m_pCamera) {
-		m_pCamera->SetAspect(width / (float)height);
+		m_pCameraController->SetAspect(m_windowSize.x, m_windowSize.y);
 	}
+
+
 }
 void PointCloudApp::ProcessMouseEvent(const MouseInput& input)
 {
 	m_pMouse->ApplyMouseInput(input);
 
+	EditContext context(m_pMouse.get(), m_pCamera.get());
 	if (input.Event() == MOUSE_EVENT_WHEEL)
 	{
-		m_pCameraController->Wheel(*m_pMouse.get());
+		m_pCameraController->Wheel(context);
+		if (m_uiContext.GetCurrentController()) {
+			m_uiContext.GetCurrentController()->Wheel(context);
+		}
 	}
 	else if (input.Event() == MOUSE_EVENT_MOVE)
 	{
-		m_pCameraController->Move(*m_pMouse.get());
+		m_pCameraController->Move(context);
+		if (m_uiContext.GetCurrentController()) {
+			m_uiContext.GetCurrentController()->Move(context);
+		}
+	} else if (input.Event() == MOUSE_EVENT_UP) {
+		PickContext pickContext(m_pResource.get(), m_pMouse.get());
+		for (auto& result : m_pick.pResult) {
+			result.first->ProcessMouseEvent(pickContext);
+		}
 	}
 }
 
@@ -129,21 +144,24 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateCSFNodeTest());
 		//m_pRoot->AddNode(CreateGLTFAnimationTest());
 		//m_pRoot->AddNode(CreateGLTFNodeTest());
-		//m_pRoot->AddNode(CreateBunnyNodeTest());
+		m_pRoot->AddNode(CreateTerrain());
+		m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateVolumeTest());
 		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	//}
 	
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
-	{
-		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		//m_pRoot->AddNode(CreateBunnyNodeTest());
-		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
-		m_pRoot->AddNode(CreateSTEPNodeTest());
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
-	}
+	//{
+	//	Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	//	//m_pRoot->AddNode(std::make_shared<SimulationNode>());
+	//	auto pSTEPNode = CreateSTEPNodeTest();
+	//	for (const auto& pNode : pSTEPNode) {
+	//		m_pRoot->AddNode(pNode);
+	//	}
+	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+	//}
 
 	// PBR
 	{
@@ -230,12 +248,10 @@ void PointCloudApp::Execute()
 	m_pResource->SetRenderTarget(pForwardTarget.get());
 	m_pResource->SetTexturePlane(pTexturePalne.get());
 	DrawContext drawContext(m_pResource.get());
-	PickContext pickContext(m_pResource.get());
 	ComputeTextureCombiner combiner;
 	combiner.Build();
 	m_pCameraController->FitToBDB(bdb);
 
-	UIContext ui;
 	PostEffect postEffect;
 
 	m_pResource->GetPBR()->Initialize(*pSkyBoxNode->GetCubemapTexture());
@@ -273,25 +289,28 @@ void PointCloudApp::Execute()
 			pPickTarget->Resize(m_windowSize);
 			m_pResource->GL()->PushRenderTarget(pPickTarget.get());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			PickContext pickContext(m_pResource.get(), m_pMouse.get());
 			m_pRoot->Pick(pickContext);
 			auto mousePos = ImGui::GetMousePos();
 			m_pick.context = &pickContext;
 			Vector2i screen = Vector2i(mousePos.x, m_windowSize.y - mousePos.y);
 			m_pick.id = pPickTarget->GetIntPixel(screen.x, screen.y);
 			auto depth = pPickTarget->GetDepth(screen.x, screen.y);
-			m_pick.pickPos = m_pCamera->ScreenToModel(Vector3(screen.x, screen.y, depth));
+			m_pick.pickPos = m_pCamera->ScreenToWorld(Vector3(screen.x, screen.y, depth));
 			pickContext.pickedId = m_pick.id;
 			m_pRoot->CollectPicked(m_pick);
 			m_pResource->GL()->PopRenderTarget();
 			if (m_pick.pResult.size() != 0) {
 				for (auto& result : m_pick.pResult) {
 					result.first->DrawParts(drawContext, *result.second.get());
+					result.first->ProcessMouseEvent(pickContext);
 				}
 			}
 
 			glViewport(0, 0, 256, 256);
 			TextureDrawer::Execute(drawContext, pTexture.get());
 		}
+
 
 		if (m_ui.visibleTexture) {
 			glViewport(0, 0, 256, 256);
@@ -305,7 +324,7 @@ void PointCloudApp::Execute()
 		}
 
 
-		m_diff += timer.Stop();
+		m_diff += timer.Stop() * 10;
 		m_pRoot->Update(m_diff);
 		if (m_diff > 100000.0) { m_diff = 0.0f; }
 		glFlush();
@@ -317,9 +336,9 @@ void PointCloudApp::Execute()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ui.SetViewport(m_windowSize);
-		ShowUI(ui);
-		//postEffect.ShowUI(ui);
+		m_uiContext.SetViewport(m_windowSize);
+		ShowUI(m_uiContext);
+		//postEffect.ShowUI(m_uiContext);
 		ImGui::Render();
 
 		int display_w, display_h;
@@ -387,10 +406,10 @@ void PointCloudApp::ShowUI(UIContext& ui)
 
 	ImGui::Checkbox("VisibleTexture", &m_ui.visibleTexture);
 	if (m_ui.visibleTexture) {
-		ImGui::SliderInt("Mipmap", &m_ui.mipmap, 0, 11); // 11はCubemap準拠
+		ImGui::SliderInt("Mipmap", &m_ui.mipmap, 0, 11); // 11は Cubemap 準拠
 	}
 
-	auto pCamera = m_pResource->GetCamera();
+	auto& pCamera = m_pResource->GetCamera();
 	ImGui::Text(
 		"Eye:(%lf,%lf,%lf)\nCenter:(%lf,%lf,%lf)\nUp:(%lf,%lf,%lf)\n",
 		pCamera->Eye().x, pCamera->Eye().y, pCamera->Eye().z,
@@ -407,7 +426,7 @@ void PointCloudApp::ShowUI(UIContext& ui)
 	}
 	ImGui::Checkbox("Animation", &m_ui.animation);
 
-	auto pLight = m_pResource->GetLight();
+	auto& pLight = m_pResource->GetLight();
 	Vector3 color = pLight->GetColor();
 	if (ImGui::ColorEdit3("Light Color", &color[0])) {
 		pLight->SetColor(color);
@@ -505,12 +524,21 @@ Shared<RenderNode> PointCloudApp::CreatePBRTest()
 	pNode->SetTranslate(Vector3(-1000, 100, 0));
 	return pNode;
 }
+
+
+Shared<RenderNode> PointCloudApp::CreateTerrain()
+{
+	auto pNode = std::make_shared<TerrainNode>();
+	pNode->SetScale(100);
+	return pNode;
+}
+
 Shared<RenderNode> PointCloudApp::CreateVolumeTest()
 {
 	auto pVoxel = std::unique_ptr<Voxel>(TextureLoader::LoadVolume("E:\\cgModel\\volume\\sample\\dataset-stagbeetle-416x416x247.dat"));
 	auto pNode = std::make_shared<VolumeNode>(std::move(pVoxel));
 	pNode->SetScale(100);
-	pNode->SetTranslate(Vector3(300, 500, 0));
+	//pNode->SetTranslate(Vector3(300, 500, 0));
 	return pNode;
 }
 Shared<RenderNode> PointCloudApp::CreateCSFNodeTest()
@@ -541,16 +569,61 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 	return node;
 }
 
-Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest()
+Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 {
-	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\123Block_Color.stp"));
-	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cubsomcy.stp"));
-	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\cubcylso.stp"));
-	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\angle1.stp"));
-	//auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\mycylinder.stp"));
-	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load("E:\\cgModel\\step\\fusion360\\Torus2D.step"));
-	pNode->SetScale(100);
-	return pNode;
+	Vector<Shared<RenderNode>> pNodes;
+	int scale = 30;
+	Vector2i gridSize = Vector2i(5, 5);
+	Vector<String> files;
+	files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+	files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+	files.push_back("E:\\cgModel\\step\\cubcylso.stp");
+	files.push_back("E:\\cgModel\\step\\angle1.stp");
+	files.push_back("E:\\cgModel\\step\\mycylinder.stp");
+	files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+	files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+	files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+
+	// 円筒の側面からやるべき
+	// for debug.
+	{
+		pNodes.push_back(std::shared_ptr<RenderNode>(STEPLoader::Load(files[5], 0, true)));
+		return pNodes;
+	}
+
+
+	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));
+	for (int i = 0; i < files.size(); i++) {
+		auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load(files[i], i));
+		auto bdb = pNode->GetBoundBox();
+		auto scaleMatrix = glmUtil::CreateScale(scale / bdb.MaxLength());
+		//{
+		//	auto gridPos = Vector3(scale * (i % gridSize.x), scale * (i / gridSize.y), 0.0f);
+		//	auto localPos = (scale / bdb.MaxLength()) * bdb.Min();
+		//	auto translate = glmUtil::CreateTranslate(gridPos - localPos);
+		// pNode->SetTranslate(gridCenter - localPos);
+		// pNode->SetScale(scale / bdb.MaxLength());
+		//}
+
+		{
+			auto gridPos = Vector3(scale * (i % gridSize.x), scale * (i / gridSize.y), 0.0f);
+			auto gridCenter = gridPos + Vector3(scale / 2, scale / 2, 0.0);
+			auto localPos = (scale / bdb.MaxLength()) * bdb.Center();
+			auto translate = glmUtil::CreateTranslate(gridCenter - localPos);
+			pNode->SetTranslate(gridCenter - localPos);
+			pNode->SetScale(scale / bdb.MaxLength());
+		}
+		
+
+		pNodes.push_back(pNode);
+	}
+
+	for (int i = 0; i < files.size(); i++) {
+		Vector3 translate = Vector3(scale * (i % gridSize.x), scale * (i / gridSize.y), 0.0f);
+		DebugPrintf::Vec3(translate); DebugPrintf::NewLine();
+	}
+
+	return pNodes;
 }
 
 Shared<PointCloudNode> PointCloudApp::CreateDelaunayTest()

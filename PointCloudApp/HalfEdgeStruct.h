@@ -88,6 +88,7 @@ public:
 	size_t GetEdgeNum() const { return m_halfEdge.size(); }
 	const Vector3& GetVertex(int index) const { return m_position[index]; }
 	const Vector<Vector3>& GetVertex() const { return m_position; }
+	void SetVertex(int index, const Vector3& value) { m_position[index] = value; }
 	const Vector<Vector3>& GetNormal();
 	const Vector<Vector3>& GetNormal() const { assert(m_parameter.vertexNormal.size() == 0); return m_parameter.vertexNormal; }
 	Edge GetEdge(int edgeIndex) const;
@@ -105,12 +106,14 @@ public:
 	Vector<int> GetAroundEdge(int positionIndex) const;
 	Vector<unsigned int> GetAroundFace(const IndexedFace& triangle) const;
 	Vector<int> GetAroundFaceFromPosition(int index) const;
+	const Vector<HalfEdge>& GetHalfEdges() const { return m_halfEdge; }
 	const HalfEdge& GetHalfEdge(int edgeIndex) const { return m_halfEdge[edgeIndex]; }
 	Vector3 GetNormal(int index);
 
 	float CalcCotangent(int edgeIndex) const;
 	Vector<Vector3> ConvertVertexColorToFaceColor(const Vector<Vector3>& color) const;
 
+	float CalcDihedralAngle(int edgeIndex) const;
 	void CreateVertexArea();
 	float CalcVertexArea(int position) const;
 	float GetVertexArea(int position) const;

@@ -18,7 +18,7 @@ private:
 	Vector3 m_max;
 };
 
-class Plane : public Primitive
+class PlanePrimitive : public Primitive
 {
 public:
 
@@ -26,10 +26,9 @@ public:
 	{
 		X,Y,Z
 	};
-	Plane() {}
-	Plane(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord = false);
-	~Plane() {};
-	
+	PlanePrimitive() {}
+	PlanePrimitive(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord = false);
+	~PlanePrimitive() {};
 	static Matrix4x4 CreateMatrix(const Vector3& min, const Vector3& max, float position, Axis axis);
 
 private:
@@ -58,13 +57,7 @@ public:
 	Cylinder(float _baseRad, float _topRad, float _height, int _slices);
 	~Cylinder() {};
 
-	struct Mesh
-	{
-		Vector<Vector3> triangles;
-		Polyline polyline;
-	};
-
-	static Mesh CreateMeshs(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
+	static Polyline CreateOuterLine(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
 
 private:
 	float baseRad;
@@ -122,6 +115,26 @@ private:
 	void Build(float size);
 };
 
+class CircleUVConverter : public UVConverter
+{
+	CircleUVConverter(const Vector3& c, const Vector3& n, float r)
+		: m_center(c), m_normal(normalize(n)), m_radius(r)
+	{
+		Vector3 temp = (std::fabs(m_normal.x) < 0.9) ? Vector3{ 1,0,0 } : Vector3{ 0,1,0 };
+		m_uAxis = normalize(cross(m_normal, temp));
+		m_vAxis = cross(m_normal, m_uAxis);
+	}
+
+	virtual Vector2 toUV(const Vector3& xyz);
+	virtual Vector3 toXYZ(const Vector2& uv);
+
+	Vector3 m_center;
+	Vector3 m_normal;
+	Vector3 m_uAxis;
+	Vector3 m_vAxis;
+	float m_radius;
+
+};
 class Circle : public Primitive
 {
 public:
@@ -130,8 +143,8 @@ public:
 
 	~Circle();
 
-	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
-	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end);
+	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient);
+	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient, const Vector3& begin, const Vector3& end);
 
 private:
 	void Build(float radius, int pointNum, const Vector3& center);

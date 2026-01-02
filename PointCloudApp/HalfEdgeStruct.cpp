@@ -222,6 +222,13 @@ Vector3 HalfEdgeStruct::GetNormal(int index)
 
 	return m_parameter.vertexNormal[index];
 }
+
+float HalfEdgeStruct::CalcDihedralAngle(int edgeIndex) const
+{
+	auto normal1 = CalcFaceNormal(m_halfEdge[edgeIndex].face);
+	auto normal2 = CalcFaceNormal(m_halfEdge[m_halfEdge[edgeIndex].oppositeEdge].face);
+	return glm::dot(normal1, normal2);
+}
 void HalfEdgeStruct::CreateNormal()
 {
 	m_parameter.vertexNormal.resize(m_position.size());

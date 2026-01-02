@@ -23,7 +23,7 @@
     <ProjectGuid>{4281572D-3796-4234-BC44-ED3FD8EDB69D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PointCloudApp</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -197,6 +197,7 @@
     <ClCompile Include="GLTFSceneUpdater.cpp" />
     <ClCompile Include="GLTFShader.cpp" />
     <ClCompile Include="GLTFStruct.cpp" />
+    <ClCompile Include="HalfEdgeController.cpp" />
     <ClCompile Include="HalfEdgeLoader.cpp" />
     <ClCompile Include="HalfEdgeStruct.cpp" />
     <ClCompile Include="HalfEdgeNode.cpp" />
@@ -216,6 +217,7 @@
     <ClCompile Include="SimulationNode.cpp" />
     <ClCompile Include="SkyBoxNode.cpp" />
     <ClCompile Include="STEPNode.cpp" />
+    <ClCompile Include="TerrainNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
     <ClCompile Include="ComputeShaderTest.cpp" />
@@ -275,6 +277,7 @@
     <ClInclude Include="GLTFShader.h" />
     <ClInclude Include="GLTFStruct.h" />
     <ClInclude Include="GLTypes.h" />
+    <ClInclude Include="HalfEdgeController.h" />
     <ClInclude Include="HalfEdgeLoader.h" />
     <ClInclude Include="HalfEdgeStruct.h" />
     <ClInclude Include="HalfEdgeNode.h" />
@@ -282,6 +285,7 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
+    <ClInclude Include="MouseController.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="PBR.h" />
     <ClInclude Include="Polyline.h" />
@@ -293,6 +297,7 @@
     <ClInclude Include="SimulationNode.h" />
     <ClInclude Include="SkyBoxNode.h" />
     <ClInclude Include="STEPNode.h" />
+    <ClInclude Include="TerrainNode.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudIO.h" />
     <ClInclude Include="ComputeShaderTest.h" />

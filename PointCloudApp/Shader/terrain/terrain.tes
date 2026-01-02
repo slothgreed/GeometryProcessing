@@ -1,0 +1,63 @@
+layout(quads, fractional_odd_spacing, ccw) in;
+
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+struct InstanceData
+{
+	mat4 matrix;
+	float scale;
+	float padding[3];
+};
+
+
+layout(std430, binding = 1) buffer InstanceBuffer
+{
+	InstanceData instance[];
+};
+
+uniform sampler2D u_heightMap;
+uniform mat4 u_Model;
+uniform float u_ModelScale;
+uniform float u_Height;
+
+in vec2 te_texCoord[];
+out vec2 f_texcoord;
+
+in flat int te_InstanceID[];
+
+void main()
+{
+	int instanceID = te_InstanceID[0];
+	vec2 uv = gl_TessCoord.xy;
+
+	vec2 t00 = te_texCoord[0];
+	vec2 t01 = te_texCoord[1];
+	vec2 t10 = te_texCoord[2];
+	vec2 t11 = te_texCoord[3];
+
+    vec4 p00 = gl_in[0].gl_Position;
+    vec4 p01 = gl_in[1].gl_Position;
+    vec4 p10 = gl_in[2].gl_Position;
+    vec4 p11 = gl_in[3].gl_Position;
+	
+    vec2 t0 = (t01 - t00) * uv.x + t00;
+    vec2 t1 = (t11 - t10) * uv.x + t10;
+    f_texcoord = (t1 - t0) * uv.y + t0;
+	
+	vec4 uVec = p01 - p00;
+    vec4 vVec = p10 - p00;
+    vec4 normal = normalize( vec4(cross(vVec.xyz, uVec.xyz), 0) );
+
+	vec4 p0 = (p01 - p00) * uv.x + p00;
+    vec4 p1 = (p11 - p10) * uv.x + p10;
+    vec4 p = (p1 - p0) * uv.y + p0;
+	
+
+    float height = texture(u_heightMap, f_texcoord).y;
+	p += -normal * height * u_Height / instance[instanceID].scale;
+	gl_Position = camera.VP * instance[instanceID].matrix * p;
+
+}

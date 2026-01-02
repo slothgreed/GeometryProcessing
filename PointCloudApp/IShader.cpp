@@ -61,6 +61,10 @@ void IShadingShader::SetVertexFormat(const VertexFormat& format)
 	glVertexAttribBinding(format.location, format.binding);
 }
 
+void IShadingShader::PatchParameteri(int num)
+{
+	glPatchParameteri(GL_PATCH_VERTICES, num);
+}
 void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
@@ -151,6 +155,8 @@ void IShadingShader::Build()
 	String vertexCode;
 	String fragCode;
 	String geomCode;
+	String tesCCode;
+	String tesECode;
 
 	auto vertexEx = Join(shaderPath.extension[SHADER_PROGRAM_VERTEX]);
 	vertexCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_VERTEX]);
@@ -163,44 +169,51 @@ void IShadingShader::Build()
 		geomCode = version + geomEx + headerCode + geomCode;
 	}
 
+	if (shaderPath.shader[SHADER_PROGRAM_TES_CONTROL].size() != 0) {
+		auto tesEx = Join(shaderPath.extension[SHADER_PROGRAM_TES_CONTROL]);
+		tesCCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_TES_CONTROL]);
+		tesCCode = version + tesEx + headerCode + tesCCode;
+	}
+
+	if (shaderPath.shader[SHADER_PROGRAM_TES_EVAL].size() != 0) {
+		auto tesEx = Join(shaderPath.extension[SHADER_PROGRAM_TES_EVAL]);
+		tesECode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_TES_EVAL]);
+		tesECode = version + tesEx + headerCode + tesECode;
+	}
 
 	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
 	fragCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_FRAG]);
 	fragCode = version + fragEx + headerCode + fragCode;
 
 
-	m_programId = IShadingShader::BuildVertexGeomFrag(vertexCode, geomCode, fragCode);
+	m_programId = IShadingShader::Compile(vertexCode, tesCCode, tesECode, geomCode, fragCode);
 
 
 	FetchUniformLocation();
 	OUTPUT_GLERROR;
 }
 
-GLuint IShadingShader::BuildVertexGeomFrag(const String& vert, const String& geom, const String& frag)
+GLuint IShadingShader::Compile(const String& vert, const String& tesc, const String& tese, const String& geom, const String& frag)
 {
 	GLuint vertId = 0;
+	GLuint tescId = 0;
+	GLuint teseId = 0;
 	GLuint geomId = 0;
 	GLuint fragId = 0;
 
 	if (vert.size() != 0) { vertId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER); }
+	if (tesc.size() != 0) { tescId = ShaderUtility::Compile(tesc, GL_TESS_CONTROL_SHADER); }
+	if (tese.size() != 0) { teseId = ShaderUtility::Compile(tese, GL_TESS_EVALUATION_SHADER); }
 	if (geom.size() != 0) { geomId = ShaderUtility::Compile(geom, GL_GEOMETRY_SHADER); }
 	if (frag.size() != 0) { fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER); }
 	
-	GLuint programId = ShaderUtility::Link(vertId, geomId, fragId);
+	GLuint programId = ShaderUtility::Link(vertId, tescId, teseId, geomId, fragId);
 
 	if (vertId != 0) { glDeleteShader(vertId); }
+	if (tescId != 0) { glDeleteShader(tescId); }
+	if (teseId != 0) { glDeleteShader(teseId); }
 	if (geomId != 0) { glDeleteShader(geomId); }
 	if (fragId != 0) { glDeleteShader(fragId); }
-	return programId;
-}
-GLuint IShadingShader::BuildVertexFrag(const String& vert, const String& frag)
-{
-	GLuint vertexId = ShaderUtility::Compile(vert, GL_VERTEX_SHADER);
-	GLuint fragId = ShaderUtility::Compile(frag, GL_FRAGMENT_SHADER);
-	GLuint programId = ShaderUtility::Link(vertexId, fragId);
-
-	glDeleteShader(vertexId);
-	glDeleteShader(fragId);
 	return programId;
 }
 

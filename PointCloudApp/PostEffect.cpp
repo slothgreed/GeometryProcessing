@@ -7,7 +7,7 @@ namespace KI
 
 void TextureDrawer::Execute(const DrawContext& context, const Texture* pTexture)
 {
-	auto pShader = context.pResource->GetShaderTable()->GetTextureViewShader();
+	auto& pShader = context.pResource->GetShaderTable()->GetTextureViewShader();
 	pShader->Use();
 	pShader->BindTexture(*pTexture);
 	pShader->Draw(*context.pResource->GetTexturePlane());

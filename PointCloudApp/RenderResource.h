@@ -39,6 +39,8 @@ public:
 	void DisableDepth();
 	void EnableCullFace();
 	void DisableCullFace();
+	void EnablePolygonWire();
+	void EnablePolygonFill();
 	void SetViewport(const Vector2i& size);
 	void SetPointSize(float value);
 	void SetLineWidth(float value);

@@ -7,6 +7,12 @@ DebugNode::DebugNode(const String& name)
 : RenderNode(name)
 {
 }
+
+void DebugNode::SetPrimitive(const Shared<Primitive>& pPrimitive)
+{
+	m_pPrimitive.push_back(pPrimitive);
+	BuildGLBuffer();
+}
 void DebugNode::SetPrimitive(const std::vector<Shared<Primitive>>& pPrimitive)
 {
 	m_pPrimitive = pPrimitive;
@@ -39,14 +45,24 @@ void DebugNode::DrawNode(const DrawContext& context)
 	BuildGLBuffer();
 	if (m_gpu.size() == 0) { return; }
 	const auto& pResource = context.pResource;
-	auto pVertexColorShader = pResource->GetShaderTable()->GetVertexColorShader();
-	pVertexColorShader->Use();
-	pVertexColorShader->SetCamera(pResource->GetCameraBuffer());
-	pVertexColorShader->SetModel(GetMatrix());
 	for (int i = 0; i < m_gpu.size(); i++) {
-		pVertexColorShader->SetPosition(m_gpu[i].pPosition.get());
-		pVertexColorShader->SetColor(m_gpu[i].pColor.get());
-		pVertexColorShader->DrawArray(m_pPrimitive[i]->GetType(), m_pPrimitive[i]->GetNum());
+		if (m_gpu[i].pColor) {
+			auto pVertexColorShader = pResource->GetShaderTable()->GetVertexColorShader();
+			pVertexColorShader->Use();
+			pVertexColorShader->SetCamera(pResource->GetCameraBuffer());
+			pVertexColorShader->SetModel(GetMatrix());
+			pVertexColorShader->SetPosition(m_gpu[i].pPosition.get());
+			pVertexColorShader->SetColor(m_gpu[i].pColor.get());
+			pVertexColorShader->DrawArray(m_pPrimitive[i]->GetType(), m_pPrimitive[i]->GetNum());
+		} else {
+			auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+			pSimpleShader->Use();
+			pSimpleShader->SetCamera(pResource->GetCameraBuffer());
+			pSimpleShader->SetModel(GetMatrix());
+			pSimpleShader->SetPosition(m_gpu[i].pPosition.get());
+			pSimpleShader->SetColor(Vector3(0, 0, 1));
+			pSimpleShader->DrawArray(m_pPrimitive[i]->GetType(), m_pPrimitive[i]->GetNum());
+		}
 	}
 }
 
@@ -463,5 +479,33 @@ void DelaunayDebugNode::ShowUI(UIContext& ui)
 		BuildDebugPrimitive();
 	}
 	m_Delaunay.ShowUI(this, ui);
+}
+
+
+
+GridNode::GridNode(const String& name, const Vector3& min, const Vector3& max, float interval)
+	: DebugNode(name)
+	, m_min(min)
+	, m_max(max)
+	, m_interval(interval)
+{
+	m_pPrimitive = std::make_shared<Primitive>();
+	Vector<Vector3> positions;
+
+	// Xï˚å¸Ç…ïΩçsÇ»ê¸ (YÇ™å≈íË)
+	for (float y = min.y; y <= max.y + 0.001f; y += interval) {
+		positions.push_back(Vector3(min.x, y, min.z));
+		positions.push_back(Vector3(max.x, y, min.z));
+	}
+
+	// Yï˚å¸Ç…ïΩçsÇ»ê¸ (XÇ™å≈íË)
+	for (float x = min.x; x <= max.x + 0.001f; x += interval) {
+		positions.push_back(Vector3(x, min.y, min.z));
+		positions.push_back(Vector3(x, max.y, min.z));
+	}
+
+	m_pPrimitive->SetPosition(std::move(positions));
+	m_pPrimitive->SetType(GL_LINES);
+	DebugNode::SetPrimitive(m_pPrimitive);
 }
 }

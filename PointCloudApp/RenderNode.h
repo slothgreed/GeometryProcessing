@@ -4,6 +4,7 @@
 #include "BDB.h"
 #include "RenderResource.h"
 #include "Light.h"
+#include "Mouse.h"
 #include "Parameter.h"
 namespace KI
 {
@@ -20,6 +21,7 @@ struct DrawContext
 	RenderResource* pResource;
 };
 
+class MouseController;
 struct UIContext
 {
 	UIContext() {}
@@ -38,9 +40,12 @@ struct UIContext
 	void SetRoot(const UIRect& rect) { m_root = rect; }
 	const UIRect& GetRoot() const { return m_root; }
 	const UIRect& GetViewport() const { return m_viewport; }
+	void SetCurrentController(MouseController* pController) { m_pController = pController; }
+	MouseController* GetCurrentController() { return m_pController; }
 private:
 	UIRect m_viewport;
 	UIRect m_root;
+	MouseController* m_pController;
 };
 
 
@@ -59,12 +64,14 @@ struct PickContext
 		, pickedId(0)
 	{
 	}
-	PickContext(RenderResource* _pResource)
+	PickContext(RenderResource* _pResource, const Mouse* _pMouse)
 		: pResource(_pResource)
+		, pMouse(_pMouse)
 		, pickedId(0)
 	{
 	}
 	RenderResource* pResource;
+	const Mouse* pMouse;
 	int pickMaxId;
 	int pickedId;
 };
@@ -73,7 +80,7 @@ class RenderNode;
 struct PickResult
 {
 	PickContext* context;
-	std::unordered_map<RenderNode*, Unique<RenderParts>> pResult;
+	std::unordered_map<RenderNode*, Shared<RenderParts>> pResult;
 	Vector3 pickPos;
 	int id;
 };
@@ -109,6 +116,9 @@ public:
 	void SetBoundBox(const BDB& bdb) { m_bdb = bdb; }
 	void RemoveNode(const String& name) { m_child.erase(name); }
 	void AddNode(const Shared<RenderNode>& pNode) { m_child[pNode->m_name] = pNode; }
+	Matrix4x4 GetTranslateMatrix() const;
+	Matrix4x4 GetScaleMatrix() const;
+
 	const Vector3& GetRotate() const { return m_rotate; }
 	Vector3 GetRotateAngle() const;
 	float GetScale() { return m_scale; }
@@ -118,6 +128,7 @@ public:
 	BDB CalcCameraFitBox();
 	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
 	void ShowMatrixUI(UIContext& context);
+	virtual void ProcessMouseEvent(const PickContext& context) {};
 protected:
 	virtual void ShowUIParameter(const Parameter& parameter, UIContext& ui);
 	virtual void ShowUI(UIContext& ui) {};

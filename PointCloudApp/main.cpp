@@ -1,13 +1,9 @@
-
 #include "PointCloudApp.h"
 #include "ComputePointCloudApp.h"
 #include "ComputeShaderTest.h"
 #include "MeshShaderTest.h"
 
 #include <random>
-
-
-
 
 int main()
 {

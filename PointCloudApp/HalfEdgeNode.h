@@ -12,6 +12,7 @@ class BVH;
 class Voxelizer;
 class ShapeDiameterFunction;
 class SignedDistanceField;
+class HalfEdgeController;
 class HalfEdgeNode : public RenderNode
 {
 public:
@@ -19,7 +20,7 @@ public:
 	struct HalfEdgeParts : public RenderParts
 	{
 	public:
-		enum Type
+		enum class Type
 		{
 			Face,
 			Edge,
@@ -33,6 +34,9 @@ public:
 		~HalfEdgeParts() {};
 		static const HalfEdgeParts* Cast(const RenderParts* pParts);
 		virtual String ToString();
+		int IsFace() const { return type == Type::Face; }
+		int IsEdge() const { return type == Type::Edge; }
+		int IsVertex() const { return type == Type::Vertex; }
 		Type type;
 		int parts;
 	};
@@ -49,6 +53,24 @@ public:
 	GLBuffer* GetPositionGpu() const { return m_gpu.position.get(); }
 	GLBuffer* GetFaceIndexGpu() const { return m_gpu.faceIndexBuffer.get(); }
 	GLBuffer* GetBVHGpu();
+
+	void UpdateVertex();
+
+	int ToPickFaceIndex(int index) const
+	{
+		return index - m_pickIds.face.begin;
+	}
+
+	int ToPickEdgeIndex(int index) const
+	{
+		return index - m_pickIds.edge.begin;
+	}
+
+	int ToPickVertexIndex(int index) const
+	{
+		return index - m_pickIds.vertex.begin;
+	}
+	virtual void ProcessMouseEvent(const PickContext& context);
 protected:
 	virtual void ShowUI(UIContext& ui);
 	virtual void DrawNode(const DrawContext& context);
@@ -58,6 +80,16 @@ protected:
 	virtual void UpdateData(float time) {};
 	
 private:
+
+	enum UPDATE_DATA
+	{
+		UPDATE_VERTEX,
+		UPDATE_NUM,
+	};
+
+
+	std::bitset<UPDATE_NUM> m_updateData;
+	bool m_updateVertex;
 	void BuildBVH();
 	void BuildMorton();
 	void BuildEdge();
@@ -80,6 +112,8 @@ private:
 		PickId face;
 		PickId edge;
 		PickId vertex;
+
+
 	};
 	struct GeometryGpu
 	{
@@ -116,6 +150,7 @@ private:
 
 	PickIds m_pickIds;
 
+
 	MeshletGpu m_meshletGpu;
 
 	struct Morton
@@ -130,7 +165,6 @@ private:
 	SignedDistanceField* m_pSignedDistanceField;
 	ShapeDiameterFunction* m_pShapeDiameterFunction;
 	Voxelizer* m_pVoxelizer;
-
 	struct UI
 	{
 		struct Poisson
@@ -177,6 +211,14 @@ private:
 			int level;
 			int cullSize;
 		};
+
+		struct MST
+		{
+			MST() : visible(false), weight(1.0f) {}
+			bool visible;
+			float weight;
+		};
+
 		UI()
 			: visible(true)
 			, visibleBVH(false)
@@ -185,6 +227,7 @@ private:
 			, visibleVertex(false)
 			, visibleNormal(false)
 			, visibleMorton(false)
+			, editVertex(false)
 			, visibleSignedDistanceField(false)
 			, normalLength(1.0f)
 			, vertexValue(0)
@@ -199,14 +242,18 @@ private:
 		bool visibleEdge;
 		bool visibleVertex;
 		bool visibleNormal;
+		bool editVertex;
 		float normalLength;
 		int vertexValue;
 		int vertexDirection;
+		MST mst;
 		Meshlet meshlet;
 		Voxel voxel;
 		HeatMethod heatMethod;
 		Poisson poisson;
 	};
+	Shared<HalfEdgeParts> m_pEditVertex;
+	HalfEdgeController* m_pController;
 	Unique<MeshletProfiler> m_meshletProfiler;
 	Parameter m_vertexParameter;
 	UI m_ui;

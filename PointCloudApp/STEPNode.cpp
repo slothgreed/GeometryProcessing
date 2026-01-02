@@ -379,16 +379,16 @@ struct STEPCircle
 		STEPAxis2Placement3D::Data axis;
 		float rad;
 
-		Polyline CreatePolyline() const
+		Polyline CreatePolyline(bool orient) const
 		{
 			auto v = glm::cross(axis.dir1, axis.dir2);
-			return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM, axis.dir2, v, axis.point);
+			return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM, axis.dir2, v, axis.point, orient);
 		}
 
-		Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const
+		Polyline CreatePolyline(bool orient, const Vector3& begin, const Vector3& end) const
 		{
 			auto v = glm::cross(axis.dir1, axis.dir2);
-			return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM, axis.dir2, v, axis.point, begin, end);
+			return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM, axis.dir2, v, axis.point, orient, begin, end);
 		}
 	};
 
@@ -614,7 +614,7 @@ struct STEPOrientedEdge
 			}
 		}
 
-		Polyline CreateCirclePolyline() const
+		Polyline CreateCirclePolyline(bool faceOrient) const
 		{
 			if (!IsCircle()) {
 				assert(0);
@@ -622,9 +622,9 @@ struct STEPOrientedEdge
 			}
 
 			if (MathHelper::IsSame(begin, end)) {
-				return edgeCurve.circle.CreatePolyline();
+				return edgeCurve.circle.CreatePolyline(faceOrient);
 			} else {
-				return edgeCurve.circle.CreatePolyline(GetBegin(), GetEnd());
+				return edgeCurve.circle.CreatePolyline(faceOrient, GetBegin(), GetEnd());
 			}
 		}
 
@@ -639,7 +639,7 @@ struct STEPOrientedEdge
 					mesh.edges.push_back(begin);
 				}
 			} else if(IsCircle()){
-				auto polyline = edgeCurve.circle.CreatePolyline();
+				auto polyline = edgeCurve.circle.CreatePolyline(orient);
 				auto circle = polyline.CreateLinePoints();
 				STLUtil::Insert(mesh.edges, circle);
 			}
@@ -706,16 +706,20 @@ struct STEPEdgeLoop
 	struct Data
 	{
 		Vector<STEPOrientedEdge::Data> orientedEdges;
-		Polyline CreatePolyline() const
+		Polyline CreatePolyline(bool faceOrient) const
 		{
+			Vector<Vector3> loop;
 			Polyline polyline;
 			for (const auto& edge : orientedEdges) {
 				if (edge.IsLine()) {
-					polyline.Add(edge.GetBegin());
+					loop.push_back(edge.GetBegin());
 				} else if (edge.IsCircle()) {
-					polyline.AddCircle(edge.CreateCirclePolyline());
+					polyline.AddCircle(edge.CreateCirclePolyline(faceOrient));
 				}
 			}
+
+			polyline.AddLoop(std::move(loop));
+
 
 			return polyline;
 		}
@@ -725,7 +729,7 @@ struct STEPEdgeLoop
 			for (const auto& edge : orientedEdges) {
 				edge.CreateEdges(mesh);
 			}
-			auto polyline = CreatePolyline();
+			auto polyline = CreatePolyline(orient);
 			auto triangle = polyline.CreateTrianglePoints(orient);
 			STLUtil::Insert(mesh.triangels, triangle);
 		}
@@ -736,12 +740,12 @@ struct STEPEdgeLoop
 			for (const auto& edge : orientedEdges) {
 				if (edge.IsLine()) { height = glm::length(edge.begin - edge.end); }
 			}
-			if (MathHelper::IsZero(height)) { assert(0); }
+			//if (MathHelper::IsZero(height)) { assert(0); }
 
-			auto cylinderMesh = Cylinder::CreateMeshs(cylinder.axis.point, cylinder.axis.Normal(), cylinder.rad, height, CIRCLE_SUBDIVISION_NUM, CIRCLE_SUBDIVISION_NUM);
-			auto polyline = cylinderMesh.polyline.CreateLinePoints();
-			STLUtil::Insert(mesh.edges, polyline);
-			STLUtil::Insert(mesh.triangels, cylinderMesh.triangles);
+			auto circleLine = Circle::CreateLine(cylinder.rad,CIRCLE_SUBDIVISION_NUM,cylinder.axis.U(),cylinder.axis.V(),cylinder.axis.point, orient);
+			STLUtil::Insert(mesh.edges, circleLine.CreateLinePoints());
+			//auto cylinderMesh = Cylinder::CreateOuterLine(cylinder.axis.point, cylinder.axis.Normal(), cylinder.rad, height, CIRCLE_SUBDIVISION_NUM, CIRCLE_SUBDIVISION_NUM);
+			//STLUtil::Insert(mesh.edges, cylinderMesh.CreateLinePoints());
 		}
 	};
 
@@ -899,25 +903,49 @@ struct STEPAdvancedFace
 				//Polyline bound;
 				//Polyline outerBound;
 				//for (const auto& face : faceBound) {
-				//	//face.CreatePlane(mesh);
-				//	bound.Add(face.edgeLoop.CreatePolyline());
+				//	bound.AddLoop(face.edgeLoop.CreatePolyline(orient));
 				//}
 
 				//for (const auto& face : faceOuterBound) {
-				//	//face.CreatePlane(mesh);
-				//	outerBound.Add(face.edgeLoop.CreatePolyline());
+				//	outerBound.AddLoop(face.edgeLoop.CreatePolyline(orient));
 				//}
 
-				//STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
-				//STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
-				//STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
+				//if (bound.Num() != 0) {
+				//	STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
+				//}
+				//if (outerBound.Num() != 0) {
+				//	STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
+				//}
+				//if (bound.Num() != 0 && outerBound.Num() != 0) {
+				//	STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
+				//} else if (outerBound.Num() != 0) {
+				//	STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, Polyline()));
+				//} else if (bound.Num() != 0) {
+				//	STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(bound, Polyline()));
+				//}
 			} else if (type == GeomType::Cylinder) {
+				Polyline bound;
+				Polyline outerBound;
 				for (const auto& face : faceBound) {
-					face.CreateCylinder(mesh, cylinder);
+					bound.AddLoop(face.edgeLoop.CreatePolyline(orient));
 				}
 
 				for (const auto& face : faceOuterBound) {
-					face.CreateCylinder(mesh, cylinder);
+					outerBound.AddLoop(face.edgeLoop.CreatePolyline(orient));
+				}
+
+				if (bound.Num() != 0) {
+					STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
+				}
+				if (outerBound.Num() != 0) {
+					STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
+				}
+				if (bound.Num() != 0 && outerBound.Num() != 0) {
+					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
+				} else if (outerBound.Num() != 0) {
+					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, Polyline()));
+				} else if (bound.Num() != 0) {
+					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(bound, Polyline()));
 				}
 			}
 		}
@@ -995,7 +1023,6 @@ struct STEPShell
 		for (const auto& advancedFace : data.advancedFace) {
 			advancedFace.CreateMesh(mesh);
 		}
-
 	}
 };
 struct STEPClosedShell : public STEPShell
@@ -1127,22 +1154,28 @@ void NotDefineEntity(const String& str)
 
 RenderNode* STEPLoader::CreateRenderNode(const String& name, const STEPStruct& step)
 {
+	BDB bdb;
 	Vector<STEPMesh> meshs;
 	for (const auto& face : step.closedShell) {
-		meshs.push_back(face.second->CreateMesh(step));
+		auto mesh = face.second->CreateMesh(step);
+		bdb.Add(mesh.CreateBDB());
+		meshs.push_back(std::move(mesh));
 	}
 
 	for (const auto& face : step.openShell) {
-		meshs.push_back(face.second->CreateMesh(step));
+		auto mesh = face.second->CreateMesh(step);
+		bdb.Add(mesh.CreateBDB());
+		meshs.push_back(std::move(mesh));
 	}
 
 	STEPRenderNode* pRenderNode = new STEPRenderNode(name);
+	pRenderNode->SetBoundBox(bdb);
 	pRenderNode->SetMesh(std::move(meshs));
 
 	return pRenderNode;
 }
 
-RenderNode* STEPLoader::Load(const String& name, bool saveOriginal)
+RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 {
 	auto extension = FileUtility::GetExtension(name);
 	if (!(extension == ".step" || extension == ".stp")) { return nullptr; }
@@ -1209,7 +1242,7 @@ RenderNode* STEPLoader::Load(const String& name, bool saveOriginal)
 		writer.Close();
 	}
 
-	return CreateRenderNode(name, step);
+	return CreateRenderNode(name + IntToString(index), step);
 }
 
 
@@ -1222,6 +1255,13 @@ void STEPRenderNode::BuildGLResource()
 		return;
 	}
 	
+	auto cube = Cube::CreateLine(GetBoundBox().Min(), GetBoundBox().Max());
+	m_gpu.pBDBLine = std::make_unique<GLBuffer>();
+	m_gpu.pBDBLineIndex = std::make_unique<GLBuffer>();
+
+	m_gpu.pBDBLine->Create(cube.Position());
+	m_gpu.pBDBLineIndex->Create(cube.Index());
+
 	bool makePolygon = false;
 	if(makePolygon)
 	{
@@ -1249,9 +1289,9 @@ void STEPRenderNode::BuildGLResource()
 		size_t edgeNum = 0;
 		size_t vertexNum = 0;
 		for (const auto& mesh : m_mesh) {
-			triangleNum = mesh.triangels.size();
-			edgeNum = mesh.edges.size();
-			vertexNum = mesh.vertexs.size();
+			triangleNum += mesh.triangels.size();
+			edgeNum += mesh.edges.size();
+			vertexNum += mesh.vertexs.size();
 		}
 
 		if (triangleNum != 0) {
@@ -1291,16 +1331,24 @@ void STEPRenderNode::BuildGLResource()
 void STEPRenderNode::DrawNode(const DrawContext& context)
 {
 	BuildGLResource();
+
+	
 	auto pResource = context.pResource;
-	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 	if (m_gpu.pEdges || m_gpu.pTriangles) {
+		auto matrix =GetTranslateMatrix() * GetScaleMatrix() * m_rotateMatrix;
+		auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
+		pSimpleShader->SetCamera(context.pResource->GetCameraBuffer());
+		pSimpleShader->SetModel(matrix);
+		pSimpleShader->SetColor(Vector3(0, 0, 1));
+		pSimpleShader->SetPosition(m_gpu.pBDBLine.get());
+		pSimpleShader->DrawElement(GL_LINES, m_gpu.pBDBLineIndex.get());
+
 		pSimpleShader->SetCamera(pResource->GetCameraBuffer());
-		pSimpleShader->SetModel(GetMatrix());
-		pSimpleShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+		pSimpleShader->SetModel(matrix);
 		if (m_gpu.pEdges) {
 			pSimpleShader->SetPosition(m_gpu.pEdges.get());
+			pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
 			pSimpleShader->DrawArray(GL_LINES, m_gpu.pEdges.get());
 		}
 
@@ -1318,5 +1366,19 @@ void STEPRenderNode::ShowUI(UIContext& ui)
 
 }
 
+void STEPRenderNode::UpdateData(float diff)
+{
+	return;
+	static glm::vec3 axis = glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f));
+	static float rotationSpeed = 0.01f;
+	float angle = glm::radians(rotationSpeed * diff);
+	auto center = GetBoundBox().Center();
+	auto translateToOrigin = glm::translate(glm::mat4(1.0f), -center);
+	auto rotate = glm::rotate(glm::mat4(1.0f), angle, axis);
+	auto translateBack = glm::translate(glm::mat4(1.0f), center);
+
+	// âÒì]Çí~êœÇ∑ÇÈèÍçá
+	m_rotateMatrix = translateBack * rotate * translateToOrigin * m_rotateMatrix;
+}
 
 }

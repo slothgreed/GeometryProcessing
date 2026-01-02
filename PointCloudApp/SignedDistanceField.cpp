@@ -156,7 +156,7 @@ void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 	const auto& bdb = m_pHalfEdge->GetBoundBox();
 	if (m_ui.xPlane.visible) {
 		if (ImGui::SliderFloat("XPlane", &m_ui.xPlane.position, bdb.Min().x, bdb.Max().x, "%lf", 1.0f)) {
-			std::shared_ptr<Primitive> pPlane = std::make_shared<Plane>(bdb.Min(), bdb.Max(), m_ui.xPlane.position, Plane::X, true);
+			std::shared_ptr<Primitive> pPlane = std::make_shared<PlanePrimitive>(bdb.Min(), bdb.Max(), m_ui.xPlane.position, PlanePrimitive::X, true);
 			CreateSDFTexture(m_resolute, Axis::X, m_ui.xPlane.position, m_gpu.xTexture.get());
 			auto pNode = std::make_shared<PrimitiveNode>("XPlane", pPlane, m_gpu.xTexture);
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
@@ -173,7 +173,7 @@ void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 	}
 	if (m_ui.yPlane.visible) {
 		if (ImGui::SliderFloat("YPlane", &m_ui.yPlane.position, bdb.Min().y, bdb.Max().y, "%lf", 1.0f)) {
-			std::shared_ptr<Primitive> pPlane = std::make_shared<Plane>(bdb.Min(), bdb.Max(), m_ui.yPlane.position, Plane::Y, true);
+			std::shared_ptr<Primitive> pPlane = std::make_shared<PlanePrimitive>(bdb.Min(), bdb.Max(), m_ui.yPlane.position, PlanePrimitive::Y, true);
 			CreateSDFTexture(m_resolute, Axis::Y, m_ui.yPlane.position, m_gpu.yTexture.get());
 			auto pNode = std::make_shared<PrimitiveNode>("YPlane", pPlane, m_gpu.yTexture);
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
@@ -191,7 +191,7 @@ void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 	
 	if (m_ui.zPlane.visible) {
 		if (ImGui::SliderFloat("ZPlane", &m_ui.zPlane.position, bdb.Min().z, bdb.Max().z, "%lf", 1.0f)) {
-			std::shared_ptr<Primitive> pPlane = std::make_shared<Plane>(bdb.Min(), bdb.Max(), m_ui.zPlane.position, Plane::Z, true);
+			std::shared_ptr<Primitive> pPlane = std::make_shared<PlanePrimitive>(bdb.Min(), bdb.Max(), m_ui.zPlane.position, PlanePrimitive::Z, true);
 			CreateSDFTexture(m_resolute, Axis::Z, m_ui.zPlane.position, m_gpu.zTexture.get());
 			auto pNode = std::make_shared<PrimitiveNode>("ZPlane", pPlane, m_gpu.zTexture);
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());

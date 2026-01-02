@@ -167,4 +167,13 @@ void RenderNode::ShowUIParameter(const Parameter& parameter, UIContext& ui)
 	ImGui::End();
 }
 
+Matrix4x4 RenderNode::GetTranslateMatrix() const
+{
+	return glmUtil::CreateTranslate(m_translate);
+}
+Matrix4x4 RenderNode::GetScaleMatrix() const
+{
+	return glmUtil::CreateScale(m_scale);
+}
+
 }

@@ -25,12 +25,15 @@ public:
 
 	static void NewLine();
 	static void Bool(const String& name, bool value);
+	static void Int(const String& name, int value);
+	static void Float(const String& name, float value);
 	static void Vec3(const Vector3& value);
 	static void Vec3Array(const String& name, const Vector<Vector3>& data);
 	static void Vec3(const String& name, const Vector3& value);
 	static void Vec4(const String& name, const Vector4& value);
 	static void Mat4(const String& name, const Matrix4x4& value);
 	static void StringStr(const String& name, const String& value);
+	static void StringStr(const String& value);
 
 private:
 

@@ -9,6 +9,17 @@ void DebugPrintf::Bool(const String& name, bool value)
 {
 	std::cout << name << ":" << (value ? "True" : "False");
 }
+
+void DebugPrintf::Int(const String& name, int value)
+{
+	std::cout << name << ":" << value;
+}
+
+void DebugPrintf::Float(const String& name, float value)
+{
+	std::cout << name << ":" <<value;
+}
+
 void DebugPrintf::Vec3(const Vector3& value)
 {
 	std::cout << value.x << "," << value.y << "," << value.z;
@@ -19,7 +30,7 @@ void DebugPrintf::NewLine()
 }
 void DebugPrintf::Vec3(const String& name, const Vector3& value)
 {
-	std::cout << name.data() << ":";
+	std::cout << name.data() << ":" << value.x << "," << value.y << "," << value.z;
 }
 
 void DebugPrintf::Vec4(const String& name, const Vector4& value)
@@ -40,7 +51,11 @@ void DebugPrintf::Mat4(const String& name, const Matrix4x4& mat)
 void DebugPrintf::StringStr(const String& name, const String& str)
 {
 	std::cout << name << ":" << str;
+}
 
+void DebugPrintf::StringStr(const String& name)
+{
+	std::cout << name;
 }
 
 void DebugPrintf::Vec3Array(const String& name, const Vector<Vector3>& data)

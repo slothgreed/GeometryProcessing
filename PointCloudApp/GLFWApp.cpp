@@ -97,7 +97,7 @@ void GLFWApp::Initialize()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	m_windowSize = Vector2i(1024, 768);
 	m_window = glfwCreateWindow(m_windowSize.x, m_windowSize.y, "PointCloudApp", NULL, NULL);
 	if (m_window == NULL) {
@@ -129,6 +129,7 @@ void GLFWApp::Initialize()
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();
 	m_pCamera->SetPerspective(45, 1, 0.1, 1000000);
+	//m_pCamera->SetOrtho(Camera::Ortho(-300, 300, 300, -300, -300, 300));
 	m_pCamera->SetLookAt(Vector3(0, 0, -1), Vector3(0, 0, 0), Vector3(0, 1, 0));
 	m_pCamera->SetViewport(Vector4i(0, 0, m_windowSize.x, m_windowSize.y));
 	m_pCameraController = std::make_unique<CameraController>(m_pCamera);

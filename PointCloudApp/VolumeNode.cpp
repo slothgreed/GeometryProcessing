@@ -45,7 +45,7 @@ void VolumeNode::VolumeImageShader::SetPosition(GLBuffer* pPosition)
 	glBindVertexBuffer(ATTRIB_POSITION, pPosition->Handle(), 0, pPosition->SizeOfData());
 }
 
-void VolumeNode::VolumeImageShader::SetPosition(Plane::Axis axis, float position)
+void VolumeNode::VolumeImageShader::SetPosition(PlanePrimitive::Axis axis, float position)
 {
 	BindUniform(m_uPosition, Vector4((float)axis, position, 0.0f, 0.0f));
 }
@@ -206,7 +206,7 @@ void VolumeNode::BuildResource()
 	m_gpu.pPlaneTex = std::make_unique<GLBuffer>();
 	m_gpu.pPlaneIndex = std::make_unique<GLBuffer>();
 
-	auto plane = Plane(GetBoundBox().Min(), GetBoundBox().Max(), 0.0f, KI::Plane::X, true);
+	auto plane = PlanePrimitive(GetBoundBox().Min(), GetBoundBox().Max(), 0.0f, KI::PlanePrimitive::X, true);
 	m_gpu.pPlane->Create(plane.Position());
 	m_gpu.pPlaneTex->Create(plane.Texcoord());
 	m_gpu.pPlaneIndex->Create(plane.Index());
@@ -285,19 +285,19 @@ void VolumeNode::Draw(const DrawContext& context)
 		m_pVolumeImageShader->SetTexcoord(m_gpu.pPlaneTex.get());
 		m_pVolumeImageShader->SetTexture(m_pTexture3D.get());
 		if (m_ui.xPlane.visible) {
-			m_pVolumeImageShader->SetPosition(Plane::X, m_ui.xPlane.position);
+			m_pVolumeImageShader->SetPosition(PlanePrimitive::X, m_ui.xPlane.position);
 			m_pVolumeImageShader->SetModel(GetMatrix() * m_ui.xPlane.matrix);
 			m_pVolumeImageShader->DrawElement(GL_TRIANGLES, m_gpu.pPlaneIndex.get());
 		}
 
 		if (m_ui.yPlane.visible) {
-			m_pVolumeImageShader->SetPosition(Plane::Y, m_ui.yPlane.position);
+			m_pVolumeImageShader->SetPosition(PlanePrimitive::Y, m_ui.yPlane.position);
 			m_pVolumeImageShader->SetModel(GetMatrix() * m_ui.yPlane.matrix);
 			m_pVolumeImageShader->DrawElement(GL_TRIANGLES, m_gpu.pPlaneIndex.get());
 		}
 
 		if (m_ui.zPlane.visible) {
-			m_pVolumeImageShader->SetPosition(Plane::Z, m_ui.zPlane.position);
+			m_pVolumeImageShader->SetPosition(PlanePrimitive::Z, m_ui.zPlane.position);
 			m_pVolumeImageShader->SetModel(GetMatrix() * m_ui.zPlane.matrix);
 			m_pVolumeImageShader->DrawElement(GL_TRIANGLES, m_gpu.pPlaneIndex.get());
 		}
@@ -312,21 +312,21 @@ void VolumeNode::ShowUI(UIContext& ui)
 	ImGui::Checkbox("VisibleX", &m_ui.xPlane.visible);
 	if (m_ui.xPlane.visible) {
 		if (ImGui::SliderFloat("XPlane", &m_ui.xPlane.position, GetBoundBox().Min().x, GetBoundBox().Max().x, "%lf", 1.0f)) {
-			m_ui.xPlane.matrix = Plane::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.xPlane.position, Plane::X);
+			m_ui.xPlane.matrix = PlanePrimitive::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.xPlane.position, PlanePrimitive::X);
 		}
 	}
 
 	ImGui::Checkbox("VisibleY", &m_ui.yPlane.visible);
 	if (m_ui.yPlane.visible) {
 		if (ImGui::SliderFloat("YPlane", &m_ui.yPlane.position, GetBoundBox().Min().y, GetBoundBox().Max().y, "%lf", 1.0f)) {
-			m_ui.yPlane.matrix = Plane::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.yPlane.position, Plane::Y);
+			m_ui.yPlane.matrix = PlanePrimitive::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.yPlane.position, PlanePrimitive::Y);
 		}
 	}
 
 	ImGui::Checkbox("VisibleZ", &m_ui.zPlane.visible);
 	if (m_ui.zPlane.visible) {
 		if (ImGui::SliderFloat("ZPlane", &m_ui.zPlane.position, GetBoundBox().Min().z, GetBoundBox().Max().z, "%lf", 1.0f)) {
-			m_ui.zPlane.matrix = Plane::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.zPlane.position, Plane::Z);
+			m_ui.zPlane.matrix = PlanePrimitive::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.zPlane.position, PlanePrimitive::Z);
 		}
 	}
 

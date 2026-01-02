@@ -14,6 +14,7 @@ enum ALGORITHM_TYPE
 	ALGORITHM_SHAPE_DIAMETER,
 	ALGORITHM_SIGNED_DISTANCE_FIELD,
 	ALGORITHM_VOXELIZER,
+	ALGORITHM_MINIMUM_SPANNING_TREE,
 	ALGORITHM_BVH,
 };
 class IAlgorithm
@@ -23,7 +24,7 @@ public:
 	virtual ~IAlgorithm() {};
 	virtual ALGORITHM_TYPE GetType() = 0;
 	virtual void Execute() {};
-	virtual void ShowUI(RenderNode* pNode, UIContext& ui) = 0;
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui) {};
 private:
 
 };

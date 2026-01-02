@@ -75,11 +75,17 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 	return programId;
 }
 
-GLuint ShaderUtility::Link(GLuint vertexId, GLuint geomId, GLuint fragId)
+GLuint ShaderUtility::Link(GLuint meshId, GLuint taskId, GLuint fragId)
+{
+	return ShaderUtility::Link(meshId, taskId, fragId, 0, 0);
+}
+GLuint ShaderUtility::Link(GLuint vertexId, GLuint tescId, GLuint teseId, GLuint geomId, GLuint fragId)
 {
 	GLuint programId = glCreateProgram();
 
 	if (vertexId != 0) glAttachShader(programId, vertexId);
+	if (tescId != 0) glAttachShader(programId, tescId);
+	if (teseId != 0) glAttachShader(programId, teseId);
 	if (geomId != 0) glAttachShader(programId, geomId);
 	if (fragId != 0) glAttachShader(programId, fragId);
 

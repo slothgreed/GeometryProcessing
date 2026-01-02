@@ -72,6 +72,99 @@ Vector<Vector3> MeshAlgorithm::CreatePoissonSampleVolume(HalfEdgeNode& halfEdge)
 
     return poisson;
 }
+
+Vector<Vector3> MeshAlgorithm::CreateKruskulMST(const HalfEdgeStruct& halfEdge, Vector<Vector3>& seam, float weight)
+{
+    struct UnionFind
+    {
+        std::vector<int> parent;
+        std::vector<int> rank;
+
+        UnionFind(int n)
+        {
+            parent.resize(n);
+            rank.resize(n);
+            for (int i = 0; i < n; i++) {
+                parent[i] = i;
+                rank[i] = 0;
+            }
+        }
+
+        int FindRoot(int x)
+        {
+            if (parent[x] == x) { return x; }
+            parent[x] = FindRoot(parent[x]);
+            return parent[x];
+        }
+
+        bool Unite(int x, int y)
+        {
+            x = FindRoot(x);
+            y = FindRoot(y);
+            if (x == y) return false;
+
+            if (rank[x] < rank[y]) {
+                parent[x] = y;
+            } else {
+                parent[y] = x;
+                if (rank[x] == rank[y]) {
+                    rank[x]++;
+                }
+            }
+
+            return true;
+        }
+
+        bool IsSame(int x, int y)
+        {
+            return FindRoot(x) == FindRoot(y);
+        }
+    };
+
+    struct Edge
+    {
+        int index;
+        int begin;
+        int end;
+        float weight;
+    };
+
+    Vector<Edge> edges(halfEdge.GetHalfEdges().size());
+    for (size_t i = 0; i < edges.size(); i++) {
+        auto indexedEdge = halfEdge.GetIndexedEdge(i);
+        edges[i].index = i;
+        edges[i].begin = indexedEdge[0];
+        edges[i].end = indexedEdge[1];
+
+        auto he = halfEdge.GetEdge(i);
+        edges[i].weight = (1 - std::abs(halfEdge.CalcDihedralAngle(i))) / glm::length(he.begin - he.end);
+    }
+
+    std::sort(edges.begin(), edges.end(),
+        [](const Edge& a, const Edge& b)
+    {
+        return a.weight < b.weight;
+    });
+
+
+    Vector<Vector3> pos;
+    UnionFind uf(edges.size());
+    const auto& vertexs = halfEdge.GetVertex();
+    for (auto& e : edges) {
+        if (e.begin > e.end) continue;
+        if (uf.Unite(e.begin, e.end)) {
+            pos.push_back(vertexs[e.begin]);
+            pos.push_back(vertexs[e.end]);
+        } else {
+            if (e.weight > weight) {
+                seam.push_back(vertexs[e.begin]);
+                seam.push_back(vertexs[e.end]);
+            }
+        }
+    }
+
+    return pos;
+}
 Vector<Vector3> MeshAlgorithm::CreatePoissonSampleOnFace(const HalfEdgeStruct& halfEdge)
 {
     std::vector<float> areas(halfEdge.GetFaceNum());

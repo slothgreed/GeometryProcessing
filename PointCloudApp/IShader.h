@@ -19,6 +19,8 @@ enum SHADER_PROGRAM
 	SHADER_PROGRAM_FRAG,
 	SHADER_PROGRAM_TASK,
 	SHADER_PROGRAM_MESH,
+	SHADER_PROGRAM_TES_CONTROL,
+	SHADER_PROGRAM_TES_EVAL,
 	SHADER_PROGRAM_COMPUTE
 };
 
@@ -79,6 +81,10 @@ public:
 	void BindIndexBuffer(const GLBuffer* pBuffer);
 	void SetVertexFormat(const VertexFormats& format);
 	void SetVertexFormat(const VertexFormat& format);
+
+	// tessellation
+	void PatchParameteri(int num);
+
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer);
 	void DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer, int num, int offset);
 	void DrawElementInstaced(GLuint primitiveType, GLBuffer* pIndexBuffer, int instanceNum);
@@ -89,8 +95,7 @@ public:
 	void DrawElementsBaseVertex(const DrawArgs& args);
 	void DrawElementsBaseVertex(GLuint primitiveType, uint count, GLuint type, void* offset, uint baseVertex);
 private:
-	GLuint BuildVertexFrag(const String& vert, const String& frag);
-	GLuint BuildVertexGeomFrag(const String& vert, const String& geom, const String& frag);
+	GLuint Compile(const String& vert, const String& tesc, const String& tese, const String & geom, const String& frag);
 
 };
 

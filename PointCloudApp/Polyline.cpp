@@ -6,27 +6,35 @@ namespace KI
 {
 
 Polyline::Polyline(Vector<Vector3>&& points)
-	:m_points(std::move(points)) 
-    ,m_hint(Hint::None)
+	: m_points(std::move(points)) 
+    , m_pUVConverter(nullptr)
+    , m_hint(Hint::None)
 {
-    if (!IsPlane()) {
-        assert(0);
-    }
 }
 
-void Polyline::Add(Vector<Vector3>&& point)
+Polyline::Polyline(Vector<Vector3>&& points, Hint hint)
+    : m_points(std::move(points))
+    , m_pUVConverter(nullptr)
+    , m_hint(hint)
 {
-    STLUtil::Insert(m_points, point);
-    m_points = CreateUnique();
-    m_hint = Hint::Arbitrary;
 }
 
-void Polyline::Add(Polyline&& polyline)
+Polyline::Polyline(Vector<Vector3>&& points, Vector<unsigned int> uInt, Hint hint)
+    : m_points(std::move(points))
+    , m_pUVConverter(nullptr)
+    , m_indexs(uInt)
+    , m_hint(hint)
 {
-    STLUtil::Insert(m_points, polyline.m_points);
-    m_points = CreateUnique();
-    m_hint = Hint::Arbitrary;
 }
+
+void Polyline::AddLoop(Polyline&& point)
+{
+    STLUtil::Insert(m_points, point.m_points);
+    m_points = CreateUnique();
+    m_hint = Hint::LineLoop;
+}
+
+
 void Polyline::AddCircle(Polyline&& circle)
 {
     STLUtil::Insert(m_points, circle.m_points);
@@ -71,6 +79,7 @@ Vector<unsigned int> Polyline::CreateTriangles() const
 
 Vector<Vector3> Polyline::CraeteDelaunay(const Polyline& target, const Polyline& inner)
 {
+    if (target.m_points.size() == 0) { return Vector<Vector3>(); }
     DelaunayGenerator delaunay;
     delaunay.SetTarget(&target.Get());
     
@@ -124,16 +133,31 @@ Vector<Vector3> Polyline::CreateTrianglePoints(bool ccw) const
 Vector<Vector3> Polyline::CreateLinePoints() const
 {
     if (m_points.size() == 0) { return Vector<Vector3>(); }
-	Vector<Vector3> points;
-	for (size_t i = 0; i < m_points.size() - 1; i++) {
-		points.push_back(m_points[i]);
-		points.push_back(m_points[i + 1]);
-	}
+    if (m_hint == Hint::LineLoop) {
+        Vector<Vector3> points;
+        for (size_t i = 0; i < m_points.size() - 1; i++) {
+            points.push_back(m_points[i]);
+            points.push_back(m_points[i + 1]);
+        }
 
-	points.push_back(m_points[m_points.size() - 1]);
-	points.push_back(m_points[0]);
+        points.push_back(m_points[m_points.size() - 1]);
+        points.push_back(m_points[0]);
+        return points;
+    } else if(m_hint == Hint::Lines) {
+        if (m_indexs.size() == 0) {
+            return m_points;
+        }
 
-	return points;
+        Vector<Vector3> points;
+        for (size_t i = 0; i < m_indexs.size(); i++) {
+            points.push_back(m_points[m_indexs[i]]);
+        }
+
+        return points;
+    } 
+
+    return Vector<Vector3>();
+
 }
 Vector3 Polyline::GetNormal() const
 {

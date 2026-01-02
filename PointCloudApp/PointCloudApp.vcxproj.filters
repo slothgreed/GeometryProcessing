@@ -287,6 +287,12 @@
     <ClCompile Include="Polyline.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
+    <ClCompile Include="HalfEdgeController.cpp">
+      <Filter>ソース ファイル\Utility\HalfEdge</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -531,6 +537,15 @@
     </ClInclude>
     <ClInclude Include="Polyline.h">
       <Filter>ソース ファイル\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseController.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="HalfEdgeController.h">
+      <Filter>ソース ファイル\Utility\HalfEdge</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainNode.h">
+      <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

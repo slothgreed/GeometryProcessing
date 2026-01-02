@@ -15,6 +15,7 @@ public:
 	~DebugNode() {};
 
 	void DrawNode(const DrawContext& context);
+	void SetPrimitive(const Shared<Primitive>& pPrimitive);
 	void SetPrimitive(const std::vector<Shared<Primitive>>& pPrimitive);
 protected:
 	virtual void ShowUI(UIContext& ui) {};
@@ -57,6 +58,22 @@ private:
 	void BuildDebugPrimitive();
 	Vector<Shared<Primitive>> m_pPrimitive;
 	DelaunayGenerator m_Delaunay;
+
+};
+
+
+class GridNode : public DebugNode
+{
+public:
+	GridNode(const String& name, const Vector3& min, const Vector3& max, float interval);
+	~GridNode() {};
+
+private:
+
+	Vector3 m_min;
+	Vector3 m_max;
+	float m_interval;
+	Shared<Primitive> m_pPrimitive;
 
 };
 

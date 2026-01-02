@@ -163,6 +163,16 @@ bool MathHelper::IsZ(const Vector3& value)
 	return IsOne(fabs(dotVal));
 }
 
+Vector3 MathHelper::Transform(const Matrix4x4& matrix, const Vector3& world)
+{
+	auto transformed = matrix * Vector4(world, 1.0f);
+	if (transformed.w != 0.0f) {
+		transformed /= transformed.w;
+	}
+
+	return Vector3(transformed);
+}
+
 Vector<Vector3> MathHelper::Rotate(const Vector<Vector3>& point, const Matrix4x4& matrix)
 {
 	if (matrix == Matrix4x4(1.0f)) { return point; }
@@ -341,6 +351,32 @@ Ray::IntersectResult Ray::Intersect(const BDB& bdb) const
 	return Ray::IntersectResult::CreateFailed();
 
 }
+
+Ray::IntersectResult Ray::Intersect(const Plane& plane) const
+{
+	// 平面とレイの交差を求める公式
+	//  t = dot(P0 - O, n) / dot(d, n)
+	//  P0: 平面上の一点 (m_point)
+	//  n : 平面の法線 (m_normal, 正規化推奨)
+	//  O : ray origin
+	//  d : ray direction
+
+	float denom = glm::dot(m_direction, plane.GetNormal());
+
+	// レイが平面と平行（または一致）している場合
+	if (fabs(denom) < 1e-6f) {
+		return IntersectResult::CreateFailed();
+	}
+
+	float t = glm::dot(plane.GetPoint() - m_origin, plane.GetNormal()) / denom;
+
+	// t < 0 はレイの後方なので交差なし
+	if (t < 0.0f) {
+		return IntersectResult::CreateFailed();
+	}
+
+	return IntersectResult(m_origin + m_direction * t, t);
+}
 void MathHelper::CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right)
 {
 	auto edge = end - begin;
@@ -391,4 +427,5 @@ bool MathHelper::IsLoop(const Vector<Vector3>& polyline)
 	if (polyline.size() == 0) return false;
 	return polyline[0] == polyline[polyline.size() - 1];
 }
+
 }

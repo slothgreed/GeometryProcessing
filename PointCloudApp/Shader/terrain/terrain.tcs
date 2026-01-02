@@ -1,0 +1,34 @@
+layout (vertices=4) out;
+
+in flat int tc_InstanceID[];
+in vec2 tc_texCoord[];
+
+out vec2 te_texCoord[];
+out flat int te_InstanceID[];
+
+uniform int u_levelOuter;
+uniform int u_levelInner;
+
+void main()
+{
+	gl_out[gl_InvocationID].gl_Position = 
+	gl_in[gl_InvocationID].gl_Position;
+	te_texCoord[gl_InvocationID] = 
+	tc_texCoord[gl_InvocationID];
+	
+	te_InstanceID[gl_InvocationID] = 
+	tc_InstanceID[gl_InvocationID];
+	
+	
+	if(gl_InvocationID == 0)
+	{
+		gl_TessLevelOuter[0] = u_levelOuter;
+		gl_TessLevelOuter[1] = u_levelOuter;
+		gl_TessLevelOuter[2] = u_levelOuter;
+		gl_TessLevelOuter[3] = u_levelOuter;
+								 
+		gl_TessLevelInner[0] = u_levelInner;
+		gl_TessLevelInner[1] = u_levelInner;
+
+	}
+}

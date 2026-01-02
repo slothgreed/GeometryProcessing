@@ -183,13 +183,13 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polylin
 
 
 	// polyline外にある三角形を削除する。
-	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
-		if (!MathHelper::InPolyline(polyline, it->GetGravity(this), true)) {
-			it = m_Delaunay.erase(it);
-		} else {
-			++it;
-		}
-	}
+	//for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
+	//	if (!MathHelper::InPolyline(polyline, it->GetGravity(this), true)) {
+	//		it = m_Delaunay.erase(it);
+	//	} else {
+	//		++it;
+	//	}
+	//}
 
 	// inner内にある三角形を削除する。
 	for (int i = 0; i < inPolyline.size(); i++) {

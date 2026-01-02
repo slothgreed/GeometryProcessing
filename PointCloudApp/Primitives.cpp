@@ -66,8 +66,7 @@ Cube Cube::CreateLine(const Vector3& min, const Vector3& max)
 	return cube;
 }
 
-
-Plane::Plane(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord)
+PlanePrimitive::PlanePrimitive(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord)
 {
 	if (axis == Axis::X) {
 		m_position.push_back(Vector3(position, min.y, min.z));
@@ -112,7 +111,7 @@ Plane::Plane(const Vector3& min, const Vector3& max, float position, Axis axis, 
 	m_primitiveType = GL_TRIANGLES;
 }
 
-Matrix4x4 Plane::CreateMatrix(const Vector3& min, const Vector3& max, float position, Axis axis)
+Matrix4x4 PlanePrimitive::CreateMatrix(const Vector3& min, const Vector3& max, float position, Axis axis)
 {
 	// Step 1: 幅と高さ（他の2軸）を求める
 	switch (axis) {
@@ -255,11 +254,8 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 	m_primitiveType = GL_TRIANGLES;
 }
 
-Cylinder::Mesh Cylinder::CreateMeshs(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
+Polyline Cylinder::CreateOuterLine(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
 {
-	Cylinder::Mesh mesh;
-	Polyline top;
-	Polyline bottom;
 	// 軸から直交基底を構築
 	auto Z = glm::normalize(axis);
 	auto tmp = (fabs(Z.x) < 0.9f) ? Vector3(1, 0, 0) : Vector3(0, 1, 0);
@@ -267,50 +263,47 @@ Cylinder::Mesh Cylinder::CreateMeshs(const Vector3& baseCenter, const Vector3& a
 	auto Y = glm::cross(Z, X);
 
 	// グリッド状に頂点を計算
-	Vector<Vector<Vector3>> grid(stacks + 1, Vector<Vector3>(slices + 1));
-	for (int j = 0; j <= stacks; ++j) {
-		float v = (float)j / stacks;
-		float h = v * height;
+	Vector<Vector3> top(slices);
+	Vector<Vector3> bottom(slices);
+	for (int i = 0; i < slices; ++i) {
+		float u = (float)i / slices * glm::two_pi<float>();
+		auto fCos = cos(u);
+		auto fSin = sin(u);
+		auto pos = baseCenter + radius * (fCos * X + fSin * Y);
 
-		for (int i = 0; i <= slices; ++i) {
-			float u = (float)i / slices * glm::two_pi<float>();
-			auto pos = baseCenter + radius * (cos(u) * X + sin(u) * Y) + h * Z;
-			grid[j][i] = pos;
-		}
+		bottom[i] = (pos);
+		top[slices - i - 1] = (pos + height * Z);
 	}
 
-	// 三角形とワイヤーを生成
-	for (int j = 0; j < stacks; ++j) {
-		for (int i = 0; i < slices; ++i) {
-			auto p0 = grid[j][i];
-			auto p1 = grid[j][i + 1];
-			auto p2 = grid[j + 1][i];
-			auto p3 = grid[j + 1][i + 1];
+	Vector<unsigned int> lines;
+	
 
-			// 三角形1
-			mesh.triangles.push_back(p0);
-			mesh.triangles.push_back(p2);
-			mesh.triangles.push_back(p1);
-
-			// 三角形2
-			mesh.triangles.push_back(p1);
-			mesh.triangles.push_back(p2);
-			mesh.triangles.push_back(p3);
-
-			if (j == 0) {
-				// ワイヤー: 周方向（下）
-				top.Add(p0);
-			} else if (j == stacks - 1) {
-				// ワイヤー: 周方向（上）
-				bottom.Add(p2);
-			}
+	lines.push_back(2 * slices - 1);
+	lines.push_back(0);
+	// bottom
+	{	
+		for (size_t i = 0; i < bottom.size() - 1; i++) {
+			lines.push_back(i);	lines.push_back(i + 1);
 		}
+
+		lines.push_back(slices - 1);
+		lines.push_back(0);
 	}
 
-	mesh.polyline.Add(std::move(top));
-	mesh.polyline.Add(std::move(bottom));
+	// top
+	lines.push_back(0);
+	lines.push_back(2 * slices - 1);
+	{
+		for (size_t i = 0; i < slices - 1; i++) {
+			lines.push_back(slices + i);	lines.push_back(slices + i + 1);
+		}
 
-	return mesh;
+		lines.push_back(2 * slices - 1);
+		lines.push_back(slices);
+
+	}
+	STLUtil::Insert(top, bottom);
+	return Polyline(std::move(top), std::move(lines), Polyline::Hint::Lines);
 }
 
 
@@ -471,6 +464,22 @@ void Axis::Build(float size)
 	m_primitiveType = GL_LINES;
 }
 
+Vector2 CircleUVConverter::toUV(const Vector3& xyz)
+{
+	Vector3 d = xyz - m_center;
+	double x = dot(d, m_uAxis);
+	double y = dot(d, m_vAxis);
+	double theta = std::atan2(y, x); // [-pi, pi]
+	if (theta < 0) theta += 2.0 * glm::pi<float>();
+	return { theta / (2.0 * glm::pi<float>()), 0.0 };
+}
+Vector3 CircleUVConverter::toXYZ(const Vector2& uv)
+{
+	double theta = uv.x * 2.0 * glm::pi<float>();
+	return m_center + m_uAxis * (m_radius * std::cosf(theta))
+		+ m_vAxis * (m_radius * std::sinf(theta));
+}
+
 Circle::Circle(float radius, const Vector3& center)
 {
 	Build(radius, 360, center);
@@ -484,18 +493,25 @@ Circle::~Circle()
 {
 }
 
-Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center)
+Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient)
 {
 	Vector<Vector3> points;
-	for (int i = 0; i < pointNum; i++) {
-		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
-		points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
+	if (orient) {
+		for (int i = 0; i < pointNum; i++) {
+			auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
+			points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
+		}
+	} else {
+		for (int i = pointNum - 1; i >= 0; i--) {
+			auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
+			points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
+		}
 	}
 
 	return Polyline(std::move(points));
 }
 
-Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end)
+Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient, const Vector3& begin, const Vector3& end)
 {
 	Vector<Vector3> points;
 
@@ -512,15 +528,24 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 	float endAngle = toAngle(end);
 
 	float delta = endAngle - beginAngle;
-	if (delta > 3.14159f) { assert(0); delta -= 2.0f * 3.14159f; }
-	if (delta < -3.14159f) { assert(0); delta += 2.0f * 3.14159f; }
+	if (delta > 3.14159f) { delta -= 2.0f * 3.14159f; }
+	if (delta < -3.14159f) { delta += 2.0f * 3.14159f; }
 
 	// 円弧を分割して点を生成
-	for (int i = 0; i <= pointNum; i++) {
-		float t = i / (float)pointNum;
-		float angle = beginAngle + t * delta;
-		Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
-		points.push_back(p);
+	if (orient) {
+		for (int i = 0; i <= pointNum; i++) {
+			float t = i / (float)pointNum;
+			float angle = beginAngle + t * delta;
+			Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
+			points.push_back(p);
+		}
+	} else {
+		for (int i = pointNum; i >= 0; i--) {
+			float t = i / (float)pointNum;
+			float angle = beginAngle + t * delta;
+			Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
+			points.push_back(p);
+		}
 	}
 
 	return Polyline(std::move(points));

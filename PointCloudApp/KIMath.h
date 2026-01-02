@@ -30,6 +30,7 @@ public:
 	static bool IsZPlus(const Vector3& value);
 	static bool IsZMinus(const Vector3& value);
 	static bool IsZ(const Vector3& value);
+	static Vector3 Transform(const Matrix4x4& matrix, const Vector3& world);
 	static Vector<Vector3> To2D(const Vector<Vector3>& point);
 	static Vector<Vector3> Rotate(const Vector<Vector3>& point, const Matrix4x4& matrix);
 	static Matrix4x4 CreateZAxisMatrix(const Vector3& normal);
@@ -63,7 +64,21 @@ private:
 };
 
 
-
+class Plane
+{
+public:
+	Plane(const Vector3& point, const Vector3& normal)
+		: m_point(point)
+		, m_normal(normal)
+	{
+	}
+	~Plane() {};
+	const Vector3& GetPoint() const { return m_point; }
+	const Vector3& GetNormal() const { return m_normal; }
+private:
+	Vector3 m_point;
+	Vector3 m_normal;
+};
 class Ray
 {
 public:
@@ -110,10 +125,13 @@ public:
 	// orient = true : å¸Ç´Ççló∂Ç∑ÇÈÅB
 	IntersectResult Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient) const;
 	IntersectResult Intersect(const BDB& bdb) const;
+	IntersectResult Intersect(const Plane& plane) const;
+
 private:
 	Vector3 m_origin;
 	Vector3 m_direction;
 };
+
 }
 
 

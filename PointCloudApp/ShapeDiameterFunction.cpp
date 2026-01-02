@@ -90,7 +90,6 @@ void ShapeDiameterFunction::ShowUI(RenderNode* pNode, UIContext& ui)
 {
 	if (ImGui::SliderInt("ShapeDiameterFunctionDebug",&m_debugIndex,-1,m_pHalfEdge->GetData()->GetVertexNum(),"%d", ImGuiSliderFlags_Logarithmic)) {
 		if (m_debugIndex < 0) { return; }
-		auto pRays = std::make_shared<Primitive>();
 		Vector<Vector3> pos;
 		for (int i = m_debugIndex; i < m_debugIndex; i++) {
 			auto pHalfEdge = m_pHalfEdge->GetData();
@@ -112,6 +111,7 @@ void ShapeDiameterFunction::ShowUI(RenderNode* pNode, UIContext& ui)
 
 
 		}
+		auto pRays = std::make_shared<Primitive>();
 		pRays->SetPosition(std::move(pos));
 		pRays->SetType(GL_LINES);
 		auto pNode = std::make_shared<PrimitiveNode>("ShapeDiameterRay", pRays, ColorUtility::CreatePrimary(1));

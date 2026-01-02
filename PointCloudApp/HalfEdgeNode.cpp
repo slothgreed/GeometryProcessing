@@ -9,7 +9,7 @@
 #include "BVH.h"
 #include "GeometryUtility.h"
 #include "PrimitiveNode.h"
-
+#include "HalfEdgeController.h"
 namespace KI
 {
 
@@ -20,9 +20,10 @@ HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pSt
 	, m_pVoxelizer(nullptr)
 	, m_pSignedDistanceField(nullptr)
 	, m_pShapeDiameterFunction(nullptr)
-
+	, m_pController(new HalfEdgeController(this))
 {
 
+	m_updateData.set();
 	BuildGLBuffer();
 	SetBoundBox(pStruct->CreateBDB());
 
@@ -38,6 +39,7 @@ HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pSt
 
 HalfEdgeNode::~HalfEdgeNode()
 {
+	RELEASE_INSTANCE(m_pController);
 	RELEASE_INSTANCE(m_pShapeDiameterFunction);
 	RELEASE_INSTANCE(m_pVoxelizer);
 	RELEASE_INSTANCE(m_pBVH);
@@ -53,19 +55,27 @@ const HalfEdgeNode::HalfEdgeParts* HalfEdgeNode::HalfEdgeParts::Cast(const Rende
 String HalfEdgeNode::HalfEdgeParts::ToString()
 {
 	std::stringstream ss;
-	if (type == Face) {
+	if (type == Type::Face) {
 		ss << "Face : " << parts;
-	} else if (type == Edge) {
+	} else if (type == Type::Edge) {
 		ss << "Edge : " << parts;
-	} else if (type == Vertex) {
+	} else if (type == Type::Vertex) {
 		ss << "Vertex : " << parts;
 	}
 	return ss.str();
 }
 void HalfEdgeNode::BuildGLBuffer()
 {
-	m_gpu.position = std::make_unique<GLBuffer>();
-	m_gpu.position->Create(m_pHalfEdge->GetVertex());
+	if (!m_updateData.any()) { return; }
+	if (m_updateData[UPDATE_VERTEX]) {
+		if (!m_gpu.position) {
+			m_gpu.position = std::make_unique<GLBuffer>();
+			m_gpu.position->Create(m_pHalfEdge->GetVertex());
+		} else {
+			m_gpu.position->BufferSubData(0, m_pHalfEdge->GetVertex());
+			return;
+		}
+	}
 	m_gpu.normal = std::make_unique<GLBuffer>();
 	m_gpu.normal->Create(m_pHalfEdge->GetNormal());
 	m_gpu.faceIndexBuffer = std::make_unique<GLBuffer>();
@@ -141,9 +151,10 @@ void HalfEdgeNode::BuildBVH()
 
 void HalfEdgeNode::DrawNode(const DrawContext& context)
 {
+	BuildGLBuffer();
 	if (!m_ui.visible) { return; }
 	auto pResource = context.pResource;
-	auto pFaceShader = pResource->GetShaderTable()->GetFaceShader();
+	auto& pFaceShader = pResource->GetShaderTable()->GetFaceShader();
 	context.pResource->GetRenderTarget()->Bind();
 	context.pResource->GL()->PushRenderTarget(context.pResource->GetRenderTarget(), pFaceShader->GetDrawTargetNum());
 	if (!m_ui.visibleMesh) {
@@ -164,7 +175,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	}
 
 	if (m_ui.visibleEdge || m_ui.visibleVertex) {
-		auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+		auto& pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
 		pSimpleShader->SetPosition(m_gpu.position.get());
 		pSimpleShader->SetCamera(pResource->GetCameraBuffer());
@@ -270,7 +281,7 @@ void HalfEdgeNode::PickNode(const PickContext& context)
 	if (!m_ui.visible) { return; }
 
 	auto pResource = context.pResource;
-	auto pPickShader = pResource->GetShaderTable()->GetPointPickByPrimitive();
+	auto& pPickShader = pResource->GetShaderTable()->GetPointPickByPrimitive();
 	pPickShader->Use();
 	pPickShader->SetPosition(m_gpu.position.get());
 	pPickShader->SetCamera(pResource->GetCameraBuffer());
@@ -291,22 +302,56 @@ void HalfEdgeNode::PickNode(const PickContext& context)
 	}
 }
 
+void HalfEdgeNode::UpdateVertex()
+{
+	m_updateData[UPDATE_VERTEX] = true;
+}
 bool HalfEdgeNode::CollectPickedNode(PickResult& result)
 {
+	Shared<HalfEdgeParts> pPick = nullptr;
 	if (m_pickIds.face.Inner(result.id)) {
 		int faceId = result.id - m_pickIds.face.begin;
-		result.pResult[this] = std::make_unique<HalfEdgeParts>(HalfEdgeParts::Type::Face, faceId);
-		return true;
+		pPick = std::make_shared<HalfEdgeParts>(HalfEdgeParts::Type::Face, faceId);
 	} else if (m_pickIds.edge.Inner(result.id)) {
 		int edgeId = result.id - m_pickIds.edge.begin;
-		result.pResult[this] = std::make_unique<HalfEdgeParts>(HalfEdgeParts::Type::Edge, edgeId);
-		return true;
+		pPick = std::make_shared<HalfEdgeParts>(HalfEdgeParts::Type::Edge, edgeId);
 	} else if (m_pickIds.vertex.Inner(result.id)) {
 		int vertexId = result.id - m_pickIds.vertex.begin;
-		result.pResult[this] = std::make_unique<HalfEdgeParts>(HalfEdgeParts::Type::Vertex, vertexId);
+		pPick = std::make_shared<HalfEdgeParts>(HalfEdgeParts::Type::Vertex, vertexId);
+		if (m_ui.visibleVertex) {
+			m_pEditVertex = pPick;
+		} else {
+			m_pEditVertex = nullptr;
+		}
+		if (pPick) {
+			result.pResult[this] = pPick;
+		} else {
+			result.pResult.erase(this);
+		}
 		return true;
 	}
-	return false;
+	if (pPick) {
+		result.pResult[this] = pPick;
+	} else {
+		result.pResult.erase(this);
+	}
+	return pPick != nullptr;
+}
+
+void HalfEdgeNode::ProcessMouseEvent(const PickContext& context)
+{
+	if (context.pMouse->Event() == MOUSE_EVENT_DOWN) {
+		if (!m_pEditVertex || 
+			!m_pEditVertex->IsVertex()) {
+			m_pController->SetTarget(nullptr);
+		} else {
+			m_pController->SetTarget(m_pEditVertex);
+		}
+	} else if (context.pMouse->Event() == MOUSE_EVENT_UP) {
+		m_pEditVertex = nullptr;
+		m_pController->SetTarget(nullptr);
+	}
+
 }
 void HalfEdgeNode::DrawPartsNode(const DrawContext& context, const RenderParts& parts)
 {
@@ -319,11 +364,11 @@ void HalfEdgeNode::DrawPartsNode(const DrawContext& context, const RenderParts& 
 	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
 	pSimpleShader->SetModel(GetMatrix());
 	pSimpleShader->SetColor(Vector3(1.0f, 0.7f, 1.0f));
-	if (drawParts->type == HalfEdgeParts::Face) {
+	if (drawParts->IsFace()) {
 		pSimpleShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get(), 3, drawParts->parts * 3);
-	} else if (drawParts->type == HalfEdgeParts::Edge) {
+	} else if (drawParts->IsEdge()) {
 		pSimpleShader->DrawElement(GL_LINES, m_gpu.edgeIndexBuffer.get(), 2, drawParts->parts * 2);
-	} else if (drawParts->type == HalfEdgeParts::Vertex) {
+	} else if (drawParts->IsVertex()) {
 		pSimpleShader->DrawArray(GL_POINTS, drawParts->parts, 1);
 	}
 	context.pResource->GL()->EnableDepth();
@@ -461,6 +506,38 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		m_pVoxelizer->ShowUI(this, ui);
 	}
 
+	if (ImGui::Checkbox("CreateMST", &m_ui.mst.visible)) {
+		if (!m_ui.mst.visible)
+		{
+			RemoveNode("CreateMST");
+			RemoveNode("CreateMSTSeam");
+		}
+	}
+
+	if (m_ui.mst.visible) {
+		if (ImGui::SliderFloat("MSTWeight", &m_ui.mst.weight, 0.0f, 0.1f)) {
+			Vector<Vector3> seam;
+			auto mst = MeshAlgorithm::CreateKruskulMST(*GetData(), seam, m_ui.mst.weight);
+			{
+				auto pPoints = std::make_shared<Primitive>();
+				pPoints->SetPosition(std::move(mst));
+				pPoints->SetType(GL_LINES);
+				auto pNode = std::make_shared<PrimitiveNode>("CreateMST", pPoints, ColorUtility::CreatePrimary(1));
+				pNode->SetMatrix(GetMatrix());
+				//AddNode(pNode);
+
+			}
+			{
+				auto pPoints = std::make_shared<Primitive>();
+				pPoints->SetPosition(std::move(seam));
+				pPoints->SetType(GL_LINES);
+				auto pNode = std::make_shared<PrimitiveNode>("CreateMSTSeam", pPoints, ColorUtility::CreatePrimary(2));
+				pNode->SetMatrix(GetMatrix());
+				AddNode(pNode);
+			}
+		}
+	}
+
 	if (ImGui::Checkbox("CreatePoissonSampleVolume", &m_ui.poisson.volume)) {
 		if (m_ui.poisson.volume) {
 			auto pPoints = std::make_shared<Primitive>();
@@ -487,6 +564,10 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		}
 	} 
 
+	if (ImGui::Checkbox("EditVertex", &m_ui.editVertex)) {
+		m_ui.visibleVertex = true;
+		ui.SetCurrentController(m_pController);
+	}
 	
 }
 }

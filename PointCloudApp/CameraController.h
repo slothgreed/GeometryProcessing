@@ -2,26 +2,27 @@
 #define CAMERA_CONTROLLER_H
 
 #include "Camera.h"
-#include "Mouse.h"
+#include "MouseController.h"
 namespace KI
 {
-class CameraController
+class CameraController : public MouseController
 {
 public:
-	CameraController(const Shared<Camera>& pCamera) :m_pCamera(pCamera),m_ZoomRatio(0.1f) {};
+	CameraController(const Shared<Camera>& pCamera);
 	~CameraController() {};
-	bool Move(const Mouse& mouse);
-	bool Wheel(const Mouse&  mouse);
+	virtual bool Move(const EditContext& mouse);
+	virtual bool Wheel(const EditContext& mouse);
+	void SetAspect(float width, float height);
 	void RotateAnimation(float time, const BDB& bdb);
 	void FitToBDB(const BDB& bdb);
-
+	
 private:
 	void Zoom(float ratio);
 	void Rotate(const vec2& move);
 	void Translate(const vec2& move);
-	float m_ZoomRatio;
-
 	Shared<Camera> m_pCamera;
+	float m_ZoomRatio;
+	float m_oldAspect;
 
 };
 }

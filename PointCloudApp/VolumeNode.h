@@ -23,7 +23,7 @@ public:
 		void SetCamera(const GLBuffer* pBuffer);
 		void SetModel(const Matrix4x4& value) override;
 		void SetPosition(GLBuffer* pPosition);
-		void SetPosition(Plane::Axis axis, float position);
+		void SetPosition(PlanePrimitive::Axis axis, float position);
 		void SetTexture(Texture* pTexure);
 		void SetTexcoord(GLBuffer* pTexture);
 	private:

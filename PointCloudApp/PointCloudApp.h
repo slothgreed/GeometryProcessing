@@ -47,14 +47,16 @@ private:
 
 	PickResult m_pick;
 	UI m_ui;
+	UIContext m_uiContext;
 	Shared<RenderNode> CreateSpaceTest();
 	Shared<RenderNode> CreateGLTFAnimationTest();
 	Shared<RenderNode> CreateGLTFNodeTest();
 	Shared<RenderNode> CreateCSFNodeTest();
 	Shared<RenderNode> CreatePBRTest();
 	Shared<RenderNode> CreateVolumeTest();
+	Shared<RenderNode> CreateTerrain();
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
-	Shared<RenderNode> CreateSTEPNodeTest();
+	Vector<Shared<RenderNode>> CreateSTEPNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);
 	Shared<PointCloudNode> CreateDelaunayTest();
