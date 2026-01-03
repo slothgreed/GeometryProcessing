@@ -22,7 +22,7 @@ public:
 	TextureLoader();
 	~TextureLoader();
 
-	static Texture* Load(const String& name);
+	static Texture* Load(const String& name, bool useMipmap);
 	static PixelData* LoadData(const String& name, int comp);
 	static Voxel* LoadVolume(const String& name);
 private:

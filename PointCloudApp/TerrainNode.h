@@ -11,6 +11,31 @@ public:
 	TerrainNode();
 	~TerrainNode();
 
+	class ComputeLODShader : public IComputeShader
+	{
+	public:
+		ComputeLODShader() 
+			: m_uInstanceCount(0)
+			, m_upatchPositionNum(0) {};
+		~ComputeLODShader() {};
+
+		virtual ShaderPath GetShaderPath();
+		virtual void FetchUniformLocation();
+		virtual Vector3i GetLocalThreadNum() { return Vector3i(1, 1, 1); }
+		void BindInstanceCount(int num);
+		void BindPatchPositionNum(int num);
+		void BindCamera(const GLBuffer* pBuffer);
+		void BindInstance(const GLBuffer* pBuffer);
+		void BindVisible(const GLBuffer* pBuffer);
+		void BindDrawElementIndirect(const GLBuffer* pBuffer);
+
+
+	private:
+		GLuint m_uInstanceCount;
+		GLuint m_upatchPositionNum;
+	};
+
+
 	class Shader : public IShadingShader
 	{
 	public:
@@ -23,7 +48,7 @@ public:
 		void SetTexcoord(GLBuffer* pTexcoord);
 		void SetCamera(const GLBuffer* pBuffer);
 		void SetMatrix(const GLBuffer* pBuffer);
-
+		void BindLOD(bool value);
 		void BindShowWire(bool wire);
 		void BindTessLevel(int inner, int outer);
 		void BindMatrix(const Matrix4x4& matrix, float scale);
@@ -38,6 +63,7 @@ public:
 		GLuint m_uheightMap;
 		GLuint m_uHeight;
 		GLuint m_ushowWire;
+		GLuint m_uLOD;
 	};
 
 	virtual void Draw(const DrawContext& context);
@@ -52,6 +78,7 @@ public:
 			, visibleWire(false)
 			, tessInner(4)
 			, tessOuter(4)
+			, lod(false)
 		{
 		}
 		bool visible;
@@ -59,7 +86,7 @@ public:
 		bool visibleWire;
 		int tessInner;
 		int tessOuter;
-
+		bool lod;
 	};
 
 	struct Patch
@@ -68,20 +95,30 @@ public:
 		Vector<Vector3> texcoord;
 	};
 
-	struct InstanceData
+	struct PatchData
 	{
 		Matrix4x4 matrix;
+		Vector4 center;
 		float scale;
-		float padding[3];
+		float radius;
+		uint lod;
+		float padding[1];
 	};
 
 private:
 	UI m_ui;
+	int m_instanceCount;
 	Patch m_patch;
+	Unique<TerrainNode::ComputeLODShader> m_pComputeLODShader;
 	Unique<TerrainNode::Shader> m_pShader;
 	Unique<GLBuffer> m_pInstanceBuffer;
 	Unique<GLBuffer> m_pTexcoordBuffer;
 	Unique<GLBuffer> m_pPositionBuffer;
+
+	// LOD
+	Unique<GLBuffer> m_pVisibleIdBuffer;
+	Unique<GLBuffer> m_pDrawIndirectBuffer;
+
 	Unique<Texture> m_pRGB;
 	Unique<Texture> m_pHeight;
 

@@ -28,9 +28,10 @@ TextureLoader::~TextureLoader()
 {
 }
 
-Texture* TextureLoader::Load(const String& name)
+Texture* TextureLoader::Load(const String& name, bool useMipmap)
 {
 	auto pTexture = new Texture2D();
+	pTexture->UseMipmap();
 	int x, y, n;
 	auto data = stbi_load(name.data(), &x, &y, &n, 4);
 	pTexture->Build(x, y, data);

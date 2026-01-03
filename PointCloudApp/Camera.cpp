@@ -156,6 +156,55 @@ Ray Camera::CreateRay(const Vector2& screen) const
 
 	return Ray(nearPoint, glm::normalize(farPoint - nearPoint));
 }
+
+Camera::Frustum Camera::CreateFrustum() const
+{
+	auto VP = m_Project * m_View;
+	Camera::Frustum frustm{};
+	// Left
+	frustm.plane[0].x = VP[0][3] + VP[0][0];
+	frustm.plane[0].y = VP[1][3] + VP[1][0];
+	frustm.plane[0].z = VP[2][3] + VP[2][0];
+	frustm.plane[0].w = VP[3][3] + VP[3][0];
+	frustm.plane[0] /= glm::length(Vector3(frustm.plane[0]));
+
+	// Right
+	frustm.plane[1].x = VP[0][3] - VP[0][0];
+	frustm.plane[1].y = VP[1][3] - VP[1][0];
+	frustm.plane[1].z = VP[2][3] - VP[2][0];
+	frustm.plane[1].w = VP[3][3] - VP[3][0];
+	frustm.plane[1] /= glm::length(Vector3(frustm.plane[1]));
+
+	// Bottom
+	frustm.plane[2].x = VP[0][3] + VP[0][1];
+	frustm.plane[2].y = VP[1][3] + VP[1][1];
+	frustm.plane[2].z = VP[2][3] + VP[2][1];
+	frustm.plane[2].w = VP[3][3] + VP[3][1];
+	frustm.plane[2] /= glm::length(Vector3(frustm.plane[2]));
+
+	// Top
+	frustm.plane[3].x = VP[0][3] - VP[0][1];
+	frustm.plane[3].y = VP[1][3] - VP[1][1];
+	frustm.plane[3].z = VP[2][3] - VP[2][1];
+	frustm.plane[3].w = VP[3][3] - VP[3][1];
+	frustm.plane[3] /= glm::length(Vector3(frustm.plane[3]));
+
+	// Near
+	frustm.plane[4].x = VP[0][3] + VP[0][2];
+	frustm.plane[4].y = VP[1][3] + VP[1][2];
+	frustm.plane[4].z = VP[2][3] + VP[2][2];
+	frustm.plane[4].w = VP[3][3] + VP[3][2];
+	frustm.plane[4] /= glm::length(Vector3(frustm.plane[4]));
+
+	// Far
+	frustm.plane[5].x = VP[0][3] - VP[0][2];
+	frustm.plane[5].y = VP[1][3] - VP[1][2];
+	frustm.plane[5].z = VP[2][3] - VP[2][2];
+	frustm.plane[5].w = VP[3][3] - VP[3][2];
+	frustm.plane[5] /= glm::length(Vector3(frustm.plane[5]));
+
+	return frustm;
+}
 Vector2 Camera::GetOnePixelDistance(const Vector3& worldPos) const
 {
 	Vector3 screen = WorldToScreen(worldPos);

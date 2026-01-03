@@ -1,0 +1,51 @@
+
+layout(std430, binding = 0) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+layout(std430, binding = 1) buffer PatchBuffer
+{
+	PatchData patches[];
+};
+
+layout(std430, binding = 2) buffer VisibleBuffer
+{
+    uint visibleId[];
+};
+
+layout(std430, binding = 3) buffer DrawArrayIndirectBuffer
+{
+    DrawArrayIndirect drawCommand;
+};
+
+uniform int u_instanceCount;
+uniform int u_patchPositionNum;
+void main()
+{
+	if (gl_GlobalInvocationID.x == 0){
+		drawCommand.count = u_patchPositionNum;
+		drawCommand.first = 0;
+		drawCommand.baseInstance = 0;
+	}
+	
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= u_instanceCount) return;
+
+    PatchData patchData = patches[id];
+
+    float dist = distance(camera.eye.xyz, patchData.center.xyz);
+
+    float screenSize = patchData.radius / dist;
+
+    uint lod =
+        screenSize > 0.25 ? 4 :
+        screenSize > 0.10 ? 3 :
+        screenSize > 0.05 ? 2 :
+        screenSize > 0.02 ? 1 : 0;
+
+    patchData.lod = lod;
+    patches[id] = patchData;
+    uint index = atomicAdd(drawCommand.instanceCount, 1);
+    visibleId[index] = id;
+}

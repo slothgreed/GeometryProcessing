@@ -7,15 +7,67 @@ namespace KI
 
 TerrainNode::TerrainNode()
 	:RenderNode("Terrain")
-	,m_pPositionBuffer(nullptr)
-	,m_pTexcoordBuffer(nullptr)
-	,m_pRGB(nullptr)
-	,m_pHeight(nullptr)
+	, m_instanceCount(10000)
+	, m_pPositionBuffer(nullptr)
+	, m_pTexcoordBuffer(nullptr)
+	, m_pRGB(nullptr)
+	, m_pHeight(nullptr)
 {
 }
 
 TerrainNode::~TerrainNode()
 {
+}
+
+ShaderPath TerrainNode::ComputeLODShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+	path.header.push_back("terrain\\terrain.h");
+	path.shader[SHADER_PROGRAM_COMPUTE] = "terrain\\terrainLOD.comp";
+	return path;
+}
+
+void TerrainNode::ComputeLODShader::BindInstanceCount(int num)
+{
+	BindUniform(m_uInstanceCount, num);
+}
+
+void TerrainNode::ComputeLODShader::BindPatchPositionNum(int num)
+{
+	BindUniform(m_upatchPositionNum, num);
+}
+
+void TerrainNode::ComputeLODShader::BindCamera(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+
+void TerrainNode::ComputeLODShader::BindInstance(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+
+void TerrainNode::ComputeLODShader::BindVisible(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+
+void TerrainNode::ComputeLODShader::BindDrawElementIndirect(const GLBuffer* pBuffer)
+{
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+
+
+void TerrainNode::ComputeLODShader::FetchUniformLocation()
+{
+	m_uInstanceCount = GetUniformLocation("u_instanceCount");
+	m_upatchPositionNum = GetUniformLocation("u_patchPositionNum");
 }
 
 TerrainNode::Shader::Shader()
@@ -27,6 +79,7 @@ TerrainNode::Shader::Shader()
 	, m_uHeight(-1)
 	, m_uheightMap(-1)
 	, m_ushowWire(-1)
+	, m_uLOD(-1)
 {
 
 }
@@ -35,6 +88,7 @@ ShaderPath TerrainNode::Shader::GetShaderPath()
 	ShaderPath path;
 	path.version = "version.h";
 	path.header.push_back("common.h");
+	path.header.push_back("terrain\\terrain.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "terrain\\terrain.vert";
 	path.shader[SHADER_PROGRAM_TES_CONTROL] = "terrain\\terrain.tcs";
 	path.shader[SHADER_PROGRAM_TES_EVAL] = "terrain\\terrain.tes";
@@ -52,6 +106,7 @@ void TerrainNode::Shader::FetchUniformLocation()
 	m_uheightMap = GetUniformLocation("u_heightMap");
 	m_ushowWire = GetUniformLocation("u_showWire");
 	m_uHeight = GetUniformLocation("u_Height");
+	m_uLOD = GetUniformLocation("m_uLOD");
 }
 
 void TerrainNode::Shader::SetPosition(GLBuffer* pPosition)
@@ -78,6 +133,10 @@ void TerrainNode::Shader::SetMatrix(const GLBuffer* pBuffer)
 }
 
 
+void TerrainNode::Shader::BindLOD(bool value)
+{
+	BindUniform(m_uLOD, value ? 1 : 0);
+}
 void TerrainNode::Shader::BindShowWire(bool wire)
 {
 	BindUniform(m_ushowWire, wire ? 1 : 0);
@@ -102,16 +161,18 @@ void TerrainNode::Shader::BindTexture(const Texture& rgb, const Texture& height)
 	IShadingShader::BindTexture(m_uheightMap, 1, height);
 }
 
-Vector<TerrainNode::InstanceData> CreateInstance(int num, float scale)
+Vector<TerrainNode::PatchData> CreateInstance(int num, float scale)
 {
-	Vector<TerrainNode::InstanceData> instance;
-	instance.reserve(num * num);
-	auto half = num / 2;
+	Vector<TerrainNode::PatchData> instance;
+	instance.reserve(num);
+	auto half = sqrt(num) / 2;
 	for (int i = -half; i < half; i++) {
 		for (int j = -half; j < half; j++) {
-			auto data = TerrainNode::InstanceData();
+			auto data = TerrainNode::PatchData();
 			data.matrix = glmUtil::CreateTransform(scale, Vector3(i * scale, 0, j * scale));
 			data.scale = scale;
+			data.radius = scale;
+			data.center = Vector4(i * scale + scale * 0.5, 0, j * scale + scale * 0.5, 0.0);
 			instance.push_back(std::move(data));
 		}
 	}
@@ -164,6 +225,9 @@ void TerrainNode::BuildResource()
 	if (!m_pShader) {
 		m_pShader = std::make_unique<TerrainNode::Shader>();
 		m_pShader->Build();
+
+		m_pComputeLODShader = std::make_unique<TerrainNode::ComputeLODShader>();
+		m_pComputeLODShader->Build();
 	}
 
 	if (m_pPositionBuffer) { return; }
@@ -173,20 +237,46 @@ void TerrainNode::BuildResource()
 	m_pPositionBuffer->Create(m_patch.position);
 	m_pTexcoordBuffer = std::make_unique<GLBuffer>();
 	m_pTexcoordBuffer->Create(m_patch.texcoord);
-	auto instance = CreateInstance(100, GetScale());
+	auto instance = CreateInstance(m_instanceCount, GetScale());
 	m_pInstanceBuffer = std::make_unique<GLBuffer>();
 	m_pInstanceBuffer->Create(instance);
 
-	m_pRGB = std::unique_ptr<Texture>(TextureLoader::Load("E:\\cgModel\\terrain\\ganges_river_pebbles_diff_512.png"));
-	m_pHeight = std::unique_ptr<Texture>(TextureLoader::Load("E:\\cgModel\\terrain\\ganges_river_pebbles_disp_512.png"));
+	// LOD
+	m_pDrawIndirectBuffer = std::make_unique<GLBuffer>();
+	std::vector<DrawArrayIndirect> draw(1);
+	m_pDrawIndirectBuffer->Create(draw);
+
+	m_pVisibleIdBuffer = std::make_unique<GLBuffer>();
+	std::vector<unsigned int> id(m_instanceCount, 0);
+	m_pVisibleIdBuffer->Create(id);
+
+	m_pRGB = std::unique_ptr<Texture>(TextureLoader::Load("E:\\cgModel\\terrain\\ganges_river_pebbles_diff_512.png", true));
+	m_pHeight = std::unique_ptr<Texture>(TextureLoader::Load("E:\\cgModel\\terrain\\ganges_river_pebbles_disp_512.png", true));
 }
 void TerrainNode::Draw(const DrawContext& context)
 {
 	if (!m_ui.visible) { return; }
 	BuildResource();
+
+	if (m_ui.lod) {
+		m_pVisibleIdBuffer->SetData(0);
+		m_pDrawIndirectBuffer->SetData(0);
+
+		m_pComputeLODShader->Use();
+		m_pComputeLODShader->BindInstanceCount(m_instanceCount);
+		m_pComputeLODShader->BindPatchPositionNum(m_patch.position.size());
+		m_pComputeLODShader->BindCamera(context.pResource->GetCameraBuffer());
+		m_pComputeLODShader->BindDrawElementIndirect(m_pDrawIndirectBuffer.get());
+		m_pComputeLODShader->BindVisible(m_pVisibleIdBuffer.get());
+		m_pComputeLODShader->BindInstance(m_pInstanceBuffer.get());
+		m_pComputeLODShader->Dispatch1D(m_instanceCount);
+		m_pComputeLODShader->BarrierSSBOAndCommand();
+	}
+
 	m_pShader->Use();
 	m_pShader->PatchParameteri(4);
 	m_pShader->BindShowWire(false);
+	m_pShader->BindLOD(m_ui.lod);
 	m_pShader->BindTexture(*m_pRGB ,*m_pHeight);
 	m_pShader->BindTessLevel(1 << m_ui.tessInner, 1 << m_ui.tessOuter);
 	m_pShader->BindMatrix(GetMatrix(), GetScale());
@@ -196,11 +286,21 @@ void TerrainNode::Draw(const DrawContext& context)
 	m_pShader->SetTexcoord(m_pTexcoordBuffer.get());
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetMatrix(m_pInstanceBuffer.get());
-	m_pShader->DrawArrayInstaced(GL_PATCHES, m_patch.position.size(),m_pInstanceBuffer->Num());
+	if (m_ui.lod) {
+		m_pShader->DrawIndirectBuffer(m_pDrawIndirectBuffer.get());
+		m_pShader->DrawArrayIndirect(GL_PATCHES, 0);
+	} else {
+		m_pShader->DrawArrayInstaced(GL_PATCHES, m_patch.position.size(), m_pInstanceBuffer->Num());
+	}
 	if (m_ui.visibleWire) {
 		context.pResource->GL()->EnablePolygonWire();
 		m_pShader->BindShowWire(true);
-		m_pShader->DrawArrayInstaced(GL_PATCHES, m_patch.position.size(),m_pInstanceBuffer->Num());
+		if (m_ui.lod) {
+			m_pShader->DrawIndirectBuffer(m_pDrawIndirectBuffer.get());
+			m_pShader->DrawArrayIndirect(GL_PATCHES, 0);
+		} else {
+			m_pShader->DrawArrayInstaced(GL_PATCHES, m_patch.position.size(), m_pInstanceBuffer->Num());
+		}
 		context.pResource->GL()->EnablePolygonFill();
 	}
 }
@@ -213,6 +313,7 @@ void TerrainNode::ShowUI(UIContext& context)
 	ImGui::SliderInt("TerrainTessInner", &m_ui.tessInner, 0, 6);
 	ImGui::SliderInt("TerrainTessOuter", &m_ui.tessOuter, 0, 6);
 	ImGui::SliderInt("TerrainHeight", &m_ui.height, 1, GetScale());
+	ImGui::Checkbox("TerrainLOD", &m_ui.lod);
 }
 
 

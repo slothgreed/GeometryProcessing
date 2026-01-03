@@ -28,6 +28,8 @@ Geometry Processing は、グラフィックスAPIや幾何学処理の学習を
 - STEP ノード
   - STEPファイルの可視化（開発中）
 
+- Terrain ノード
+  - Terrainの描画
 
 ## 使用技術
 
@@ -72,3 +74,6 @@ Geometry Processing は、グラフィックスAPIや幾何学処理の学習を
 
 #### ボリュームビューイング
 ![Volume](ReadMeResource/Volume.gif)
+
+#### Terrainビューイング
+![Terrain](ReadMeResource/Terrain.gif)

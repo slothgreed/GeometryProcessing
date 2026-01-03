@@ -8,6 +8,7 @@ struct Camera
 	vec4 center;
 	vec2 viewSize;
 	float padding[2];
+	vec4 frustum[6];
 };
 
 struct Light
@@ -15,6 +16,23 @@ struct Light
 	vec4 color;
 	vec4 direction;
 	float padding[56];
+};
+
+struct DrawElementsIndirect
+{
+    uint count;
+    uint instanceCount;
+    uint firstIndex;
+    int baseVertex;
+    uint baseInstance;
+};
+
+struct DrawArrayIndirect
+{
+    uint count;
+    uint instanceCount;
+    uint first;
+    uint baseInstance;
 };
 
 

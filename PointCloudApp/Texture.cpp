@@ -5,8 +5,8 @@ namespace KI
 {
 
 Texture::Texture()
-	:m_handle(0)
-	,m_genMip(false)
+	: m_handle(0)
+	, m_genMip(false)
 {
 
 }
@@ -24,6 +24,9 @@ void Texture::Set(const Format& format, unsigned char* data)
 		format.width, format.height,
 		format.border, format.format,
 		format.type, data);
+	if (m_sampler.mipmap) {
+		glGenerateMipmap(format.target);
+	}
 	m_format = format;
 	OUTPUT_GLERROR;
 }
@@ -206,7 +209,11 @@ void Texture2D::BindSampler(const Sampler& sampler)
 {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.filter);
+	if (sampler.mipmap) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampler.filter);
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampler.filter);
 }
 

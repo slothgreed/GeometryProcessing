@@ -11,6 +11,10 @@ public:
 	Camera();
 	~Camera() {};
 
+	struct Frustum
+	{
+		Vector4 plane[6];
+	};
 
 	struct Perspective
 	{
@@ -94,6 +98,7 @@ public:
 	Vector3 WorldToScreen(const Vector3& world) const;
 	Vector2 GetOnePixelDistance(const Vector3& worldPos) const;
 	Ray CreateRay(const Vector2& screen) const;
+	Frustum CreateFrustum() const;
 private:
 	enum Mode
 	{

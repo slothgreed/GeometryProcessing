@@ -244,6 +244,16 @@ void IShadingShader::BindIndexBuffer(const GLBuffer* pBuffer)
 	OUTPUT_GLERROR;
 }
 
+void IShadingShader::DrawIndirectBuffer(const GLBuffer* pBuffer)
+{
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, pBuffer->Handle());
+	OUTPUT_GLERROR;
+}
+void IShadingShader::DrawArrayIndirect(GLuint primitiveType, int offset)
+{
+	glDrawArraysIndirect(primitiveType, (void*)offset);
+	OUTPUT_GLERROR;
+}
 
 int IMeshShader::GetMaxVertices() const
 {
@@ -462,6 +472,14 @@ void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint a
 void IComputeShader::BarrierSSBO()
 {
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	OUTPUT_GLERROR;
+}
+
+void IComputeShader::BarrierSSBOAndCommand()
+{
+	glMemoryBarrier(
+		GL_SHADER_STORAGE_BARRIER_BIT |
+		GL_COMMAND_BARRIER_BIT);
 	OUTPUT_GLERROR;
 }
 

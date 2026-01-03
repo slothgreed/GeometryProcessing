@@ -5,17 +5,9 @@ layout(std430, binding = 0) buffer CameraBuffer
 	Camera camera;
 };
 
-struct InstanceData
+layout(std430, binding = 1) buffer PatchBuffer
 {
-	mat4 matrix;
-	float scale;
-	float padding[3];
-};
-
-
-layout(std430, binding = 1) buffer InstanceBuffer
-{
-	InstanceData instance[];
+	PatchData patches[];
 };
 
 uniform sampler2D u_heightMap;
@@ -24,13 +16,16 @@ uniform float u_ModelScale;
 uniform float u_Height;
 
 in vec2 te_texCoord[];
-out vec2 f_texcoord;
-
 in flat int te_InstanceID[];
+in flat int te_tessLevel[];
+
+out vec2 f_texcoord;
+out flat int f_tessLevel;
 
 void main()
 {
 	int instanceID = te_InstanceID[0];
+
 	vec2 uv = gl_TessCoord.xy;
 
 	vec2 t00 = te_texCoord[0];
@@ -57,7 +52,8 @@ void main()
 	
 
     float height = texture(u_heightMap, f_texcoord).y;
-	p += -normal * height * u_Height / instance[instanceID].scale;
-	gl_Position = camera.VP * instance[instanceID].matrix * p;
+	p += -normal * height * u_Height / patches[instanceID].scale;
+	gl_Position = camera.VP * patches[instanceID].matrix * p;
+	f_tessLevel = te_tessLevel[0];
 
 }

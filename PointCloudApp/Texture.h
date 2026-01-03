@@ -68,14 +68,22 @@ public:
 		Sampler()
 			: wrap(WRAP::REPEAT)
 			, filter(FILTER::NEAREST)
+			, mipmap(false)
 		{
 		}
 
 		Sampler(FILTER _f)
 			: wrap(WRAP::REPEAT)
 			, filter(_f)
+			, mipmap(false)
 		{
 		}
+
+		void UseMipmap()
+		{
+			mipmap = true;
+		}
+		bool mipmap;
 		WRAP wrap;
 		FILTER filter;
 	};
@@ -90,6 +98,7 @@ public:
 	const Format& GetFormat() const { return m_format; }
 	void Set(const Format& format, unsigned char* data);
 	void GetPixel(std::vector<unsigned char>& data);
+	void UseMipmap() { m_sampler.UseMipmap(); }
 	static int CalcMipmapLevel(const Vector2i& resolute);
 	static Vector2i CalcMipmapResolute(const Vector2i& resolute, int mipLevel);
 protected:

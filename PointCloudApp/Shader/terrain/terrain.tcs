@@ -5,9 +5,19 @@ in vec2 tc_texCoord[];
 
 out vec2 te_texCoord[];
 out flat int te_InstanceID[];
-
+out flat int te_tessLevel[];
 uniform int u_levelOuter;
 uniform int u_levelInner;
+uniform int m_uLOD;
+layout(std430, binding = 1) buffer PatchBuffer
+{
+	PatchData patches[];
+};
+
+layout(std430, binding = 2) buffer VisibleBuffer
+{
+    uint visibleId[];
+};
 
 void main()
 {
@@ -16,19 +26,36 @@ void main()
 	te_texCoord[gl_InvocationID] = 
 	tc_texCoord[gl_InvocationID];
 	
-	te_InstanceID[gl_InvocationID] = 
-	tc_InstanceID[gl_InvocationID];
+	if(m_uLOD == 1){
+		te_InstanceID[gl_InvocationID] = int(visibleId[tc_InstanceID[gl_InvocationID]]);
+	}else{
+		te_InstanceID[gl_InvocationID] = tc_InstanceID[gl_InvocationID];
+	}
 	
 	
 	if(gl_InvocationID == 0)
 	{
-		gl_TessLevelOuter[0] = u_levelOuter;
-		gl_TessLevelOuter[1] = u_levelOuter;
-		gl_TessLevelOuter[2] = u_levelOuter;
-		gl_TessLevelOuter[3] = u_levelOuter;
-								 
-		gl_TessLevelInner[0] = u_levelInner;
-		gl_TessLevelInner[1] = u_levelInner;
-
+		if(m_uLOD == 1){
+			int instanceId = int(visibleId[tc_InstanceID[gl_InvocationID]]);
+			PatchData patchData = patches[instanceId];
+			int lod = 1 << patchData.lod;
+			gl_TessLevelOuter[0] = lod;
+			gl_TessLevelOuter[1] = lod;
+			gl_TessLevelOuter[2] = lod;
+			gl_TessLevelOuter[3] = lod;
+									
+			gl_TessLevelInner[0] = lod;
+			gl_TessLevelInner[1] = lod;
+			te_tessLevel[gl_InvocationID] = int(patchData.lod);
+		}else{
+			gl_TessLevelOuter[0] = u_levelOuter;
+			gl_TessLevelOuter[1] = u_levelOuter;
+			gl_TessLevelOuter[2] = u_levelOuter;
+			gl_TessLevelOuter[3] = u_levelOuter;
+									
+			gl_TessLevelInner[0] = u_levelInner;
+			gl_TessLevelInner[1] = u_levelInner;
+			te_tessLevel[gl_InvocationID] = findMSB(u_levelInner);
+		}
 	}
 }

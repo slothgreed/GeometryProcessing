@@ -110,6 +110,7 @@ void RenderResource::UpdateCamera()
 		Vector4 center;
 		Vector2 viewSize;
 		float padding[2];
+		Vector4 frustum[6];
 	};
 
 	if (!m_pCameraGpu) {
@@ -126,6 +127,10 @@ void RenderResource::UpdateCamera()
 	gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
 	gpu.center = Vector4(m_pCamera->Center(), 1.0f);
 	gpu.viewSize = m_pCamera->ViewSize();
+	auto frustum = m_pCamera->CreateFrustum().plane;
+	for (int i = 0; i < 6; i++) {
+		gpu.frustum[i] = frustum[i];
+	}
 	m_pCameraGpu->BufferSubData(0, 1, sizeof(CameraGPU), &gpu);
 }
 

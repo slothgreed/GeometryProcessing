@@ -538,7 +538,7 @@ Vector<Shared<Texture>> GLTFLoader::LoadTexture(const String& directory, const M
     Vector<Shared<Texture>> textures(pDocument->images.Size());
     for (size_t i = 0; i < pDocument->images.Size(); i++) {
         const auto& image = pDocument->images.Get(i);
-        textures[i] = Shared<Texture>(TextureLoader::Load(directory + image.uri));
+        textures[i] = Shared<Texture>(TextureLoader::Load(directory + image.uri, true));
     }
 
     return textures;

@@ -32,6 +32,22 @@ struct ShaderPath
 	std::unordered_map<SHADER_PROGRAM, String> shader;
 };
 
+struct DrawElementsIndirect
+{
+	uint count;
+	uint instanceCount;
+	uint firstIndex;
+	uint baseVertex;
+	uint baseInstance;
+};
+
+struct DrawArrayIndirect
+{
+	uint count;
+	uint instanceCount;
+	uint first;
+	uint baseInstance;
+};
 
 class IShader
 {
@@ -91,6 +107,9 @@ public:
 	void DrawArrayInstaced(GLuint primitiveType, int count, int instanceNum);
 	void DrawArray(GLuint primitiveType, const GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, int count);
+
+	void DrawIndirectBuffer(const GLBuffer* pBuffer);
+	void DrawArrayIndirect(GLuint primitiveType, int offset);
 	void DrawArray(GLuint primitiveType, int offset, int count);
 	void DrawElementsBaseVertex(const DrawArgs& args);
 	void DrawElementsBaseVertex(GLuint primitiveType, uint count, GLuint type, void* offset, uint baseVertex);
@@ -118,6 +137,7 @@ public:
 	static void BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access);
 	static void BarrierImage();
 	static void BarrierSSBO();
+	static void BarrierSSBOAndCommand();
 
 private:
 
