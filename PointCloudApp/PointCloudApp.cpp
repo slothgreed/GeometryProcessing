@@ -29,10 +29,12 @@
 #include "RenderTarget.h"
 #include "CSFNode.h"
 #include "STEPNode.h"
-#include "Utility.h"
 #include "DebugNode.h"
 #include "SimulationNode.h"
 #include "PBR.h"
+#include "FileUtility.h"
+#include "ImageAlgorithm.h"
+#include "ImageNode.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -132,7 +134,11 @@ void APIENTRY MyGLDebugCallback(GLenum source, GLenum type, GLuint id,
 
 void PointCloudApp::Execute()
 {
-
+	auto pgmFiles = FileUtility::CollectFile("E:\\cgModel\\2dimages", ".pgm");
+	for (int i = 0; i < pgmFiles.size(); i++) {
+		m_pgmTexture.push_back(std::shared_ptr<Texture>(TextureLoader::LoadPGM(pgmFiles[i], false)));
+		AddUITexture(FileUtility::GetFileName(pgmFiles[i]), m_pgmTexture[i].get());
+	}
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	m_pRoot = std::make_unique<RenderNode>("Root");
@@ -144,24 +150,24 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateCSFNodeTest());
 		//m_pRoot->AddNode(CreateGLTFAnimationTest());
 		//m_pRoot->AddNode(CreateGLTFNodeTest());
-		m_pRoot->AddNode(CreateTerrain());
-		m_pRoot->AddNode(CreateBunnyNodeTest());
+		//m_pRoot->AddNode(CreateTerrain());
+		//m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateVolumeTest());
 		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	//}
 	
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
-	//{
-	//	Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-	//	//m_pRoot->AddNode(std::make_shared<SimulationNode>());
-	//	auto pSTEPNode = CreateSTEPNodeTest();
-	//	for (const auto& pNode : pSTEPNode) {
-	//		m_pRoot->AddNode(pNode);
-	//	}
-	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
-	//}
+	{
+		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
+		auto pSTEPNode = CreateSTEPNodeTest();
+		for (const auto& pNode : pSTEPNode) {
+			m_pRoot->AddNode(pNode);
+		}
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+	}
 
 	// PBR
 	{
@@ -199,6 +205,7 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateDelaunayTest());
 		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
+		//m_pRoot->AddNode(CreateImageTest());
 	}
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -231,7 +238,7 @@ void PointCloudApp::Execute()
 	auto pForwardTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreateForwardTarget(m_windowSize));
 	Shared<Texture> pMain = pForwardTarget->GetColor(0);
 	auto pPickTarget = std::unique_ptr<RenderTarget>(RenderTarget::CreatePickTarget(m_windowSize));
-	Shared<Texture> pTexture = pPickTarget->GetColor(0);
+	Shared<Texture> pPickTexture = pPickTarget->GetColor(0);
 
 	auto pLight = std::make_shared<Light>();
 	pLight->SetColor(Vector3(1, 1, 1));
@@ -256,6 +263,14 @@ void PointCloudApp::Execute()
 
 	m_pResource->GetPBR()->Initialize(*pSkyBoxNode->GetCubemapTexture());
 	m_pResource->UpdatePBR();
+
+	AddUITexture("PickTarget", pPickTexture.get());
+	AddUITexture("ForwardNormal", pForwardTarget->GetNormal().get());
+	AddUITexture("SkyBox", pSkyBoxNode->GetCubemapTexture());
+	AddUITexture("Irradiance", m_pResource->GetPBR()->GetIrradiance());
+	AddUITexture("Prefiltered", m_pResource->GetPBR()->GetPrefiltered());
+
+
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		m_pResource->UpdateCamera();
 		m_pResource->UpdateLight();
@@ -282,7 +297,6 @@ void PointCloudApp::Execute()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, m_windowSize.x, m_windowSize.y);
-		//TextureDrawer::Execute(drawContext, m_pResource->GetPostEffectTarget()->GetColor(0).get());
 		TextureDrawer::Execute(drawContext, m_pResource->GetRenderTarget()->GetColor(0).get());
 		if (m_ui.pickMode) {
 			m_pResource->GL()->SetupPick();
@@ -306,18 +320,21 @@ void PointCloudApp::Execute()
 					result.first->ProcessMouseEvent(pickContext);
 				}
 			}
-
-			glViewport(0, 0, 256, 256);
-			TextureDrawer::Execute(drawContext, pTexture.get());
 		}
 
 
 		if (m_ui.visibleTexture) {
-			glViewport(0, 0, 256, 256);
-			//TextureDrawer::Execute(drawContext, pForwardTarget->GetNormal().get());
-			//TextureDrawer::Execute(drawContext, pSkyBoxNode->GetCubemapTexture(),m_ui.mipmap);
-			//TextureDrawer::Execute(drawContext, m_pResource->GetPBR()->GetIrradiance(), m_ui.mipmap);
-			//TextureDrawer::Execute(drawContext, m_pResource->GetPBR()->GetPrefiltered(), m_ui.mipmap);
+			Vector2i imageSize = Vector2i(512, 512);
+
+			int viewportX = m_windowSize.x - imageSize.x; // 右寄せ
+			int viewportY = 0;                            // 下寄せ
+			glViewport(viewportX, viewportY, imageSize.x, imageSize.y);
+			auto pTexture = m_uiTextureList[m_ui.visibleTextureIndex].second;
+			if (pTexture->Type() == TEXTURE_TYPE::TEXTURE_CUBE_MAP) {
+				TextureDrawer::Execute(drawContext, static_cast<const CubemapTexture*>(pTexture), m_ui.mipmap);
+			} else {
+				TextureDrawer::Execute(drawContext, pTexture);
+			}
 		}
 		if (m_pSelect && m_ui.animation) {
 			m_pCameraController->RotateAnimation(m_diff, m_pSelect->CalcCameraFitBox());
@@ -406,6 +423,7 @@ void PointCloudApp::ShowUI(UIContext& ui)
 
 	ImGui::Checkbox("VisibleTexture", &m_ui.visibleTexture);
 	if (m_ui.visibleTexture) {
+		ImGui::SliderInt("Index", &m_ui.visibleTextureIndex, 0, m_uiTextureList.size() - 1);
 		ImGui::SliderInt("Mipmap", &m_ui.mipmap, 0, 11); // 11は Cubemap 準拠
 	}
 
@@ -575,21 +593,21 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
 	Vector<String> files;
-	files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+	//files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
 	files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
-	files.push_back("E:\\cgModel\\step\\cubcylso.stp");
-	files.push_back("E:\\cgModel\\step\\angle1.stp");
-	files.push_back("E:\\cgModel\\step\\mycylinder.stp");
-	files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
-	files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+	//files.push_back("E:\\cgModel\\step\\cubcylso.stp");
+	//files.push_back("E:\\cgModel\\step\\angle1.stp");
+	//files.push_back("E:\\cgModel\\step\\mycylinder.stp");
+	//files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+	//files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+	//files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
 
 	// 円筒の側面からやるべき
 	// for debug.
-	{
-		pNodes.push_back(std::shared_ptr<RenderNode>(STEPLoader::Load(files[5], 0, true)));
-		return pNodes;
-	}
+	//{
+	//	pNodes.push_back(std::shared_ptr<RenderNode>(STEPLoader::Load(files[5], 0, true)));
+	//	return pNodes;
+	//}
 
 
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));
@@ -639,6 +657,10 @@ Shared<RenderNode> PointCloudApp::CreateConstrainDelaunayTest()
 {
 	return std::make_shared<DelaunayDebugNode>("DelaunayDebugNode");
 }
+Shared<RenderNode> PointCloudApp::CreateImageTest()
+{
+	return std::make_shared<ImageNode>("Contour", m_pgmTexture[2]);
+}
 
 Shared<InstancedPrimitiveNode> PointCloudApp::CreateInstacedNodeTest()
 {
@@ -652,4 +674,10 @@ Shared<InstancedPrimitiveNode> PointCloudApp::CreateInstacedNodeTest()
 	pNode->SetMatrixs(std::move(matrixs));
 	return pNode;
 }
+
+void PointCloudApp::AddUITexture(const String& name, const Texture* pTexture)
+{
+	m_uiTextureList.push_back(std::pair<String, const Texture*>(name, pTexture));
+}
+
 }

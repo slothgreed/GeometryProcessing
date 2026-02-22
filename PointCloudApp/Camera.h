@@ -99,6 +99,7 @@ public:
 	Vector2 GetOnePixelDistance(const Vector3& worldPos) const;
 	Ray CreateRay(const Vector2& screen) const;
 	Frustum CreateFrustum() const;
+	static Matrix4x4 Create2DCamera(const Vector2i& size);
 private:
 	enum Mode
 	{

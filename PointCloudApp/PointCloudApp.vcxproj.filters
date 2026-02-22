@@ -293,6 +293,15 @@
     <ClCompile Include="TerrainNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
+    <ClCompile Include="ShapeMatching.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageAlgorithm.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -545,6 +554,15 @@
       <Filter>ソース ファイル\Utility\HalfEdge</Filter>
     </ClInclude>
     <ClInclude Include="TerrainNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeMatching.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageAlgorithm.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
   </ItemGroup>

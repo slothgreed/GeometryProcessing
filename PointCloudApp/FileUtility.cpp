@@ -2,6 +2,8 @@
 #include <filesystem>
 namespace KI
 {
+namespace fs = std::filesystem;
+
 FileUtility::FileUtility()
 {
 }
@@ -58,11 +60,57 @@ String FileUtility::GetExtension(const String& filePath)
 	return filePath.substr(index, filePath.size() - index);
 }
 
+String FileUtility::GetFileName(const String& filePath)
+{
+	try {
+		fs::path p(filePath);
+		return p.filename().string(); // ファイル名のみを返す
+	} catch (const fs::filesystem_error& e) {
+		// パスが不正などの場合は空文字を返す
+		return "";
+	}
+}
 String FileUtility::GetDirectoryPath(const String& filePath)
 {
 	int index = (int)filePath.find_last_of("\\");
 	//directoryPath = filePath.substr(index, filePath.size() - index);
 	return filePath.substr(0, index + 1);
+}
+
+Vector<String> FileUtility::CollectFile(const String& directory, const String& ext)
+{
+	Vector<String> result;
+
+	try {
+		for (const auto& entry : fs::directory_iterator(directory)) {
+			if (fs::is_regular_file(entry.status())) {
+				if (entry.path().extension() == ext) {
+					result.push_back(entry.path().string());
+				}
+			}
+		}
+	} catch (const fs::filesystem_error& e) {
+		return result;
+	}
+
+	return result;
+}
+
+int FileUtility::FileNum(const String& directory)
+{
+	int count = 0;
+	try {
+		for (const auto& entry : fs::directory_iterator(directory)) {
+			if (fs::is_regular_file(entry.status())) {
+				++count;
+			}
+		}
+	} catch (const fs::filesystem_error& e) {
+		// ディレクトリが存在しないなどの例外に対応
+		return -1;
+	}
+
+	return count;
 }
 bool FileUtility::CheckExtension(const String& filePath, const String& ext)
 {
@@ -214,6 +262,14 @@ String StringUtility::ToString(int value)
 {
 	return std::to_string(value);
 }
+String StringUtility::ToString(const Vector3& str)
+{
+	return "("
+		+ std::to_string(str.x) + ", "
+		+ std::to_string(str.y) + ", "
+		+ std::to_string(str.z) + ")";
+}
+
 
 FileWriter::FileWriter()
 {

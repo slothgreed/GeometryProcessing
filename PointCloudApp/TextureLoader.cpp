@@ -6,20 +6,7 @@
 #include "Utility.h"
 namespace KI
 {
-TextureLoader::PixelData::PixelData()
-	: width(0)
-	, height(0)
-	, component(0)
-	, data(nullptr)
-{
-}
-TextureLoader::PixelData::~PixelData()
-{
-	if (data) {
-		stbi_image_free(data);
-		data = nullptr;
-	}
-}
+
 TextureLoader::TextureLoader()
 {
 }
@@ -28,10 +15,29 @@ TextureLoader::~TextureLoader()
 {
 }
 
+Texture* TextureLoader::LoadPGM(const String& name, bool hasCPU)
+{
+	auto pTexture = new Texture2D();
+	int x, y, n;
+	stbi_set_flip_vertically_on_load(1);
+	auto data = stbi_load(name.data(), &x, &y, &n, 4);
+	pTexture->Build(x, y, data);
+	if (hasCPU) {
+		std::vector<unsigned char> pixel(x * y * 4);
+		std::memcpy(pixel.data(), data, pixel.size());
+		pTexture->SetData(std::move(pixel));
+	}
+	
+	stbi_image_free(data);
+	stbi_set_flip_vertically_on_load(0);
+	return pTexture;
+}
 Texture* TextureLoader::Load(const String& name, bool useMipmap)
 {
 	auto pTexture = new Texture2D();
-	pTexture->UseMipmap();
+	if (useMipmap) {
+		pTexture->UseMipmap();
+	}
 	int x, y, n;
 	auto data = stbi_load(name.data(), &x, &y, &n, 4);
 	pTexture->Build(x, y, data);
@@ -39,7 +45,7 @@ Texture* TextureLoader::Load(const String& name, bool useMipmap)
 	return pTexture;
 }
 
-TextureLoader::PixelData* TextureLoader::LoadData(const String& name, int comp)
+PixelData* TextureLoader::LoadData(const String& name, int comp)
 {
 	auto pixel = new PixelData();
 	pixel->data = stbi_load(name.data(), &pixel->width, &pixel->height, &pixel->component, comp);

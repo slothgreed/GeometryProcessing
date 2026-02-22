@@ -36,14 +36,17 @@ private:
 		,animation(false)
 		,visibleSkyBox(true)
 		,visibleTexture(false)
+		,visibleTextureIndex(0)
 		,mipmap(0){}
 		~UI() {}
 		bool pickMode;
 		bool visibleSkyBox;
 		bool visibleTexture;
+		int visibleTextureIndex;
 		int mipmap;
 		bool animation;
 	};
+	void AddUITexture(const String& name, const Texture* pTexture);
 
 	PickResult m_pick;
 	UI m_ui;
@@ -61,12 +64,15 @@ private:
 	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);
 	Shared<PointCloudNode> CreateDelaunayTest();
 	Shared<RenderNode> CreateConstrainDelaunayTest();
+	Shared<RenderNode> CreateImageTest();
 	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();
 	Shared<RenderResource> m_pResource;
 	CPUProfiler m_cpuProfiler;
 	GPUProfiler* m_gpuProfiler;
 	Unique<RenderNode> m_pRoot;
 	RenderNode* m_pSelect;
+	Vector<Shared<Texture>> m_pgmTexture;
+	Vector<std::pair<String, const Texture*>> m_uiTextureList;
 	void ShowUI(UIContext& ui);
 	Shared<RenderNode> m_pGLTFAnimation;
 	Shared<HalfEdgeStruct> m_pBunny;

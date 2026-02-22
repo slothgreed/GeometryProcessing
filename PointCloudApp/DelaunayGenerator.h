@@ -31,6 +31,7 @@ public:
 
 	Vector<unsigned int> Execute2D();
 	Vector<Vector3> Execute2DTriangles();
+	Vector<Vector3> Execute2D_CGAL();
 	void ShowUI(RenderNode* pNode, UIContext& ui);
 	void Clear() { m_target = nullptr; m_inner.clear(); }
 	void SetTarget(const Vector<Vector3>* position) { m_target = position; }
@@ -40,6 +41,7 @@ public:
 private:
 	Vector<unsigned int> Execute2D(const Vector<Vector3>& position, int iterate);
 	Vector<unsigned int> Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate);
+	Vector<Vector3> Execute2D_CGAL(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate);
 
 
 	struct Circumscribe
@@ -212,6 +214,7 @@ private:
 	std::unordered_set<IndexedEdge,IndexedEdge::Hash> m_ConstraintEdge;
 	Triangle m_HugeTriangle;
 	List<IndexedTriangle> m_Delaunay;
+	Vector<Vector3> m_CGALTriangle;
 };
 
 class HalfEdgeNode;

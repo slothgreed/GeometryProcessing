@@ -74,6 +74,7 @@ public:
 	RenderResource()
 		: m_pContext(std::make_unique<GLContext>())
 		, m_pCameraGpu(nullptr)
+		, m_p2DCameraGpu(nullptr)
 		, m_pLightGpu(nullptr)
 		, m_pComputeColorTarget(nullptr)
 		, m_pComputeDepthTarget(nullptr)
@@ -91,6 +92,7 @@ public:
 	ShaderTable* GetShaderTable() { return &m_pShaderTable; };
 	const ShaderTable* GetShaderTable() const { return &m_pShaderTable; };
 	const GLBuffer* GetCameraBuffer() const { return m_pCameraGpu; }
+	const GLBuffer* Get2DCameraBuffer() const { return m_p2DCameraGpu; }
 	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
 	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	RenderTarget* GetRenderTarget() { return m_pRenderTarget; }
@@ -113,6 +115,7 @@ private:
 	Shared<Camera> m_pCamera;
 	Shared<Light> m_pLight;
 	GLBuffer* m_pCameraGpu;
+	GLBuffer* m_p2DCameraGpu;
 	GLBuffer* m_pLightGpu;
 	GLBuffer* m_pComputeColorTarget;
 	GLBuffer* m_pComputeDepthTarget;

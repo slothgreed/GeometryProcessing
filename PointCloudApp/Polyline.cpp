@@ -63,6 +63,29 @@ Vector3 Polyline::GetCenter() const
 
     return center /= m_points.size();
 }
+Vector<Vector3> Polyline::CreateTriangleLine() const
+{
+    auto triangles = CreateTriangleArray();
+    Vector<Vector3> lines;
+    for (int i = 0; i < triangles.size(); i+=3) {
+        lines.push_back(triangles[i]);
+        lines.push_back(triangles[i + 1]);
+
+        lines.push_back(triangles[i + 1]);
+        lines.push_back(triangles[i + 2]);
+
+        lines.push_back(triangles[i + 2]);
+        lines.push_back(triangles[i]);
+    }
+
+    return lines;
+}
+Vector<Vector3> Polyline::CreateTriangleArray() const
+{
+    DelaunayGenerator delaunay;
+    delaunay.SetTarget(&m_points);
+    return delaunay.Execute2D_CGAL();
+}
 Vector<unsigned int> Polyline::CreateTriangles() const
 {
     auto normal = GetNormal();
@@ -144,17 +167,19 @@ Vector<Vector3> Polyline::CreateLinePoints() const
         points.push_back(m_points[0]);
         return points;
     } else if(m_hint == Hint::Lines) {
-        if (m_indexs.size() == 0) {
-            return m_points;
-        }
-
+        if (m_indexs.size() == 0) { return m_points; }
         Vector<Vector3> points;
-        for (size_t i = 0; i < m_indexs.size(); i++) {
-            points.push_back(m_points[m_indexs[i]]);
+        for (size_t i = 0; i < m_indexs.size(); i++) { points.push_back(m_points[m_indexs[i]]); }
+        return points;
+    } else if (m_hint == Hint::LineStrip) {
+        Vector<Vector3> points;
+        for (size_t i = 0; i < m_points.size() - 1; i++) {
+            points.push_back(m_points[i]);
+            points.push_back(m_points[i + 1]);
         }
 
         return points;
-    } 
+    }
 
     return Vector<Vector3>();
 
@@ -178,6 +203,33 @@ bool Polyline::IsPlane() const
     }
 
     return true;
+}
+
+Polyline Polyline::CreateSmooth() const
+{
+    if (!(m_hint == Hint::LineLoop || m_hint == Hint::LineStrip)) { assert(0); return Polyline(); }
+   auto lines = m_points;
+   if (lines.size() == 0) { return Polyline(); }
+   Vector<Vector3> polyline;
+   polyline.push_back(lines.front());
+   for (size_t i = 1; i < lines.size() - 1; i++) {
+       auto begin = lines[i - 1];
+       auto center = lines[i];
+       auto end = lines[i + 1];
+
+       auto line1 = center - begin;
+       auto line2 = end - center;
+
+       float len1 = glm::length(line1);
+       float len2 = glm::length(line2);
+	   if (len1 < MathHelper::EPS || len2 < MathHelper::EPS) { continue; }
+       auto inner = glm::dot(line1/ len1, line2 / len2);
+       if (inner < MathHelper::THR_RAD5) {
+           polyline.push_back(lines[i]);
+       }
+   }
+   
+   return Polyline(std::move(polyline));
 }
 
 }

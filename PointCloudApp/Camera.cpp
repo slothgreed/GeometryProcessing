@@ -215,5 +215,8 @@ Vector2 Camera::GetOnePixelDistance(const Vector3& worldPos) const
 		glm::length(dy - worldPos));
 }
 
-
+Matrix4x4 Camera::Create2DCamera(const Vector2i& size)
+{
+	return glm::ortho(0.0f, (float)size.x, 0.0f, (float)size.y, -1.0f, 1.0f);
+}
 }

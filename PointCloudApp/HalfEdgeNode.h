@@ -11,6 +11,7 @@ namespace KI
 class BVH;
 class Voxelizer;
 class ShapeDiameterFunction;
+class ShapeMatching;
 class SignedDistanceField;
 class HalfEdgeController;
 class HalfEdgeNode : public RenderNode
@@ -77,7 +78,7 @@ protected:
 	virtual void PickNode(const PickContext& context);
 	virtual void DrawPartsNode(const DrawContext& context, const RenderParts& parts);
 	virtual bool CollectPickedNode(PickResult& result);
-	virtual void UpdateData(float time) {};
+	virtual void UpdateData(float time);
 	
 private:
 
@@ -164,6 +165,7 @@ private:
 	BVH* m_pBVH;
 	SignedDistanceField* m_pSignedDistanceField;
 	ShapeDiameterFunction* m_pShapeDiameterFunction;
+	ShapeMatching* m_pShapeMatching;
 	Voxelizer* m_pVoxelizer;
 	struct UI
 	{
@@ -232,6 +234,7 @@ private:
 			, normalLength(1.0f)
 			, vertexValue(0)
 			, vertexDirection(0)
+			, doShapeMatching(false)
 		{
 		}
 		bool visible;
@@ -243,6 +246,7 @@ private:
 		bool visibleVertex;
 		bool visibleNormal;
 		bool editVertex;
+		bool doShapeMatching;
 		float normalLength;
 		int vertexValue;
 		int vertexDirection;

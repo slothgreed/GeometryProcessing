@@ -7,6 +7,7 @@ namespace KI
 {
 void KMeansAlgorithm::Execute(const Vector<Vector3>& position, int clusterNum, int iterateNum)
 {
+	m_clusterNum = clusterNum;
 	m_positionNum = position.size();
 	auto seeds = CreateInitSeed(position);
 
@@ -18,8 +19,7 @@ void KMeansAlgorithm::Execute(const Vector<Vector3>& position, int clusterNum, i
 		seeds = std::move(newSeeds);
 	}
 
-	Seeds newSeeds;
-	Calculate(position, seeds, m_result, newSeeds);
+	Calculate(position, seeds, m_result, m_seeds);
 }
 
 KMeansAlgorithm::Seeds KMeansAlgorithm::CreateInitSeed(const Vector<Vector3>& position)

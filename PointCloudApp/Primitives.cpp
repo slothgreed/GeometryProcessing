@@ -648,4 +648,12 @@ SkyBox::SkyBox()
 
 	m_primitiveType = GL_TRIANGLES;
 }
+
+Shared<Primitive> ToPrimitive(const Polyline& polyline)
+{
+	auto primitive = std::make_shared<Primitive>();
+	primitive->SetPosition(polyline.Get());
+	primitive->SetType(GL_LINE_STRIP);
+	return primitive;
+}
 }

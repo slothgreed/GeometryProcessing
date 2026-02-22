@@ -54,6 +54,8 @@ public:
 	static Vector3 CreatePseudo(float value, float minValue, float maxValue);
 	static unsigned int PackColor3f(const Vector3& value);
 	static Vector3 UnPackColor3f(unsigned int value);
+	static bool IsBlack(const Vector3& value);
+	static bool IsBlack(const Vector4& value);
 private:
 	static void InitializePseudoColor();
 };
@@ -88,7 +90,6 @@ private:
 class glmUtil
 {
 public:
-	const float eps = 0.0001f;
 	bool iszero(const Vector3& value);
 	static Matrix4x4 CreateScale(const Vector3& value);
 	static Matrix4x4 CreateScale(float value);

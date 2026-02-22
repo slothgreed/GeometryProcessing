@@ -170,6 +170,8 @@ public:
 private:
 };
 
+Shared<Primitive> ToPrimitive(const Polyline& polyline);
+
 }
 
 #endif PRIMITIVE_H

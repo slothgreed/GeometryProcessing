@@ -10,6 +10,7 @@
 #include "GeometryUtility.h"
 #include "PrimitiveNode.h"
 #include "HalfEdgeController.h"
+#include "ShapeMatching.h"
 namespace KI
 {
 
@@ -21,6 +22,7 @@ HalfEdgeNode::HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pSt
 	, m_pSignedDistanceField(nullptr)
 	, m_pShapeDiameterFunction(nullptr)
 	, m_pController(new HalfEdgeController(this))
+	, m_pShapeMatching(new ShapeMatching(this))
 {
 
 	m_updateData.set();
@@ -41,6 +43,7 @@ HalfEdgeNode::~HalfEdgeNode()
 {
 	RELEASE_INSTANCE(m_pController);
 	RELEASE_INSTANCE(m_pShapeDiameterFunction);
+	RELEASE_INSTANCE(m_pShapeMatching);
 	RELEASE_INSTANCE(m_pVoxelizer);
 	RELEASE_INSTANCE(m_pBVH);
 
@@ -174,6 +177,16 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		context.pResource->GL()->ColorMask(true);
 	}
 
+	if (m_ui.doShapeMatching) {
+		auto& pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+		pSimpleShader->Use();
+		pSimpleShader->SetPosition(m_pShapeMatching->GetPosition());
+		pSimpleShader->SetCamera(pResource->GetCameraBuffer());
+		pSimpleShader->SetModel(GetMatrix());
+		pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
+		pSimpleShader->DrawArray(GL_POINTS, m_pHalfEdge->GetVertexNum());
+
+	}
 	if (m_ui.visibleEdge || m_ui.visibleVertex) {
 		auto& pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
@@ -337,6 +350,14 @@ bool HalfEdgeNode::CollectPickedNode(PickResult& result)
 	}
 	return pPick != nullptr;
 }
+
+void HalfEdgeNode::UpdateData(float time)
+{
+	if (m_ui.doShapeMatching) {
+		m_pShapeMatching->Update(time);
+	}
+}
+
 
 void HalfEdgeNode::ProcessMouseEvent(const PickContext& context)
 {
@@ -568,6 +589,13 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		m_ui.visibleVertex = true;
 		ui.SetCurrentController(m_pController);
 	}
+
+	if (ImGui::Checkbox("DoShapeMatching", &m_ui.doShapeMatching)) {
+		if (m_ui.doShapeMatching) {
+			m_pShapeMatching->Initialize();
+		}
+	}
+
 	
 }
 }

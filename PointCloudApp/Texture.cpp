@@ -8,7 +8,6 @@ Texture::Texture()
 	: m_handle(0)
 	, m_genMip(false)
 {
-
 }
 
 Texture::~Texture()
@@ -48,6 +47,19 @@ Vector2i Texture::CalcMipmapResolute(const Vector2i& resolute, int mipLevel)
 	return Vector2i(
 		std::max(1, resolute.x >> mipLevel),
 		std::max(1, resolute.y >> mipLevel));
+}
+
+PixelData Texture::GetPixelData()
+{
+	PixelData pixel;
+	if (m_data.size() == 0) {
+		GetPixel(m_data);
+	} 
+	pixel.data = m_data.data();
+	pixel.width = m_format.width;
+	pixel.height = m_format.height;
+	pixel.component = GLUtil::GetFormatSize(m_format.format);
+	return pixel;
 }
 void Texture::Bind()
 {

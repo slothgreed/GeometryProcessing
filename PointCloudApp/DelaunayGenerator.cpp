@@ -5,8 +5,163 @@
 #include "Primitives.h"
 #include "Utility.h"
 #include "KIMath.h"
+
+
+
+
+#define CGAL_NO_GMP 0
+#define CGAL_NO_MPFR 0
+#define CGAL_DISABLE_GMP 1
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Constrained_Delaunay_triangulation_2.h>
+#include <CGAL/Triangulation_face_base_with_info_2.h>
+
+#include <vector>
+#include <list>
+#include <iostream>
 namespace KI
 {
+// ----------------------
+// Domain marking helper
+// ----------------------
+struct FaceInfo2
+{
+	int nesting_level = -1;      // -1 = unvisited
+	bool in_domain() const { return nesting_level % 2 == 1; }
+};
+
+using K = CGAL::Exact_predicates_inexact_constructions_kernel;
+using Point = K::Point_2;
+
+using Vb = CGAL::Triangulation_vertex_base_2<K>;
+using Fbb = CGAL::Triangulation_face_base_with_info_2<FaceInfo2, K>;
+using Fb = CGAL::Constrained_triangulation_face_base_2<K, Fbb>;
+using TDS = CGAL::Triangulation_data_structure_2<Vb, Fb>;
+using Itag = CGAL::Exact_intersections_tag;
+using CDT = CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>;
+
+static void
+mark_component(CDT& cdt, CDT::Face_handle start, int level, std::list<CDT::Edge>& border)
+{
+	std::list<CDT::Face_handle> queue;
+	queue.push_back(start);
+
+	while (!queue.empty()) {
+		CDT::Face_handle fh = queue.front();
+		queue.pop_front();
+
+		if (fh->info().nesting_level != -1) continue;
+		fh->info().nesting_level = level;
+
+		for (int i = 0; i < 3; ++i) {
+			CDT::Edge e(fh, i);
+			CDT::Face_handle n = fh->neighbor(i);
+
+			if (n->info().nesting_level == -1) {
+				if (cdt.is_constrained(e))
+					border.push_back(e);
+				else
+					queue.push_back(n);
+			}
+		}
+	}
+}
+
+static void
+mark_domains(CDT& cdt)
+{
+	// init
+	for (auto f = cdt.all_faces_begin(); f != cdt.all_faces_end(); ++f)
+		f->info().nesting_level = -1;
+
+	std::list<CDT::Edge> border;
+	// outside is level 0
+	mark_component(cdt, cdt.infinite_face(), 0, border);
+
+	while (!border.empty()) {
+		CDT::Edge e = border.front();
+		border.pop_front();
+
+		CDT::Face_handle n = e.first->neighbor(e.second);
+		if (n->info().nesting_level == -1) {
+			// Cross a constrained edge => toggle level
+			mark_component(cdt, n, e.first->info().nesting_level + 1, border);
+		}
+	}
+}
+
+// ----------------------
+// Insert polygon constraint (closed polyline)
+// ----------------------
+static void insert_closed_polyline(CDT& cdt, const Vector<Vector3>& poly)
+{
+	const int n = (int)poly.size();
+	if (n < 3) return;
+
+	for (int i = 0; i < n; ++i) {
+		
+		auto a = poly[i];
+		auto b = poly[(i + 1) % n];
+		cdt.insert_constraint(
+			Point(a.x, a.y),
+			Point(b.x, b.y));
+	}
+}
+
+int main2()
+{
+	//CDT cdt;
+
+	//// ---- Example input ----
+	//// Outer boundary (concave)
+	//std::vector<Point> outer = {
+	//  {0,0}, {10,0}, {10,10}, {6,10}, {6,4}, {4,4}, {4,10}, {0,10}
+	//};
+
+	//// Hole boundary (a rectangle)
+	//std::vector<Point> hole1 = {
+	//  {2,2}, {3,2}, {3,3}, {2,3}
+	//};
+
+	//// Another hole (triangle)
+	//std::vector<Point> hole2 = {
+	//  {7,2}, {9,2}, {8,3.5}
+	//};
+
+	//// 1) Insert constraints
+	//insert_closed_polyline(cdt, outer);
+	//insert_closed_polyline(cdt, hole1);
+	//insert_closed_polyline(cdt, hole2);
+
+	//// 2) Refine (optional): you can add extra points if you want denser triangulation
+	//// cdt.insert(Point( ... ));
+
+	//// 3) Mark domain (inside outer minus holes)
+	//mark_domains(cdt);
+
+	//// 4) Extract triangles in domain
+	//int triCount = 0;
+	//for (auto fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+	//	if (!fit->info().in_domain()) continue;
+
+	//	Point p0 = fit->vertex(0)->point();
+	//	Point p1 = fit->vertex(1)->point();
+	//	Point p2 = fit->vertex(2)->point();
+
+	//	// do something (here: print)
+	//	std::cout << "T " << p0 << " " << p1 << " " << p2 << "\n";
+	//	++triCount;
+	//}
+
+	//std::cerr << "triangles in domain = " << triCount << "\n";
+	//return 0;
+	return 0;
+}
+Vector<Vector3> DelaunayGenerator::Execute2D_CGAL()
+{
+	return Execute2D_CGAL(*m_target, m_inner, -1);
+}
+
 Vector<unsigned int> DelaunayGenerator::Execute2D()
 {
 	if (m_target == nullptr) { return Vector<unsigned int>(); }
@@ -129,7 +284,37 @@ DelaunayGenerator::IndexedTriangle DelaunayGenerator::IndexedTriangle::Create(in
 	}
 	return tri;
 }
+Vector<Vector3> DelaunayGenerator::Execute2D_CGAL(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
+{
+	CDT cdt;
+	// 1) Insert constraints
+	insert_closed_polyline(cdt, polyline);
+	for (const auto& inner : inPolyline) {
+		insert_closed_polyline(cdt, *inner);
+	}
 
+	// 2) Refine (optional): you can add extra points if you want denser triangulation
+	// cdt.insert(Point( ... ));
+
+	// 3) Mark domain (inside outer minus holes)
+	mark_domains(cdt);
+
+	Vector<Vector3> triangle;
+	// 4) Extract triangles in domain
+	for (auto fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+		if (!fit->info().in_domain()) continue;
+
+		Point p0 = fit->vertex(0)->point();
+		Point p1 = fit->vertex(1)->point();
+		Point p2 = fit->vertex(2)->point();
+
+		triangle.push_back(Vector3(p0.x(), p0.y(), 0.0f));
+		triangle.push_back(Vector3(p1.x(), p1.y(), 0.0f));
+		triangle.push_back(Vector3(p2.x(), p2.y(), 0.0f));
+	}
+
+	return triangle;
+}
 Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
 {
 	Vector<Vector3> merge = polyline;
@@ -405,6 +590,14 @@ void DelaunayGenerator::ShowUI(RenderNode* pNode, UIContext& ui)
 		pNode->RemoveNode("InstancedNode");
 		pNode->RemoveNode("DelaunayTriangle");
 
+	}
+	if (ImGui::Button("DelaunayGenerator_CGAL")) {
+		auto triangles = Execute2D_CGAL(*m_target, m_inner, 0);
+		Shared<Primitive> pTriangle = std::make_shared<Primitive>();
+		pTriangle->SetPosition(std::move(triangles));
+		pTriangle->SetType(GL_TRIANGLES);
+
+		pNode->AddNode(std::make_shared<PrimitiveNode>("DelaunayTriangle", pTriangle, ColorUtility::CreatePrimary(2)));
 	}
 	if (ImGui::SliderInt("DelaunayGenerator", &m_ui.iterate, 3, m_target->size())) {
 		Execute2D(*m_target, m_inner, m_ui.iterate);

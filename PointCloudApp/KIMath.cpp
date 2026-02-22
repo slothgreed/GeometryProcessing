@@ -4,6 +4,10 @@
 #include <glm/gtx/vector_angle.hpp>
 namespace KI
 {
+const float MathHelper::EPS = 0.0001f;
+const float MathHelper::EPS_RAD = 0.01f;
+const float MathHelper::THR_RAD5 = 0.996f; // 5“x
+
 void MathHelper::SphericalToCartesian(float radius, float x, float y, Vector3& result)
 {
 	result.x = radius * sin(y) * cos(x);

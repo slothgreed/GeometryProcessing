@@ -116,22 +116,38 @@ void RenderResource::UpdateCamera()
 	if (!m_pCameraGpu) {
 		m_pCameraGpu = new GLBuffer();
 		m_pCameraGpu->Create(1, sizeof(CameraGPU));
+
+		m_p2DCameraGpu = new GLBuffer();
+		m_p2DCameraGpu->Create(1, sizeof(CameraGPU));
 	}
 
-
-	CameraGPU gpu;
-	gpu.view = m_pCamera->ViewMatrix();
-	gpu.proj = m_pCamera->Projection();
-	gpu.vp = m_pCamera->Projection() * m_pCamera->ViewMatrix();
-	gpu.invVP = glm::inverse(gpu.vp);
-	gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
-	gpu.center = Vector4(m_pCamera->Center(), 1.0f);
-	gpu.viewSize = m_pCamera->ViewSize();
-	auto frustum = m_pCamera->CreateFrustum().plane;
-	for (int i = 0; i < 6; i++) {
-		gpu.frustum[i] = frustum[i];
+	{
+		CameraGPU gpu;
+		gpu.view = m_pCamera->ViewMatrix();
+		gpu.proj = m_pCamera->Projection();
+		gpu.vp = m_pCamera->Projection() * m_pCamera->ViewMatrix();
+		gpu.invVP = glm::inverse(gpu.vp);
+		gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
+		gpu.center = Vector4(m_pCamera->Center(), 1.0f);
+		gpu.viewSize = m_pCamera->ViewSize();
+		auto frustum = m_pCamera->CreateFrustum().plane;
+		for (int i = 0; i < 6; i++) {
+			gpu.frustum[i] = frustum[i];
+		}
+		m_pCameraGpu->BufferSubData(0, 1, sizeof(CameraGPU), &gpu);
 	}
-	m_pCameraGpu->BufferSubData(0, 1, sizeof(CameraGPU), &gpu);
+	{
+		CameraGPU gpu;
+		gpu.view = Matrix4x4(1);
+		gpu.proj = Camera::Create2DCamera(m_pCamera->ViewSize());
+		gpu.vp = gpu.proj * gpu.view;
+		gpu.invVP = glm::inverse(gpu.vp);
+		gpu.eye = Vector4(m_pCamera->Eye(), 1.0f);
+		gpu.center = Vector4(m_pCamera->Center(), 1.0f);
+		gpu.viewSize = m_pCamera->ViewSize();
+		m_p2DCameraGpu->BufferSubData(0, 1, sizeof(CameraGPU), &gpu);
+	}
+
 }
 
 void RenderResource::UpdatePBR()

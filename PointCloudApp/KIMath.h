@@ -6,6 +6,10 @@ namespace KI
 class MathHelper
 {
 public:
+	static const float EPS;
+	static const float EPS_RAD;
+	static const float THR_RAD5;
+
 	MathHelper() {};
 	~MathHelper() {};
 

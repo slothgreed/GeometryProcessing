@@ -10,9 +10,9 @@ namespace KI
 class PrimitiveNode : public RenderNode
 {
 public:
-	PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive);
-	PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Vector3& color);
-	PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Shared<Texture>& pTexutre);
+	PrimitiveNode(const String& name, Shared<Primitive> pPrimitive);
+	PrimitiveNode(const String& name, Shared<Primitive> pPrimitive, const Vector3& color);
+	PrimitiveNode(const String& name, Shared<Primitive> pPrimitive, const Shared<Texture>& pTexutre);
 	~PrimitiveNode();
 
 	struct Parts : public RenderParts
@@ -23,6 +23,7 @@ public:
 
 
 	const Shared<Primitive>& GetData() const;
+	void Set2D(bool value) { m_is2D = value; }
 	void UpdateData();
 	void DrawNode(const DrawContext& context);
 	void SetGLStatus(const Shared<GLStatus>& status) { m_gl = status; }
@@ -45,6 +46,7 @@ private:
 	Shared<GLStatus> m_gl;
 	void BuildGLBuffer();
 	void UpdateRenderData();
+	bool m_is2D = false;
 	Vector3 m_color;
 	Shared<Texture> m_pTexture;
 	Shared<Primitive> m_pPrimitive;

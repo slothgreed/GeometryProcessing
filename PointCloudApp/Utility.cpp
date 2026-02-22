@@ -1,6 +1,7 @@
 #include "Utility.h"
 #include "Random.h"
 #include "FileUtility.h"
+#include "KIMath.h"
 namespace KI
 {
 Vector<Vector3> g_RGB;
@@ -220,6 +221,20 @@ Vector3 ColorUtility::UnPackColor3f(unsigned int value)
 	return color;
 }
 
+bool ColorUtility::IsBlack(const Vector3& value)
+{
+	return
+		MathHelper::IsZero(value.x) &&
+		MathHelper::IsZero(value.y) &&
+		MathHelper::IsZero(value.z);
+}
+bool ColorUtility::IsBlack(const Vector4& value)
+{
+	return
+		MathHelper::IsZero(value.x) &&
+		MathHelper::IsZero(value.y) &&
+		MathHelper::IsZero(value.z);
+}
 
 Vector<Vector4> TypeConverter::Convert4f(const Vector<Vector3>& data)
 {
@@ -260,9 +275,9 @@ int UIntBool::MemorySize() const
 bool glmUtil::iszero(const Vector3& value)
 {
 	return
-		-eps < value.x && value.x < eps &&
-		-eps < value.y && value.y < eps &&
-		-eps < value.z && value.z < eps;
+		-MathHelper::EPS < value.x && value.x < MathHelper::EPS &&
+		-MathHelper::EPS < value.y && value.y < MathHelper::EPS &&
+		-MathHelper::EPS < value.z && value.z < MathHelper::EPS;
 }
 
 Matrix4x4 glmUtil::CreateScale(const Vector3& value)

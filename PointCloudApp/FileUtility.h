@@ -23,9 +23,11 @@ public:
 	static bool Load(const String& filePath, Vector<String>& contents);
 	static String GetExtension(const String& filePath);
 	static String GetDirectoryPath(const String& filePath);
+	static String GetFileName(const String& filePath);
 	static bool CheckExtension(const String& filePath, const String& ext);
 	static Vector<String> Split(const String& str, char del);
-
+	static int FileNum(const String& directory);
+	static Vector<String> CollectFile(const String& directory, const String& ext);
 private:
 
 };
@@ -48,6 +50,7 @@ public:
 	static int ToInt(const String& str);
 	static float ToFloat(const String& str);
 	static String ToString(int value);
+	static String ToString(const Vector3& str);
 	static std::pair<String, String> SplitAtFirst(const String& str, char delimiter);
 	static String TrimWhiteSpace(const String& str);
 	static bool Contains(const String& str, const String& target);

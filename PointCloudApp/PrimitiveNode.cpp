@@ -5,7 +5,7 @@
 namespace KI
 {
 
-PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Vector3& color)
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive> pPrimitive, const Vector3& color)
 	: RenderNode(name)
 	, m_color(color)
 	, m_pickTarget(false)
@@ -15,7 +15,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, 
 	BuildGLBuffer();
 }
 
-PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, const Shared<Texture>& pTexutre)
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive> pPrimitive, const Shared<Texture>& pTexutre)
 	: RenderNode(name)
 	, m_pTexture(pTexutre)
 	, m_pickTarget(false)
@@ -25,7 +25,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive, 
 	BuildGLBuffer();
 }
 
-PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive>& pPrimitive)
+PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive> pPrimitive)
 	: RenderNode(name)
 	, m_pickTarget(false)
 {
@@ -127,38 +127,40 @@ void PrimitiveNode::DrawNode(const DrawContext& context)
 	if (m_gl) {
 		context.pResource->GL()->SetupStatus(*m_gl.get());
 	}
-	const auto& pResourece = context.pResource;
+	const auto& pResource = context.pResource;
+	auto pCamera = m_is2D ? pResource->Get2DCameraBuffer() : pResource->GetCameraBuffer();
+
 	IShadingShader* pShader = nullptr;
 	if (m_pPrimitive->Color().size() * GLUtil::GetPrimitiveSize(m_pPrimitive->GetType()) == m_pPrimitive->Position().size()) {
-		auto pPrimitiveColorShader = pResourece->GetShaderTable()->GetPrimitiveColorShader();
+		auto pPrimitiveColorShader = pResource->GetShaderTable()->GetPrimitiveColorShader();
 		pPrimitiveColorShader->Use();
 		pPrimitiveColorShader->SetPosition(m_pPositionBuffer.get());
 		pPrimitiveColorShader->SetColor(m_pColorBuffer.get());
-		pPrimitiveColorShader->SetCamera(pResourece->GetCameraBuffer());
+		pPrimitiveColorShader->SetCamera(pCamera);
 		pPrimitiveColorShader->SetModel(GetMatrix());
 		pShader = pPrimitiveColorShader.get();
 	} else 	if (m_pPrimitive->Color().size() == m_pPrimitive->Position().size()) {
-		auto pVertexColorShader = pResourece->GetShaderTable()->GetVertexColorShader();
+		auto pVertexColorShader = pResource->GetShaderTable()->GetVertexColorShader();
 		pVertexColorShader->Use();
 		pVertexColorShader->SetPosition(m_pPositionBuffer.get());
 		pVertexColorShader->SetColor(m_pColorBuffer.get());
-		pVertexColorShader->SetCamera(pResourece->GetCameraBuffer());
+		pVertexColorShader->SetCamera(pCamera);
 		pVertexColorShader->SetModel(GetMatrix());
 		pShader = pVertexColorShader.get();
 	} else if (m_pPrimitive->Texcoord().size() != 0) {
-		auto pTextureShader = pResourece->GetShaderTable()->GetTextureShader();
+		auto pTextureShader = pResource->GetShaderTable()->GetTextureShader();
 		pTextureShader->Use();
 		pTextureShader->BindTexture(*m_pTexture);
 		pTextureShader->SetPosition(m_pPositionBuffer.get());
 		pTextureShader->SetTexcoord(m_pTexcoordBuffer.get());
-		pTextureShader->SetCamera(pResourece->GetCameraBuffer());
+		pTextureShader->SetCamera(pCamera);
 		pTextureShader->SetModel(GetMatrix());
 		pShader = pTextureShader.get();
 	} else {
-		auto pSimpleShader = pResourece->GetShaderTable()->GetSimpleShader();
+		auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
 		pSimpleShader->SetPosition(m_pPositionBuffer.get());
-		pSimpleShader->SetCamera(pResourece->GetCameraBuffer());
+		pSimpleShader->SetCamera(pCamera);
 		pSimpleShader->SetModel(GetMatrix());
 		pSimpleShader->SetColor(m_color);
 		pShader = pSimpleShader.get();

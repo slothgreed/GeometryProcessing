@@ -4,9 +4,108 @@
 namespace KI
 {
 
+class Neighbor8
+{
+public:
+	Neighbor8() {};
+	~Neighbor8() {};
+
+	static Neighbor8 Create()
+	{
+		Vector<Vector2i> v(8);
+		v[0] = Vector2i(0, 1);	v[1] = Vector2i(1, 1);	v[2] = Vector2i(1, 0);
+		v[3] = Vector2i(1, -1); v[4] = Vector2i(0, -1);
+		v[5] = Vector2i(-1, -1); v[6] = Vector2i(-1, 0); v[7] = Vector2i(-1, 1);
+		
+		Neighbor8 n;
+		n.m_value = std::move(v);
+		return n;
+	}
+
+	static int Size() { return 8; }
+	const Vector2i& operator[](int i) const { return m_value[i]; }
+	static int Opposite(int i) { return (i + 4) & 7; }
+	static int Prev(int i) { return (i + 7) & 7; }
+	static int Next(int i) { return (i + 1) & 7; }
+	static int Index(int i) { return i & 7; }
+private:
+	Vector<Vector2i> m_value;
+};
+
+struct PixelData
+	{
+		struct Iterator
+		{
+			Iterator(const PixelData* pixel, int index)
+				: m_pixel(pixel)
+				, m_index(index)
+			{
+			}
+
+			bool operator!=(const Iterator& other) const { return m_index != other.m_index; }
+			Iterator& operator++() { ++m_index; return *this; }
+			Vector4 operator*() const
+			{
+				int c = m_pixel->component;
+				const unsigned char* p = m_pixel->data + m_index * c;
+				Vector4 v{ 0, 0, 0, 255 };
+				if (c > 0) v.x = p[0];
+				if (c > 1) v.y = p[1];
+				if (c > 2) v.z = p[2];
+				if (c > 3) v.w = p[3];
+				return v;
+			}
+
+		private:
+			const PixelData* m_pixel = nullptr;
+			int m_index = 0;
+		};
+
+
+		PixelData() {};
+		~PixelData() {};
+
+		Iterator begin() const { return PixelData::Iterator(this, 0); }
+		Iterator end() const { return PixelData::Iterator(this, width * height); }
+
+		bool IsIn(const Vector2i& xy) const { return IsIn(xy.x, xy.y); }
+
+		bool IsIn(int x, int y) const
+		{
+			return
+				0 <= x && x < width &&
+				0 <= y && y < height;
+		}
+		Vector4 Get(const Vector2i& xy) const
+		{
+			return Get(xy.x, xy.y);
+		}
+		Vector4 Get(int x, int y) const
+		{
+			if (data == nullptr) { return Vector4(0); }
+			if (!IsIn(x, y)) { return Vector4(0); }
+			unsigned char* p = &data[(y * width + x) * component];
+			Vector4 v{ 0, 0, 0, 255 };
+			if (component > 0) v.x = p[0];
+			if (component > 1) v.y = p[1];
+			if (component > 2) v.z = p[2];
+			if (component > 3) v.w = p[3];
+			return v;
+		}
+		
+		Vector2i IndexToXY(int index) const
+		{
+			return Vector2i(index % width, index / width);
+		}
+		int width = 0;
+		int height = 0;
+		int component = 0;
+		unsigned char* data = nullptr;
+	};
 class Texture
 {
 public:
+	
 
 	class Format
 	{
@@ -100,12 +199,15 @@ public:
 	void GetPixel(std::vector<unsigned char>& data);
 	void UseMipmap() { m_sampler.UseMipmap(); }
 	static int CalcMipmapLevel(const Vector2i& resolute);
+	PixelData GetPixelData();
 	static Vector2i CalcMipmapResolute(const Vector2i& resolute, int mipLevel);
 protected:
 	bool m_genMip;
 	Sampler m_sampler;
 	Format m_format;
 	GLuint m_handle;
+	std::vector<unsigned char> m_data;
+
 };
 
 class TextureBuffer : public Texture
@@ -132,7 +234,7 @@ public:
 	void Build(int width, int height);
 	void Build(int width, int height, unsigned char* data);
 	void Build(int width, int height, const Sampler& sampler, unsigned char* data);
-
+	void SetData(Vector<unsigned char>&& data) { m_data = data; }
 	void BindSampler(const Sampler& sampler);
 	static Texture::Format CreateRGBA(int width, int height);
 	void Clear(int value);
@@ -140,7 +242,6 @@ public:
 	void Resize(int width, int height);
 	void Copy(const Texture2D& texture);
 private:
-
 };
 
 class Texture3D : public Texture
