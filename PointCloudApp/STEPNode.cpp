@@ -188,25 +188,45 @@ struct STEPString
 		if (StringUtility::Contains(str, ".F.")) { value = false;  return true; }
 		assert(0); return false;
 	}
+
+	String ToString() const
+	{
+		return
+			"ID : " + StringUtility::ToString(id) +
+			"Name : " + name +
+			"Value : " + value;
+	}
 };
 
-struct STEPPoint
+struct ISTEPEntity
 {
-	STEPPoint():id(-1){};
+	ISTEPEntity() {};
+	~ISTEPEntity() {};
+	int id = -1;
+	String str;
+
+	static void Fetch(ISTEPEntity* data, const STEPString& stepStr)
+	{
+		data->id = stepStr.id;
+		data->str = stepStr.ToString();
+	}
+};
+
+struct STEPPoint : public ISTEPEntity
+{
+	STEPPoint(){};
 	~STEPPoint() {};
 	static constexpr const char* EntityName = "CARTESIAN_POINT";
-	int id;
 	Vector3 pos;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPPoint();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		values = STEPString::SplitValue(values[1]);
 		if (!STEPString::ValueToFloat(values[0], data->pos.x)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[1], data->pos.y)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[2], data->pos.z)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.points[data->id] = data;
 	}
 
@@ -214,25 +234,28 @@ struct STEPPoint
 	{
 		return pos;
 	}
+
+	void ShowUI()
+	{
+		ImGui::Text(str.data());
+	}
 };
 
-struct STEPDirection
+struct STEPDirection : public ISTEPEntity
 {
-	STEPDirection():id(-1) {};
+	STEPDirection() {};
 	~STEPDirection() {};
 	static constexpr const char* EntityName = "DIRECTION";
-	int id;
 	Vector3 direction;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPDirection();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		values = STEPString::SplitValue(values[1]);
 		if (!STEPString::ValueToFloat(values[0], data->direction.x)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[1], data->direction.y)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[2], data->direction.z)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.directions[data->id] = data;
 	}
 
@@ -240,25 +263,28 @@ struct STEPDirection
 	{
 		return direction;
 	}
+
+	void ShowUI()
+	{
+		ImGui::Text(str.data());
+	}
 };
 
-struct STEPVector
+struct STEPVector : public ISTEPEntity
 {
-	STEPVector() :id(-1), idRef(-1), length(0.0f) {};
+	STEPVector() :idRef(-1), length(0.0f) {};
 	~STEPVector() {};
 	static constexpr const char* EntityName = "VECTOR";
-	int id;
 	int idRef;
 	float length;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPVector();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->idRef)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[2], data->length)) { assert(0); return; }
 
-		data->id = stepStr.id;
 		step.vectors[data->id] = data;
 	}
 
@@ -270,17 +296,20 @@ struct STEPVector
 		vector *= length;
 		return vector;
 	}
+
+	void ShowUI()
+	{
+		ImGui::Text(str.data());
+	}
 };
 
-struct STEPLine
+struct STEPLine : public ISTEPEntity
 {
-	STEPLine():id(-1),beginRef(-1),endRef(-1) {};
+	STEPLine():beginRef(-1),endRef(-1) {};
 	~STEPLine() {};
 	static constexpr const char* EntityName = "LINE";
-	int id;
 	int beginRef;
 	int endRef;
-
 	struct Data
 	{
 		Vector3 begin;
@@ -290,10 +319,10 @@ struct STEPLine
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPLine();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->beginRef)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[2], data->endRef)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.lines[data->id] = data;
 	}
 
@@ -306,49 +335,36 @@ struct STEPLine
 	}
 };
 
-struct STEPAxis2Placement3D
+struct STEPAxis2Placement3D : public ISTEPEntity
 {
-	STEPAxis2Placement3D() :id(-1), pointRef(-1), dirRef1(-1), dirRef2(-1) {};
+	STEPAxis2Placement3D() : pointRef(-1), dirRef1(-1), dirRef2(-1) {};
 	~STEPAxis2Placement3D() {};
 
 	static constexpr const char* EntityName = "AXIS2_PLACEMENT_3D";
 
-	int id;
 	int pointRef;
 	int dirRef1;
 	int dirRef2;
-
 	struct Data
 	{
 		Vector3 point;
 		Vector3 dir1;
 		Vector3 dir2;
 
-		Vector3 Normal() const
-		{
-			return dir1;
-		}
-
-		Vector3 U() const
-		{
-			return dir2;
-		}
-
-		Vector3 V() const
-		{
-			return glm::cross(dir1, dir2);
-		}
+		Vector3 Normal() const { return dir1; }
+		Vector3 U() const { return dir2; }
+		Vector3 V() const { return glm::cross(dir1, dir2); }
 	};
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPAxis2Placement3D();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->pointRef)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[2], data->dirRef1)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[3], data->dirRef2)) { assert(0); return; }
 
-		data->id = stepStr.id;
 		step.axis2Placement3D[data->id] = data;
 	}
 
@@ -364,15 +380,13 @@ struct STEPAxis2Placement3D
 };
 
 
-struct STEPCircle
+struct STEPCircle : public ISTEPEntity
 {
-	STEPCircle() :id(-1), axisRef(-1), rad(0.0f) {};
+	STEPCircle() : axisRef(-1), rad(0.0f) {};
 	~STEPCircle() {};
 	static constexpr const char* EntityName = "CIRCLE";
-	int id;
 	int axisRef;
 	float rad;
-
 	struct Data
 	{
 		Data() :rad(0.0f) {}
@@ -395,10 +409,10 @@ struct STEPCircle
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPCircle();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->axisRef)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.circles[data->id] = data;
 	}
 
@@ -412,15 +426,13 @@ struct STEPCircle
 
 };
 
-struct STEPCylinderSurface
+struct STEPCylinderSurface : public ISTEPEntity
 {
-	STEPCylinderSurface() :id(-1), axisRef(-1), rad(0.0f) {};
+	STEPCylinderSurface() :axisRef(-1), rad(0.0f) {};
 	~STEPCylinderSurface() {};
 	static constexpr const char* EntityName = "CYLINDRICAL_SURFACE";
-	int id;
 	int axisRef;
 	float rad;
-
 	struct Data
 	{
 		STEPAxis2Placement3D::Data axis;
@@ -430,10 +442,10 @@ struct STEPCylinderSurface
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPCylinderSurface();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->axisRef)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.cylinderSurface[data->id] = data;
 	}
 
@@ -446,15 +458,14 @@ struct STEPCylinderSurface
 	}
 };
 
-struct STEPPlane
+struct STEPPlane : public ISTEPEntity
 {
-	STEPPlane() :id(0), idRef(0) {};
+	STEPPlane() :idRef(0) {};
 	~STEPPlane() {};
 
 	static constexpr const char* EntityName = "PLANE";
-	int id;
-	int idRef;
 
+	int idRef;
 	struct Data
 	{
 		STEPAxis2Placement3D::Data axis;
@@ -464,9 +475,9 @@ struct STEPPlane
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPPlane();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->idRef)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.planes[data->id] = data;
 	}
 
@@ -479,22 +490,20 @@ struct STEPPlane
 	}
 };
 
-struct STEPVertexPoint
+struct STEPVertexPoint : public ISTEPEntity
 {
-	STEPVertexPoint() : id(-1), idRef(-1) {};
+	STEPVertexPoint() : idRef(-1) {};
 	~STEPVertexPoint() {};
 
 	static constexpr const char* EntityName = "VERTEX_POINT";
 
-	int id;
 	int idRef;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPVertexPoint();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->idRef)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.vertexPoint[data->id] = data;
 	}
 
@@ -506,14 +515,13 @@ struct STEPVertexPoint
 	}
 };
 
-struct STEPEdgeCurve
+struct STEPEdgeCurve : public ISTEPEntity
 {
-	STEPEdgeCurve() :id(-1), vertRef0(-1), vertRef1(-1), lineRef2(-1), orient(true) {};
+	STEPEdgeCurve() :vertRef0(-1), vertRef1(-1), lineRef2(-1), orient(true) {};
 	~STEPEdgeCurve() {};
 
 	static constexpr const char* EntityName = "EDGE_CURVE";
 
-	int id;
 	int vertRef0;
 	int vertRef1;
 	int lineRef2;
@@ -539,13 +547,13 @@ struct STEPEdgeCurve
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPEdgeCurve();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->vertRef0)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[2], data->vertRef1)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[3], data->lineRef2)) { assert(0); return; }
 		if (!STEPString::ValueToBool(values[4], data->orient)) { assert(0); return; }
 
-		data->id = stepStr.id;
 		step.edgeCurve[data->id] = data;
 	}
 
@@ -565,19 +573,17 @@ struct STEPEdgeCurve
 	}
 };
 
-struct STEPOrientedEdge
+struct STEPOrientedEdge : public ISTEPEntity
 {
-	STEPOrientedEdge() :id(-1), vertRef0(-1), vertRef1(-1), edgeCurveRef2(-1), orient(true) {};
+	STEPOrientedEdge() : vertRef0(-1), vertRef1(-1), edgeCurveRef2(-1), orient(true) {};
 	~STEPOrientedEdge() {};
 
 	static constexpr const char* EntityName = "ORIENTED_EDGE";
 
-	int id;
 	int vertRef0;
 	int vertRef1;
 	int edgeCurveRef2;
 	bool orient;
-
 
 	struct Data
 	{
@@ -658,12 +664,12 @@ struct STEPOrientedEdge
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPOrientedEdge();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		if (!STEPString::ValueToRef(values[1], data->vertRef0)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[2], data->vertRef1)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[3], data->edgeCurveRef2)) { assert(0); return; }
 		if (!STEPString::ValueToBool(values[4], data->orient)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.orientedEdge[data->id] = data;
 	}
 
@@ -693,14 +699,13 @@ struct STEPOrientedEdge
 
 };
 
-struct STEPEdgeLoop
+struct STEPEdgeLoop : public ISTEPEntity
 {
-	STEPEdgeLoop() :id(-1) {};
+	STEPEdgeLoop() {};
 	~STEPEdgeLoop() {};
 
 	static constexpr const char* EntityName = "EDGE_LOOP";
 
-	int id;
 	Vector<int> idRef;
 
 	struct Data
@@ -752,6 +757,7 @@ struct STEPEdgeLoop
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPEdgeLoop();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		values = STEPString::SplitValue(values[1]);
 
@@ -759,7 +765,6 @@ struct STEPEdgeLoop
 		for (int i = 0; i < data->idRef.size(); i++) {
 			if (!STEPString::ValueToRef(values[i], data->idRef[i])) { assert(0); return; }
 		}
-		data->id = stepStr.id;
 		step.edgeLoop[data->id] = data;
 	}
 
@@ -775,12 +780,11 @@ struct STEPEdgeLoop
 
 };
 
-struct STEPFace
+struct STEPFace : public ISTEPEntity
 {
-	STEPFace() :id(-1), idRef0(-1), orient(true) {};
+	STEPFace() : idRef0(-1), orient(true) {};
 	~STEPFace() {};
 
-	int id;
 	int idRef0;
 	bool orient;
 
@@ -804,9 +808,9 @@ struct STEPFace
 	static void Fetch(STEPStruct& step, const STEPString& stepStr, STEPFace* data)
 	{
 		auto values = STEPString::SplitValue(stepStr.value);
+		ISTEPEntity::Fetch(data, stepStr);
 		if (!STEPString::ValueToRef(values[1], data->idRef0)) { assert(0); return; }
 		if (!STEPString::ValueToBool(values[2], data->orient)) { assert(0); return; }
-		data->id = stepStr.id;
 	}
 
 	void ToData(const STEPStruct& step, STEPFace::Data* data)
@@ -866,13 +870,13 @@ struct STEPFaceBound : public STEPFace
 	}
 };
 
-struct STEPAdvancedFace
+struct STEPAdvancedFace : public ISTEPEntity
 {
-	STEPAdvancedFace() :id(-1), geomRef1(-1), orient(true) {};
+	STEPAdvancedFace() :geomRef1(-1), orient(true) {};
 	~STEPAdvancedFace() {};
 
 	static constexpr const char* EntityName = "ADVANCED_FACE";
-	int id;
+
 	Vector<int> faceRef0;
 	int geomRef1;
 	bool orient;
@@ -900,29 +904,29 @@ struct STEPAdvancedFace
 		void CreateMesh(STEPMesh& mesh) const
 		{
 			if (type == GeomType::Plane) {
-				//Polyline bound;
-				//Polyline outerBound;
-				//for (const auto& face : faceBound) {
-				//	bound.AddLoop(face.edgeLoop.CreatePolyline(orient));
-				//}
+				Polyline bound;
+				Polyline outerBound;
+				for (const auto& face : faceBound) {
+					bound.AddLoop(face.edgeLoop.CreatePolyline(orient));
+				}
 
-				//for (const auto& face : faceOuterBound) {
-				//	outerBound.AddLoop(face.edgeLoop.CreatePolyline(orient));
-				//}
+				for (const auto& face : faceOuterBound) {
+					outerBound.AddLoop(face.edgeLoop.CreatePolyline(orient));
+				}
 
-				//if (bound.Num() != 0) {
-				//	STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
-				//}
-				//if (outerBound.Num() != 0) {
-				//	STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
-				//}
-				//if (bound.Num() != 0 && outerBound.Num() != 0) {
-				//	STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
-				//} else if (outerBound.Num() != 0) {
-				//	STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, Polyline()));
-				//} else if (bound.Num() != 0) {
-				//	STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(bound, Polyline()));
-				//}
+				if (bound.Num() != 0) {
+					STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
+				}
+				if (outerBound.Num() != 0) {
+					STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
+				}
+				if (bound.Num() != 0 && outerBound.Num() != 0) {
+					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
+				} else if (outerBound.Num() != 0) {
+					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, Polyline()));
+				} else if (bound.Num() != 0) {
+					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(bound, Polyline()));
+				}
 			} else if (type == GeomType::Cylinder) {
 				Polyline bound;
 				Polyline outerBound;
@@ -955,6 +959,7 @@ struct STEPAdvancedFace
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto data = new STEPAdvancedFace();
+		ISTEPEntity::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
 		auto faces = STEPString::SplitValue(values[1]);
 		data->faceRef0.resize(faces.size());
@@ -964,7 +969,6 @@ struct STEPAdvancedFace
 
 		if (!STEPString::ValueToRef(values[2], data->geomRef1)) { assert(0); return; }
 		if (!STEPString::ValueToBool(values[3], data->orient)) { assert(0); return; }
-		data->id = stepStr.id;
 		step.advancedFace[data->id] = data;
 	}
 
@@ -986,11 +990,11 @@ struct STEPAdvancedFace
 
 };
 
-struct STEPShell
+struct STEPShell : public ISTEPEntity
 {
-	STEPShell() :id(-1) {};
+	STEPShell() {};
 	~STEPShell() {};
-	int id;
+
 	Vector<int> faceRef;
 
 
@@ -1007,7 +1011,7 @@ struct STEPShell
 		for (int i = 0; i < values.size(); i++) {
 			if (!STEPString::ValueToRef(values[i], pShell->faceRef[i])) { assert(0); return; }
 		}
-		pShell->id = stepStr.id;
+		ISTEPEntity::Fetch(pShell, stepStr);
 	}
 
 	void ToData(const STEPStruct& step, STEPShell::Data* data)
@@ -1024,6 +1028,11 @@ struct STEPShell
 			advancedFace.CreateMesh(mesh);
 		}
 	}
+
+	void ShowUI(UIContext& ui)
+	{
+	}
+
 };
 struct STEPClosedShell : public STEPShell
 {
@@ -1054,6 +1063,7 @@ struct STEPClosedShell : public STEPShell
 		STEPShell::CreateMesh(ToData(step), mesh);
 		return mesh;
 	}
+
 };
 
 struct STEPOpenShell : public STEPShell
@@ -1152,23 +1162,23 @@ void NotDefineEntity(const String& str)
 }
 
 
-RenderNode* STEPLoader::CreateRenderNode(const String& name, const STEPStruct& step)
+RenderNode* STEPLoader::CreateRenderNode(const String& name, const const Shared<STEPStruct>& step)
 {
 	BDB bdb;
 	Vector<STEPMesh> meshs;
-	for (const auto& face : step.closedShell) {
-		auto mesh = face.second->CreateMesh(step);
+	for (const auto& face : step->closedShell) {
+		auto mesh = face.second->CreateMesh(*step);
 		bdb.Add(mesh.CreateBDB());
 		meshs.push_back(std::move(mesh));
 	}
 
-	for (const auto& face : step.openShell) {
-		auto mesh = face.second->CreateMesh(step);
+	for (const auto& face : step->openShell) {
+		auto mesh = face.second->CreateMesh(*step);
 		bdb.Add(mesh.CreateBDB());
 		meshs.push_back(std::move(mesh));
 	}
 
-	STEPRenderNode* pRenderNode = new STEPRenderNode(name);
+	STEPRenderNode* pRenderNode = new STEPRenderNode(name, step);
 	pRenderNode->SetBoundBox(bdb);
 	pRenderNode->SetMesh(std::move(meshs));
 
@@ -1196,8 +1206,8 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 
 	if (dataIndex == -1) { return nullptr; }
 
-	STEPStruct step;
-
+	auto pStep = std::make_shared<STEPStruct>();
+	auto& step = *pStep;
 	for (int i = dataIndex + 1; i < contents.size(); i++) {
 		if (contents[i] == "ENDSEC;")break;
 		auto content = contents[i];
@@ -1242,7 +1252,7 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		writer.Close();
 	}
 
-	return CreateRenderNode(name + IntToString(index), step);
+	return CreateRenderNode(name + IntToString(index), pStep);
 }
 
 

@@ -13,7 +13,7 @@ public:
 
 	static RenderNode* Load(const String& name, int index, bool saveOriginal = false);
 private:
-	static RenderNode* CreateRenderNode(const String& name, const STEPStruct& step);
+	static RenderNode* CreateRenderNode(const String& name, const Shared<STEPStruct>& step);
 
 };
 
@@ -39,9 +39,10 @@ struct STEPMesh
 class STEPRenderNode : public RenderNode
 {
 public:
-	STEPRenderNode(const String& name)
+	STEPRenderNode(const String& name, const Shared<STEPStruct>& step)
 		: RenderNode(name)
-		, m_rotateMatrix(Matrix4x4(1)){};
+		, m_rotateMatrix(Matrix4x4(1))
+		, m_step(step){};
 	virtual ~STEPRenderNode() {};
 
 	virtual void DrawNode(const DrawContext& context);
@@ -64,6 +65,7 @@ private:
 	GPU m_gpu;
 	Vector<STEPMesh> m_mesh;
 	Matrix4x4 m_rotateMatrix;
+	Shared<STEPStruct> m_step;
 };
 
 }
