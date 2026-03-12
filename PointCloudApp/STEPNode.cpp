@@ -81,6 +81,7 @@ struct STEPStruct
 		for (auto& v : closedShell) { delete v.second; }
 		for (auto& v : openShell) { delete v.second; }
 	}
+
 };
 
 template <typename Struct>
@@ -200,9 +201,9 @@ struct STEPString
 	String ToString() const
 	{
 		return
-			"ID : " + StringUtility::ToString(id) +
-			"Name : " + name +
-			"Value : " + value;
+			"#" + StringUtility::ToString(id) +
+			", " + name +
+			", " + value;
 	}
 };
 
@@ -216,6 +217,12 @@ struct STEPEntityBase
 	{
 		data->id = stepStr.id;
 		data->str = stepStr.ToString();
+	}
+	virtual void ShowUI(UIContext& ui) = 0;
+	void ShowLeaf(UIContext& ui)
+	{
+		ImGui::TreeNodeEx(str.data(),
+			ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
 	}
 };
 
@@ -245,10 +252,8 @@ struct STEPPoint : public STEPEntityBase
 
 	void FetchData(const STEPStruct& step){}
 
-	void ShowUI()
-	{
-		ImGui::Text(str.data());
-	}
+	void ShowUI(UIContext& ui) { ShowLeaf(ui); }
+
 };
 
 struct STEPDirection : public STEPEntityBase
@@ -270,20 +275,25 @@ struct STEPDirection : public STEPEntityBase
 
 	void FetchData(const STEPStruct& step) {}
 
-	void ShowUI()
-	{
-		ImGui::Text(str.data());
-	}
+	void ShowUI(UIContext& ui) { ShowLeaf(ui); }
+
 };
 
 struct STEPVector : public STEPEntityBase
 {
 	virtual ~STEPVector() = default;
 	static constexpr const char* EntityName = "VECTOR";
-	int idRef = -1;
-	float length = 0.0f;
+
+	struct Raw
+	{
+		int idRef = -1;
+		float length = 0.0f;
+	};
+
+	Raw raw;
 	struct Data
 	{
+		STEPDirection* driection = nullptr;
 		Vector3 vector;
 	};
 
@@ -294,23 +304,26 @@ struct STEPVector : public STEPEntityBase
 		auto data = new STEPVector();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->idRef)) { assert(0); return; }
-		if (!STEPString::ValueToFloat(values[2], data->length)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
+		if (!STEPString::ValueToFloat(values[2], data->raw.length)) { assert(0); return; }
 
 		step.vectors[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		auto pDirection = FindSetData2(step, step.directions, idRef);
-		data.vector = pDirection->direction;
+		data.driection = FindSetData2(step, step.directions, raw.idRef);
+		data.vector = data.driection->direction;
 		data.vector = glm::normalize(data.vector);
-		data.vector *= length;
+		data.vector *= raw.length;
 	}
 
-	void ShowUI()
+	void ShowUI(UIContext& ui)
 	{
-		ImGui::Text(str.data());
+		if (ImGui::TreeNode(str.data())) {
+			if (data.driection) { data.driection->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -318,12 +331,21 @@ struct STEPLine : public STEPEntityBase
 {
 	virtual ~STEPLine() = default;
 	static constexpr const char* EntityName = "LINE";
-	int beginRef = -1;
-	int vectorRef = -1;
+
+	struct Raw
+	{
+		int beginRef = -1;
+		int vectorRef = -1;
+	};
+
+	Raw raw;
 	struct Data
 	{
 		Vector3 begin;
 		Vector3 vector;
+
+		STEPPoint* point = nullptr;
+		STEPVector* vector0 = nullptr;
 	};
 	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -331,19 +353,29 @@ struct STEPLine : public STEPEntityBase
 		auto data = new STEPLine();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->beginRef)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[2], data->vectorRef)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.beginRef)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[2], data->raw.vectorRef)) { assert(0); return; }
 		step.lines[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		auto pPoint = FindSetData2(step, step.points, beginRef);
-		data.begin = pPoint->data.pos;
+		data.point = FindSetData2(step, step.points, raw.beginRef);
+		data.begin = data.point->data.pos;
 		
-		auto pVector = FindSetData2(step, step.vectors, vectorRef);
-		data.vector = pVector->data.vector;
+		data.vector0 = FindSetData2(step, step.vectors, raw.vectorRef);
+		data.vector = data.vector0->data.vector;
 	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.point) { data.point->ShowUI(ui); }
+			if (data.vector0) { data.vector0->ShowUI(ui); }
+			ImGui::TreePop();
+		}
+	}
+
 };
 
 struct STEPAxis2Placement3D : public STEPEntityBase
@@ -351,14 +383,23 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 	virtual ~STEPAxis2Placement3D() = default;
 	static constexpr const char* EntityName = "AXIS2_PLACEMENT_3D";
 
-	int pointRef = -1;
-	int dirRef1 = -1;
-	int dirRef2 = -1;
+	struct Raw
+	{
+		int pointRef = -1;
+		int dirRef1 = -1;
+		int dirRef2 = -1;
+	};
+
+	Raw raw;
 	struct Data
 	{
 		Vector3 point;
 		Vector3 dir1;
 		Vector3 dir2;
+
+		STEPPoint* point0 = nullptr;
+		STEPDirection* direction1 = nullptr;
+		STEPDirection* direction2 = nullptr;
 
 		Vector3 Normal() const { return dir1; }
 		Vector3 U() const { return dir2; }
@@ -371,23 +412,32 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 		auto data = new STEPAxis2Placement3D();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->pointRef)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[2], data->dirRef1)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[3], data->dirRef2)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.pointRef)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[2], data->raw.dirRef1)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[3], data->raw.dirRef2)) { assert(0); return; }
 
 		step.axis2Placement3D[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		auto pPoint = FindSetData2(step, step.points, pointRef);
-		data.point = pPoint->data.pos;
+		data.point0 = FindSetData2(step, step.points, raw.pointRef);
+		data.point = data.point0->data.pos;
 
-		auto pDirection1 = FindSetData2(step, step.directions, dirRef1);
-		data.dir1 = pDirection1->direction;
+		data.direction1 = FindSetData2(step, step.directions, raw.dirRef1);
+		data.dir1 = data.direction1->direction;
 
-		auto pDirection2 = FindSetData2(step, step.directions, dirRef2);
-		data.dir2 = pDirection2->direction;
+		data.direction2 = FindSetData2(step, step.directions, raw.dirRef2);
+		data.dir2 = data.direction2->direction;
+	}
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.point0) { data.point0->ShowUI(ui); }
+			if (data.direction1) { data.direction1->ShowUI(ui); }
+			if (data.direction2) { data.direction2->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -396,8 +446,13 @@ struct STEPCircle : public STEPEntityBase
 {
 	virtual ~STEPCircle() = default;
 	static constexpr const char* EntityName = "CIRCLE";
-	int axisRef = -1;
-	float rad = 0.0f;
+	struct Raw
+	{
+		int axisRef = -1;
+		float rad = 0.0f;
+	};
+	Raw raw;
+
 	struct Data
 	{
 		STEPAxis2Placement3D* axis = nullptr;
@@ -422,25 +477,38 @@ struct STEPCircle : public STEPEntityBase
 		auto data = new STEPCircle();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->axisRef)) { assert(0); return; }
-		if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.axisRef)) { assert(0); return; }
+		if (!STEPString::ValueToFloat(values[2], data->raw.rad)) { assert(0); return; }
 		step.circles[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		data.axis = FindSetData2(step, step.axis2Placement3D, axisRef);
-		data.rad = rad;
+		data.axis = FindSetData2(step, step.axis2Placement3D, raw.axisRef);
+		data.rad = raw.rad;
 	}
 
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.axis) { data.axis->ShowUI(ui); }
+			ImGui::TreePop();
+		}
+	}
 };
 
 struct STEPCylinderSurface : public STEPEntityBase
 {
 	virtual ~STEPCylinderSurface() = default;
 	static constexpr const char* EntityName = "CYLINDRICAL_SURFACE";
-	int axisRef = -1;
-	float rad = 0.0f;
+
+	struct Raw
+	{
+		int axisRef = -1;
+		float rad = 0.0f;
+	};
+	Raw raw;
+
 	struct Data
 	{
 		STEPAxis2Placement3D* axis = nullptr;
@@ -453,15 +521,23 @@ struct STEPCylinderSurface : public STEPEntityBase
 		auto data = new STEPCylinderSurface();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->axisRef)) { assert(0); return; }
-		if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.axisRef)) { assert(0); return; }
+		if (!STEPString::ValueToFloat(values[2], data->raw.rad)) { assert(0); return; }
 		step.cylinderSurface[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		data.axis = FindSetData2(step, step.axis2Placement3D, axisRef);
-		data.rad = rad;
+		data.axis = FindSetData2(step, step.axis2Placement3D, raw.axisRef);
+		data.rad = raw.rad;
+	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.axis) { data.axis->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -470,7 +546,12 @@ struct STEPPlane : public STEPEntityBase
 	virtual ~STEPPlane() = default;
 	static constexpr const char* EntityName = "PLANE";
 
-	int idRef = 0;
+	struct Raw
+	{
+		int idRef = 0;
+	};
+
+	Raw raw;
 	struct Data
 	{
 		STEPAxis2Placement3D* axis = nullptr;
@@ -482,14 +563,23 @@ struct STEPPlane : public STEPEntityBase
 		auto data = new STEPPlane();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->idRef)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
 		step.planes[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		data.axis = FindSetData2(step, step.axis2Placement3D, idRef);
+		data.axis = FindSetData2(step, step.axis2Placement3D, raw.idRef);
 	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.axis) { data.axis->ShowUI(ui); }
+			ImGui::TreePop();
+		}
+	}
+
 };
 
 struct STEPVertexPoint : public STEPEntityBase
@@ -497,10 +587,15 @@ struct STEPVertexPoint : public STEPEntityBase
 	virtual ~STEPVertexPoint() = default;
 	static constexpr const char* EntityName = "VERTEX_POINT";
 
-	int idRef = -1;
+	struct Raw
+	{
+		int idRef = -1;
+	};
+
+	Raw raw;
 	struct Data
 	{
-		Vector3 pos;
+		STEPPoint* point = nullptr;
 	};
 	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -508,14 +603,21 @@ struct STEPVertexPoint : public STEPEntityBase
 		auto data = new STEPVertexPoint();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->idRef)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
 		step.vertexPoint[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		auto pPoint = FindSetData2(step, step.points, idRef);
-		data.pos = pPoint->data.pos;
+		data.point = FindSetData2(step, step.points, raw.idRef);
+	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.point) { data.point->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -524,25 +626,43 @@ struct STEPEdgeCurve : public STEPEntityBase
 	virtual ~STEPEdgeCurve() = default;
 	static constexpr const char* EntityName = "EDGE_CURVE";
 
-	int vertRef0 = -1;
-	int vertRef1 = -1;
-	int lineRef2 = -1;
-	bool orient = true;
-	enum class CurveType
+	struct Raw
 	{
-		Line,
-		Circle,
+		int vertRef0 = -1;
+		int vertRef1 = -1;
+		int lineRef2 = -1;
+		bool orient = true;
 	};
+
+	Raw raw;
 
 	struct Data
 	{
 		Vector3 begin;
 		Vector3 end;
+		STEPVertexPoint* pPoint0 = nullptr;
+		STEPVertexPoint* pPoint1 = nullptr;
 		STEPLine* line = nullptr;
 		STEPCircle* circle = nullptr;
 		bool orient = true;
-		CurveType type = CurveType::Line;
 	};
+
+	Polyline CreatePolyline(bool faceOrient) const
+	{
+		if (data.line) {
+			return Polyline(Vector<Vector3>{ data.begin,data.end });
+		}
+
+		if (data.circle) {
+			if (MathHelper::IsSame(data.begin, data.end)) {
+				return data.circle->data.CreatePolyline(faceOrient);
+			} else {
+				return data.circle->data.CreatePolyline(faceOrient, data.begin, data.end);
+			}
+		}
+
+		return Polyline();
+	}
 
 	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -550,33 +670,40 @@ struct STEPEdgeCurve : public STEPEntityBase
 		auto data = new STEPEdgeCurve();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->vertRef0)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[2], data->vertRef1)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[3], data->lineRef2)) { assert(0); return; }
-		if (!STEPString::ValueToBool(values[4], data->orient)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[3], data->raw.lineRef2)) { assert(0); return; }
+		if (!STEPString::ValueToBool(values[4], data->raw.orient)) { assert(0); return; }
 
 		step.edgeCurve[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		auto pPoint0 = FindSetData2(step, step.vertexPoint, vertRef0);
-		data.begin = pPoint0->data.pos;
+		data.pPoint0 = FindSetData2(step, step.vertexPoint, raw.vertRef0);
+		data.begin = data.pPoint0->data.point->data.pos;
 
-		auto pPoint1 = FindSetData2(step, step.vertexPoint, vertRef1);
-		data.end = pPoint1->data.pos;
+		data.pPoint1 = FindSetData2(step, step.vertexPoint, raw.vertRef1);
+		data.end = data.pPoint1->data.point->data.pos;
 
-		data.line = FindSetData2(step, step.lines, lineRef2);
-		if (data.line) {
-			data.type = CurveType::Line;
-		} else {
-			data.circle = FindSetData2(step, step.circles, lineRef2);
-			if (data.circle) {
-				data.type = CurveType::Circle;
-			}
+		data.line = FindSetData2(step, step.lines, raw.lineRef2);
+		if (!data.line) {
+			data.circle = FindSetData2(step, step.circles, raw.lineRef2);
 		}
 
-		data.orient = orient;
+		data.orient = raw.orient;
+	}
+
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.pPoint0) { data.pPoint0->ShowUI(ui); }
+			if (data.pPoint1) { data.pPoint1->ShowUI(ui); }
+			if (data.line) { data.line->ShowUI(ui); }
+			if (data.circle) { data.circle->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -586,26 +713,33 @@ struct STEPOrientedEdge : public STEPEntityBase
 
 	static constexpr const char* EntityName = "ORIENTED_EDGE";
 
-	int vertRef0 = -1;
-	int vertRef1 = -1;
-	int edgeCurveRef2 = -1;
-	bool orient = true;
+	struct Raw
+	{
+		int vertRef0 = -1;
+		int vertRef1 = -1;
+		int edgeCurveRef2 = -1;
+		bool orient = true;
+	};
+
+	Raw raw;
 
 	struct Data
 	{
 		Vector3 begin;
 		Vector3 end;
+		STEPVertexPoint* vertex0 = nullptr;
+		STEPVertexPoint* vertex1 = nullptr;
 		STEPEdgeCurve* edgeCurve = nullptr;
 		bool orient = true;
 
 		bool IsLine() const
 		{
-			return edgeCurve->data.type == STEPEdgeCurve::CurveType::Line;
+			return edgeCurve->data.line != nullptr;
 		}
 
 		bool IsCircle() const
 		{
-			return edgeCurve->data.type == STEPEdgeCurve::CurveType::Circle;
+			return edgeCurve->data.circle != nullptr;
 		}
 
 		Vector3 GetBegin() const
@@ -626,37 +760,33 @@ struct STEPOrientedEdge : public STEPEntityBase
 			}
 		}
 
-		Polyline CreateCirclePolyline(bool faceOrient) const
+		float Length() const
 		{
-			if (!IsCircle()) {
-				assert(0);
-				return Polyline();
-			}
-
-			if (MathHelper::IsSame(begin, end)) {
-				return edgeCurve->data.circle->data.CreatePolyline(faceOrient);
-			} else {
-				return edgeCurve->data.circle->data.CreatePolyline(faceOrient, GetBegin(), GetEnd());
-			}
+			return glm::length(GetBegin() - GetEnd());
 		}
 
-		void CreateEdges(STEPMesh& mesh) const
+		Vector3 Dir() const
+		{
+			return GetBegin() - GetEnd();
+		}
+
+		void CreateEdges(STEPShape& mesh) const
 		{
 			if (IsLine()) {
 				if (orient) {
-					mesh.edges.push_back(begin);
-					mesh.edges.push_back(end);
+					mesh.polylines.push_back(Polyline(Vector<Vector3>{begin, end}));
 				} else {
-					mesh.edges.push_back(end);
-					mesh.edges.push_back(begin);
+					mesh.polylines.push_back(Polyline(Vector<Vector3>{end, begin}));
 				}
 			} else if(IsCircle()){
-				auto polyline = edgeCurve->data.circle->data.CreatePolyline(orient);
-				auto circle = polyline.CreateLinePoints();
-				STLUtil::Insert(mesh.edges, circle);
+				mesh.polylines.push_back(edgeCurve->data.circle->data.CreatePolyline(orient));
 			}
 		}
-
+		
+		Polyline CreatePolyline(bool faceOrient) const
+		{
+			return edgeCurve->CreatePolyline(orient);
+		}
 	};
 	Data data;
 
@@ -673,32 +803,42 @@ struct STEPOrientedEdge : public STEPEntityBase
 		auto data = new STEPOrientedEdge();
 		STEPEntityBase::Fetch(data, stepStr);
 		auto values = STEPString::SplitValue(stepStr.value);
-		if (!STEPString::ValueToRef(values[1], data->vertRef0)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[2], data->vertRef1)) { assert(0); return; }
-		if (!STEPString::ValueToRef(values[3], data->edgeCurveRef2)) { assert(0); return; }
-		if (!STEPString::ValueToBool(values[4], data->orient)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[3], data->raw.edgeCurveRef2)) { assert(0); return; }
+		if (!STEPString::ValueToBool(values[4], data->raw.orient)) { assert(0); return; }
 		step.orientedEdge[data->id] = data;
 	}
 
 
 	void FetchData(const STEPStruct& step)
 	{
-		data.edgeCurve = FindSetData2(step, step.edgeCurve, edgeCurveRef2);
-		if (vertRef0 == STEPEnum::ASTERISK) {
+		data.edgeCurve = FindSetData2(step, step.edgeCurve, raw.edgeCurveRef2);
+		if (raw.vertRef0 == STEPEnum::ASTERISK) {
 			data.begin = data.edgeCurve->data.begin;
 		} else {
-			auto pPoint = FindSetData2(step, step.vertexPoint, vertRef0);
-			data.begin = pPoint->data.pos;
+			data.vertex0 = FindSetData2(step, step.vertexPoint, raw.vertRef0);
+			data.begin = data.vertex0->data.point->data.pos;
 		}
 
-		if (vertRef1 == STEPEnum::ASTERISK) {
+		if (raw.vertRef1 == STEPEnum::ASTERISK) {
 			data.end = data.edgeCurve->data.end;
 		} else {
-			auto pPoint = FindSetData2(step, step.vertexPoint, vertRef1);
-			data.end = pPoint->data.pos;
+			data.vertex1 = FindSetData2(step, step.vertexPoint, raw.vertRef1);
+			data.end = data.vertex1->data.point->data.pos;
 		}
 
-		data.orient = orient;
+		data.orient = raw.orient;
+	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.edgeCurve) { data.edgeCurve->ShowUI(ui); }
+			if (data.vertex0) { data.vertex0->ShowUI(ui); }
+			if (data.vertex1) { data.vertex1->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -716,21 +856,24 @@ struct STEPPolyLoop : public STEPEntityBase
 
 	struct Data
 	{
-		Vector<Vector3> points;
-		Polyline CreatePolyline(bool faceOrient) const
+		Vector<STEPPoint*> points;
+		PolylineList CreatePolyline(bool faceOrient) const
 		{
-			auto loop = points;
+			Vector<Vector3> loop(points.size());
+			for (int i = 0; i < points.size(); i++) {
+				loop[i] = points[i]->data.pos;
+			}
 			Polyline polyline;
 			polyline.AddLoop(std::move(loop));
-			return polyline;
+			return PolylineList(std::move(polyline));
 		}
 
-		void CreatePlane(STEPMesh& mesh, bool orient) const
-		{
-			auto polyline = CreatePolyline(orient);
-			auto triangle = polyline.CreateTrianglePoints(orient);
-			STLUtil::Insert(mesh.triangels, triangle);
-		}
+		//void CreatePlane(STEPMesh& mesh, bool orient) const
+		//{
+		//	auto polyline = CreatePolyline(orient);
+		//	auto triangle = polyline.CreateTrianglePoints(orient);
+		//	STLUtil::Insert(mesh.triangels, triangle);
+		//}
 	};
 
 	Data data;
@@ -753,8 +896,19 @@ struct STEPPolyLoop : public STEPEntityBase
 	{
 		data.points.resize(raw.idRef.size());
 		for (auto i = 0; i < raw.idRef.size(); i++) {
-			auto pPoint0 = FindSetData2(step, step.points, raw.idRef[i]);
-			data.points[i] = pPoint0->data.pos;
+			data.points[i] = FindSetData2(step, step.points, raw.idRef[i]);
+		}
+	}
+	
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			for (int i = 0; i < data.points.size(); i++) {
+				data.points[i]->ShowUI(ui);
+			}
+
+			ImGui::TreePop();
 		}
 	}
 };
@@ -766,53 +920,50 @@ struct STEPEdgeLoop : public STEPEntityBase
 
 	static constexpr const char* EntityName = "EDGE_LOOP";
 
-	Vector<int> idRef;
+	struct Raw
+	{
+		Vector<int> idRef;
+	};
+
+	Raw raw;
 
 	struct Data
 	{
 		Vector<STEPOrientedEdge*> orientedEdges;
-		Polyline CreatePolyline(bool faceOrient) const
+		PolylineList CreatePolyline(bool faceOrient) const
 		{
-			Vector<Vector3> loop;
-			Polyline polyline;
+			PolylineList polyline;
 			for (const auto& edge : orientedEdges) {
-				if (edge->data.IsLine()) {
-					loop.push_back(edge->data.GetBegin());
-				} else if (edge->data.IsCircle()) {
-					polyline.AddCircle(edge->data.CreateCirclePolyline(faceOrient));
-				}
+				polyline.Add(edge->data.CreatePolyline(faceOrient));
 			}
-
-			polyline.AddLoop(std::move(loop));
-
 
 			return polyline;
 		}
 
-		void CreatePlane(STEPMesh& mesh, bool orient) const
-		{
-			for (const auto& edge : orientedEdges) {
-				edge->data.CreateEdges(mesh);
-			}
-			auto polyline = CreatePolyline(orient);
-			auto triangle = polyline.CreateTrianglePoints(orient);
-			STLUtil::Insert(mesh.triangels, triangle);
-		}
+		//void CreatePlane(STEPMesh& mesh, bool orient) const
+		//{
+		//	for (const auto& edge : orientedEdges) {
+		//		edge->data.CreateEdges(mesh);
+		//	}
+		//	auto polyline = CreatePolyline(orient);
+		//	auto triangle = polyline.CreateTrianglePoints(orient);
+		//	STLUtil::Insert(mesh.triangels, triangle);
+		//}
 
-		void CreateCylinder(STEPMesh& mesh, bool orient, const STEPCylinderSurface::Data& cylinder) const
-		{
-			float height = 0.0f;
-			for (const auto& edge : orientedEdges) {
-				if (edge->data.IsLine()) { height = glm::length(edge->data.begin - edge->data.end); }
-			}
-			//if (MathHelper::IsZero(height)) { assert(0); }
+		//void CreateCylinder(STEPMesh& mesh, bool orient, const STEPCylinderSurface::Data& cylinder) const
+		//{
+		//	float height = 0.0f;
+		//	for (const auto& edge : orientedEdges) {
+		//		if (edge->data.IsLine()) { height = glm::length(edge->data.begin - edge->data.end); }
+		//	}
+		//	//if (MathHelper::IsZero(height)) { assert(0); }
 
-			auto circleLine = Circle::CreateLine(cylinder.rad,CIRCLE_SUBDIVISION_NUM,
-				cylinder.axis->data.U(),cylinder.axis->data.V(),cylinder.axis->data.point, orient);
-			STLUtil::Insert(mesh.edges, circleLine.CreateLinePoints());
-			//auto cylinderMesh = Cylinder::CreateOuterLine(cylinder.axis.point, cylinder.axis.Normal(), cylinder.rad, height, CIRCLE_SUBDIVISION_NUM, CIRCLE_SUBDIVISION_NUM);
-			//STLUtil::Insert(mesh.edges, cylinderMesh.CreateLinePoints());
-		}
+		//	auto circleLine = Circle::CreateLine(cylinder.rad,CIRCLE_SUBDIVISION_NUM,
+		//		cylinder.axis->data.U(),cylinder.axis->data.V(),cylinder.axis->data.point, orient);
+		//	STLUtil::Insert(mesh.edges, circleLine.CreateLinePoints());
+		//	//auto cylinderMesh = Cylinder::CreatePolyline(cylinder.axis.point, cylinder.axis.Normal(), cylinder.rad, height, CIRCLE_SUBDIVISION_NUM, CIRCLE_SUBDIVISION_NUM);
+		//	//STLUtil::Insert(mesh.edges, cylinderMesh.CreateLinePoints());
+		//}
 	};
 
 	Data data;
@@ -824,18 +975,29 @@ struct STEPEdgeLoop : public STEPEntityBase
 		auto values = STEPString::SplitValue(stepStr.value);
 		values = STEPString::SplitValue(values[1]);
 
-		data->idRef.resize(values.size());
-		for (int i = 0; i < data->idRef.size(); i++) {
-			if (!STEPString::ValueToRef(values[i], data->idRef[i])) { assert(0); return; }
+		data->raw.idRef.resize(values.size());
+		for (int i = 0; i < data->raw.idRef.size(); i++) {
+			if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { assert(0); return; }
 		}
 		step.edgeLoop[data->id] = data;
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		data.orientedEdges.resize(idRef.size());
-		for (auto i = 0; i < idRef.size(); i++) {
-			data.orientedEdges[i] = FindSetData2(step, step.orientedEdge, idRef[i]);
+		data.orientedEdges.resize(raw.idRef.size());
+		for (auto i = 0; i < raw.idRef.size(); i++) {
+			data.orientedEdges[i] = FindSetData2(step, step.orientedEdge, raw.idRef[i]);
+		}
+	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			for (auto orientedEdge : data.orientedEdges) {
+				orientedEdge->ShowUI(ui);
+
+			}
+			ImGui::TreePop();
 		}
 	}
 };
@@ -844,8 +1006,13 @@ struct STEPFaceBoundBase : public STEPEntityBase
 {
 	virtual ~STEPFaceBoundBase() = default;
 
-	int idRef0 = -1;
-	bool orient = true;
+	struct Raw
+	{
+		int idRef0 = -1;
+		bool orient = true;
+	};
+
+	Raw raw;
 
 	struct Data
 	{
@@ -853,7 +1020,7 @@ struct STEPFaceBoundBase : public STEPEntityBase
 		STEPEdgeLoop* edgeLoop = nullptr;
 		bool orient = true;
 
-		Polyline CreatePolyline(bool faceOrient) const
+		PolylineList CreatePolyline(bool faceOrient) const
 		{
 			if (edgeLoop) {
 				return edgeLoop->data.CreatePolyline(faceOrient);
@@ -862,25 +1029,25 @@ struct STEPFaceBoundBase : public STEPEntityBase
 				return polyLoop->data.CreatePolyline(faceOrient);
 			}
 
-			return Polyline();
+			return PolylineList();
 		}
 
-		void CreatePlane(STEPMesh& mesh) const
-		{
-			if (edgeLoop) {
-				edgeLoop->data.CreatePlane(mesh, orient);
-			}
-			if (polyLoop) {
-				polyLoop->data.CreatePlane(mesh, orient);
-			}
-		}
+		//void CreatePlane(STEPMesh& mesh) const
+		//{
+		//	if (edgeLoop) {
+		//		edgeLoop->data.CreatePlane(mesh, orient);
+		//	}
+		//	if (polyLoop) {
+		//		polyLoop->data.CreatePlane(mesh, orient);
+		//	}
+		//}
 
-		void CreateCylinder(STEPMesh& mesh, const STEPCylinderSurface::Data& cylinder) const
-		{
-			if (edgeLoop) {
-				edgeLoop->data.CreateCylinder(mesh, orient, cylinder);
-			}
-		}
+		//void CreateCylinder(STEPMesh& mesh, const STEPCylinderSurface::Data& cylinder) const
+		//{
+		//	if (edgeLoop) {
+		//		edgeLoop->data.CreateCylinder(mesh, orient, cylinder);
+		//	}
+		//}
 	};
 
 	Data data;
@@ -889,18 +1056,27 @@ struct STEPFaceBoundBase : public STEPEntityBase
 	{
 		auto values = STEPString::SplitValue(stepStr.value);
 		STEPEntityBase::Fetch(data, stepStr);
-		if (!STEPString::ValueToRef(values[1], data->idRef0)) { assert(0); return; }
-		if (!STEPString::ValueToBool(values[2], data->orient)) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[1], data->raw.idRef0)) { assert(0); return; }
+		if (!STEPString::ValueToBool(values[2], data->raw.orient)) { assert(0); return; }
 	}
 
 	void FetchData(const STEPStruct& step)
 	{
-		data.edgeLoop = FindSetData2(step, step.edgeLoop, idRef0);
+		data.edgeLoop = FindSetData2(step, step.edgeLoop, raw.idRef0);
 		if (!data.edgeLoop) {
-			data.polyLoop = FindSetData2(step, step.polyLoop, idRef0);
+			data.polyLoop = FindSetData2(step, step.polyLoop, raw.idRef0);
 		}
 
-		data.orient = orient;
+		data.orient = raw.orient;
+	}
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			if (data.edgeLoop) { data.edgeLoop->ShowUI(ui); }
+			if (data.polyLoop) { data.polyLoop->ShowUI(ui); }
+			ImGui::TreePop();
+		}
 	}
 };
 
@@ -957,58 +1133,58 @@ struct STEPFaceBase : public STEPEntityBase
 		STEPPlane* plane = nullptr;
 		STEPCylinderSurface* cylinder = nullptr;
 		bool orient = true;
-		GeomType type = GeomType::Plane;
 
-		void CreateMesh(STEPMesh& mesh) const
+		STEPOrientedEdge::Data* SearchCylinderAxisEdge(const Vector3& axis) const
 		{
-			if (type == GeomType::Plane) {
+			float height = 0.0f;
+			for (const auto& face : faceBound) {
+				auto edgeLoop = face->data.edgeLoop;
+				if (!edgeLoop) { continue; }
+				for (const auto& edge : edgeLoop->data.orientedEdges) {
+					if (!edge->data.IsLine()) { continue; }
+					if (MathHelper::IsSameDir(axis, edge->data.Dir())) {
+						return &edge->data;
+					}
+				}
+			}
+
+			return nullptr;
+		}
+
+		void CreateMesh(STEPShape& shape) const
+		{
+			if (plane) {
 				Polyline bound;
-				Polyline outerBound;
 				for (const auto& face : faceBound) {
-					bound.AddLoop(face->data.CreatePolyline(orient));
+					bound.AddLoop(face->data.CreatePolyline(orient).Merge());
 				}
 
-				for (const auto& face : faceOuterBound) {
-					outerBound.AddLoop(face->data.CreatePolyline(orient));
-				}
-
-				if (bound.Num() != 0) {
-					STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
-				}
-				if (outerBound.Num() != 0) {
-					STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
-				}
-				if (bound.Num() != 0 && outerBound.Num() != 0) {
-					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
-				} else if (outerBound.Num() != 0) {
-					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, Polyline()));
-				} else if (bound.Num() != 0) {
-					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(bound, Polyline()));
-				}
-			} else if (type == GeomType::Cylinder) {
-				Polyline bound;
 				Polyline outerBound;
-				for (const auto& face : faceBound) {
-					bound.AddLoop(face->data.CreatePolyline(orient));
-				}
-
 				for (const auto& face : faceOuterBound) {
-					outerBound.AddLoop(face->data.CreatePolyline(orient));
+					outerBound.AddLoop(face->data.CreatePolyline(orient).Merge());
 				}
 
-				if (bound.Num() != 0) {
-					STLUtil::Insert(mesh.edges, bound.CreateLinePoints());
+				if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return; }
+				
+				if (bound.PointNum() && outerBound.PointNum()) {
+					shape.meshs.push_back(Mesh(Polyline::CraeteDelaunay(outerBound, bound), Mesh::DrawType::Triangles));
+				} else if (bound.PointNum()) {
+					shape.meshs.push_back(Mesh(Polyline::CraeteDelaunay(bound, Polyline()), Mesh::DrawType::Triangles));
+				} else if (outerBound.PointNum()) {
+					shape.meshs.push_back(Mesh(Polyline::CraeteDelaunay(outerBound, Polyline()), Mesh::DrawType::Triangles));
 				}
-				if (outerBound.Num() != 0) {
-					STLUtil::Insert(mesh.edges, outerBound.CreateLinePoints());
-				}
-				if (bound.Num() != 0 && outerBound.Num() != 0) {
-					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, bound));
-				} else if (outerBound.Num() != 0) {
-					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(outerBound, Polyline()));
-				} else if (bound.Num() != 0) {
-					STLUtil::Insert(mesh.triangels, Polyline::CraeteDelaunay(bound, Polyline()));
-				}
+			} else if (cylinder) {
+				auto edge = SearchCylinderAxisEdge(cylinder->data.axis->data.Normal());
+				if (!edge) { return; }
+				auto mesh = Cylinder::CreateSideMesh(
+					cylinder->data.axis->data.point,
+					cylinder->data.axis->data.Normal(),
+					edge->GetBegin(),
+					cylinder->data.rad,
+					edge->Length(),
+					CIRCLE_SUBDIVISION_NUM,
+					CIRCLE_SUBDIVISION_NUM);
+				shape.meshs.push_back(std::move(mesh));
 			}
 		}
 	};
@@ -1022,10 +1198,7 @@ struct STEPFaceBase : public STEPEntityBase
 			if (pFaceBound) { data.faceBound.push_back(pFaceBound); continue; }
 		}
 		data.plane = FindSetData2(step, step.planes, raw.geomRef1);
-		if (data.plane) { data.type = GeomType::Plane; }
-
 		data.cylinder = FindSetData2(step, step.cylinderSurface, raw.geomRef1);
-		if (data.cylinder) { data.type = GeomType::Cylinder; }
 
 		
 		data.orient = raw.orient;
@@ -1033,6 +1206,24 @@ struct STEPFaceBase : public STEPEntityBase
 
 	Raw raw;
 	Data data;
+
+
+	void ShowUI(UIContext& ui)
+	{
+		if (ImGui::TreeNode(str.data())) {
+			for (int i = 0; i < data.faceOuterBound.size(); i++) {
+				data.faceOuterBound[i]->ShowUI(ui);
+			}
+			for (int i = 0; i < data.faceBound.size(); i++) {
+				data.faceBound[i]->ShowUI(ui);
+			}
+
+			if (data.plane) { data.plane->ShowUI(ui); }
+			if (data.cylinder) { data.cylinder->ShowUI(ui); }
+
+			ImGui::TreePop();
+		}
+	}
 };
 
 struct STEPFaceSurface : public STEPFaceBase
@@ -1055,6 +1246,7 @@ struct STEPFaceSurface : public STEPFaceBase
 		if (!STEPString::ValueToBool(values[3], pData->raw.orient)) { assert(0); return; }
 		step.faceSurface[pData->id] = pData;
 	}
+
 };
 
 struct STEPAdvancedFace : public STEPFaceBase
@@ -1080,12 +1272,19 @@ struct STEPAdvancedFace : public STEPFaceBase
 		if (!STEPString::ValueToBool(values[3], data->raw.orient)) { assert(0); return; }
 		step.advancedFace[data->id] = data;
 	}
+
 };
 
 struct STEPShell : public STEPEntityBase
 {
 	virtual ~STEPShell() = default;
-	Vector<int> faceRef;
+
+	struct Raw
+	{
+		Vector<int> faceRef;
+	};
+
+	Raw raw;
 
 
 	struct Data
@@ -1101,9 +1300,9 @@ struct STEPShell : public STEPEntityBase
 	{
 		auto values = STEPString::SplitValue(stepStr.value);
 		values = STEPString::SplitValue(values[1]);
-		pShell->faceRef.resize(values.size());
+		pShell->raw.faceRef.resize(values.size());
 		for (int i = 0; i < values.size(); i++) {
-			if (!STEPString::ValueToRef(values[i], pShell->faceRef[i])) { assert(0); return; }
+			if (!STEPString::ValueToRef(values[i], pShell->raw.faceRef[i])) { assert(0); return; }
 		}
 		STEPEntityBase::Fetch(pShell, stepStr);
 	}
@@ -1111,32 +1310,42 @@ struct STEPShell : public STEPEntityBase
 	void FetchData(const STEPStruct& step, STEPShell::Data* data)
 	{
 		data->Clear();
-		for (auto i = 0; i < faceRef.size(); i++) {
-			auto pAdvanedFace = FindSetData2(step, step.advancedFace, faceRef[i]);
+		for (auto i = 0; i < raw.faceRef.size(); i++) {
+			auto pAdvanedFace = FindSetData2(step, step.advancedFace, raw.faceRef[i]);
 			if (pAdvanedFace) { data->advancedFace.push_back(pAdvanedFace); continue; }
 
-			auto pFaceSurface = FindSetData2(step, step.faceSurface, faceRef[i]);
+			auto pFaceSurface = FindSetData2(step, step.faceSurface, raw.faceRef[i]);
 			if (pFaceSurface) { data->faceSurface.push_back(pFaceSurface); }
 		}
 
 	}
 
-	void CreateMesh(const STEPShell& step, STEPMesh& mesh)
+	void CreateMesh(const STEPShell& step, STEPShape& shape)
 	{
 		for (const auto& advancedFace : step.data.advancedFace) {
 			if (advancedFace) {
-				advancedFace->data.CreateMesh(mesh);
+				advancedFace->data.CreateMesh(shape);
 			}
 		}
 		for (const auto& faceSurface : step.data.faceSurface) {
 			if (faceSurface) {
-				faceSurface->data.CreateMesh(mesh);
+				faceSurface->data.CreateMesh(shape);
 			}
 		}
 	}
 
 	void ShowUI(UIContext& ui)
 	{
+		if (ImGui::TreeNode(str.data())) {
+			for (int i = 0; i < data.advancedFace.size(); i++) {
+				data.advancedFace[i]->ShowUI(ui);
+			}
+			for (int i = 0; i < data.faceSurface.size(); i++) {
+				data.faceSurface[i]->ShowUI(ui);
+			}
+
+			ImGui::TreePop();
+		}
 	}
 
 };
@@ -1157,10 +1366,10 @@ struct STEPClosedShell : public STEPShell
 		STEPShell::FetchData(step, &data);
 	}
 
-	STEPMesh CreateMesh(const STEPStruct& step)
+	STEPShape CreateMesh(const STEPStruct& step)
 	{
 		FetchData(step);
-		STEPMesh mesh;
+		STEPShape mesh;
 		STEPShell::CreateMesh(*this, mesh);
 		return mesh;
 	}
@@ -1187,12 +1396,12 @@ struct STEPOpenShell : public STEPShell
 		STEPShell::FetchData(step, &data);
 	}
 
-	STEPMesh CreateMesh(const STEPStruct& step)
+	STEPShape CreateMesh(const STEPStruct& step)
 	{
 		FetchData(step);
-		STEPMesh mesh;
-		STEPShell::CreateMesh(*this, mesh);
-		return mesh;
+		STEPShape shape;
+		STEPShell::CreateMesh(*this, shape);
+		return shape;
 	}
 };
 
@@ -1264,22 +1473,22 @@ void NotDefineEntity(const String& str)
 RenderNode* STEPLoader::CreateRenderNode(const String& name, const Shared<STEPStruct>& step)
 {
 	BDB bdb;
-	Vector<STEPMesh> meshs;
+	Vector<STEPShape> shapes;
 	for (const auto& face : step->closedShell) {
-		auto mesh = face.second->CreateMesh(*step);
-		bdb.Add(mesh.CreateBDB());
-		meshs.push_back(std::move(mesh));
+		auto shape = face.second->CreateMesh(*step);
+		bdb.Add(shape.CreateBDB());
+		shapes.push_back(std::move(shape));
 	}
 
 	for (const auto& face : step->openShell) {
-		auto mesh = face.second->CreateMesh(*step);
-		bdb.Add(mesh.CreateBDB());
-		meshs.push_back(std::move(mesh));
+		auto shape = face.second->CreateMesh(*step);
+		bdb.Add(shape.CreateBDB());
+		shapes.push_back(std::move(shape));
 	}
 
 	STEPRenderNode* pRenderNode = new STEPRenderNode(name, step);
 	pRenderNode->SetBoundBox(bdb);
-	pRenderNode->SetMesh(std::move(meshs));
+	pRenderNode->SetShape(std::move(shapes));
 
 	return pRenderNode;
 }
@@ -1358,13 +1567,13 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 
 void STEPRenderNode::BuildGLResource()
 {
-	if (m_mesh.size() == 0) { return; }
+	if (m_shape.size() == 0) { return; }
 	if (m_gpu.pTriangles != nullptr ||
 		m_gpu.pEdges != nullptr ||
 		m_gpu.pVertexs != nullptr) {
 		return;
 	}
-	
+
 	auto cube = Cube::CreateLine(GetBoundBox().Min(), GetBoundBox().Max());
 	m_gpu.pBDBLine = std::make_unique<GLBuffer>();
 	m_gpu.pBDBLineIndex = std::make_unique<GLBuffer>();
@@ -1372,70 +1581,45 @@ void STEPRenderNode::BuildGLResource()
 	m_gpu.pBDBLine->Create(cube.Position());
 	m_gpu.pBDBLineIndex->Create(cube.Index());
 
-	bool makePolygon = false;
-	if(makePolygon)
-	{
-		Vector<Vector3> triangles;
-		Vector<Vector3> edges;
-		for (const auto& mesh : m_mesh) {
-			for (const auto& polyline : mesh.polylines) {
-				auto polyTri = polyline.CreateTrianglePoints(true);
-				auto polyEdge = polyline.CreateLinePoints();
-				STLUtil::Insert(triangles, polyTri);
-				STLUtil::Insert(edges, polyEdge);
-			}
+	size_t triangleNum = 0;
+	size_t edgeNum = 0;
+	size_t vertexNum = 0;
+	for (const auto& shape : m_shape) {
+		for (const auto& mesh : shape.meshs) {
+			triangleNum += mesh.TriangleNum();
 		}
 
-		if (triangles.size() != 0) {
-			m_gpu.pTriangles = std::make_unique<GLBuffer>();
-			m_gpu.pTriangles->Create(DATA_FLOAT, triangles.size(), sizeof(Vector3), triangles.data());
+		for (const auto& polyline : shape.polylines) {
+			edgeNum += polyline.LineNum();
 		}
-		if (edges.size() != 0) {
-			m_gpu.pEdges = std::make_unique<GLBuffer>();
-			m_gpu.pEdges->Create(DATA_FLOAT, edges.size(), sizeof(Vector3), edges.data());
-		}
-	} else {
-		size_t triangleNum = 0;
-		size_t edgeNum = 0;
-		size_t vertexNum = 0;
-		for (const auto& mesh : m_mesh) {
-			triangleNum += mesh.triangels.size();
-			edgeNum += mesh.edges.size();
-			vertexNum += mesh.vertexs.size();
-		}
+	}
 
-		if (triangleNum != 0) {
-			m_gpu.pTriangles = std::make_unique<GLBuffer>();
-			m_gpu.pTriangles->Create(DATA_FLOAT, triangleNum, sizeof(Vector3), nullptr);
-		}
-		if (edgeNum != 0) {
-			m_gpu.pEdges = std::make_unique<GLBuffer>();
-			m_gpu.pEdges->Create(DATA_FLOAT, edgeNum, sizeof(Vector3), nullptr);
-		}
-		if (vertexNum != 0) {
-			m_gpu.pVertexs = std::make_unique<GLBuffer>();
-			m_gpu.pVertexs->Create(DATA_FLOAT, vertexNum, sizeof(Vector3), nullptr);
-		}
-		size_t triangleOffset = 0;
-		size_t edgeOffset = 0;
-		size_t vertexOffset = 0;
+	if (triangleNum != 0) {
+		m_gpu.pTriangles = std::make_unique<GLBuffer>();
+		m_gpu.pTriangles->Create(DATA_FLOAT, triangleNum, sizeof(Vector3), nullptr);
+	}
+	if (edgeNum != 0) {
+		m_gpu.pEdges = std::make_unique<GLBuffer>();
+		m_gpu.pEdges->Create(DATA_FLOAT, edgeNum, sizeof(Vector3), nullptr);
+	}
+	if (vertexNum != 0) {
+		m_gpu.pVertexs = std::make_unique<GLBuffer>();
+		m_gpu.pVertexs->Create(DATA_FLOAT, vertexNum, sizeof(Vector3), nullptr);
+	}
+	size_t triangleOffset = 0;
+	size_t edgeOffset = 0;
 
-		for (const auto& mesh : m_mesh) {
-			if (mesh.triangels.size() != 0) {
-				m_gpu.pTriangles->BufferSubData(triangleOffset, mesh.triangels);
-				triangleOffset = mesh.triangels.size();
-			}
-
-			if (mesh.edges.size() != 0) {
-				m_gpu.pEdges->BufferSubData(edgeOffset, mesh.edges);
-				edgeOffset = mesh.edges.size();
-			}
-
-			if (mesh.vertexs.size() != 0) {
-				m_gpu.pVertexs->BufferSubData(vertexOffset, mesh.vertexs);
-				vertexOffset = mesh.vertexs.size();
-			}
+	for (const auto& shape : m_shape) {
+		for (const auto& mesh : shape.meshs) {
+			m_gpu.pTriangles->BufferSubData(triangleOffset, mesh.GetPoints());
+			triangleOffset = mesh.GetPoints().size();
 		}
+		
+		for (const auto& polyline : shape.polylines) {
+			m_gpu.pEdges->BufferSubData(edgeOffset, polyline.Get());
+			edgeOffset = polyline.Get().size();
+		}
+		
 	}
 }
 void STEPRenderNode::DrawNode(const DrawContext& context)
@@ -1473,7 +1657,11 @@ void STEPRenderNode::DrawNode(const DrawContext& context)
 }
 void STEPRenderNode::ShowUI(UIContext& ui)
 {
-
+	if (ImGui::TreeNode("Root")) {
+		for (auto& shell : m_step->closedShell) { shell.second->ShowUI(ui); }
+		for (auto& shell : m_step->openShell) { shell.second->ShowUI(ui); }
+		ImGui::TreePop();
+	}
 }
 
 void STEPRenderNode::UpdateData(float diff)

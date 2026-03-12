@@ -107,10 +107,10 @@ public:
 	void DrawArrayInstaced(GLuint primitiveType, int count, int instanceNum);
 	void DrawArray(GLuint primitiveType, const GLBuffer* pIndexBuffer);
 	void DrawArray(GLuint primitiveType, int count);
+	void DrawArray(GLuint primitiveType, int offset, int count);
 
 	void DrawIndirectBuffer(const GLBuffer* pBuffer);
 	void DrawArrayIndirect(GLuint primitiveType, int offset);
-	void DrawArray(GLuint primitiveType, int offset, int count);
 	void DrawElementsBaseVertex(const DrawArgs& args);
 	void DrawElementsBaseVertex(GLuint primitiveType, uint count, GLuint type, void* offset, uint baseVertex);
 private:

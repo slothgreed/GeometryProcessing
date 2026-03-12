@@ -75,7 +75,11 @@ void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer)
 void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer, int num, int offset)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
-	offset *= sizeof(unsigned int);
+	offset *= pIndexBuffer->SizeOfData();
+	if (pIndexBuffer->SizeOfData() != 4) {
+		assert(0);
+		offset *= sizeof(unsigned int);
+	}
 	glDrawElements(primitiveType, num, pIndexBuffer->DataType(), (void*)offset);
 	OUTPUT_GLERROR;
 }
@@ -102,10 +106,9 @@ void IShadingShader::DrawArray(GLuint primitiveType, const GLBuffer* pPositionBu
 
 void IShadingShader::DrawArray(GLuint primitiveType, int count)
 {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glDrawArrays(primitiveType, 0, count);
-	OUTPUT_GLERROR;
+	DrawArray(primitiveType, 0, count);
 }
+
 
 void IShadingShader::DrawArray(GLuint primitiveType, int offset, int count)
 {

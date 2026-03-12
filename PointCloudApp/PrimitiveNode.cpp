@@ -249,7 +249,6 @@ void InstancedPrimitiveNode::DrawNode(const DrawContext& context)
 	} else {
 		pShader->DrawArrayInstaced(m_pPrimitive->GetType(), m_pPositionBuffer->Num(), m_pMatrixBuffer->Num());
 	}
-
 }
 
 

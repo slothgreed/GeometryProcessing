@@ -302,6 +302,9 @@
     <ClCompile Include="ImageNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>ソース ファイル\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -564,6 +567,9 @@
     </ClInclude>
     <ClInclude Include="ImageNode.h">
       <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

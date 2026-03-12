@@ -227,7 +227,7 @@ void PointCloudNode::Shader::Execute(const DrawContext& context, const PointClou
 		BindShaderStorage(1, pDepthTarget->Handle());
 	}
 	BindShaderStorage(2, positionBuffer);
-	BindUniform(m_uImageSize, context.pResource->GL()->GetViewportSize());
+	BindUniform(m_uImageSize, context.pResource->GL()->GetWindowSize());
 	BindUniform(m_uVP, vp * node.GetMatrix());
 	BindUniform(m_uPositionNum, (int)node.GetData()->Position().size());
 	Dispatch(Vector3(node.GetData()->Position().size() / 256, 1, 1));

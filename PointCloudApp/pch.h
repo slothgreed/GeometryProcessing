@@ -71,7 +71,7 @@ using Vector4 = glm::vec4;
 using Vector4i = glm::ivec4;
 using Vector4u = glm::uvec4;
 using Quaternion = glm::quat;
-
+using UInt = unsigned int;
 inline int StringToInt(const String& str)
 {
 	return std::atoi(str.data());

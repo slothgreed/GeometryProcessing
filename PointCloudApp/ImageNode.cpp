@@ -1,6 +1,7 @@
 #include "ImageNode.h"
 #include "ImageAlgorithm.h"
 #include "Primitives.h"
+#include "DebugNode.h"
 #include "PrimitiveNode.h"
 #include "PostEffect.h"
 namespace KI
@@ -39,7 +40,10 @@ void ImageNode::ShowUI(UIContext& ui)
 			for (int i = 0; i < polyline.Get().size(); i++) {
 				polyline.Set(i, polyline.Get()[i] * ratio);
 			}
-
+			auto pPrimitive = std::make_shared<PolylineNode>("Outline", polyline);
+			pPrimitive->Set2D(true);
+			AddNode(pPrimitive);
+			/*
 			{
 				auto pPrimitive = std::make_shared<PrimitiveNode>("Outline", ToPrimitive(polyline), Vector3(1, 0, 0));
 				pPrimitive->Set2D(true);
@@ -72,6 +76,7 @@ void ImageNode::ShowUI(UIContext& ui)
 				pPrimitive->Set2D(true);
 				AddNode(pPrimitive);
 			}
+			*/
 		}
 	}
 }

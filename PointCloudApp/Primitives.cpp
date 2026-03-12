@@ -254,7 +254,118 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 	m_primitiveType = GL_TRIANGLES;
 }
 
-Polyline Cylinder::CreateOuterLine(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
+static constexpr float PI = 3.14159265358979323846f;
+static inline float clamp01(float a) { return std::min(1.0f, std::max(0.0f, a)); }
+static inline float wrap01(float a)
+{
+	// [0,1) に包む（負もOK）
+	a = a - std::floor(a);
+	// a==1.0 になり得るケースを避けるなら少しだけ押し戻すが、基本不要
+	return a;
+}
+
+Vector2 Cylinder::UVConverter::toUV(const Vector3& xyz) const
+{
+	// v: 高さ方向
+	const float invH = 1.0f / m_height;
+	float v = xyz.z + (m_height * 0.5f)/ m_height;
+	v = clamp01(v);
+
+	// u: 周方向（角度）
+	// theta: [-pi, pi]、+Xが0
+	float theta = std::atan2(xyz.y, xyz.x);
+	// [0, 2pi)
+	if (theta < 0.0f) theta += 2.0f * PI;
+	float u = theta / (2.0f * PI); // [0,1)
+	u = wrap01(u);
+
+	return Vector2(u, v);
+}
+Vector3 Cylinder::UVConverter::toXYZ(const Vector2& uv) const
+{
+	// u wrap, v clamp
+	const float u = wrap01(uv.x);
+	const float v = clamp01(uv.y);
+
+
+	// 半径は高さに沿って線形補間（円錐台）
+	const float r = m_baseRad + (m_topRad - m_baseRad) * v;
+
+	const float theta = u * (2.0f * PI);
+	const float x = r * std::cos(theta);
+	const float y = v * m_height;
+	const float z = r * std::sin(theta);
+
+	return Vector3(x, z, y);
+}
+
+Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& seamPoint, float radius, float height, int slices, int stacks)
+{
+	slices = std::max(3, slices);
+	stacks = std::max(1, stacks);
+
+	// 軸方向
+	Vector3 z = normalize(axis);
+	Vector3 seamDir = seamPoint - baseCenter;
+	seamDir = seamDir - z * dot(seamDir, z); // 軸成分を除去
+	auto x = normalize(seamDir);
+
+	Vector3 y = glm::normalize(glm::cross(z, x));
+
+	// seam を閉じるため slices+1 列作る
+	const int vertCols = slices + 1;
+	const int vertRows = stacks + 1;
+
+	Vector<Vector3> positions;
+	Vector<UInt> indices;
+
+	positions.reserve(vertCols * vertRows);
+	indices.reserve(slices * stacks * 6);
+
+	// 頂点生成
+	for (int iy = 0; iy < vertRows; ++iy) {
+		float v = static_cast<float>(iy) / static_cast<float>(stacks);
+		float h = v * height;
+		Vector3 center = baseCenter + z * h;
+
+		for (int ix = 0; ix < vertCols; ++ix) {
+			float u = static_cast<float>(ix) / static_cast<float>(slices);
+			float theta = u * glm::two_pi<float>();
+
+			Vector3 radial = std::cos(theta) * x + std::sin(theta) * y;
+			Vector3 p = center + radial * radius;
+
+			positions.push_back(p);
+		}
+	}
+
+	// インデックス生成
+	auto indexOf = [vertCols](int row, int col) -> UInt
+	{
+		return static_cast<UInt>(row * vertCols + col);
+	};
+
+	for (int iy = 0; iy < stacks; ++iy) {
+		for (int ix = 0; ix < slices; ++ix) {
+			UInt i0 = indexOf(iy, ix);
+			UInt i1 = indexOf(iy, ix + 1);
+			UInt i2 = indexOf(iy + 1, ix);
+			UInt i3 = indexOf(iy + 1, ix + 1);
+
+			// 2 triangles
+			indices.push_back(i0);
+			indices.push_back(i1);
+			indices.push_back(i2);
+
+			indices.push_back(i1);
+			indices.push_back(i3);
+			indices.push_back(i2);
+		}
+	}
+
+	return Mesh(std::move(positions), std::move(indices), Mesh::DrawType::Triangles);
+}
+Polyline Cylinder::CreatePolyline(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
 {
 	// 軸から直交基底を構築
 	auto Z = glm::normalize(axis);
@@ -277,7 +388,6 @@ Polyline Cylinder::CreateOuterLine(const Vector3& baseCenter, const Vector3& axi
 
 	Vector<unsigned int> lines;
 	
-
 	lines.push_back(2 * slices - 1);
 	lines.push_back(0);
 	// bottom
@@ -303,12 +413,14 @@ Polyline Cylinder::CreateOuterLine(const Vector3& baseCenter, const Vector3& axi
 
 	}
 	STLUtil::Insert(top, bottom);
-	return Polyline(std::move(top), std::move(lines), Polyline::Hint::Lines);
+	return Polyline(std::move(top), std::move(lines), Polyline::DrawType::Lines);
 }
 
 
-Sphere::Sphere(float _radius, int _slices, int _stacks) :
-	radius(_radius), slices(_slices), stacks(_stacks)
+Sphere::Sphere(float _radius, int _slices, int _stacks)
+	: radius(_radius)
+	, slices(_slices)
+	, stacks(_stacks)
 {
 	using namespace glm;
 	float sliceStep = 2 * pi<float>() / slices;
@@ -464,7 +576,7 @@ void Axis::Build(float size)
 	m_primitiveType = GL_LINES;
 }
 
-Vector2 CircleUVConverter::toUV(const Vector3& xyz)
+Vector2 Circle::UVConverter::toUV(const Vector3& xyz)
 {
 	Vector3 d = xyz - m_center;
 	double x = dot(d, m_uAxis);
@@ -473,7 +585,7 @@ Vector2 CircleUVConverter::toUV(const Vector3& xyz)
 	if (theta < 0) theta += 2.0 * glm::pi<float>();
 	return { theta / (2.0 * glm::pi<float>()), 0.0 };
 }
-Vector3 CircleUVConverter::toXYZ(const Vector2& uv)
+Vector3 Circle::UVConverter::toXYZ(const Vector2& uv)
 {
 	double theta = uv.x * 2.0 * glm::pi<float>();
 	return m_center + m_uAxis * (m_radius * std::cosf(theta))

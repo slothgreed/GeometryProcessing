@@ -12,32 +12,57 @@ Polyline::Polyline(Vector<Vector3>&& points)
 {
 }
 
-Polyline::Polyline(Vector<Vector3>&& points, Hint hint)
+Polyline::Polyline(Vector<Vector3>&& points, DrawType drawType)
     : m_points(std::move(points))
     , m_pUVConverter(nullptr)
-    , m_hint(hint)
+    , m_drawType(drawType)
 {
 }
 
-Polyline::Polyline(Vector<Vector3>&& points, Vector<unsigned int> uInt, Hint hint)
+Polyline::Polyline(Vector<Vector3>&& points, Vector<unsigned int>&& uInt, DrawType drawType)
     : m_points(std::move(points))
     , m_pUVConverter(nullptr)
     , m_indexs(uInt)
-    , m_hint(hint)
+    , m_drawType(drawType)
 {
 }
 
-void Polyline::AddLoop(Polyline&& point)
+int Polyline::LineNum() const
+{
+    if (m_drawType == DrawType::Lines) {
+        if (m_indexs.size() != 0) {
+            return m_indexs.size() / 2;
+        } else {
+            return m_points.size() / 2;
+        }
+    } else  if (m_drawType == DrawType::LineLoop) {
+
+    } else  if (m_drawType == DrawType::LineStrip) {
+
+    }
+
+    return 0;
+}
+
+void Polyline::AddLoop(const Polyline& point)
 {
     STLUtil::Insert(m_points, point.m_points);
     m_points = CreateUnique();
-    m_hint = Hint::LineLoop;
+    m_drawType = DrawType::LineLoop;
+}
+
+
+void Polyline::AddLoop(Polyline&& point)
+{
+    STLUtil::Insert(m_points, std::move(point.m_points));
+    m_points = CreateUnique();
+    m_drawType = DrawType::LineLoop;
 }
 
 
 void Polyline::AddCircle(Polyline&& circle)
 {
-    STLUtil::Insert(m_points, circle.m_points);
+    STLUtil::Insert(m_points, std::move(circle.m_points));
     if (m_hint == Hint::None) {
         m_hint = Hint::Circle;
     }
@@ -156,7 +181,7 @@ Vector<Vector3> Polyline::CreateTrianglePoints(bool ccw) const
 Vector<Vector3> Polyline::CreateLinePoints() const
 {
     if (m_points.size() == 0) { return Vector<Vector3>(); }
-    if (m_hint == Hint::LineLoop) {
+    if (m_drawType == DrawType::LineLoop) {
         Vector<Vector3> points;
         for (size_t i = 0; i < m_points.size() - 1; i++) {
             points.push_back(m_points[i]);
@@ -166,12 +191,12 @@ Vector<Vector3> Polyline::CreateLinePoints() const
         points.push_back(m_points[m_points.size() - 1]);
         points.push_back(m_points[0]);
         return points;
-    } else if(m_hint == Hint::Lines) {
+    } else if(m_drawType == DrawType::Lines) {
         if (m_indexs.size() == 0) { return m_points; }
         Vector<Vector3> points;
         for (size_t i = 0; i < m_indexs.size(); i++) { points.push_back(m_points[m_indexs[i]]); }
         return points;
-    } else if (m_hint == Hint::LineStrip) {
+    } else if (m_drawType == DrawType::LineStrip) {
         Vector<Vector3> points;
         for (size_t i = 0; i < m_points.size() - 1; i++) {
             points.push_back(m_points[i]);
@@ -207,7 +232,7 @@ bool Polyline::IsPlane() const
 
 Polyline Polyline::CreateSmooth() const
 {
-    if (!(m_hint == Hint::LineLoop || m_hint == Hint::LineStrip)) { assert(0); return Polyline(); }
+    if (!(m_drawType == DrawType::LineLoop || m_drawType == DrawType::LineStrip)) { assert(0); return Polyline(); }
    auto lines = m_points;
    if (lines.size() == 0) { return Polyline(); }
    Vector<Vector3> polyline;
@@ -231,5 +256,63 @@ Polyline Polyline::CreateSmooth() const
    
    return Polyline(std::move(polyline));
 }
+
+
+BDB Polyline::CreateBDB(const Polyline& polyline)
+{
+    BDB bdb;
+    for (size_t i = 0; i < polyline.Get().size(); i++) {
+        bdb.Add(polyline.Get()[i]);
+    }
+
+    return bdb;
+}
+
+Polyline Polyline::ToUV(const Polyline& polyline)
+{
+    if (!polyline.m_pUVConverter) { return polyline; }
+    Vector<Vector3> uv;
+    for (size_t i = 0; i < polyline.Get().size(); i++) {
+        auto value = polyline.m_pUVConverter->toUV(polyline.Get()[i]);
+        uv.push_back(Vector3(value.x, value.y, 0));
+    }
+
+    auto uvLine = Polyline(std::move(uv));
+    uvLine.m_pUVConverter = polyline.m_pUVConverter;
+    return uvLine;
+}
+
+Polyline Polyline::ToXYZ(const Polyline& polyline)
+{
+    if (!polyline.m_pUVConverter) { return polyline; }
+    Vector<Vector3> xyz;
+    for (size_t i = 0; i < polyline.Get().size(); i++) {
+        xyz.push_back(polyline.m_pUVConverter->toXYZ(polyline.Get()[i]));
+    }
+
+    auto xyzLine = Polyline(std::move(xyz));
+    xyzLine.m_pUVConverter = polyline.m_pUVConverter;
+    return xyzLine;
+}
+
+
+void PolylineList::Add(PolylineList&& poly)
+{
+    for (int i = 0; i < poly.m_polylines.size(); i++) {
+        m_polylines.push_back(std::move(poly.m_polylines[i]));
+    }
+}
+
+Polyline PolylineList::Merge() const
+{
+    Polyline line;
+    for (auto& polyline : m_polylines) {
+        line.AddLoop(polyline);
+    }
+
+    return line;
+}
+
+
 
 }

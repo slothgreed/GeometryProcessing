@@ -205,6 +205,7 @@
     <ClCompile Include="ImageNode.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="KIMath.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="Parameter.cpp" />
@@ -288,6 +289,7 @@
     <ClInclude Include="ImageNode.h" />
     <ClInclude Include="KIMath.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
     <ClInclude Include="MouseController.h" />

@@ -1,4 +1,5 @@
 #include "DebugNode.h"
+#include "Camera.h"
 #include "SimpleShader.h"
 #include "DelaunayGenerator.h"
 namespace KI
@@ -507,5 +508,230 @@ GridNode::GridNode(const String& name, const Vector3& min, const Vector3& max, f
 	m_pPrimitive->SetPosition(std::move(positions));
 	m_pPrimitive->SetType(GL_LINES);
 	DebugNode::SetPrimitive(m_pPrimitive);
+}
+
+PolylineNode::PolylineNode(const String& name, const Polyline& polyline)
+	: RenderNode(name)
+	, m_polyline(polyline)
+{
+}
+
+void PolylineNode::BuildGLBuffer()
+{
+	if (!m_pPosition) {
+		m_pPosition = std::make_unique<GLBuffer>();
+		m_pPosition->Create(m_polyline.Get());
+	}
+
+	if (!m_pUVPosition) {
+		m_pUVPosition = std::make_unique<GLBuffer>();
+	}
+
+	if (!m_pIndex) {
+		if (m_polyline.GetIndex().size()) {
+			m_pIndex = std::make_unique<GLBuffer>();
+			m_pIndex->Create(m_polyline.GetIndex());
+		}
+	}
+
+	if (m_ui.visibleTriangle) {
+		if (!m_pTriPosition) {
+			m_pTriPosition = std::make_unique<GLBuffer>();
+			m_pTriPosition->Create(m_polyline.CreateTriangleArray());
+		}
+	}
+}
+
+void PolylineNode::DrawNode(const DrawContext& context)
+{
+	BuildGLBuffer();
+	const auto& pResource = context.pResource;
+	auto pCamera = m_is2D ? pResource->Get2DCameraBuffer() : pResource->GetCameraBuffer();
+	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+	pSimpleShader->Use();
+	pSimpleShader->SetPosition(m_pPosition.get());
+	pSimpleShader->SetCamera(pCamera);
+	pSimpleShader->SetModel(GetMatrix());
+	pSimpleShader->SetColor(Vector3(1, 0, 0));
+	if (m_pIndex) {
+		pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
+	} else {
+		pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.Get().size());
+	}
+	
+	if (m_ui.visibleVertex) {
+		pSimpleShader->SetColor(Vector3(0, 1, 0));
+		pSimpleShader->DrawArray(GL_POINTS, m_polyline.Get().size());
+	}
+
+	if (m_ui.visibleTriangle) {
+		pSimpleShader->SetColor(Vector3(0, 0, 1));
+		pSimpleShader->SetPosition(m_pTriPosition.get());
+		pSimpleShader->DrawArray(GL_TRIANGLES, m_pTriPosition->Num());
+	}
+
+	if (m_ui.visibleUV) {
+		auto viewPort = pResource->GL()->CreateViewport(Vector2i(3, 2), Viewport::BottomRight);
+		
+		auto split = Viewport::SplitHorizontal(viewPort);
+		{
+			pResource->GL()->SetViewport(split[0]);
+			pResource->GL()->EnableScissor(split[0]);
+			pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			pResource->UpdateDebugCamera(Camera::FitToBDB(*pResource->GetCamera(), Polyline::CreateBDB(m_polyline)));
+			pSimpleShader->Use();
+			pSimpleShader->SetPosition(m_pPosition.get());
+			pSimpleShader->SetCamera(pResource->GetDebugCameraBuffer());
+			pSimpleShader->SetModel(GetMatrix());
+			pSimpleShader->SetColor(Vector3(0, 1, 0));
+			if (m_pIndex) {
+				pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
+			} else {
+				pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.Get().size());
+			}
+			if (m_ui.selectedVertex != -1) {
+				if (m_pIndex) {
+					pSimpleShader->DrawElement(GL_POINTS, m_pIndex.get(), 1, m_ui.selectedVertex);
+				} else {
+					pSimpleShader->DrawArray(GL_POINTS, m_ui.selectedVertex, 1);
+				}
+			}
+		}
+
+		{
+			auto uvLine = Polyline::ToUV(m_polyline);
+			m_pUVPosition->Create(uvLine.Get());
+
+			pResource->GL()->SetViewport(split[1]);
+			pResource->GL()->EnableScissor(split[1]);
+			pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			pSimpleShader->Use();
+			pSimpleShader->SetPosition(m_pUVPosition.get());
+			pResource->UpdateDebugCamera(Camera::FitToBDB(*pResource->GetCamera(), Polyline::CreateBDB(uvLine)));
+			pSimpleShader->SetCamera(pResource->GetDebugCameraBuffer());
+			pSimpleShader->SetModel(GetMatrix());
+			pSimpleShader->SetColor(Vector3(1, 0, 0));
+			if (m_pIndex) {
+				pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
+			} else {
+				pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.Get().size());
+			}
+			if (m_ui.selectedVertex != -1) {
+				if (m_pIndex) {
+					pSimpleShader->DrawElement(GL_POINTS, m_pIndex.get(), 1, m_ui.selectedVertex);
+				} else {
+					pSimpleShader->DrawArray(GL_POINTS, m_ui.selectedVertex, 1);
+				}
+			}
+		}
+		pResource->GL()->DisableScissor();
+		pResource->GL()->SetViewportFullWindow();
+	}
+}
+
+void PolylineNode::ShowUI(UIContext& ui)
+{
+	ImGui::Checkbox("VisibleVertex", &m_ui.visibleVertex);
+	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleTriangle);
+	ImGui::Checkbox("VisibleUV", &m_ui.visibleUV);
+	if (m_ui.visibleUV) {
+		if (ImGui::BeginTable("VertexTable", 6,
+			ImGuiTableFlags_RowBg |
+			ImGuiTableFlags_Borders |
+			ImGuiTableFlags_ScrollY)) {
+			ImGui::TableSetupColumn("ID");
+			ImGui::TableSetupColumn("X");
+			ImGui::TableSetupColumn("Y");
+			ImGui::TableSetupColumn("Z");
+			ImGui::TableSetupColumn("U");
+			ImGui::TableSetupColumn("V");
+			ImGui::TableHeadersRow();
+			auto uvLine = Polyline::ToUV(m_polyline);
+			for (int i = 0; i < m_polyline.GetIndex().size(); ++i) {
+				const auto& p = m_polyline.Get()[m_polyline.GetIndex()[i]];
+				const auto& t = uvLine.Get()[m_polyline.GetIndex()[i]];
+
+				ImGui::TableNextRow();
+
+				ImGui::TableSetColumnIndex(0);
+				bool selected = (m_ui.selectedVertex == i);
+
+				if (ImGui::Selectable(std::to_string(i).c_str(),
+					selected,
+					ImGuiSelectableFlags_SpanAllColumns)) {
+					m_ui.selectedVertex = i;
+				}
+
+				ImGui::TableSetColumnIndex(1);
+				ImGui::Text("%.4f", p.x);
+
+				ImGui::TableSetColumnIndex(2);
+				ImGui::Text("%.4f", p.y);
+
+				ImGui::TableSetColumnIndex(3);
+				ImGui::Text("%.4f", p.z);
+
+				ImGui::TableSetColumnIndex(4);
+				ImGui::Text("%.4f", t.x);
+
+				ImGui::TableSetColumnIndex(5);
+				ImGui::Text("%.4f", t.y);
+			}
+
+			ImGui::EndTable();
+		}
+	}
+}
+
+
+
+MeshNode::MeshNode(const String& name, const Mesh& mesh)
+	: RenderNode(name)
+	, m_mesh(mesh)
+{
+}
+
+void MeshNode::BuildGLBuffer()
+{
+	if (!m_pPosition) {
+		m_pPosition = std::make_unique<GLBuffer>();
+		m_pPosition->Create(m_mesh.GetPoints());
+	}
+
+	if (!m_pIndex) {
+		if (m_mesh.GetIndexs().size()) {
+			m_pIndex = std::make_unique<GLBuffer>();
+			m_pIndex->Create(m_mesh.GetIndexs());
+		}
+	}
+}
+
+void MeshNode::DrawNode(const DrawContext& context)
+{
+	BuildGLBuffer();
+	const auto& pResource = context.pResource;
+	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+	pSimpleShader->Use();
+	pSimpleShader->SetPosition(m_pPosition.get());
+	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
+	pSimpleShader->SetModel(GetMatrix());
+	pSimpleShader->SetColor(Vector3(1, 0, 0));
+	if (m_pIndex) {
+		pSimpleShader->DrawElement(m_mesh.GetDrawType(), m_pIndex.get());
+	} else {
+		pSimpleShader->DrawArray(m_mesh.GetDrawType(), m_mesh.GetPoints().size());
+	}
+
+	if (m_ui.visibleVertex) {
+		pSimpleShader->SetColor(Vector3(0, 1, 0));
+		pSimpleShader->DrawArray(GL_POINTS, m_mesh.GetPoints().size());
+	}
+}
+
+void MeshNode::ShowUI(UIContext& ui)
+{
+	ImGui::Checkbox("VisibleVertex", &m_ui.visibleVertex);
+	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleEdge);
 }
 }

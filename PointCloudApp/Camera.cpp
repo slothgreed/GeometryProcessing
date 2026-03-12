@@ -215,8 +215,40 @@ Vector2 Camera::GetOnePixelDistance(const Vector3& worldPos) const
 		glm::length(dy - worldPos));
 }
 
-Matrix4x4 Camera::Create2DCamera(const Vector2i& size)
+Matrix4x4 Camera::Create2DProj(const Vector2i& size)
 {
 	return glm::ortho(0.0f, (float)size.x, 0.0f, (float)size.y, -1.0f, 1.0f);
 }
+
+Camera Camera::FitToBDB(const Camera& camera, const BDB& bdb)
+{
+	if (!bdb.IsActive()) { return camera; }
+	auto newCamera = camera;
+	if (camera.IsPerspective()) {
+		float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(camera.FOV() / 2.0);
+		lookAtDistance *= 1.2f / camera.Aspect();
+
+		Vector3 eyeDirection = camera.Direction();
+		Vector3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
+
+		newCamera.SetLookAt(newPosition, bdb.Center(), camera.Up());
+	} else if (camera.IsOrtho()) {
+		auto size = bdb.Max() - bdb.Min();
+		auto center = bdb.Center();
+		auto eye = center + glm::vec3(0.0f, 0.0f, 1.0f) * size.z * 2.0f; // íÜêSÇÃè≠Çµè„Ç©ÇÁ
+		auto target = center;
+		auto up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		newCamera.SetLookAt(eye, target, up);
+
+		float halfWidth = size.x * 0.5f;
+		float halfHeight = size.y * 0.5f;
+		float nearPlane = 0.0f;
+		float farPlane = size.z * 4.0f;
+		newCamera.SetOrtho(Camera::Ortho(-halfWidth, halfWidth, halfHeight, -halfHeight, nearPlane, farPlane));
+	}
+
+	return newCamera;
+}
+
 }

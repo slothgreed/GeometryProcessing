@@ -12,13 +12,9 @@ class GLBuffer;
 
 struct DrawContext
 {
-	DrawContext()
-		: pResource(nullptr)
-	{
-	}
 	DrawContext(RenderResource* _pResource)
 		: pResource(_pResource){}
-	RenderResource* pResource;
+	RenderResource* pResource = nullptr;
 };
 
 class MouseController;
@@ -59,21 +55,16 @@ public:
 
 struct PickContext
 {
-	PickContext()
-		: pResource(nullptr)
-		, pickedId(0)
-	{
-	}
 	PickContext(RenderResource* _pResource, const Mouse* _pMouse)
 		: pResource(_pResource)
 		, pMouse(_pMouse)
 		, pickedId(0)
 	{
 	}
-	RenderResource* pResource;
-	const Mouse* pMouse;
-	int pickMaxId;
-	int pickedId;
+	RenderResource* pResource = nullptr;
+	const Mouse* pMouse = nullptr;
+	int pickMaxId = 0;
+	int pickedId = 0;
 };
 
 class RenderNode;

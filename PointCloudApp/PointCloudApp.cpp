@@ -42,7 +42,7 @@ void PointCloudApp::ResizeEvent(int width, int height)
 {
 	m_windowSize = Vector2(width, height);
 	if (m_pResource) {
-		m_pResource->GL()->SetViewport(Vector2(width, height));
+		m_pResource->GL()->SetWindowSize(Vector2(width, height));
 	}
 	if (m_pCamera) {
 		m_pCameraController->SetAspect(m_windowSize.x, m_windowSize.y);
@@ -206,6 +206,7 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
 		//m_pRoot->AddNode(CreateImageTest());
+		//m_pRoot->AddNode(CreatePolylineTest());
 	}
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -246,7 +247,7 @@ void PointCloudApp::Execute()
 
 
 	auto pTexturePalne = std::make_unique<RenderTextureNode>();
-	m_pResource->GL()->SetViewport(m_windowSize);
+	m_pResource->GL()->SetWindowSize(m_windowSize);
 	m_pResource->GL()->EnablePolygonOffset(1.0f, 1.0f);
 	m_pResource->GL()->SetLineWidth(5.0f);
 	m_pResource->GL()->SetPointSize(5.0f);
@@ -295,14 +296,14 @@ void PointCloudApp::Execute()
 		m_pResource->GL()->PopRenderTarget();
 
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, m_windowSize.x, m_windowSize.y);
+		m_pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		m_pResource->GL()->SetViewportFullWindow();
 		TextureDrawer::Execute(drawContext, m_pResource->GetRenderTarget()->GetColor(0).get());
 		if (m_ui.pickMode) {
 			m_pResource->GL()->SetupPick();
 			pPickTarget->Resize(m_windowSize);
 			m_pResource->GL()->PushRenderTarget(pPickTarget.get());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			m_pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			PickContext pickContext(m_pResource.get(), m_pMouse.get());
 			m_pRoot->Pick(pickContext);
 			auto mousePos = ImGui::GetMousePos();
@@ -534,6 +535,18 @@ Shared<RenderNode> PointCloudApp::CreateLargePointCloudNodeTest()
 	return pNode;
 }
 
+Shared<RenderNode> PointCloudApp::CreatePolylineTest()
+{
+	//auto cylinder = Cylinder::CreatePolyline(Vector3(0, 0, 0), Vector3(0, 0, 1), 10, 10, 10, 10);
+	//cylinder.SetUVConverter(std::make_shared<Cylinder::UVConverter>(Cylinder::CreateUVConverter(10, 10, 10)));
+	//auto pNode = std::make_shared<PolylineNode>("CylinderOutLine", cylinder);
+	//return pNode;
+
+	auto cylinder = Cylinder::CreateSideMesh(Vector3(0, 0, 0), Vector3(0, 0, 1), Vector3(10, 0, 0), 10, 10, 10, 10);
+	return std::make_shared<MeshNode>("CylinderMesh", cylinder);
+
+}
+
 Shared<RenderNode> PointCloudApp::CreatePBRTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\EnvironmentTest\\glTF\\EnvironmentTest.gltf"));
@@ -594,10 +607,10 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	Vector2i gridSize = Vector2i(5, 5);
 	Vector<String> files;
 	//files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
-	files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+	//files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
 	//files.push_back("E:\\cgModel\\step\\cubcylso.stp");
 	//files.push_back("E:\\cgModel\\step\\angle1.stp");
-	//files.push_back("E:\\cgModel\\step\\mycylinder.stp");
+	files.push_back("E:\\cgModel\\step\\mycylinder.stp");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
@@ -659,7 +672,7 @@ Shared<RenderNode> PointCloudApp::CreateConstrainDelaunayTest()
 }
 Shared<RenderNode> PointCloudApp::CreateImageTest()
 {
-	return std::make_shared<ImageNode>("Contour", m_pgmTexture[2]);
+	return std::make_shared<ImageNode>("Outline", m_pgmTexture[2]);
 }
 
 Shared<InstancedPrimitiveNode> PointCloudApp::CreateInstacedNodeTest()

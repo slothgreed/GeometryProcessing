@@ -28,6 +28,7 @@ public:
 	static void CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right);
 	static bool IsLoop(const Vector<Vector3>& polyline);
 	static bool IsSame(float v1, float v2);
+	static bool IsSameDir(const Vector3& v1, const Vector3& v2);
 	static bool IsSame(const Vector3& v1, const Vector3& v2);
 	static bool IsZero(float v1);
 	static bool IsOne(float v1);

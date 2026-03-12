@@ -61,7 +61,7 @@ void ComputeTextureCombiner::Execute(const DrawContext& context)
 	auto pTmp = context.pResource->GetTmpComputeTarget();
 	pTmp->Copy(*pTarget);
 	Use();
-	BindUniform(m_uImageSize, context.pResource->GL()->GetViewportSize());
+	BindUniform(m_uImageSize, context.pResource->GL()->GetWindowSize());
 	BindTexture(m_uColorForward, 0, *pTmp->GetColor(0));
 	BindTexture(m_uDepthForward, 1, *pTmp->GetDepth());
 	BindShaderStorage(2, context.pResource->GetComputeColorTarget()->Handle());
@@ -97,9 +97,9 @@ void EdgeDetector::Execute(const DrawContext& context)
 	BindTexture(m_uDepthTexture, 2, *pTarget->GetDepth());
 	BindUniform(m_uDiffNormal, m_diffNormal);
 	BindUniform(m_uDiffDepth, m_diffDepth);
-	auto viewportSize = context.pResource->GL()->GetViewportSize();
+	auto windowSize = context.pResource->GL()->GetWindowSize();
 	
-	BindUniform(m_uTexelSize, Vector2(1.0f / viewportSize.x, 1.0f / viewportSize.y));
+	BindUniform(m_uTexelSize, Vector2(1.0f / windowSize.x, 1.0f / windowSize.y));
 	Draw(*context.pResource->GetTexturePlane());
 }
 

@@ -1,6 +1,7 @@
 #ifndef KI_STEP_NODE_H
 #define KI_STEP_NODE_H
 #include "RenderNode.h"
+#include "Mesh.h"
 #include "Polyline.h"
 namespace KI
 {
@@ -18,17 +19,23 @@ private:
 };
 
 
-struct STEPMesh
+struct STEPShape
 {
-	Vector<Vector3> triangels;
-	Vector<Vector3> edges;
+	Vector<Mesh> meshs;
 	Vector<Polyline> polylines;
-	Vector<Vector3> vertexs;
-	BDB CreateBDB()
+	//Vector<Vector3> triangels;
+	//Vector<Vector3> edges;
+	//Vector<Vector3> vertexs;
+	BDB CreateBDB() const
 	{
 		BDB bdb;
-		for (int i = 0; i < edges.size(); i++) {
-			bdb.Add(edges[i]);
+
+		for (int i = 0; i < meshs.size(); i++) {
+			bdb.Add(Mesh::CreateBDB(meshs[i]));
+		}
+
+		for (int i = 0; i < polylines.size(); i++) {
+			bdb.Add(Polyline::CreateBDB(polylines[i]));
 		}
 
 		return bdb;
@@ -48,7 +55,7 @@ public:
 	virtual void DrawNode(const DrawContext& context);
 	virtual void ShowUI(UIContext& ui);
 
-	void SetMesh(Vector<STEPMesh>&& mesh) { m_mesh = std::move(mesh); }
+	void SetShape(Vector<STEPShape>&& shape) { m_shape = std::move(shape); }
 private:
 	virtual void UpdateData(float diff);
 	void BuildGLResource();
@@ -63,7 +70,7 @@ private:
 	};
 
 	GPU m_gpu;
-	Vector<STEPMesh> m_mesh;
+	Vector<STEPShape> m_shape;
 	Matrix4x4 m_rotateMatrix;
 	Shared<STEPStruct> m_step;
 };

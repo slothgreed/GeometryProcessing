@@ -59,6 +59,7 @@ private:
 	Shared<RenderNode> CreateVolumeTest();
 	Shared<RenderNode> CreateTerrain();
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
+	Shared<RenderNode> CreatePolylineTest();
 	Vector<Shared<RenderNode>> CreateSTEPNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);

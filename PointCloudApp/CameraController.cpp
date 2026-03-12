@@ -112,30 +112,7 @@ void CameraController::RotateAnimation(float time, const BDB& bdb)
 
 void CameraController::FitToBDB(const BDB& bdb)
 {
-	if (!bdb.IsActive()) { return; }
-	if (m_pCamera->IsPerspective()) {
-		float lookAtDistance = glm::length(bdb.Max() - bdb.Center()) / (float)sin(m_pCamera->FOV() / 2.0);
-		lookAtDistance *= 1.2f / m_pCamera->Aspect();
-
-		Vector3 eyeDirection = m_pCamera->Direction();
-		Vector3 newPosition = bdb.Center() + eyeDirection * lookAtDistance;
-
-		m_pCamera->SetLookAt(newPosition, bdb.Center(), m_pCamera->Up());
-	} else if (m_pCamera->IsOrtho()) {
-		auto size = bdb.Max() - bdb.Min();
-		auto center = bdb.Center();
-		auto eye = center + glm::vec3(0.0f, 0.0f, 1.0f) * size.z * 2.0f; // ’†S‚Ì­‚µã‚©‚ç
-		auto target = center;
-		auto up = glm::vec3(0.0f, 1.0f, 0.0f);
-
-		m_pCamera->SetLookAt(eye, target, up);
-
-		float halfWidth = size.x * 0.5f;
-		float halfHeight = size.y * 0.5f;
-		float nearPlane = 0.0f;
-		float farPlane = size.z * 4.0f;
-		m_pCamera->SetOrtho(Camera::Ortho(-halfWidth, halfWidth, halfHeight, -halfHeight, nearPlane, farPlane));
-	}
+	*m_pCamera = Camera::FitToBDB(*m_pCamera, bdb);
 }
 
 void CameraController::SetAspect(float width, float height)

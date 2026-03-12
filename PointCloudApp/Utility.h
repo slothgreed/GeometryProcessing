@@ -132,6 +132,15 @@ public:
 	{
 		a.insert(a.end(), b.begin(), b.end());
 	}
+
+	template<class T>
+	static void Insert(Vector<T>& a, Vector<T>&& b)
+	{
+		a.reserve(a.size() + b.size());
+		a.insert(a.end(),
+			std::make_move_iterator(b.begin()),
+			std::make_move_iterator(b.end()));
+	}
 };
 
 

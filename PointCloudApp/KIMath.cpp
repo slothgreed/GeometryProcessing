@@ -128,7 +128,10 @@ bool MathHelper::IsSame(float v1, float v2)
 {
 	return fabs(v1 - v2) < 1e-6f;
 }
-
+bool MathHelper::IsSameDir(const Vector3& v1, const Vector3& v2)
+{
+	return glm::dot(v1, v2) > 0 && glm::length2(glm::cross(v1, v2)) < EPS;
+}
 bool MathHelper::IsSame(const Vector3& v1, const Vector3& v2)
 {
 	return

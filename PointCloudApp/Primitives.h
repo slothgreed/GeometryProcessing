@@ -1,6 +1,7 @@
 #ifndef PRIMITIVE_H
 #define PRIMITIVE_H
 #include "Primitive.h"
+#include "Mesh.h"
 #include "Polyline.h"
 namespace KI
 {
@@ -57,8 +58,36 @@ public:
 	Cylinder(float _baseRad, float _topRad, float _height, int _slices);
 	~Cylinder() {};
 
-	static Polyline CreateOuterLine(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
+	class UVConverter : public IUVConverter
+	{
+	public:
+		UVConverter(const Cylinder& cylinder)
+			: m_baseRad(cylinder.baseRad)
+			, m_topRad(cylinder.topRad)
+			, m_height(cylinder.height)
+			, m_slices(cylinder.slices)
+		{}
 
+		UVConverter(float rad, float height, int slices)
+			: m_baseRad(rad)
+			, m_topRad(rad)
+			, m_height(height)
+			, m_slices(slices)
+		{
+		}
+		
+		virtual Vector2 toUV(const Vector3& xyz) const;
+		virtual Vector3 toXYZ(const Vector2& uv) const;
+		float m_baseRad;
+		float m_topRad;
+		float m_height;
+		int m_slices;
+	};
+
+	static Mesh CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& seamPoint, float radius, float height, int slices, int stacks);
+	static Polyline CreatePolyline(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
+	static UVConverter CreateUVConverter(float radius, float height, int slices) { return UVConverter(radius, height, slices); }
+	static UVConverter CreateUVConverter(const Cylinder& cylinder) { return UVConverter(cylinder); }
 private:
 	float baseRad;
 	float topRad;
@@ -115,26 +144,7 @@ private:
 	void Build(float size);
 };
 
-class CircleUVConverter : public UVConverter
-{
-	CircleUVConverter(const Vector3& c, const Vector3& n, float r)
-		: m_center(c), m_normal(normalize(n)), m_radius(r)
-	{
-		Vector3 temp = (std::fabs(m_normal.x) < 0.9) ? Vector3{ 1,0,0 } : Vector3{ 0,1,0 };
-		m_uAxis = normalize(cross(m_normal, temp));
-		m_vAxis = cross(m_normal, m_uAxis);
-	}
 
-	virtual Vector2 toUV(const Vector3& xyz);
-	virtual Vector3 toXYZ(const Vector2& uv);
-
-	Vector3 m_center;
-	Vector3 m_normal;
-	Vector3 m_uAxis;
-	Vector3 m_vAxis;
-	float m_radius;
-
-};
 class Circle : public Primitive
 {
 public:
@@ -142,6 +152,26 @@ public:
 	Circle(float radius, int pointNum);
 
 	~Circle();
+
+	class UVConverter : public IUVConverter
+	{
+		UVConverter(const Vector3& c, const Vector3& n, float r)
+			: m_center(c), m_normal(normalize(n)), m_radius(r)
+		{
+			Vector3 temp = (std::fabs(m_normal.x) < 0.9) ? Vector3{ 1,0,0 } : Vector3{ 0,1,0 };
+			m_uAxis = normalize(cross(m_normal, temp));
+			m_vAxis = cross(m_normal, m_uAxis);
+		}
+
+		virtual Vector2 toUV(const Vector3& xyz);
+		virtual Vector3 toXYZ(const Vector2& uv);
+
+		Vector3 m_center;
+		Vector3 m_normal;
+		Vector3 m_uAxis;
+		Vector3 m_vAxis;
+		float m_radius;
+	};
 
 	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient);
 	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient, const Vector3& begin, const Vector3& end);

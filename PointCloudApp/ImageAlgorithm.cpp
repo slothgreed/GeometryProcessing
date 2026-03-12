@@ -95,7 +95,7 @@ Polyline ImageAlgorithm::CreateOutlineByMooreNeighbor(const PixelData& data, int
 		if (loopNum == (int)polyline.size()) break;
 	}
 	printf("----------------------------\n");
-	return Polyline(std::move(polyline), Polyline::Hint::LineLoop);
+	return Polyline(std::move(polyline), Polyline::DrawType::LineLoop);
 }
 
 }
