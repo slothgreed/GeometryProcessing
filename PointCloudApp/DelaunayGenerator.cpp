@@ -159,6 +159,7 @@ int main2()
 }
 Vector<Vector3> DelaunayGenerator::Execute2D_CGAL()
 {
+	if (m_target->size() < 3) { return Vector<Vector3>(); }
 	return Execute2D_CGAL(*m_target, m_inner, -1);
 }
 

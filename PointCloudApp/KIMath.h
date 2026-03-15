@@ -36,9 +36,21 @@ public:
 	static bool IsZMinus(const Vector3& value);
 	static bool IsZ(const Vector3& value);
 	static Vector3 Transform(const Matrix4x4& matrix, const Vector3& world);
-	static Vector<Vector3> To2D(const Vector<Vector3>& point);
 	static Vector<Vector3> Rotate(const Vector<Vector3>& point, const Matrix4x4& matrix);
 	static Matrix4x4 CreateZAxisMatrix(const Vector3& normal);
+
+	struct ProjectInfo
+	{
+		Vector3 origin;
+		Vector3 uAxis;
+		Vector3 vAxis;
+		Vector3 normal;
+	};
+	
+	static Vector3 CalcNormal(const Vector<Vector3>& point);
+	static Vector<Vector3> Project(const Vector<Vector3>& point, ProjectInfo& info);
+	static Vector<Vector3> UnProject(const Vector<Vector3>& point, const ProjectInfo& info);
+
 private:
 
 };

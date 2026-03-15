@@ -309,7 +309,6 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 	Vector3 seamDir = seamPoint - baseCenter;
 	seamDir = seamDir - z * dot(seamDir, z); // ²¬•ª‚ğœ‹
 	auto x = normalize(seamDir);
-
 	Vector3 y = glm::normalize(glm::cross(z, x));
 
 	// seam ‚ğ•Â‚¶‚é‚½‚ß slices+1 —ñì‚é
@@ -605,25 +604,18 @@ Circle::~Circle()
 {
 }
 
-Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient)
+Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center)
 {
 	Vector<Vector3> points;
-	if (orient) {
-		for (int i = 0; i < pointNum; i++) {
-			auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
-			points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
-		}
-	} else {
-		for (int i = pointNum - 1; i >= 0; i--) {
-			auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
-			points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
-		}
+	for (int i = 0; i < pointNum; i++) {
+		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
+		points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
 	}
 
-	return Polyline(std::move(points));
+	return Polyline(std::move(points), Polyline::DrawType::LineLoop);
 }
 
-Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient, const Vector3& begin, const Vector3& end)
+Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end)
 {
 	Vector<Vector3> points;
 
@@ -644,23 +636,15 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 	if (delta < -3.14159f) { delta += 2.0f * 3.14159f; }
 
 	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
-	if (orient) {
-		for (int i = 0; i <= pointNum; i++) {
-			float t = i / (float)pointNum;
-			float angle = beginAngle + t * delta;
-			Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
-			points.push_back(p);
-		}
-	} else {
-		for (int i = pointNum; i >= 0; i--) {
-			float t = i / (float)pointNum;
-			float angle = beginAngle + t * delta;
-			Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
-			points.push_back(p);
-		}
+	for (int i = 0; i <= pointNum; i++) {
+		float t = i / (float)pointNum;
+		float angle = beginAngle + t * delta;
+		Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
+		points.push_back(p);
 	}
 
-	return Polyline(std::move(points));
+
+	return Polyline(std::move(points), Polyline::DrawType::LineLoop);
 }
 void Circle::Build(float radius, int pointNum, const Vector3& center)
 {
@@ -764,7 +748,7 @@ SkyBox::SkyBox()
 Shared<Primitive> ToPrimitive(const Polyline& polyline)
 {
 	auto primitive = std::make_shared<Primitive>();
-	primitive->SetPosition(polyline.Get());
+	primitive->SetPosition(polyline.GetPoints());
 	primitive->SetType(GL_LINE_STRIP);
 	return primitive;
 }

@@ -37,8 +37,8 @@ void ImageNode::ShowUI(UIContext& ui)
 			auto ratio = Vector3(
 				(float)ui.GetViewport().Size.x / m_pTexture->Size().x,
 				(float)ui.GetViewport().Size.y / m_pTexture->Size().y, 1.0);
-			for (int i = 0; i < polyline.Get().size(); i++) {
-				polyline.Set(i, polyline.Get()[i] * ratio);
+			for (int i = 0; i < polyline.GetPoints().size(); i++) {
+				polyline.Set(i, polyline.GetPoints()[i] * ratio);
 			}
 			auto pPrimitive = std::make_shared<PolylineNode>("Outline", polyline);
 			pPrimitive->Set2D(true);

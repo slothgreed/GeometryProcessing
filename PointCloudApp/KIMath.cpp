@@ -192,13 +192,78 @@ Vector<Vector3> MathHelper::Rotate(const Vector<Vector3>& point, const Matrix4x4
 
 	return retPoints;
 }
-Vector<Vector3> MathHelper::To2D(const Vector<Vector3>& point)
-{
-	auto normal = MathHelper::CalcNormal(point[0], point[1], point[2]);
-	auto R = CreateZAxisMatrix(normal);
-	return Rotate(point, R);
-}
 
+Vector3 MathHelper::CalcNormal(const Vector<Vector3>& points)
+{
+	Vector3 normal(0, 0, 0);
+	const int n = (int)points.size();
+	for (int i = 0; i < n; ++i) {
+		const Vector3& a = points[i];
+		const Vector3& b = points[(i + 1) % n];
+
+		normal.x += (a.y - b.y) * (a.z + b.z);
+		normal.y += (a.z - b.z) * (a.x + b.x);
+		normal.z += (a.x - b.x) * (a.y + b.y);
+	}
+
+	return glm::normalize(normal);
+}
+Vector<Vector3> MathHelper::Project(const Vector<Vector3>& points, ProjectInfo& info)
+{
+	Vector<Vector3> result;
+	if (points.size() < 3)
+		return result;
+
+
+
+	info.origin = points[0];
+	info.normal = CalcNormal(points);
+
+	// -------------------------
+	// ïΩñ äÓíÍ
+	// -------------------------
+
+	Vector3 helper =
+		(std::abs(info.normal.z) < 0.9f)
+		? Vector3(0, 0, 1)
+		: Vector3(1, 0, 0);
+
+	info.uAxis = glm::normalize(glm::cross(helper, info.normal));
+	info.vAxis = glm::normalize(glm::cross(info.normal, info.uAxis));
+
+	// -------------------------
+	// éÀâe
+	// -------------------------
+
+	result.reserve(points.size());
+
+	for (auto& p : points) {
+		Vector3 d = p - info.origin;
+		result.push_back(Vector3(
+			glm::dot(d, info.uAxis),
+			glm::dot(d, info.vAxis),
+			glm::dot(d, info.normal)));
+	}
+
+	return result;
+}
+Vector<Vector3> MathHelper::UnProject(const Vector<Vector3>& points, const ProjectInfo& info)
+{
+	Vector<Vector3> result;
+	result.reserve(points.size());
+
+	for (auto& p : points) {
+		Vector3 world =
+			info.origin +
+			info.uAxis * p.x +
+			info.vAxis * p.y +
+			info.normal * p.z;
+
+		result.push_back(world);
+	}
+
+	return result;
+}
 Matrix4x4 MathHelper::CreateZAxisMatrix(const Vector3& normal)
 {
 	// ïΩñ ÇÃñ@ê¸

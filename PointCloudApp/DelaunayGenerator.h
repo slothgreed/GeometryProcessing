@@ -38,6 +38,7 @@ public:
 	void AddInner(const Vector<Vector3>* inner) { m_inner.push_back(inner); }
 	Vector<unsigned int> GetResult() const;
 	void OutputTargetInner();
+
 private:
 	Vector<unsigned int> Execute2D(const Vector<Vector3>& position, int iterate);
 	Vector<unsigned int> Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate);

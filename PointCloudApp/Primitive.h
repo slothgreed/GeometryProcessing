@@ -47,10 +47,10 @@ public:
 	void SetNormal(Vector<Vector3>&& value) { m_normal = std::move(value); }
 	void SetColor(Vector<Vector4>&& value) { m_color = std::move(value); }
 	void SetTexcoord(Vector<glm::vec2>&& value) { m_texcoord = std::move(value); }
-	void SetPosition(const Vector<Vector3>& value) { m_position = std::move(value); }
-	void SetNormal(const Vector<Vector3>& value) { m_normal = std::move(value); }
-	void SetColor(const Vector<Vector4>& value) { m_color = std::move(value); }
-	void SetTexcoord(const Vector<glm::vec2>& value) { m_texcoord = std::move(value); }
+	void SetPosition(const Vector<Vector3>& value) { m_position = value; }
+	void SetNormal(const Vector<Vector3>& value) { m_normal = value; }
+	void SetColor(const Vector<Vector4>& value) { m_color = value; }
+	void SetTexcoord(const Vector<glm::vec2>& value) { m_texcoord = value; }
 
 	void SetColor(Vector<Vector3>&& color)
 	{

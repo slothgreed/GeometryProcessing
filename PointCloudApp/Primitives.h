@@ -173,8 +173,8 @@ public:
 		float m_radius;
 	};
 
-	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient);
-	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, bool orient, const Vector3& begin, const Vector3& end);
+	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
+	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end);
 
 private:
 	void Build(float radius, int pointNum, const Vector3& center);

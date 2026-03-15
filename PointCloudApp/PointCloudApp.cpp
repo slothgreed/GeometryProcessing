@@ -610,7 +610,7 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	//files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
 	//files.push_back("E:\\cgModel\\step\\cubcylso.stp");
 	//files.push_back("E:\\cgModel\\step\\angle1.stp");
-	files.push_back("E:\\cgModel\\step\\mycylinder.stp");
+	//files.push_back("E:\\cgModel\\step\\mycylinder.stp");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");

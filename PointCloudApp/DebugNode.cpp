@@ -520,7 +520,7 @@ void PolylineNode::BuildGLBuffer()
 {
 	if (!m_pPosition) {
 		m_pPosition = std::make_unique<GLBuffer>();
-		m_pPosition->Create(m_polyline.Get());
+		m_pPosition->Create(m_polyline.GetPoints());
 	}
 
 	if (!m_pUVPosition) {
@@ -528,9 +528,9 @@ void PolylineNode::BuildGLBuffer()
 	}
 
 	if (!m_pIndex) {
-		if (m_polyline.GetIndex().size()) {
+		if (m_polyline.GetIndexs().size()) {
 			m_pIndex = std::make_unique<GLBuffer>();
-			m_pIndex->Create(m_polyline.GetIndex());
+			m_pIndex->Create(m_polyline.GetIndexs());
 		}
 	}
 
@@ -556,12 +556,12 @@ void PolylineNode::DrawNode(const DrawContext& context)
 	if (m_pIndex) {
 		pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
 	} else {
-		pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.Get().size());
+		pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.GetPoints().size());
 	}
 	
 	if (m_ui.visibleVertex) {
 		pSimpleShader->SetColor(Vector3(0, 1, 0));
-		pSimpleShader->DrawArray(GL_POINTS, m_polyline.Get().size());
+		pSimpleShader->DrawArray(GL_POINTS, m_polyline.GetPoints().size());
 	}
 
 	if (m_ui.visibleTriangle) {
@@ -587,7 +587,7 @@ void PolylineNode::DrawNode(const DrawContext& context)
 			if (m_pIndex) {
 				pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
 			} else {
-				pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.Get().size());
+				pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.GetPoints().size());
 			}
 			if (m_ui.selectedVertex != -1) {
 				if (m_pIndex) {
@@ -598,6 +598,7 @@ void PolylineNode::DrawNode(const DrawContext& context)
 			}
 		}
 
+		/*
 		{
 			auto uvLine = Polyline::ToUV(m_polyline);
 			m_pUVPosition->Create(uvLine.Get());
@@ -625,6 +626,7 @@ void PolylineNode::DrawNode(const DrawContext& context)
 				}
 			}
 		}
+		*/
 		pResource->GL()->DisableScissor();
 		pResource->GL()->SetViewportFullWindow();
 	}
@@ -647,6 +649,7 @@ void PolylineNode::ShowUI(UIContext& ui)
 			ImGui::TableSetupColumn("U");
 			ImGui::TableSetupColumn("V");
 			ImGui::TableHeadersRow();
+			/*
 			auto uvLine = Polyline::ToUV(m_polyline);
 			for (int i = 0; i < m_polyline.GetIndex().size(); ++i) {
 				const auto& p = m_polyline.Get()[m_polyline.GetIndex()[i]];
@@ -680,6 +683,7 @@ void PolylineNode::ShowUI(UIContext& ui)
 			}
 
 			ImGui::EndTable();
+			*/
 		}
 	}
 }

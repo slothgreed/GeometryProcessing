@@ -12,12 +12,6 @@ public:
 class Polyline
 {
 public:
-	enum class Hint
-	{
-		None,
-		Arbitrary,
-		Circle,
-	};
 
 	enum class DrawType
 	{
@@ -29,25 +23,21 @@ public:
 	Polyline(Vector<Vector3>&& points);
 	Polyline(Vector<Vector3>&& points, DrawType drawType);
 	Polyline(Vector<Vector3>&& points, Vector<UInt>&& uInt, DrawType drawType);
-	Polyline() : m_hint(Hint::None) {};
+	Polyline() {};
 	~Polyline() {};
 
 
 	int PointNum() const { return m_points.size(); }
 	int LineNum() const;
 	Vector3 Last() const { return m_points[m_points.size() - 1]; }
-	//void Add(const Vector3& point) { m_points.push_back(point); }
-	void AddLoop(const Polyline& point);
-	void AddLoop(Polyline&& point);
-	void AddCircle(Polyline&& polyline);
+	void Add(const Polyline& point);
+	void Add(Polyline&& point);
 
-	const Vector<Vector3>& Get() const { return m_points; }
-	const Vector<UInt>& GetIndex() const { return m_indexs; }
+	const Vector<Vector3>& GetPoints() const { return m_points; }
+	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 
 	void Set(int index, const Vector3& data) { m_points[index] = data; }
-	void SetUVConverter(const Shared<IUVConverter>& pPtr) { m_pUVConverter = pPtr; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
-	Hint GetHint() const { return m_hint; }
 	Vector<Vector3> CreateTriangleArray() const;
 	Vector<Vector3> CreateTriangleLine() const;
 	Vector<UInt> CreateTriangles() const;
@@ -55,20 +45,16 @@ public:
 	Vector<Vector3> CreateLinePoints() const;
 	Vector3 GetNormal() const;
 	Vector3 GetCenter() const;
+	void Reverse();
 	bool IsPlane() const;
 	static Vector<Vector3> CraeteDelaunay(const Polyline& target, const Polyline& inner);
 	Polyline CreateSmooth() const;
 	static BDB CreateBDB(const Polyline& polyline);
-	static Polyline ToUV(const Polyline& polyline);
-	static Polyline ToXYZ(const Polyline& polyline);
-
 private:
 	Vector<Vector3> CreateUnique() const;
 	Vector<Vector3> m_points;
 	Vector<UInt> m_indexs;
-	Shared<IUVConverter> m_pUVConverter = nullptr;
-	Hint m_hint = Hint::None;
-	DrawType m_drawType = DrawType::Lines;
+	DrawType m_drawType = DrawType::LineLoop;
 };
 
 struct PolylineList

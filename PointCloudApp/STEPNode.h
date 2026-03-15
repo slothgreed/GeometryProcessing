@@ -23,13 +23,9 @@ struct STEPShape
 {
 	Vector<Mesh> meshs;
 	Vector<Polyline> polylines;
-	//Vector<Vector3> triangels;
-	//Vector<Vector3> edges;
-	//Vector<Vector3> vertexs;
 	BDB CreateBDB() const
 	{
 		BDB bdb;
-
 		for (int i = 0; i < meshs.size(); i++) {
 			bdb.Add(Mesh::CreateBDB(meshs[i]));
 		}
@@ -59,17 +55,54 @@ public:
 private:
 	virtual void UpdateData(float diff);
 	void BuildGLResource();
+
+	struct UI
+	{
+		bool visibleBDB = false;
+	};
+
+	struct RenderBatch
+	{
+		int pointNum = 0;
+		int indexNum = 0;
+		Unique<GLBuffer> pPosition = nullptr;
+		Unique<GLBuffer> pIndex = nullptr;
+		GLuint drawType = GL_POINTS;
+		void Allocate(GLuint type);
+		bool IsActive() const { return pPosition != nullptr; }
+	};
+
 	struct GPU
 	{
-		Unique<GLBuffer> pBDBLine;
-		Unique<GLBuffer> pBDBLineIndex;
+		RenderBatch bdb;
 
-		Unique<GLBuffer> pTriangles;
-		Unique<GLBuffer> pEdges;
-		Unique<GLBuffer> pVertexs;
+		bool IsActive() const
+		{
+			return
+				triangle.IsActive() ||
+				triangleIndex.IsActive() ||
+				line.IsActive() ||
+				lineIndex.IsActive() ||
+				lineStrip.IsActive() ||
+				lineStripIndex.IsActive() ||
+				lineLoop.IsActive() ||
+				lineLoopIndex.IsActive();
+		}
+		RenderBatch triangle;
+		RenderBatch triangleIndex;
+		RenderBatch line;
+		RenderBatch lineIndex;
+		RenderBatch lineStrip;
+		RenderBatch lineStripIndex;
+		RenderBatch lineLoop;
+		RenderBatch lineLoopIndex;
 	};
 
 	GPU m_gpu;
+
+
+
+	UI m_ui;
 	Vector<STEPShape> m_shape;
 	Matrix4x4 m_rotateMatrix;
 	Shared<STEPStruct> m_step;
