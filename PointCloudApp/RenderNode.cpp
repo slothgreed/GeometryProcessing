@@ -134,7 +134,7 @@ BDB RenderNode::CalcCameraFitBox(BDB bdb)
 	return bdb;
 }
 
-void RenderNode::ShowUIParameter(const Parameter& parameter, UIContext& ui)
+void UIContext::Show(const Parameter& parameter)
 {
 	static int binCount = 50; // ビン数（初期値）
 	static bool logScale = false;
@@ -165,6 +165,16 @@ void RenderNode::ShowUIParameter(const Parameter& parameter, UIContext& ui)
 		nullptr, 0.0f, maxY, ImVec2(400, 150));
 
 	ImGui::End();
+}
+
+void UIContext::AddDebugNode(const Shared<RenderNode>& pNode)
+{
+	m_pDebugNode->AddNode(pNode);
+}
+
+void UIContext::ClearDebugNode()
+{
+	m_pDebugNode->ClearNode();
 }
 
 Matrix4x4 RenderNode::GetTranslateMatrix() const

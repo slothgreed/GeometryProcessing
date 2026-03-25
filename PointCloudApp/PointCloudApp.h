@@ -71,6 +71,8 @@ private:
 	CPUProfiler m_cpuProfiler;
 	GPUProfiler* m_gpuProfiler;
 	Unique<RenderNode> m_pRoot;
+	Unique<RenderNode> m_pDebugRoot;
+
 	RenderNode* m_pSelect;
 	Vector<Shared<Texture>> m_pgmTexture;
 	Vector<std::pair<String, const Texture*>> m_uiTextureList;

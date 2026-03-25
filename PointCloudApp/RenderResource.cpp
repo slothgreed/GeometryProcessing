@@ -179,6 +179,7 @@ void RenderResource::Build()
 	m_pPBR = new PBRResource();
 	m_pComputeColorTarget = new GLBuffer();
 	m_pComputeDepthTarget = new GLBuffer();
+	m_pDebugTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
 	m_pPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
 	m_pTmpComputeTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
 	m_pTmpPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
@@ -268,6 +269,7 @@ void RenderResource::Finalize()
 	RELEASE_INSTANCE(m_pLightGpu);
 	RELEASE_INSTANCE(m_pComputeColorTarget);
 	RELEASE_INSTANCE(m_pComputeDepthTarget);
+	RELEASE_INSTANCE(m_pDebugTarget);
 	RELEASE_INSTANCE(m_pTmpComputeTarget);
 	RELEASE_INSTANCE(m_pPostEffectTarget);
 	RELEASE_INSTANCE(m_pPBR);
@@ -325,6 +327,7 @@ void RenderResource::InitRenderTarget(const Vector2& size)
 		m_pComputeDepthTarget->SetData(0x7F7FFFFF);
 	}
 
+	m_pDebugTarget->Resize(size);
 	m_pTmpComputeTarget->Resize(size);
 	m_pTmpPostEffectTarget->Resize(size);
 	m_pPostEffectTarget->Resize(size);

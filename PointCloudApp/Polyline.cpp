@@ -2,6 +2,7 @@
 #include "KIMath.h"
 #include "DelaunayGenerator.h"
 #include "Utility.h"
+#include "Mesh.h"
 namespace KI
 {
 
@@ -32,45 +33,92 @@ int Polyline::LineNum() const
         } else {
             return m_points.size() / 2;
         }
-    } else  if (
-        m_drawType == DrawType::LineLoop ||
-        m_drawType == DrawType::LineStrip) {
+    } else  if (m_drawType == DrawType::LineStrip) {
         if (m_indexs.size() != 0) {
             return m_indexs.size() - 1;
         } else {
             return m_points.size() - 1;
+        }
+    } else  if (m_drawType == DrawType::LineLoop) {
+        if (m_indexs.size() != 0) {
+            return m_indexs.size();
+        } else {
+            return m_points.size();
         }
     }
 
     return 0;
 }
 
-void Polyline::Add(const Polyline& point)
+void Polyline::Add(const Polyline& polyline)
 {
-    if (m_drawType != point.m_drawType) { assert(0); return; }
-    STLUtil::Insert(m_points, point.m_points);
-    m_points = CreateUnique();
+    ConvertLines();
+    auto p = polyline;
+    p.ConvertLines();
+    STLUtil::Insert(m_points, p.m_points);
 }
 
-
-void Polyline::Add(Polyline&& point)
+void Polyline::Add(Polyline&& polyline)
 {
-    if (m_drawType != point.m_drawType) { assert(0); return; }
-    STLUtil::Insert(m_points, std::move(point.m_points));
-    m_points = CreateUnique();
+    ConvertLines();
+    auto p = polyline;
+    p.ConvertLines();
+    STLUtil::Insert(m_points, std::move(p.m_points));
 }
 
-
-Vector<Vector3> Polyline::CreateUnique() const
+void Polyline::Add(const Vector3& point)
 {
-    Vector<Vector3> uniquePoints;
-    uniquePoints.push_back(m_points[0]);
-    for (int i = 0; i < m_points.size(); i++) {
-        if (!MathHelper::IsSame(m_points[i],uniquePoints[uniquePoints.size() - 1])) {
-            uniquePoints.push_back(m_points[i]);
+    m_points.push_back(point);
+}
+
+void Polyline::ConvertLines()
+{
+    if (m_points.empty()) { m_drawType = DrawType::Lines; }
+    if (m_drawType == DrawType::Lines) {
+        if (m_indexs.empty()) { return; }
+        Vector<Vector3> points(LineNum() * 2);
+        for (size_t i = 0; i < m_indexs.size(); i++) {
+            points[i] = m_points[m_indexs[i]];
         }
+        m_points = std::move(points);
+        m_indexs.clear();
+    } else if (m_drawType == DrawType::LineStrip) {
+        Vector<Vector3> points(LineNum() * 2);
+        if (m_indexs.empty()) {
+            for (size_t i = 0; i < m_points.size() - 1; i++) {
+                points[2 * i] = m_points[i];
+                points[2 * i + 1] = m_points[i + 1];
+            }
+        } else {
+            for (size_t i = 0; i < m_indexs.size() - 1; i++) {
+                points[2 * i] = m_points[m_indexs[i]];
+                points[2 * i + 1] = m_points[m_indexs[i + 1]];
+            }
+            m_indexs.clear();
+        }
+        m_points = std::move(points);
+        m_drawType = DrawType::Lines;
+    } else if(m_drawType == DrawType::LineLoop){
+        Vector<Vector3> points(LineNum() * 2);
+        if (m_indexs.empty()) {
+            for (size_t i = 0; i < m_points.size() - 1; i++) {
+                points[2 * i] = m_points[i];
+                points[2 * i + 1] = m_points[i + 1];
+            }
+            points[points.size() - 2] = m_points.back();
+            points[points.size() - 1] = m_points.front();
+        } else {
+            for (size_t i = 0; i < m_indexs.size() - 1; i++) {
+                points[2 * i] = m_points[m_indexs[i]];
+                points[2 * i + 1] = m_points[m_indexs[i + 1]];
+            }
+            points[points.size() - 2] = m_points[m_indexs.back()];
+            points[points.size() - 1] = m_points[m_indexs.front()];
+            m_indexs.clear();
+        }
+        m_points = std::move(points);
+        m_drawType = DrawType::Lines;
     }
-    return uniquePoints;
 }
 Vector3 Polyline::GetCenter() const
 {
@@ -80,23 +128,6 @@ Vector3 Polyline::GetCenter() const
     }
 
     return center /= m_points.size();
-}
-Vector<Vector3> Polyline::CreateTriangleLine() const
-{
-    auto triangles = CreateTriangleArray();
-    Vector<Vector3> lines;
-    for (int i = 0; i < triangles.size(); i+=3) {
-        lines.push_back(triangles[i]);
-        lines.push_back(triangles[i + 1]);
-
-        lines.push_back(triangles[i + 1]);
-        lines.push_back(triangles[i + 2]);
-
-        lines.push_back(triangles[i + 2]);
-        lines.push_back(triangles[i]);
-    }
-
-    return lines;
 }
 
 void Polyline::Reverse()
@@ -108,31 +139,18 @@ void Polyline::Reverse()
     }
 }
 
-Vector<Vector3> Polyline::CreateTriangleArray() const
+Mesh Polyline::CreateMesh() const
 {
     DelaunayGenerator delaunay;
     delaunay.SetTarget(&m_points);
-    return delaunay.Execute2D_CGAL();
+    return Mesh(delaunay.Execute2D_CGAL(), Mesh::DrawType::Triangles);
 }
-Vector<UInt> Polyline::CreateTriangles() const
+Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, bool orient)
 {
-    auto normal = GetNormal();
-    DelaunayGenerator delaunay;
-    if (MathHelper::IsZ(normal)) {
-        delaunay.SetTarget(&m_points);
-        return delaunay.Execute2D();
-    } else {
-        MathHelper::ProjectInfo info;
-        auto points = MathHelper::Project(m_points, info);
-        delaunay.SetTarget(&points);
-        return delaunay.Execute2D();
-    }
-}
-
-Vector<Vector3> Polyline::CraeteDelaunay(const Polyline& target, const Polyline& inner)
-{
-    if (target.m_points.size() == 0) { return Vector<Vector3>(); }
+    if (target.m_points.size() == 0) { return Mesh(); }
+    Mesh mesh;
     auto normal = target.GetNormal();
+    /*
     if (MathHelper::IsZ(normal)) {
         DelaunayGenerator delaunay;
         delaunay.SetTarget(&target.GetPoints());
@@ -140,76 +158,35 @@ Vector<Vector3> Polyline::CraeteDelaunay(const Polyline& target, const Polyline&
         if (inner.GetPoints().size() != 0) {
             auto targetNormal = target.GetNormal();
             auto innerNormal = inner.GetNormal();
-            if (!MathHelper::IsOne(fabs(glm::dot(targetNormal, innerNormal)))) {
-                return Vector<Vector3>();
-            }
+			if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
             delaunay.AddInner(&inner.GetPoints());
         }
-        return delaunay.Execute2D_CGAL();
-    } else {
+        mesh = Mesh(delaunay.Execute2D_CGAL(), Mesh::DrawType::Triangles);
+    } else 
+    */
+    {
         DelaunayGenerator delaunay;
-        MathHelper::ProjectInfo info;
+        auto info = MathHelper::CreateProjectInfo(target.GetPoints());
         auto zPosition = MathHelper::Project(target.GetPoints(), info);
         delaunay.SetTarget(&zPosition);
         Vector<Vector3> zInnerPosition;
+
         if (inner.GetPoints().size() != 0) {
-            if (!MathHelper::IsOne(fabs(glm::dot(target.GetNormal(), inner.GetNormal()))))
-            {  return Vector<Vector3>(); }
+			if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
             zInnerPosition = MathHelper::Project(inner.GetPoints(), info);
             delaunay.AddInner(&zInnerPosition);
         }
         auto result = delaunay.Execute2D_CGAL();
-        return MathHelper::UnProject(result, info);
-    }
-}
-Vector<Vector3> Polyline::CreateTrianglePoints(bool ccw) const
-{
-    Vector<Vector3> points;
-    auto indexs = CreateTriangles();
-    points.resize(indexs.size());
-    for (size_t i = 0; i < indexs.size(); i++) {
-        points[i] = m_points[indexs[i]];
-    }
-    return points;
-}
-
-Vector<Vector3> Polyline::CreateLinePoints() const
-{
-    if (m_points.size() == 0) { return Vector<Vector3>(); }
-    if (m_drawType == DrawType::LineLoop) {
-        Vector<Vector3> points;
-        for (size_t i = 0; i < m_points.size() - 1; i++) {
-            points.push_back(m_points[i]);
-            points.push_back(m_points[i + 1]);
-        }
-
-        points.push_back(m_points[m_points.size() - 1]);
-        points.push_back(m_points[0]);
-        return points;
-    } else if(m_drawType == DrawType::Lines) {
-        if (m_indexs.size() == 0) { return m_points; }
-        Vector<Vector3> points;
-        for (size_t i = 0; i < m_indexs.size(); i++) { points.push_back(m_points[m_indexs[i]]); }
-        return points;
-    } else if (m_drawType == DrawType::LineStrip) {
-        Vector<Vector3> points;
-        for (size_t i = 0; i < m_points.size() - 1; i++) {
-            points.push_back(m_points[i]);
-            points.push_back(m_points[i + 1]);
-        }
-
-        return points;
+        mesh = Mesh(MathHelper::UnProject(result, info), Mesh::DrawType::Triangles);
     }
 
-    return Vector<Vector3>();
-
+    return mesh;
 }
+
 Vector3 Polyline::GetNormal() const
 {
     if (m_points.size() < 3) return Vector3();
-    // •½–Ê‚Ì–@ü
-    return glm::normalize(glm::cross(m_points[1] - m_points[0], m_points[2] - m_points[0]));
-
+    return MathHelper::CalcNormal(m_points);
 }
 
 bool Polyline::IsPlane() const

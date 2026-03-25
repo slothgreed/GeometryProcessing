@@ -43,40 +43,6 @@ void ImageNode::ShowUI(UIContext& ui)
 			auto pPrimitive = std::make_shared<PolylineNode>("Outline", polyline);
 			pPrimitive->Set2D(true);
 			AddNode(pPrimitive);
-			/*
-			{
-				auto pPrimitive = std::make_shared<PrimitiveNode>("Outline", ToPrimitive(polyline), Vector3(1, 0, 0));
-				pPrimitive->Set2D(true);
-				AddNode(pPrimitive);
-			}
-
-			{
-				auto p = std::make_shared<Primitive>();
-				p->SetPosition(polyline.CreateTriangleArray());
-				p->SetType(GL_TRIANGLES);
-				auto pPrimitive = std::make_shared<PrimitiveNode>("OutlineTriangle", p, Vector3(0, 0, 1));
-				pPrimitive->Set2D(true);
-				AddNode(pPrimitive);
-			}
-
-			{
-				auto p = std::make_shared<Primitive>();
-				p->SetPosition(polyline.CreateTriangleLine());
-				p->SetType(GL_LINES);
-				auto pPrimitive = std::make_shared<PrimitiveNode>("OutlineTriangleLine", p, Vector3(1, 0, 0));
-				pPrimitive->Set2D(true);
-				AddNode(pPrimitive);
-			}
-
-
-			{
-				auto p = ToPrimitive(polyline);
-				p->SetType(GL_POINTS);
-				auto pPrimitive = std::make_shared<PrimitiveNode>("OutlinePoint", p, Vector3(0, 1, 0));
-				pPrimitive->Set2D(true);
-				AddNode(pPrimitive);
-			}
-			*/
 		}
 	}
 }

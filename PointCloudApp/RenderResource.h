@@ -167,6 +167,8 @@ public:
 	void SetTexturePlane(RenderTextureNode* pPlane) { m_pTexturePlane = pPlane; };
 	const RenderTextureNode* GetTexturePlane() const { return m_pTexturePlane; }
 	RenderTarget* GetPostEffectTarget() { return m_pPostEffectTarget; }
+	RenderTarget* GetDebugTarget() { return m_pDebugTarget; }
+
 	PBRResource* GetPBR() { return m_pPBR; }
 	void UpdateDebugCamera(const Camera& camera);
 private:
@@ -186,6 +188,7 @@ private:
 	RenderTextureNode* m_pTexturePlane;
 	RenderTarget* m_pTmpComputeTarget; // コンピュートシェーダの描画結果をマージするときに一時的に使うターゲット 
 	RenderTarget* m_pTmpPostEffectTarget;
+	RenderTarget* m_pDebugTarget;
 };
 }
 

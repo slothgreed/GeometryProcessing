@@ -6,6 +6,7 @@
 #include "KIMath.h"
 #include "Utility.h"
 #include "Primitives.h"
+#include "DebugNode.h"
 #include <functional>
 namespace KI
 {
@@ -37,6 +38,42 @@ struct STEPClosedShell;
 struct STEPOpenShell;
 struct STEPCircle;
 struct STEPCylinderSurface;
+
+enum ESTEPEntityType
+{
+	ESTEPLine,
+	ESTEPPlane,
+	ESTEPVector,
+	ESTEPDirection,
+	ESTEPPoint,
+	ESTEPAxis2Placement3D,
+	ESTEPEdgeCurve,
+	ESTEPVertexPoint,
+	ESTEPEdgeLoop,
+	ESTEPPolyLoop,
+	ESTEPFaceOuterBound,
+	ESTEPFaceBound,
+	ESTEPOrientedEdge,
+	ESTEPAdvancedFace,
+	ESTEPFaceSurface,
+	ESTEPClosedShell,
+	ESTEPOpenShell,
+	ESTEPCircle,
+	ESTEPCylinderSurface,
+};
+#define STEP_DEFINE_CAST(TypeName) \
+static TypeName* Cast(STEPEntityBase* pBase) \
+{ \
+    if (!pBase) { return nullptr; } \
+    return  (pBase->GetType() == TypeName::ClassType) ? static_cast<TypeName*>(pBase) : nullptr; \
+} \
+\
+static const TypeName* Cast(const STEPEntityBase* pBase) \
+{ \
+    if (!pBase) { return nullptr; } \
+    return (pBase->GetType() == TypeName::ClassType) ? static_cast<const TypeName*>(pBase) : nullptr; \
+}\
+
 struct DebugOption
 {
 	int level = -1;
@@ -134,18 +171,18 @@ struct STEPString
 				if (depth == 0) start = i + 1;  // 最初の '(' の後から開始
 				++depth;
 				// 括弧の終了
-			} else if (ch == ')') {
-				--depth;
-				if (depth == 0) {
-					// 最外の括弧が閉じたらリストとして追加
-					result.push_back(value.substr(start, i - start));
+				} else if (ch == ')') {
+					--depth;
+					if (depth == 0) {
+						// 最外の括弧が閉じたらリストとして追加
+						result.push_back(value.substr(start, i - start));
+					}
 				}
-			}
-			// 括弧内のカンマで区切り
-			else if (depth == 1 && ch == ',' && (i == start || value[i - 1] != '\\')) {
-				// カンマを区切りとして分ける（エスケープ文字も処理）
-				result.push_back(value.substr(start, i - start));
-				start = i + 1;
+				// 括弧内のカンマで区切り
+				else if (depth == 1 && ch == ',' && (i == start || value[i - 1] != '\\')) {
+					// カンマを区切りとして分ける（エスケープ文字も処理）
+					result.push_back(value.substr(start, i - start));
+					start = i + 1;
 			}
 		}
 		return result;
@@ -223,8 +260,40 @@ struct STEPEntityBase
 		data->id = stepStr.id;
 		data->str = stepStr.ToString();
 	}
-	virtual void ShowUI(UIContext& ui) = 0;
-	void ShowLeaf(UIContext& ui)
+	virtual ESTEPEntityType GetType() const = 0;
+	virtual void ShowUI(STEPUIContext& ui) = 0;
+	bool ShowBranch(STEPUIContext& ui, bool select)
+	{
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		if (select) {
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+
+		auto open = ImGui::TreeNodeEx(str.data(), flags);
+		if (ImGui::IsItemClicked()) {
+			ui.pSelect = this;
+		}
+
+		if (ImGui::BeginPopupContextItem()) {
+			if (GetType() == ESTEPAdvancedFace) {
+				if (ImGui::MenuItem("CreateNode")) {
+					ui.pNode->AddDebugNode(ui, this);
+				}
+			}
+
+			if (ImGui::MenuItem("DebugPrintf")) {
+				Printf(DebugOption());
+			}
+			ImGui::EndPopup();
+		}
+
+
+		return open;
+	}
+
+	virtual void Printf(const DebugOption& option) = 0;
+
+	void ShowLeaf(STEPUIContext& ui)
 	{
 		ImGui::TreeNodeEx(str.data(),
 			ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
@@ -240,6 +309,9 @@ struct STEPPoint : public STEPEntityBase
 {
 	virtual ~STEPPoint() = default;
 	static constexpr const char* EntityName = "CARTESIAN_POINT";
+	static constexpr ESTEPEntityType ClassType = ESTEPPoint;
+	virtual ESTEPEntityType GetType() const { return ESTEPPoint; }
+	STEP_DEFINE_CAST(STEPPoint)
 
 	struct Data
 	{
@@ -263,7 +335,7 @@ struct STEPPoint : public STEPEntityBase
 	void FetchData(const STEPStruct& step){}
 
 	void Printf(const DebugOption& option) { STEPEntityBase::PrintfRaw(); }
-	void ShowUI(UIContext& ui) { ShowLeaf(ui); }
+	void ShowUI(STEPUIContext& ui) { ShowLeaf(ui); }
 
 };
 
@@ -271,6 +343,10 @@ struct STEPDirection : public STEPEntityBase
 {
 	virtual ~STEPDirection() = default;
 	static constexpr const char* EntityName = "DIRECTION";
+	static constexpr ESTEPEntityType ClassType = ESTEPDirection;
+	virtual ESTEPEntityType GetType() const { return ESTEPDirection; }
+	STEP_DEFINE_CAST(STEPDirection)
+
 	Vector3 direction;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
@@ -286,7 +362,7 @@ struct STEPDirection : public STEPEntityBase
 
 	void FetchData(const STEPStruct& step) {}
 	void Printf(const DebugOption& option) { STEPEntityBase::PrintfRaw(); }
-	void ShowUI(UIContext& ui) { ShowLeaf(ui); }
+	void ShowUI(STEPUIContext& ui) { ShowLeaf(ui); }
 
 };
 
@@ -294,6 +370,9 @@ struct STEPVector : public STEPEntityBase
 {
 	virtual ~STEPVector() = default;
 	static constexpr const char* EntityName = "VECTOR";
+	static constexpr ESTEPEntityType ClassType = ESTEPVector;
+	virtual ESTEPEntityType GetType() const { return ESTEPVector; }
+	STEP_DEFINE_CAST(STEPVector)
 
 	struct Raw
 	{
@@ -335,9 +414,9 @@ struct STEPVector : public STEPEntityBase
 		if (data.driection) { data.driection->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.driection) { data.driection->ShowUI(ui); }
 			ImGui::TreePop();
 		}
@@ -348,6 +427,9 @@ struct STEPLine : public STEPEntityBase
 {
 	virtual ~STEPLine() = default;
 	static constexpr const char* EntityName = "LINE";
+	static constexpr ESTEPEntityType ClassType = ESTEPLine;
+	virtual ESTEPEntityType GetType() const { return ESTEPLine; }
+	STEP_DEFINE_CAST(STEPLine)
 
 	struct Raw
 	{
@@ -392,9 +474,9 @@ struct STEPLine : public STEPEntityBase
 	}
 
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.point) { data.point->ShowUI(ui); }
 			if (data.vector0) { data.vector0->ShowUI(ui); }
 			ImGui::TreePop();
@@ -407,6 +489,9 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 {
 	virtual ~STEPAxis2Placement3D() = default;
 	static constexpr const char* EntityName = "AXIS2_PLACEMENT_3D";
+	static constexpr ESTEPEntityType ClassType = ESTEPAxis2Placement3D;
+	virtual ESTEPEntityType GetType() const { return ESTEPAxis2Placement3D; }
+	STEP_DEFINE_CAST(STEPAxis2Placement3D)
 
 	struct Raw
 	{
@@ -465,9 +550,9 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 		if (data.direction2) { data.direction2->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.point0) { data.point0->ShowUI(ui); }
 			if (data.direction1) { data.direction1->ShowUI(ui); }
 			if (data.direction2) { data.direction2->ShowUI(ui); }
@@ -481,6 +566,10 @@ struct STEPCircle : public STEPEntityBase
 {
 	virtual ~STEPCircle() = default;
 	static constexpr const char* EntityName = "CIRCLE";
+	static constexpr ESTEPEntityType ClassType = ESTEPCircle;
+	virtual ESTEPEntityType GetType() const { return ESTEPCircle; }
+	STEP_DEFINE_CAST(STEPCircle)
+		
 	struct Raw
 	{
 		int axisRef = -1;
@@ -529,9 +618,9 @@ struct STEPCircle : public STEPEntityBase
 		if (data.axis) { data.axis->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.axis) { data.axis->ShowUI(ui); }
 			ImGui::TreePop();
 		}
@@ -542,6 +631,9 @@ struct STEPCylinderSurface : public STEPEntityBase
 {
 	virtual ~STEPCylinderSurface() = default;
 	static constexpr const char* EntityName = "CYLINDRICAL_SURFACE";
+	static constexpr ESTEPEntityType ClassType = ESTEPCylinderSurface;
+	virtual ESTEPEntityType GetType() const { return ESTEPCylinderSurface; }
+	STEP_DEFINE_CAST(STEPCylinderSurface)
 
 	struct Raw
 	{
@@ -579,9 +671,9 @@ struct STEPCylinderSurface : public STEPEntityBase
 		if (data.axis) { data.axis->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.axis) { data.axis->ShowUI(ui); }
 			ImGui::TreePop();
 		}
@@ -592,6 +684,9 @@ struct STEPPlane : public STEPEntityBase
 {
 	virtual ~STEPPlane() = default;
 	static constexpr const char* EntityName = "PLANE";
+	static constexpr ESTEPEntityType ClassType = ESTEPPlane;
+	virtual ESTEPEntityType GetType() const { return ESTEPPlane; }
+	STEP_DEFINE_CAST(STEPPlane)
 
 	struct Raw
 	{
@@ -625,9 +720,9 @@ struct STEPPlane : public STEPEntityBase
 		if (data.axis) { data.axis->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.axis) { data.axis->ShowUI(ui); }
 			ImGui::TreePop();
 		}
@@ -639,6 +734,9 @@ struct STEPVertexPoint : public STEPEntityBase
 {
 	virtual ~STEPVertexPoint() = default;
 	static constexpr const char* EntityName = "VERTEX_POINT";
+	static constexpr ESTEPEntityType ClassType = ESTEPVertexPoint;
+	virtual ESTEPEntityType GetType() const { return ESTEPVertexPoint; }
+	STEP_DEFINE_CAST(STEPVertexPoint)
 
 	struct Raw
 	{
@@ -671,9 +769,9 @@ struct STEPVertexPoint : public STEPEntityBase
 		if (data.point) { data.point->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.point) { data.point->ShowUI(ui); }
 			ImGui::TreePop();
 		}
@@ -684,6 +782,9 @@ struct STEPEdgeCurve : public STEPEntityBase
 {
 	virtual ~STEPEdgeCurve() = default;
 	static constexpr const char* EntityName = "EDGE_CURVE";
+	static constexpr ESTEPEntityType ClassType = ESTEPEdgeCurve;
+	virtual ESTEPEntityType GetType() const { return ESTEPEdgeCurve; }
+	STEP_DEFINE_CAST(STEPEdgeCurve)
 
 	struct Raw
 	{
@@ -773,9 +874,9 @@ struct STEPEdgeCurve : public STEPEntityBase
 	}
 
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.pPoint0) { data.pPoint0->ShowUI(ui); }
 			if (data.pPoint1) { data.pPoint1->ShowUI(ui); }
 			if (data.line) { data.line->ShowUI(ui); }
@@ -788,8 +889,10 @@ struct STEPEdgeCurve : public STEPEntityBase
 struct STEPOrientedEdge : public STEPEntityBase
 {
 	virtual ~STEPOrientedEdge() = default;
-
 	static constexpr const char* EntityName = "ORIENTED_EDGE";
+	static constexpr ESTEPEntityType ClassType = ESTEPOrientedEdge;
+	virtual ESTEPEntityType GetType() const { return ESTEPOrientedEdge; }
+	STEP_DEFINE_CAST(STEPOrientedEdge)
 
 	struct Raw
 	{
@@ -848,19 +951,6 @@ struct STEPOrientedEdge : public STEPEntityBase
 			return GetEnd() - GetBegin();
 		}
 
-		void CreateEdges(STEPShape& mesh) const
-		{
-			if (IsLine()) {
-				if (orient) {
-					mesh.polylines.push_back(Polyline(Vector<Vector3>{begin, end}));
-				} else {
-					mesh.polylines.push_back(Polyline(Vector<Vector3>{end, begin}));
-				}
-			} else if(IsCircle()){
-				mesh.polylines.push_back(edgeCurve->data.circle->data.CreatePolyline());
-			}
-		}
-		
 		Polyline CreatePolyline() const
 		{
 			auto polyline = edgeCurve->CreatePolyline();
@@ -913,9 +1003,9 @@ struct STEPOrientedEdge : public STEPEntityBase
 		if (data.vertex1) { data.vertex1->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.edgeCurve) { data.edgeCurve->ShowUI(ui); }
 			if (data.vertex0) { data.vertex0->ShowUI(ui); }
 			if (data.vertex1) { data.vertex1->ShowUI(ui); }
@@ -927,8 +1017,10 @@ struct STEPOrientedEdge : public STEPEntityBase
 struct STEPPolyLoop : public STEPEntityBase
 {
 	virtual ~STEPPolyLoop() = default;
-
 	static constexpr const char* EntityName = "POLY_LOOP";
+	static constexpr ESTEPEntityType ClassType = ESTEPPolyLoop;
+	virtual ESTEPEntityType GetType() const { return ESTEPPolyLoop; }
+	STEP_DEFINE_CAST(STEPPolyLoop)
 
 	struct Raw
 	{
@@ -981,9 +1073,9 @@ struct STEPPolyLoop : public STEPEntityBase
 		}
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			for (size_t i = 0; i < data.points.size(); i++) {
 				data.points[i]->ShowUI(ui);
 			}
@@ -997,8 +1089,10 @@ struct STEPPolyLoop : public STEPEntityBase
 struct STEPEdgeLoop : public STEPEntityBase
 {
 	virtual ~STEPEdgeLoop() = default;
-
 	static constexpr const char* EntityName = "EDGE_LOOP";
+	static constexpr ESTEPEntityType ClassType = ESTEPEdgeLoop;
+	virtual ESTEPEntityType GetType() const { return ESTEPEdgeLoop; }
+	STEP_DEFINE_CAST(STEPEdgeLoop)
 
 	struct Raw
 	{
@@ -1013,22 +1107,18 @@ struct STEPEdgeLoop : public STEPEntityBase
 		Polyline CreatePolyline() const
 		{
 			Vector<Vector3> points;
+			Polyline polyline;
 			for (size_t i = 0; i < orientedEdges.size(); ++i) {
-				points.push_back(orientedEdges[i]->data.GetBegin());
+				if (orientedEdges[i]->data.IsCircle()) {
+					polyline.Add(orientedEdges[i]->data.CreatePolyline());
+				} else {
+					polyline.Add(orientedEdges[i]->data.GetBegin());
+					polyline.Add(orientedEdges[i]->data.GetEnd());
+				}
 			}
 
-			return Polyline(std::move(points), Polyline::DrawType::LineLoop);
+			return polyline;
 		}
-
-		//void CreatePlane(STEPMesh& mesh, bool orient) const
-		//{
-		//	for (const auto& edge : orientedEdges) {
-		//		edge->data.CreateEdges(mesh);
-		//	}
-		//	auto polyline = CreatePolyline(orient);
-		//	auto triangle = polyline.CreateTrianglePoints(orient);
-		//	STLUtil::Insert(mesh.triangels, triangle);
-		//}
 	};
 
 	Data data;
@@ -1063,9 +1153,9 @@ struct STEPEdgeLoop : public STEPEntityBase
 		}
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			for (auto orientedEdge : data.orientedEdges) {
 				orientedEdge->ShowUI(ui);
 			}
@@ -1132,9 +1222,9 @@ struct STEPFaceBoundBase : public STEPEntityBase
 		if (data.polyLoop) { data.polyLoop->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			if (data.edgeLoop) { data.edgeLoop->ShowUI(ui); }
 			if (data.polyLoop) { data.polyLoop->ShowUI(ui); }
 			ImGui::TreePop();
@@ -1145,9 +1235,10 @@ struct STEPFaceBoundBase : public STEPEntityBase
 struct STEPFaceOuterBound : public STEPFaceBoundBase
 {
 	virtual ~STEPFaceOuterBound() = default;
-
-
 	static constexpr const char* EntityName = "FACE_OUTER_BOUND";
+	static constexpr ESTEPEntityType ClassType = ESTEPFaceOuterBound;
+	virtual ESTEPEntityType GetType() const { return ESTEPFaceOuterBound; }
+	STEP_DEFINE_CAST(STEPFaceOuterBound)
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
@@ -1160,9 +1251,10 @@ struct STEPFaceOuterBound : public STEPFaceBoundBase
 struct STEPFaceBound : public STEPFaceBoundBase
 {
 	virtual ~STEPFaceBound() = default;
-
-
 	static constexpr const char* EntityName = "FACE_BOUND";
+	static constexpr ESTEPEntityType ClassType = ESTEPFaceBound;
+	virtual ESTEPEntityType GetType() const { return ESTEPFaceBound; }
+	STEP_DEFINE_CAST(STEPFaceBound)
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
@@ -1196,64 +1288,99 @@ struct STEPFaceBase : public STEPEntityBase
 		STEPCylinderSurface* cylinder = nullptr;
 		bool orient = true;
 
-		STEPOrientedEdge::Data* SearchCylinderAxisEdge(const Vector3& axis) const
+		struct CylidnerEdge
 		{
-			float height = 0.0f;
+			bool IsActive() const { return circle&& axis; }
+			STEPOrientedEdge::Data* circle = nullptr;
+			STEPOrientedEdge::Data* axis = nullptr;
+			std::pair<float, Vector3> maxPos{ -INFINITY,Vector3(0,0,0) };
+			std::pair<float, Vector3> minPos{ INFINITY, Vector3(0, 0, 0) };
+			float GetHeight() const { return maxPos.first - minPos.first; }
+		};
+
+		CylidnerEdge SearchCylinderEdge(const Vector3& origin, const Vector3& axis) const
+		{
+			CylidnerEdge ret;
 			for (const auto& face : faceBound) {
 				auto edgeLoop = face->data.edgeLoop;
 				if (!edgeLoop) { continue; }
 				for (const auto& edge : edgeLoop->data.orientedEdges) {
-					if (!edge->data.IsLine()) { continue; }
-					if (MathHelper::IsSameDir(axis, edge->data.Dir())) {
-						return &edge->data;
+					auto v0 = glm::dot(edge->data.GetBegin() - origin, axis);
+					auto v1 = glm::dot(edge->data.GetEnd() - origin, axis);
+					if (ret.maxPos.first < v0) { ret.maxPos.first = v0; ret.maxPos.second = edge->data.GetBegin();}
+					if (ret.maxPos.first < v1) { ret.maxPos.first = v1; ret.maxPos.second = edge->data.GetEnd(); }
+					
+					if (ret.minPos.first > v0) { ret.minPos.first = v0; ret.minPos.second = edge->data.GetBegin(); }
+					if (ret.minPos.first > v1) { ret.minPos.first = v1; ret.minPos.second = edge->data.GetEnd(); }
+
+					if (edge->data.IsLine() &&
+						MathHelper::IsSameDir(axis, edge->data.Dir())) {
+						ret.axis = &edge->data;
 					}
+					if (edge->data.IsCircle()) { ret.circle = &edge->data; }
 				}
 			}
 
-			return nullptr;
-		}
+			for (const auto& face : faceOuterBound) {
+				auto edgeLoop = face->data.edgeLoop;
+				if (!edgeLoop) { continue; }
+				for (const auto& edge : edgeLoop->data.orientedEdges) {
+					if (edge->data.IsLine() &&
+						MathHelper::IsSameDir(axis, edge->data.Dir())) {
+						ret.axis = &edge->data;
+					}
+					if (edge->data.IsCircle()) { ret.circle = &edge->data; }
+				}
+			}
 
-		void CreateMesh(STEPShape& shape) const
+			return ret;
+		}
+		
+		Polyline CreateBoundPolyline() const
 		{
 			Polyline bound;
-			for (const auto& face : faceBound) {
-				bound.Add(face->data.CreatePolyline());
-			}
+			for (const auto& face : faceBound) { bound.Add(face->data.CreatePolyline()); }
+			return bound;
+		}
 
+		Polyline CreateOuterBoundPolyline() const
+		{
 			Polyline outerBound;
-			for (const auto& face : faceOuterBound) {
-				outerBound.Add(face->data.CreatePolyline());
-			}
-			if (plane) {
-				if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return; }
-				
-				if (!orient) {
-					bound.Reverse(); outerBound.Reverse();
-				}
+			for (const auto& face : faceOuterBound) { outerBound.Add(face->data.CreatePolyline()); }
+			return outerBound;
+		}
 
+		Mesh CreateMesh(const Polyline& bound, const Polyline& outerBound) const
+		{
+			if (plane) {
+				if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
 				if (bound.PointNum() && outerBound.PointNum()) {
-					shape.meshs.push_back(Mesh(Polyline::CraeteDelaunay(outerBound, bound), Mesh::DrawType::Triangles));
+					return Polyline::CreateMesh(outerBound, bound, orient);
 				} else if (bound.PointNum()) {
-					shape.meshs.push_back(Mesh(Polyline::CraeteDelaunay(bound, Polyline()), Mesh::DrawType::Triangles));
+					return Polyline::CreateMesh(bound, Polyline(), orient);
 				} else if (outerBound.PointNum()) {
-					shape.meshs.push_back(Mesh(Polyline::CraeteDelaunay(outerBound, Polyline()), Mesh::DrawType::Triangles));
+					return Polyline::CreateMesh(outerBound, Polyline(), orient);
 				}
 			} else if (cylinder) {
-				auto edge = SearchCylinderAxisEdge(cylinder->data.axis->data.Normal());
-				if (!edge) { return; }
-				auto mesh = Cylinder::CreateSideMesh(
-					cylinder->data.axis->data.point,
-					cylinder->data.axis->data.point - cylinder->data.axis->data.Normal(),
-					edge->GetBegin(),
+				auto edge = SearchCylinderEdge(
+					cylinder->data.axis->data.point, 
+					cylinder->data.axis->data.Normal());
+				if (!edge.IsActive()) { return Mesh(); }
+				Vector3 origin = cylinder->data.axis->data.point + 
+					cylinder->data.axis->data.Normal() * edge.minPos.first;
+				return Cylinder::CreateSideMesh(
+					origin,
+					cylinder->data.axis->data.Normal(),
+					edge.circle->GetEnd(),
+					edge.circle->GetBegin(),
 					cylinder->data.rad,
-					edge->Length(),
+					edge.GetHeight(),
+					orient,
 					CIRCLE_SUBDIVISION_NUM,
 					CIRCLE_SUBDIVISION_NUM);
-				shape.meshs.push_back(std::move(mesh));
 			}
 
-			shape.polylines.push_back(bound);
-			shape.polylines.push_back(outerBound);
+			return Mesh();
 		}
 	};
 
@@ -1283,9 +1410,9 @@ struct STEPFaceBase : public STEPEntityBase
 		if (data.cylinder) { data.cylinder->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			for (int i = 0; i < data.faceOuterBound.size(); i++) {
 				data.faceOuterBound[i]->ShowUI(ui);
 			}
@@ -1304,8 +1431,11 @@ struct STEPFaceBase : public STEPEntityBase
 struct STEPFaceSurface : public STEPFaceBase
 {
 	virtual ~STEPFaceSurface() = default;
-
 	static constexpr const char* EntityName = "FACE_SURFACE";
+	static constexpr ESTEPEntityType ClassType = ESTEPFaceSurface;
+	virtual ESTEPEntityType GetType() const { return ESTEPFaceSurface; }
+	STEP_DEFINE_CAST(STEPFaceSurface)
+
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
 		auto pData = new STEPFaceSurface();
@@ -1327,10 +1457,10 @@ struct STEPFaceSurface : public STEPFaceBase
 struct STEPAdvancedFace : public STEPFaceBase
 {
 	virtual ~STEPAdvancedFace() = default;
-
 	static constexpr const char* EntityName = "ADVANCED_FACE";
-
-	
+	static constexpr ESTEPEntityType ClassType = ESTEPAdvancedFace;
+	virtual ESTEPEntityType GetType() const { return ESTEPAdvancedFace; }
+	STEP_DEFINE_CAST(STEPAdvancedFace)
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
@@ -1399,12 +1529,20 @@ struct STEPShell : public STEPEntityBase
 	{
 		for (const auto& advancedFace : step.data.advancedFace) {
 			if (advancedFace) {
-				advancedFace->data.CreateMesh(shape);
+				auto bound = advancedFace->data.CreateBoundPolyline();
+				auto outerBound = advancedFace->data.CreateOuterBoundPolyline();
+				shape.AddMesh(advancedFace->id, std::move(advancedFace->data.CreateMesh(bound, outerBound).ConvertTriangles()));
+				shape.AddPolyline(advancedFace->id, std::move(bound));
+				shape.AddPolyline(advancedFace->id, std::move(outerBound));
 			}
 		}
 		for (const auto& faceSurface : step.data.faceSurface) {
 			if (faceSurface) {
-				faceSurface->data.CreateMesh(shape);
+				auto bound = faceSurface->data.CreateBoundPolyline();
+				auto outerBound = faceSurface->data.CreateOuterBoundPolyline();
+				shape.AddMesh(faceSurface->id, std::move(faceSurface->data.CreateMesh(bound, outerBound).ConvertTriangles()));
+				shape.AddPolyline(faceSurface->id, std::move(bound));
+				shape.AddPolyline(faceSurface->id, std::move(outerBound));
 			}
 		}
 	}
@@ -1417,9 +1555,9 @@ struct STEPShell : public STEPEntityBase
 		for (auto& surface : data.faceSurface) { surface->Printf(option); }
 	}
 
-	void ShowUI(UIContext& ui)
+	void ShowUI(STEPUIContext& ui)
 	{
-		if (ImGui::TreeNode(str.data())) {
+		if (ShowBranch(ui, ui.IsSelect(id))) {
 			for (int i = 0; i < data.advancedFace.size(); i++) {
 				data.advancedFace[i]->ShowUI(ui);
 			}
@@ -1436,6 +1574,9 @@ struct STEPClosedShell : public STEPShell
 {
 	virtual ~STEPClosedShell() = default;
 	static constexpr const char* EntityName = "CLOSED_SHELL";
+	static constexpr ESTEPEntityType ClassType = ESTEPClosedShell;
+	virtual ESTEPEntityType GetType() const { return ESTEPClosedShell; }
+	STEP_DEFINE_CAST(STEPClosedShell)
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
 	{
@@ -1462,9 +1603,10 @@ struct STEPClosedShell : public STEPShell
 struct STEPOpenShell : public STEPShell
 {
 	virtual ~STEPOpenShell() = default;
-
-
 	static constexpr const char* EntityName = "OPEN_SHELL";
+	static constexpr ESTEPEntityType ClassType = ESTEPOpenShell;
+	virtual ESTEPEntityType GetType() const { return ESTEPOpenShell; }
+	STEP_DEFINE_CAST(STEPOpenShell)
 
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -1677,7 +1819,8 @@ void STEPRenderNode::BuildGLResource()
 	m_gpu.bdb.pIndex->Create(cube.Index());
 
 	for (const auto& shape : m_shape) {
-		for (const auto& mesh : shape.meshs) {
+		for (const auto& m : shape.meshs) {
+			const auto& mesh = m.second;
 			if (mesh.GetIndexs().size() != 0) {
 				m_gpu.triangleIndex.pointNum += mesh.GetPoints().size();
 				m_gpu.triangleIndex.indexNum += mesh.GetIndexs().size();
@@ -1686,7 +1829,8 @@ void STEPRenderNode::BuildGLResource()
 			}
 		}
 
-		for (const auto& polyline : shape.polylines) {
+		for (const auto& p : shape.polylines) {
+			const auto& polyline = p.second;
 			if (polyline.GetPoints().size() == 0) { continue; }
 			if (polyline.GetDrawType() == GL_LINES) {
 				if (polyline.GetIndexs().size() != 0) {
@@ -1731,30 +1875,36 @@ void STEPRenderNode::BuildGLResource()
 	size_t lineLoopIndexPointOffset = 0;
 	size_t lineLoopIndexOffset = 0;
 	for (const auto& shape : m_shape) {
-		for (const auto& mesh : shape.meshs) {
+		for (const auto& m : shape.meshs) {
+			const auto& mesh = m.second;
 			if (mesh.GetPoints().size() == 0) { continue; }
 			if (mesh.GetIndexs().size()) {
 				m_gpu.triangleIndex.pPosition->BufferSubData(triangleIndexPointOffset, mesh.GetPoints());
 				triangleIndexPointOffset += mesh.GetPoints().size();
 
+				m_gpu.triangleIndex.AddEntity(m.first, triangleIndexOffset, mesh.GetIndexs().size());
 				m_gpu.triangleIndex.pIndex->BufferSubData(triangleIndexOffset, mesh.GetIndexs());
 				triangleIndexOffset += mesh.GetIndexs().size();
 			} else {
+				m_gpu.triangle.AddEntity(m.first, trianglePointOffset, mesh.GetPoints().size());
 				m_gpu.triangle.pPosition->BufferSubData(trianglePointOffset, mesh.GetPoints());
 				trianglePointOffset += mesh.GetPoints().size();
 			}
 		}
 		
-		for (const auto& polyline : shape.polylines) {
+		for (const auto& p : shape.polylines) {
+			const auto& polyline = p.second;
 			if (polyline.GetPoints().size() == 0) { continue; }
 			if (polyline.GetDrawType() == GL_LINES) {
 				if (polyline.GetIndexs().size()) {
 					m_gpu.lineIndex.pPosition->BufferSubData(lineIndexPointOffset, polyline.GetPoints());
 					lineIndexPointOffset += polyline.GetPoints().size();
 
+					m_gpu.lineIndex.AddEntity(p.first, lineIndexOffset, polyline.GetIndexs().size());
 					m_gpu.lineIndex.pIndex->BufferSubData(lineIndexOffset, polyline.GetIndexs());
 					lineIndexOffset += polyline.GetIndexs().size();
 				} else {
+					m_gpu.line.AddEntity(p.first, linePointOffset, polyline.GetPoints().size());
 					m_gpu.line.pPosition->BufferSubData(linePointOffset, polyline.GetPoints());
 					linePointOffset += polyline.GetPoints().size();
 				}
@@ -1763,9 +1913,11 @@ void STEPRenderNode::BuildGLResource()
 					m_gpu.lineStripIndex.pPosition->BufferSubData(lineStripIndexPointOffset, polyline.GetPoints());
 					lineStripIndexPointOffset += polyline.GetPoints().size();
 
+					m_gpu.lineStripIndex.AddEntity(p.first, lineStripIndexOffset, polyline.GetIndexs().size());
 					m_gpu.lineStripIndex.pIndex->BufferSubData(lineStripIndexOffset, polyline.GetIndexs());
 					lineStripIndexOffset += polyline.GetIndexs().size();
 				} else {
+					m_gpu.lineStrip.AddEntity(p.first, lineStripPointOffset, polyline.GetPoints().size());
 					m_gpu.lineStrip.pPosition->BufferSubData(lineStripPointOffset, polyline.GetPoints());
 					lineStripPointOffset += polyline.GetPoints().size();
 				}
@@ -1774,9 +1926,11 @@ void STEPRenderNode::BuildGLResource()
 					m_gpu.lineLoopIndex.pPosition->BufferSubData(lineLoopIndexPointOffset, polyline.GetPoints());
 					lineLoopIndexPointOffset += polyline.GetPoints().size();
 
+					m_gpu.lineLoopIndex.AddEntity(p.first, lineLoopIndexOffset, polyline.GetIndexs().size());
 					m_gpu.lineLoopIndex.pIndex->BufferSubData(lineLoopIndexOffset, polyline.GetIndexs());
 					lineLoopIndexOffset += polyline.GetIndexs().size();
 				} else {
+					m_gpu.lineLoop.AddEntity(p.first, lineLoopPointOffset, polyline.GetPoints().size());
 					m_gpu.lineLoop.pPosition->BufferSubData(lineLoopPointOffset, polyline.GetPoints());
 					lineLoopPointOffset += polyline.GetPoints().size();
 				}
@@ -1784,10 +1938,22 @@ void STEPRenderNode::BuildGLResource()
 		}
 	}
 }
+void STEPRenderNode::AddDebugNode(STEPUIContext& context, const STEPEntityBase* pBase)
+{
+	auto pFace = STEPAdvancedFace::Cast(pBase);
+	auto bound = pFace->data.CreateBoundPolyline();
+	auto outerBound = pFace->data.CreateOuterBoundPolyline();
+	auto mesh = pFace->data.CreateMesh(bound, outerBound);
+	context.ui->ClearDebugNode();
+	context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::Bound", bound));
+	context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::OuterBound", outerBound));
+	context.ui->AddDebugNode(std::make_shared<MeshNode>(pBase->str + "::Mesh", mesh));
+}
 void STEPRenderNode::DrawNode(const DrawContext& context)
 {
 	BuildGLResource();
 	if (!m_gpu.IsActive()) { return; }
+	Vector3 selectColor = Vector3(1.0f, 1.0f, 1.0f);
 	auto pResource = context.pResource;
 	auto matrix = GetTranslateMatrix() * GetScaleMatrix() * m_rotateMatrix;
 	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
@@ -1803,64 +1969,117 @@ void STEPRenderNode::DrawNode(const DrawContext& context)
 	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
 	pSimpleShader->SetModel(matrix);
 	if (m_gpu.line.pPosition) {
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->SetPosition(m_gpu.line.pPosition.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawArray(m_gpu.line.drawType, m_gpu.line.pPosition.get());
+		auto entity = m_gpu.line.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.line.drawType, entity.first, entity.num);
+		}
 	}
 
 	if (m_gpu.lineStrip.pPosition) {
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->SetPosition(m_gpu.lineStrip.pPosition.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawArray(m_gpu.lineStrip.drawType, m_gpu.lineStrip.pPosition.get());
+		auto entity = m_gpu.lineStrip.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.lineStrip.drawType, entity.first, entity.num);
+		}
 	}
 
 	if (m_gpu.lineLoop.pPosition) {
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->SetPosition(m_gpu.lineLoop.pPosition.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawArray(m_gpu.lineLoop.drawType, m_gpu.lineLoop.pPosition.get());
+		auto entity = m_gpu.lineLoop.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.lineLoop.drawType, entity.first, entity.num);
+		}
 	}
 
 	if (m_gpu.lineIndex.pPosition) {
-		pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
 		pSimpleShader->SetPosition(m_gpu.lineIndex.pPosition.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawElement(m_gpu.lineIndex.drawType, m_gpu.lineIndex.pIndex.get());
+		auto entity = m_gpu.lineIndex.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.lineIndex.drawType, entity.first, entity.num);
+		}
 	}
 
 	if (m_gpu.lineStripIndex.pPosition) {
-		pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
 		pSimpleShader->SetPosition(m_gpu.lineStripIndex.pPosition.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawElement(m_gpu.lineStripIndex.drawType, m_gpu.lineStripIndex.pIndex.get());
+		auto entity = m_gpu.lineStripIndex.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.lineStripIndex.drawType, entity.first, entity.num);
+		}
 	}
 
 	if (m_gpu.lineLoopIndex.pPosition) {
-		pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
 		pSimpleShader->SetPosition(m_gpu.lineLoopIndex.pPosition.get());
+		pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
 		pSimpleShader->DrawElement(m_gpu.lineLoopIndex.drawType, m_gpu.lineLoopIndex.pIndex.get());
+		auto entity = m_gpu.lineLoopIndex.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.lineLoopIndex.drawType, entity.first, entity.num);
+		}
 	}
 
 
 	if (m_gpu.triangle.pPosition) {
-		pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
 		pSimpleShader->SetPosition(m_gpu.triangle.pPosition.get());
+		pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
 		pSimpleShader->DrawArray(m_gpu.triangle.drawType, m_gpu.triangle.pPosition.get());
+		auto entity = m_gpu.triangle.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawArray(m_gpu.triangle.drawType, entity.first, entity.num);
+		}
 	}
 
 	if (m_gpu.triangleIndex.pPosition) {
-		pSimpleShader->SetColor(Vector3(0.0f, 1.0f, 0.0f));
 		pSimpleShader->SetPosition(m_gpu.triangleIndex.pPosition.get());
+		pSimpleShader->SetColor(Vector3(0.0f, 1.0f, 0.0f));
 		pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get());
+		auto entity = m_gpu.triangleIndex.FindEntity(uiContext.GetSelectId());
+		if (entity.IsActive()) {
+			pSimpleShader->SetColor(selectColor);
+			pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get(), entity.num, entity.first);
+		}
 	}
 }
 void STEPRenderNode::ShowUI(UIContext& ui)
 {
+	uiContext.ui = &ui;
+	uiContext.pNode = this;
 	ImGui::Checkbox("VisibleBDB",&m_ui.visibleBDB);
 	if (ImGui::TreeNode("Root")) {
-		for (auto& shell : m_step->closedShell) { shell.second->ShowUI(ui); }
-		for (auto& shell : m_step->openShell) { shell.second->ShowUI(ui); }
+		for (auto& shell : m_step->closedShell) { shell.second->ShowUI(uiContext); }
+		for (auto& shell : m_step->openShell) { shell.second->ShowUI(uiContext); }
 		ImGui::TreePop();
 	}
 }
 
+bool STEPUIContext::IsSelect(int id) const
+{
+	if (!pSelect) { return false; }
+	return pSelect->id == id;
+}
+
+int STEPUIContext::GetSelectId() const
+{
+	if (!pSelect) { return -1; }
+	return pSelect->id;
+}
 void STEPRenderNode::UpdateData(float diff)
 {
 	return;

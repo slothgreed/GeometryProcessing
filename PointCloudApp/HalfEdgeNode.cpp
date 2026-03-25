@@ -460,7 +460,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 			}
 		}
 		if (param != HalfEdgeStruct::VertexValue::None) {
-			ShowUIParameter(m_vertexParameter, ui);
+			UIContext::Show(m_vertexParameter);
 		}
 	}
 

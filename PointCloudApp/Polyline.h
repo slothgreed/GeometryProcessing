@@ -9,6 +9,7 @@ public:
 	virtual Vector2 toUV(const Vector3& xyz) const = 0;
 	virtual Vector3 toXYZ(const Vector2& uv) const = 0;
 };
+class Mesh;
 class Polyline
 {
 public:
@@ -32,26 +33,23 @@ public:
 	Vector3 Last() const { return m_points[m_points.size() - 1]; }
 	void Add(const Polyline& point);
 	void Add(Polyline&& point);
+	void Add(const Vector3& point);
 
 	const Vector<Vector3>& GetPoints() const { return m_points; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 
 	void Set(int index, const Vector3& data) { m_points[index] = data; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
-	Vector<Vector3> CreateTriangleArray() const;
-	Vector<Vector3> CreateTriangleLine() const;
-	Vector<UInt> CreateTriangles() const;
-	Vector<Vector3> CreateTrianglePoints(bool orient) const;
-	Vector<Vector3> CreateLinePoints() const;
+	Mesh CreateMesh() const;
 	Vector3 GetNormal() const;
 	Vector3 GetCenter() const;
 	void Reverse();
 	bool IsPlane() const;
-	static Vector<Vector3> CraeteDelaunay(const Polyline& target, const Polyline& inner);
+	static Mesh CreateMesh(const Polyline& target, const Polyline& inner, bool orient);
 	Polyline CreateSmooth() const;
 	static BDB CreateBDB(const Polyline& polyline);
 private:
-	Vector<Vector3> CreateUnique() const;
+	void ConvertLines();
 	Vector<Vector3> m_points;
 	Vector<UInt> m_indexs;
 	DrawType m_drawType = DrawType::LineLoop;

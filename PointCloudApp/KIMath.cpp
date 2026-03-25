@@ -208,13 +208,12 @@ Vector3 MathHelper::CalcNormal(const Vector<Vector3>& points)
 
 	return glm::normalize(normal);
 }
-Vector<Vector3> MathHelper::Project(const Vector<Vector3>& points, ProjectInfo& info)
+
+MathHelper::ProjectInfo MathHelper::CreateProjectInfo(const Vector<Vector3>& points)
 {
-	Vector<Vector3> result;
+	ProjectInfo info;
 	if (points.size() < 3)
-		return result;
-
-
+		return info;
 
 	info.origin = points[0];
 	info.normal = CalcNormal(points);
@@ -230,11 +229,14 @@ Vector<Vector3> MathHelper::Project(const Vector<Vector3>& points, ProjectInfo& 
 
 	info.uAxis = glm::normalize(glm::cross(helper, info.normal));
 	info.vAxis = glm::normalize(glm::cross(info.normal, info.uAxis));
-
+	return info;
+}
+Vector<Vector3> MathHelper::Project(const Vector<Vector3>& points, ProjectInfo& info)
+{
 	// -------------------------
 	// ŽË‰e
 	// -------------------------
-
+	Vector<Vector3> result;
 	result.reserve(points.size());
 
 	for (auto& p : points) {

@@ -137,12 +137,12 @@ void PointCloudApp::Execute()
 	auto pgmFiles = FileUtility::CollectFile("E:\\cgModel\\2dimages", ".pgm");
 	for (int i = 0; i < pgmFiles.size(); i++) {
 		m_pgmTexture.push_back(std::shared_ptr<Texture>(TextureLoader::LoadPGM(pgmFiles[i], false)));
-		AddUITexture(FileUtility::GetFileName(pgmFiles[i]), m_pgmTexture[i].get());
 	}
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	m_pRoot = std::make_unique<RenderNode>("Root");
-
+	m_pDebugRoot = std::make_unique<RenderNode>("DebugOutput");
+	m_uiContext.SetDebugNode(m_pDebugRoot.get());
 	BDB bdb;
 	// Default Scene Demo.
 	//{
@@ -265,12 +265,15 @@ void PointCloudApp::Execute()
 	m_pResource->GetPBR()->Initialize(*pSkyBoxNode->GetCubemapTexture());
 	m_pResource->UpdatePBR();
 
+	AddUITexture("DebugTexture", m_pResource->GetDebugTarget()->GetColor(0).get());
 	AddUITexture("PickTarget", pPickTexture.get());
 	AddUITexture("ForwardNormal", pForwardTarget->GetNormal().get());
 	AddUITexture("SkyBox", pSkyBoxNode->GetCubemapTexture());
 	AddUITexture("Irradiance", m_pResource->GetPBR()->GetIrradiance());
 	AddUITexture("Prefiltered", m_pResource->GetPBR()->GetPrefiltered());
-
+	for (int i = 0; i < pgmFiles.size(); i++) {
+		AddUITexture(FileUtility::GetFileName(pgmFiles[i]), m_pgmTexture[i].get());
+	}
 
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		m_pResource->UpdateCamera();
@@ -285,8 +288,6 @@ void PointCloudApp::Execute()
 			pSkyBoxNode->Draw(drawContext);
 		}
 		m_pRoot->Draw(drawContext);
-
-
 		combiner.Execute(drawContext);
 
 		m_pResource->GL()->PushRenderTarget(m_pResource->GetPostEffectTarget());
@@ -295,6 +296,14 @@ void PointCloudApp::Execute()
 
 		m_pResource->GL()->PopRenderTarget();
 
+		// for Debug
+		{
+			m_pResource->GL()->PushRenderTarget(m_pResource->GetDebugTarget());
+			m_pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			m_pResource->GL()->SetViewportFullWindow();
+			m_pDebugRoot->Draw(drawContext);
+			m_pResource->GL()->PopRenderTarget();
+		}
 
 		m_pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_pResource->GL()->SetViewportFullWindow();
@@ -501,6 +510,7 @@ void PointCloudApp::ShowUI(UIContext& ui)
 void PointCloudApp::Finalize()
 {
 	m_pRoot.reset();
+	m_pDebugRoot.reset();
 	glfwTerminate();
 }
 
@@ -542,9 +552,9 @@ Shared<RenderNode> PointCloudApp::CreatePolylineTest()
 	//auto pNode = std::make_shared<PolylineNode>("CylinderOutLine", cylinder);
 	//return pNode;
 
-	auto cylinder = Cylinder::CreateSideMesh(Vector3(0, 0, 0), Vector3(0, 0, 1), Vector3(10, 0, 0), 10, 10, 10, 10);
-	return std::make_shared<MeshNode>("CylinderMesh", cylinder);
-
+	//auto cylinder = Cylinder::CreateSideMesh(Vector3(0, 0, 0), Vector3(0, 0, 1), Vector3(10, 0, 0), 10, 10, 10, 10);
+	//return std::make_shared<MeshNode>("CylinderMesh", cylinder);
+	return nullptr;
 }
 
 Shared<RenderNode> PointCloudApp::CreatePBRTest()
@@ -606,15 +616,15 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
 	Vector<String> files;
-	//files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+	files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+	//files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
 	//files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
 	//files.push_back("E:\\cgModel\\step\\cubcylso.stp");
 	//files.push_back("E:\\cgModel\\step\\angle1.stp");
 	//files.push_back("E:\\cgModel\\step\\mycylinder.stp");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
 	//files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	//files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-
+	
 	// 円筒の側面からやるべき
 	// for debug.
 	//{
@@ -641,7 +651,9 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 			auto gridCenter = gridPos + Vector3(scale / 2, scale / 2, 0.0);
 			auto localPos = (scale / bdb.MaxLength()) * bdb.Center();
 			auto translate = glmUtil::CreateTranslate(gridCenter - localPos);
-			pNode->SetTranslate(gridCenter - localPos);
+			if (files.size() != 1) {
+				pNode->SetTranslate(gridCenter - localPos);
+			}
 			pNode->SetScale(scale / bdb.MaxLength());
 		}
 		

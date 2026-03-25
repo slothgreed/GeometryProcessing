@@ -84,7 +84,8 @@ public:
 		int m_slices;
 	};
 
-	static Mesh CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& seamPoint, float radius, float height, int slices, int stacks);
+	static Mesh CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& beginPoint, const Vector3& endPoint, float radius, float height, int slices, int stacks);
+	static Mesh CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& beginPoint, const Vector3& endPoint, float radius, float height, bool orient, int slices, int stacks);
 	static Polyline CreatePolyline(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks);
 	static UVConverter CreateUVConverter(float radius, float height, int slices) { return UVConverter(radius, height, slices); }
 	static UVConverter CreateUVConverter(const Cylinder& cylinder) { return UVConverter(cylinder); }

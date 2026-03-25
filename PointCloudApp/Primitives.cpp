@@ -1,5 +1,6 @@
 #include "Primitives.h"
 #include "Utility.h"
+#include "KIMath.h"
 namespace KI
 {
 Cube::Cube(const Vector3& min, const Vector3& max)
@@ -299,19 +300,41 @@ Vector3 Cylinder::UVConverter::toXYZ(const Vector2& uv) const
 	return Vector3(x, z, y);
 }
 
-Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& seamPoint, float radius, float height, int slices, int stacks)
+Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& beginPoint, const Vector3& endPoint, float radius, float height, int slices, int stacks)
+{
+	return CreateSideMesh(baseCenter, axis, beginPoint, endPoint, radius, height, true, slices, stacks);
+}
+Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, const Vector3& beginPoint, const Vector3& endPoint, float radius, float height, bool orient, int slices, int stacks)
 {
 	slices = std::max(3, slices);
 	stacks = std::max(1, stacks);
 
 	// 軸方向
 	Vector3 z = normalize(axis);
-	Vector3 seamDir = seamPoint - baseCenter;
-	seamDir = seamDir - z * dot(seamDir, z); // 軸成分を除去
-	auto x = normalize(seamDir);
-	Vector3 y = glm::normalize(glm::cross(z, x));
 
-	// seam を閉じるため slices+1 列作る
+	// begin を基準にローカル座標系構築
+	Vector3 beginDir = beginPoint - baseCenter;
+	beginDir = beginDir - z * dot(beginDir, z);
+	Vector3 x = normalize(beginDir);
+	Vector3 y = normalize(cross(z, x));
+
+	bool closed = MathHelper::IsSame(beginPoint, endPoint);
+	float endAngle = glm::two_pi<float>();;
+	if (!closed) {
+		// end の角度
+		Vector3 endDir = endPoint - baseCenter;
+		endDir = endDir - z * dot(endDir, z);
+		endDir = normalize(endDir);
+		float cosTheta = dot(endDir, x);
+		float sinTheta = dot(endDir, y);
+		if (endAngle < 0.0f) {
+			endAngle += glm::two_pi<float>();
+		}
+	}
+
+	float beginAngle = 0.0f;
+
+	// 列数は閉じないので +1 不要
 	const int vertCols = slices + 1;
 	const int vertRows = stacks + 1;
 
@@ -329,16 +352,15 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 
 		for (int ix = 0; ix < vertCols; ++ix) {
 			float u = static_cast<float>(ix) / static_cast<float>(slices);
-			float theta = u * glm::two_pi<float>();
-
+			float delta = endAngle - beginAngle;
+			float theta = beginAngle + u * delta;
 			Vector3 radial = std::cos(theta) * x + std::sin(theta) * y;
 			Vector3 p = center + radial * radius;
-
 			positions.push_back(p);
 		}
 	}
 
-	// インデックス生成
+	// インデックス
 	auto indexOf = [vertCols](int row, int col) -> UInt
 	{
 		return static_cast<UInt>(row * vertCols + col);
@@ -351,19 +373,30 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 			UInt i2 = indexOf(iy + 1, ix);
 			UInt i3 = indexOf(iy + 1, ix + 1);
 
-			// 2 triangles
-			indices.push_back(i0);
-			indices.push_back(i1);
-			indices.push_back(i2);
+			if (orient) {
+				indices.push_back(i0);
+				indices.push_back(i1);
+				indices.push_back(i2);
 
-			indices.push_back(i1);
-			indices.push_back(i3);
-			indices.push_back(i2);
+				indices.push_back(i1);
+				indices.push_back(i3);
+				indices.push_back(i2);
+			} else {
+				indices.push_back(i0);
+				indices.push_back(i2);
+				indices.push_back(i1);
+
+				indices.push_back(i1);
+				indices.push_back(i2);
+				indices.push_back(i3);
+
+			}
 		}
 	}
 
 	return Mesh(std::move(positions), std::move(indices), Mesh::DrawType::Triangles);
 }
+
 Polyline Cylinder::CreatePolyline(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
 {
 	// 軸から直交基底を構築

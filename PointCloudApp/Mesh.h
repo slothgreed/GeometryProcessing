@@ -14,6 +14,7 @@ public:
 		TriangleFan = GL_TRIANGLE_FAN
 	};
 
+	Mesh() = default;
 	Mesh(Vector<Vector3>&& points, Vector<UInt>&& index, Mesh::DrawType drawType)
 		: m_points(std::move(points))
 		, m_indexs(std::move(index))
@@ -33,7 +34,8 @@ public:
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
 	static BDB CreateBDB(const Mesh& mesh);
-
+	Mesh& ConvertTriangles();
+	Mesh& Reverse();
 private:
 	Vector<Vector3> m_points;
 	Vector<UInt> m_indexs;

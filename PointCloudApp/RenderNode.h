@@ -2,7 +2,6 @@
 #define RENDER_NODE_H
 #include "RenderResource.h"
 #include "BDB.h"
-#include "RenderResource.h"
 #include "Light.h"
 #include "Mouse.h"
 #include "Parameter.h"
@@ -18,6 +17,7 @@ struct DrawContext
 };
 
 class MouseController;
+class RenderNode;
 struct UIContext
 {
 	UIContext() {}
@@ -38,10 +38,15 @@ struct UIContext
 	const UIRect& GetViewport() const { return m_viewport; }
 	void SetCurrentController(MouseController* pController) { m_pController = pController; }
 	MouseController* GetCurrentController() { return m_pController; }
+	static void Show(const Parameter& parameter);
+	void SetDebugNode(RenderNode* pValue) { m_pDebugNode = pValue; }
+	void AddDebugNode(const Shared<RenderNode>& pNode);
+	void ClearDebugNode();
 private:
 	UIRect m_viewport;
 	UIRect m_root;
 	MouseController* m_pController;
+	RenderNode* m_pDebugNode;
 };
 
 
@@ -105,6 +110,7 @@ public:
 	void SetRotateAngle(const Vector3& rotate);
 	void SetTranslate(const Vector3& translate) { m_translate = translate; UpdateModelMatrix(); }
 	void SetBoundBox(const BDB& bdb) { m_bdb = bdb; }
+	void ClearNode() { m_child.clear(); }
 	void RemoveNode(const String& name) { m_child.erase(name); }
 	void AddNode(const Shared<RenderNode>& pNode) { m_child[pNode->m_name] = pNode; }
 	Matrix4x4 GetTranslateMatrix() const;
@@ -121,7 +127,6 @@ public:
 	void ShowMatrixUI(UIContext& context);
 	virtual void ProcessMouseEvent(const PickContext& context) {};
 protected:
-	virtual void ShowUIParameter(const Parameter& parameter, UIContext& ui);
 	virtual void ShowUI(UIContext& ui) {};
 	virtual void PickNode(const PickContext& context) {};
 	virtual bool CollectPickedNode(PickResult& result) { return false; }

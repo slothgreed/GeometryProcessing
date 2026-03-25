@@ -88,7 +88,6 @@ public:
 	{
 		bool visibleVertex = true;
 		bool visibleTriangle = true;
-		bool visibleUV = true;
 		int selectedVertex = -1;
 	};
 	void BuildGLBuffer();
@@ -126,7 +125,6 @@ private:
 	Unique<GLBuffer> m_pIndex;
 	Mesh m_mesh;
 };
-
 
 }
 
