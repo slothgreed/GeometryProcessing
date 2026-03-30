@@ -98,7 +98,7 @@ void Polyline::ConvertLines()
         }
         m_points = std::move(points);
         m_drawType = DrawType::Lines;
-    } else if(m_drawType == DrawType::LineLoop){
+    } else if (m_drawType == DrawType::LineLoop) {
         Vector<Vector3> points(LineNum() * 2);
         if (m_indexs.empty()) {
             for (size_t i = 0; i < m_points.size() - 1; i++) {
@@ -130,13 +130,15 @@ Vector3 Polyline::GetCenter() const
     return center /= m_points.size();
 }
 
-void Polyline::Reverse()
+Polyline& Polyline::Reverse()
 {
     if (m_indexs.size()) {
         std::reverse(m_indexs.begin(), m_indexs.end());
     } else {
         std::reverse(m_points.begin(), m_points.end());
     }
+
+    return *this;
 }
 
 Mesh Polyline::CreateMesh() const
@@ -145,41 +147,39 @@ Mesh Polyline::CreateMesh() const
     delaunay.SetTarget(&m_points);
     return Mesh(delaunay.Execute2D_CGAL(), Mesh::DrawType::Triangles);
 }
-Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, bool orient)
+Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, const Vector3& axis)
 {
     if (target.m_points.size() == 0) { return Mesh(); }
     Mesh mesh;
-    auto normal = target.GetNormal();
-    /*
-    if (MathHelper::IsZ(normal)) {
-        DelaunayGenerator delaunay;
-        delaunay.SetTarget(&target.GetPoints());
-
-        if (inner.GetPoints().size() != 0) {
-            auto targetNormal = target.GetNormal();
-            auto innerNormal = inner.GetNormal();
-			if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
-            delaunay.AddInner(&inner.GetPoints());
-        }
-        mesh = Mesh(delaunay.Execute2D_CGAL(), Mesh::DrawType::Triangles);
-    } else 
-    */
     {
         DelaunayGenerator delaunay;
         auto info = MathHelper::CreateProjectInfo(target.GetPoints());
         auto zPosition = MathHelper::Project(target.GetPoints(), info);
+        if (zPosition.front() != zPosition.back()) {
+            zPosition.back() = zPosition.front(); // åÎç∑í≤êÆ
+        }
         delaunay.SetTarget(&zPosition);
         Vector<Vector3> zInnerPosition;
 
         if (inner.GetPoints().size() != 0) {
-			if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
+            if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
             zInnerPosition = MathHelper::Project(inner.GetPoints(), info);
+            if (zInnerPosition.front() != zInnerPosition.back()) {
+                zInnerPosition.back() = zInnerPosition.front(); // åÎç∑í≤êÆ
+            }
             delaunay.AddInner(&zInnerPosition);
         }
         auto result = delaunay.Execute2D_CGAL();
-        mesh = Mesh(MathHelper::UnProject(result, info), Mesh::DrawType::Triangles);
+        if (result.empty()) { return mesh; }
+        auto meshPoints = MathHelper::UnProject(result, info);
+        if (MathHelper::IsSameDir(axis,
+            MathHelper::CalcNormal(meshPoints[0], meshPoints[1], meshPoints[2]))) {
+            mesh = Mesh(std::move(meshPoints), Mesh::DrawType::Triangles);
+        } else {
+            mesh = Mesh(std::move(meshPoints), Mesh::DrawType::Triangles);
+            mesh.Reverse();
+        }
     }
-
     return mesh;
 }
 
@@ -229,6 +229,32 @@ Polyline Polyline::CreateSmooth() const
    return Polyline(std::move(polyline));
 }
 
+Vector<Vector3> Polyline::CreateParametricColor() const
+{
+    if (m_points.empty()) {
+        return Vector<Vector3>();
+    }
+    Vector<Vector3> colors;
+    if (m_drawType == DrawType::Lines) {
+        if (m_indexs.empty()) {
+            float sumLen = 0.0f;
+            for (size_t i = 0; i < m_points.size(); i+=2) {
+               sumLen += glm::length2(m_points[i] - m_points[i + 1]);
+            }
+            float offset = 0.0f;
+            for (size_t i = 0; i < m_points.size(); i += 2) {
+                auto len = glm::length2(m_points[i] - m_points[i + 1]);
+                colors.push_back(ColorUtility::CreatePseudo(offset, sumLen));
+                colors.push_back(ColorUtility::CreatePseudo(offset + len, sumLen));
+                offset += len;
+            }
+            return colors;
+        }
+    }
+
+    assert(0);
+    return colors;
+}
 
 BDB Polyline::CreateBDB(const Polyline& polyline)
 {
@@ -239,6 +265,7 @@ BDB Polyline::CreateBDB(const Polyline& polyline)
 
     return bdb;
 }
+
 
 void PolylineList::Add(PolylineList&& poly)
 {

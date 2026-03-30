@@ -4,6 +4,8 @@
 #include <glm/gtx/vector_angle.hpp>
 namespace KI
 {
+const float MathHelper::PI = 3.14159f;
+const float MathHelper::PI2 = 6.28318f;
 const float MathHelper::EPS = 0.0001f;
 const float MathHelper::EPS_RAD = 0.01f;
 const float MathHelper::THR_RAD5 = 0.996f; // 5“x
@@ -60,6 +62,14 @@ float MathHelper::ToRadian(float angle)
 float MathHelper::ToAngle(float rad)
 {
 	return rad * 180 / glm::pi<float>();
+}
+float MathHelper::Normalize0_PI2(float rad)
+{
+	rad = std::fmod(rad, PI2);
+	if (rad < 0.0f) {
+		rad += PI2;
+	}
+	return rad;
 }
 
 float MathHelper::CramesDet(const Vector3& a, const Vector3& b, const Vector3& c)
@@ -130,7 +140,8 @@ bool MathHelper::IsSame(float v1, float v2)
 }
 bool MathHelper::IsSameDir(const Vector3& v1, const Vector3& v2)
 {
-	return glm::dot(v1, v2) > 0 && glm::length2(glm::cross(v1, v2)) < EPS;
+	return glm::dot(v1, v2) > 1.0f - EPS;
+	//return glm::dot(v1, v2) > 0 && glm::length2(glm::cross(v1, v2)) < EPS;
 }
 bool MathHelper::IsSame(const Vector3& v1, const Vector3& v2)
 {
@@ -197,9 +208,9 @@ Vector3 MathHelper::CalcNormal(const Vector<Vector3>& points)
 {
 	Vector3 normal(0, 0, 0);
 	const int n = (int)points.size();
-	for (int i = 0; i < n; ++i) {
+	for (int i = 0; i < n; i += 2) {
 		const Vector3& a = points[i];
-		const Vector3& b = points[(i + 1) % n];
+		const Vector3& b = points[i + 1];
 
 		normal.x += (a.y - b.y) * (a.z + b.z);
 		normal.y += (a.z - b.z) * (a.x + b.x);

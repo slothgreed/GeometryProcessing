@@ -37,7 +37,8 @@ private:
 		,visibleSkyBox(true)
 		,visibleTexture(false)
 		,visibleTextureIndex(0)
-		,mipmap(0){}
+		,mipmap(0)
+		,stepSelected(0){}
 		~UI() {}
 		bool pickMode;
 		bool visibleSkyBox;
@@ -45,6 +46,8 @@ private:
 		int visibleTextureIndex;
 		int mipmap;
 		bool animation;
+		int stepSelected;
+		Vector<String> stepFiles;
 	};
 	void AddUITexture(const String& name, const Texture* pTexture);
 
@@ -61,6 +64,7 @@ private:
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
 	Shared<RenderNode> CreatePolylineTest();
 	Vector<Shared<RenderNode>> CreateSTEPNodeTest();
+	Shared<RenderNode> CreateSTEPNodeTest(const String& fileName);
 	Shared<HalfEdgeNode> CreateBunnyNodeTest();
 	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);
 	Shared<PointCloudNode> CreateDelaunayTest();

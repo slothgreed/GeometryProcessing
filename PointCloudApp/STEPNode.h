@@ -29,7 +29,16 @@ private:
 	static RenderNode* CreateRenderNode(const String& name, const Shared<STEPStruct>& step);
 
 };
-
+struct EntityRange
+{
+	EntityRange() = default;
+	EntityRange(int i, size_t f, size_t n) :id(i), first(f), num(n) {}
+	bool IsEmpty()const { return id == 0; }
+	bool IsActive()const { return !IsEmpty(); }
+	int id = 0;
+	size_t first = 0;
+	size_t num = 0;
+};
 
 struct STEPShape
 {
@@ -80,37 +89,29 @@ private:
 	struct UI
 	{
 		bool visibleBDB = false;
+		bool visibleMesh = true;
 	};
 
 
 	struct RenderBatch
 	{
-		struct Entity
-		{
-			Entity() = default;
-			Entity(int i, size_t f, size_t n) :id(i), first(f), num(n) {}
-			bool IsEmpty()const { return id == 0; }
-			bool IsActive()const { return !IsEmpty(); }
-			int id = 0;
-			size_t first = 0;
-			size_t num = 0;
-		};
+		
 		int pointNum = 0;
 		int indexNum = 0;
 		Unique<GLBuffer> pPosition = nullptr;
 		Unique<GLBuffer> pIndex = nullptr;
 		GLuint drawType = GL_POINTS;
-		Vector<Entity> m_entity;
-		void AddEntity(int id, size_t first, size_t num) { m_entity.push_back(Entity(id, first, num)); }
-		Entity FindEntity(int id) const
+		Vector<EntityRange> m_entity;
+		void AddEntity(int id, size_t first, size_t num) { m_entity.push_back(EntityRange(id, first, num)); }
+		EntityRange FindEntity(int id) const
 		{
-			if (id < 0) { return Entity(); }
+			if (id < 0) { return EntityRange(); }
 			for (size_t i = 0; i < m_entity.size(); i++) {
 				if (m_entity[i].id == id) {
 					return m_entity[i];
 				}
 			}
-			return Entity();
+			return EntityRange();
 		}
 		void Allocate(GLuint type);
 		bool IsActive() const { return pPosition != nullptr; }

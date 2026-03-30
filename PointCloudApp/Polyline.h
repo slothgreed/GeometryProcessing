@@ -43,10 +43,11 @@ public:
 	Mesh CreateMesh() const;
 	Vector3 GetNormal() const;
 	Vector3 GetCenter() const;
-	void Reverse();
+	Polyline& Reverse();
 	bool IsPlane() const;
-	static Mesh CreateMesh(const Polyline& target, const Polyline& inner, bool orient);
+	static Mesh CreateMesh(const Polyline& target, const Polyline& inner, const Vector3& axis);
 	Polyline CreateSmooth() const;
+	Vector<Vector3> CreateParametricColor() const;
 	static BDB CreateBDB(const Polyline& polyline);
 private:
 	void ConvertLines();

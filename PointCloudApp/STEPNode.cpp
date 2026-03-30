@@ -153,7 +153,7 @@ struct STEPString
 		auto idToEntity = StringUtility::SplitAtFirst(str, '=');
 		step.id = StringUtility::ToInt(StringUtility::Remove(idToEntity.first, '#'));
 		auto nameToValue = StringUtility::SplitAtFirst(idToEntity.second, '(');
-		step.name = nameToValue.first;
+		step.name = StringUtility::TrimWhiteSpace(nameToValue.first);
 		step.value = '(' + nameToValue.second;
 		return step;
 	}
@@ -282,7 +282,9 @@ struct STEPEntityBase
 			}
 
 			if (ImGui::MenuItem("DebugPrintf")) {
+				DebugPrintf::StringStr("------------------------------\n");
 				Printf(DebugOption());
+				DebugPrintf::StringStr("------------------------------\n");
 			}
 			ImGui::EndPopup();
 		}
@@ -328,7 +330,9 @@ struct STEPPoint : public STEPEntityBase
 		values = STEPString::SplitValue(values[1]);
 		if (!STEPString::ValueToFloat(values[0], data->data.pos.x)) { assert(0); return; }
 		if (!STEPString::ValueToFloat(values[1], data->data.pos.y)) { assert(0); return; }
-		if (!STEPString::ValueToFloat(values[2], data->data.pos.z)) { assert(0); return; }
+		if (values.size() == 3) {
+			if (!STEPString::ValueToFloat(values[2], data->data.pos.z)) { assert(0); return; }
+		}
 		step.points[data->id] = data;
 	}
 
@@ -585,13 +589,15 @@ struct STEPCircle : public STEPEntityBase
 		Polyline CreatePolyline() const
 		{
 			auto v = glm::cross(axis->data.dir1, axis->data.dir2);
-			return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM, axis->data.dir2, v, axis->data.point);
+			return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM, 
+				glm::normalize(axis->data.dir2), glm::normalize(v), axis->data.point);
 		}
 
 		Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const
 		{
 			auto v = glm::cross(axis->data.dir1, axis->data.dir2);
-			return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM, axis->data.dir2, v, axis->data.point, begin, end);
+			return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM,
+				glm::normalize(axis->data.dir2), glm::normalize(v), axis->data.point, begin, end);
 		}
 	};
 	Data data;
@@ -791,7 +797,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 		int vertRef0 = -1;
 		int vertRef1 = -1;
 		int lineRef2 = -1;
-		bool orient = true;
+		bool sameSense = true;
 	};
 
 	Raw raw;
@@ -804,16 +810,16 @@ struct STEPEdgeCurve : public STEPEntityBase
 		STEPVertexPoint* pPoint1 = nullptr;
 		STEPLine* line = nullptr;
 		STEPCircle* circle = nullptr;
-		bool orient = true;
+		bool sameSense = true;
 
 		Vector3 GetBegin() const
 		{
-			return orient ? begin : end;
+			return sameSense ? begin : end;
 		}
 
 		Vector3 GetEnd() const
 		{
-			return orient ? end : begin;
+			return sameSense ? end : begin;
 		}
 	};
 
@@ -843,7 +849,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 		if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { assert(0); return; }
 		if (!STEPString::ValueToRef(values[3], data->raw.lineRef2)) { assert(0); return; }
-		if (!STEPString::ValueToBool(values[4], data->raw.orient)) { assert(0); return; }
+		if (!STEPString::ValueToBool(values[4], data->raw.sameSense)) { assert(0); return; }
 
 		step.edgeCurve[data->id] = data;
 	}
@@ -861,7 +867,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 			data.circle = FindSetData2(step, step.circles, raw.lineRef2);
 		}
 
-		data.orient = raw.orient;
+		data.sameSense = raw.sameSense;
 	}
 
 	void Printf(const DebugOption& option)
@@ -954,7 +960,7 @@ struct STEPOrientedEdge : public STEPEntityBase
 		Polyline CreatePolyline() const
 		{
 			auto polyline = edgeCurve->CreatePolyline();
-			if (orient) {
+			if (!orient) {
 				polyline.Reverse();
 			}
 			return polyline;
@@ -1033,11 +1039,12 @@ struct STEPPolyLoop : public STEPEntityBase
 		Vector<STEPPoint*> points;
 		Polyline CreatePolyline() const
 		{
-			Vector<Vector3> loop(points.size());
+			Vector<Vector3> lines(points.size() * 2);
 			for (int i = 0; i < points.size(); i++) {
-				loop[i] = points[i]->data.pos;
+				lines[2 * i] = points[i]->data.pos;
+				lines[2 * i + 1] = points[(i + 1)%points.size()]->data.pos;
 			}
-			return Polyline(std::move(loop));
+			return Polyline(std::move(lines), Polyline::DrawType::Lines);
 		}
 	};
 
@@ -1109,6 +1116,7 @@ struct STEPEdgeLoop : public STEPEntityBase
 			Vector<Vector3> points;
 			Polyline polyline;
 			for (size_t i = 0; i < orientedEdges.size(); ++i) {
+				if (orientedEdges[i] == nullptr) { continue; }
 				if (orientedEdges[i]->data.IsCircle()) {
 					polyline.Add(orientedEdges[i]->data.CreatePolyline());
 				} else {
@@ -1149,6 +1157,7 @@ struct STEPEdgeLoop : public STEPEntityBase
 	{
 		PrintfRaw();
 		for (auto orientedEdge : data.orientedEdges) {
+			if (orientedEdge == nullptr) { continue; }
 			orientedEdge->Printf(option);
 		}
 	}
@@ -1157,6 +1166,7 @@ struct STEPEdgeLoop : public STEPEntityBase
 	{
 		if (ShowBranch(ui, ui.IsSelect(id))) {
 			for (auto orientedEdge : data.orientedEdges) {
+				if (orientedEdge == nullptr) { continue; }
 				orientedEdge->ShowUI(ui);
 			}
 			ImGui::TreePop();
@@ -1184,12 +1194,8 @@ struct STEPFaceBoundBase : public STEPEntityBase
 
 		Polyline CreatePolyline() const
 		{
-			if (edgeLoop) {
-				return edgeLoop->data.CreatePolyline();
-			}
-			if (polyLoop) {
-				return polyLoop->data.CreatePolyline();
-			}
+			if (edgeLoop) { return edgeLoop->data.CreatePolyline(); }
+			if (polyLoop) { return polyLoop->data.CreatePolyline(); }
 
 			return Polyline();
 		}
@@ -1325,6 +1331,14 @@ struct STEPFaceBase : public STEPEntityBase
 				auto edgeLoop = face->data.edgeLoop;
 				if (!edgeLoop) { continue; }
 				for (const auto& edge : edgeLoop->data.orientedEdges) {
+					auto v0 = glm::dot(edge->data.GetBegin() - origin, axis);
+					auto v1 = glm::dot(edge->data.GetEnd() - origin, axis);
+					if (ret.maxPos.first < v0) { ret.maxPos.first = v0; ret.maxPos.second = edge->data.GetBegin(); }
+					if (ret.maxPos.first < v1) { ret.maxPos.first = v1; ret.maxPos.second = edge->data.GetEnd(); }
+
+					if (ret.minPos.first > v0) { ret.minPos.first = v0; ret.minPos.second = edge->data.GetBegin(); }
+					if (ret.minPos.first > v1) { ret.minPos.first = v1; ret.minPos.second = edge->data.GetEnd(); }
+
 					if (edge->data.IsLine() &&
 						MathHelper::IsSameDir(axis, edge->data.Dir())) {
 						ret.axis = &edge->data;
@@ -1354,12 +1368,16 @@ struct STEPFaceBase : public STEPEntityBase
 		{
 			if (plane) {
 				if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
+				auto normal = glm::normalize(plane->data.axis->data.Normal());
+				if (!orient) {
+					normal = -normal;
+				}
 				if (bound.PointNum() && outerBound.PointNum()) {
-					return Polyline::CreateMesh(outerBound, bound, orient);
+					return Polyline::CreateMesh(outerBound, bound, normal);
 				} else if (bound.PointNum()) {
-					return Polyline::CreateMesh(bound, Polyline(), orient);
+					return Polyline::CreateMesh(bound, Polyline(), normal);
 				} else if (outerBound.PointNum()) {
-					return Polyline::CreateMesh(outerBound, Polyline(), orient);
+					return Polyline::CreateMesh(outerBound, Polyline(), normal);
 				}
 			} else if (cylinder) {
 				auto edge = SearchCylinderEdge(
@@ -1639,10 +1657,12 @@ void NotDefineEntity(const String& str)
 		"APPLICATION_PROTOCOL_DEFINITION",
 		"APPROVAL",
 		"APPROVAL_DATE_TIME",
+		"APPROVAL_PERSON_ORGANIZATION",
 		"APPROVAL_ROLE",
 		"APPROVAL_STATUS",
 		"CALENDAR_DATE",
 		"CC_DESIGN_APPROVAL",
+		"CC_DESIGN_DATE_AND_TIME_ASSIGNMENT",
 		"CC_DESIGN_PERSON_AND_ORGANIZATION_ASSIGNMENT",
 		"CC_DESIGN_SECURITY_CLASSIFICATION",
 		"COORDINATED_UNIVERSAL_TIME_OFFSET",
@@ -1654,12 +1674,12 @@ void NotDefineEntity(const String& str)
 		"DRAUGHTING_PRE_DEFINED_COLOUR",
 		"FILL_AREA_STYLE",
 		"FILL_AREA_STYLE_COLOUR", // マテリアル
-		"LENGTH_MEASURE_WITH_UNIT",
 		"LOCAL_TIME",
 		"MECHANICAL_CONTEXT",
 		"ORGANIZATION",
 		"PERSON",
 		"PERSON_AND_ORGANIZATION",
+		"PERSON_AND_ORGANIZATION_ROLE",
 		"PLANE_ANGLE_MEASURE_WITH_UNIT", // 角度orラジアン
 		"PRESENTATION_STYLE_ASSIGNMENT",
 		"PRODUCT",
@@ -1672,20 +1692,23 @@ void NotDefineEntity(const String& str)
 		"PRODUCT_RELATED_PRODUCT_CATEGORY",
 		"SECURITY_CLASSIFICATION",
 		"SECURITY_CLASSIFICATION_LEVEL",
-		"SHAPE_DEFINITION_REPRESENTATION",
-		"SHAPE_REPRESENTATION_RELATIONSHIP",
+
 		"STYLED_ITEM",
 		"SURFACE_SIDE_STYLE",    // 裏面表面両面
 		"SURFACE_STYLE_FILL_AREA", // 塗りつぶし
 		"SURFACE_STYLE_USAGE",
-		"UNCERTAINTY_MEASURE_WITH_UNIT"
 	};
 
+	"LENGTH_MEASURE_WITH_UNIT";
 	"ADVANCED_BREP_SHAPE_REPRESENTATION";
 	"MANIFOLD_SOLID_BREP";
+	"UNCERTAINTY_MEASURE_WITH_UNIT";
+	"SHAPE_DEFINITION_REPRESENTATION";
+	"SHAPE_REPRESENTATION_RELATIONSHIP";
 
+	auto stepStr = STEPString::Create(str);
 	for (const auto& key : handlers) {
-		if (StringUtility::Contains(str, key)) {
+		if (StringUtility::Equal(stepStr.name, key)) {
 			return;
 		}
 	}
@@ -1701,14 +1724,12 @@ RenderNode* STEPLoader::CreateRenderNode(const String& name, const Shared<STEPSt
 	Vector<STEPShape> shapes;
 	for (const auto& shell : step->closedShell) {
 		auto shape = shell.second->CreateMesh(*step);
-		shell.second->Printf(DebugOption());
 		bdb.Add(shape.CreateBDB());
 		shapes.push_back(std::move(shape));
 	}
 
 	for (const auto& shell : step->openShell) {
 		auto shape = shell.second->CreateMesh(*step);
-		shell.second->Printf(DebugOption());
 		bdb.Add(shape.CreateBDB());
 		shapes.push_back(std::move(shape));
 	}
@@ -1759,24 +1780,24 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		}
 		bool writeEntity = true;
 		auto stepStr = STEPString::Create(content);
-		if (StringUtility::Contains(stepStr.name, STEPPoint::EntityName)) { STEPPoint::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPDirection::EntityName)) { STEPDirection::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPVector::EntityName)) { STEPVector::Fetch(step, stepStr);}
-		else if (StringUtility::Contains(stepStr.name, STEPPlane::EntityName)) { STEPPlane::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPLine::EntityName)) { STEPLine::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPAxis2Placement3D::EntityName)) { STEPAxis2Placement3D::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPPolyLoop::EntityName)) { STEPPolyLoop::Fetch(step, stepStr); } else if (StringUtility::Contains(stepStr.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPFaceSurface::EntityName)) { STEPFaceSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
-		else if (StringUtility::Contains(stepStr.name, STEPCylinderSurface::EntityName)) { STEPCylinderSurface::Fetch(step, stepStr); }
+		if (StringUtility::Equal(stepStr.name, STEPPoint::EntityName)) { STEPPoint::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPDirection::EntityName)) { STEPDirection::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPVector::EntityName)) { STEPVector::Fetch(step, stepStr);}
+		else if (StringUtility::Equal(stepStr.name, STEPPlane::EntityName)) { STEPPlane::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPLine::EntityName)) { STEPLine::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPAxis2Placement3D::EntityName)) { STEPAxis2Placement3D::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPPolyLoop::EntityName)) { STEPPolyLoop::Fetch(step, stepStr); } else if (StringUtility::Contains(stepStr.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPFaceSurface::EntityName)) { STEPFaceSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPCylinderSurface::EntityName)) { STEPCylinderSurface::Fetch(step, stepStr); }
 		else { NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {
@@ -1945,9 +1966,15 @@ void STEPRenderNode::AddDebugNode(STEPUIContext& context, const STEPEntityBase* 
 	auto outerBound = pFace->data.CreateOuterBoundPolyline();
 	auto mesh = pFace->data.CreateMesh(bound, outerBound);
 	context.ui->ClearDebugNode();
-	context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::Bound", bound));
-	context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::OuterBound", outerBound));
-	context.ui->AddDebugNode(std::make_shared<MeshNode>(pBase->str + "::Mesh", mesh));
+	if (bound.LineNum() != 0) {
+		context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::Bound", bound));
+	}
+	if (outerBound.LineNum() != 0) {
+		context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::OuterBound", outerBound));
+	}
+	if (mesh.TriangleNum() != 0) {
+		context.ui->AddDebugNode(std::make_shared<MeshNode>(pBase->str + "::Mesh", mesh));
+	}
 }
 void STEPRenderNode::DrawNode(const DrawContext& context)
 {
@@ -2034,26 +2061,27 @@ void STEPRenderNode::DrawNode(const DrawContext& context)
 		}
 	}
 
-
-	if (m_gpu.triangle.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.triangle.pPosition.get());
-		pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawArray(m_gpu.triangle.drawType, m_gpu.triangle.pPosition.get());
-		auto entity = m_gpu.triangle.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.triangle.drawType, entity.first, entity.num);
+	if (m_ui.visibleMesh) {
+		if (m_gpu.triangle.pPosition) {
+			pSimpleShader->SetPosition(m_gpu.triangle.pPosition.get());
+			pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawArray(m_gpu.triangle.drawType, m_gpu.triangle.pPosition.get());
+			auto entity = m_gpu.triangle.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(m_gpu.triangle.drawType, entity.first, entity.num);
+			}
 		}
-	}
 
-	if (m_gpu.triangleIndex.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.triangleIndex.pPosition.get());
-		pSimpleShader->SetColor(Vector3(0.0f, 1.0f, 0.0f));
-		pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get());
-		auto entity = m_gpu.triangleIndex.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get(), entity.num, entity.first);
+		if (m_gpu.triangleIndex.pPosition) {
+			pSimpleShader->SetPosition(m_gpu.triangleIndex.pPosition.get());
+			pSimpleShader->SetColor(Vector3(0.0f, 1.0f, 0.0f));
+			pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get());
+			auto entity = m_gpu.triangleIndex.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get(), entity.num, entity.first);
+			}
 		}
 	}
 }
@@ -2062,6 +2090,7 @@ void STEPRenderNode::ShowUI(UIContext& ui)
 	uiContext.ui = &ui;
 	uiContext.pNode = this;
 	ImGui::Checkbox("VisibleBDB",&m_ui.visibleBDB);
+	ImGui::Checkbox("VisibleMesh", &m_ui.visibleMesh);
 	if (ImGui::TreeNode("Root")) {
 		for (auto& shell : m_step->closedShell) { shell.second->ShowUI(uiContext); }
 		for (auto& shell : m_step->openShell) { shell.second->ShowUI(uiContext); }

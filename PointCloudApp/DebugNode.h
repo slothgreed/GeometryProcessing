@@ -86,8 +86,9 @@ public:
 	~PolylineNode() = default;
 	struct UI
 	{
+		bool visibleParameter = true;
 		bool visibleVertex = true;
-		bool visibleTriangle = true;
+		bool visibleTriangle = false;
 		int selectedVertex = -1;
 	};
 	void BuildGLBuffer();
@@ -96,12 +97,13 @@ public:
 	void Set2D(bool value) { m_is2D = value; }
 
 private:
+	void BuildColorBuffer();
 	bool m_is2D = false;
 	UI m_ui;
 	Unique<GLBuffer> m_pPosition;
+	Unique<GLBuffer> m_pColor;
 	Unique<GLBuffer> m_pIndex;
 	Unique<GLBuffer> m_pTriPosition;
-	Unique<GLBuffer> m_pUVPosition;
 	Polyline m_polyline;
 };
 
@@ -113,7 +115,7 @@ public:
 	struct UI
 	{
 		bool visibleVertex = true;
-		bool visibleEdge = true;
+		bool visibleTriangle = true;
 	};
 	void BuildGLBuffer();
 	virtual void DrawNode(const DrawContext& context);

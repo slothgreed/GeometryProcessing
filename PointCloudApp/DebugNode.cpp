@@ -514,6 +514,7 @@ PolylineNode::PolylineNode(const String& name, const Polyline& polyline)
 	: RenderNode(name)
 	, m_polyline(polyline)
 {
+	SetBoundBox(Polyline::CreateBDB(m_polyline));
 }
 
 void PolylineNode::BuildGLBuffer()
@@ -523,9 +524,7 @@ void PolylineNode::BuildGLBuffer()
 		m_pPosition->Create(m_polyline.GetPoints());
 	}
 
-	if (!m_pUVPosition) {
-		m_pUVPosition = std::make_unique<GLBuffer>();
-	}
+	BuildColorBuffer();
 
 	if (!m_pIndex) {
 		if (m_polyline.GetIndexs().size()) {
@@ -547,100 +546,49 @@ void PolylineNode::DrawNode(const DrawContext& context)
 	BuildGLBuffer();
 	const auto& pResource = context.pResource;
 	auto pCamera = m_is2D ? pResource->Get2DCameraBuffer() : pResource->GetCameraBuffer();
-	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
-	// サボり
-	{
-		pResource->UpdateDebugCamera(Camera::FitToBDB(*pResource->GetCamera(), Polyline::CreateBDB(m_polyline)));
+	if (m_ui.visibleParameter) {
+		auto pColorShader = pResource->GetShaderTable()->GetVertexColorShader();
+		pColorShader->Use();
+		pColorShader->SetPosition(m_pPosition.get());
+		pColorShader->SetColor(m_pColor.get());
+		pColorShader->SetCamera(pCamera);
+		pColorShader->SetModel(GetMatrix());
+		if (m_pIndex) {
+			pColorShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
+		} else {
+			pColorShader->DrawArray(m_polyline.GetDrawType(), m_polyline.GetPoints().size());
+		}
 	}
 
-	pSimpleShader->Use();
-	pSimpleShader->SetPosition(m_pPosition.get());
-	pSimpleShader->SetCamera(pCamera);
+	if (m_ui.visibleVertex ||
+		m_ui.visibleTriangle ||
+		!m_ui.visibleParameter) {
+		auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+		pSimpleShader->Use();
+		pSimpleShader->SetPosition(m_pPosition.get());
+		pSimpleShader->SetCamera(pCamera);
+		pSimpleShader->SetModel(GetMatrix());
+		pSimpleShader->SetColor(Vector3(1, 0, 0));
 
-	// サボり
-	{
-		pSimpleShader->SetCamera(pResource->GetDebugCameraBuffer());
-	}
-
-	pSimpleShader->SetModel(GetMatrix());
-	pSimpleShader->SetColor(Vector3(1, 0, 0));
-	if (m_pIndex) {
-		pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
-	} else {
-		pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.GetPoints().size());
-	}
-	
-	if (m_ui.visibleVertex) {
-		pSimpleShader->SetColor(Vector3(0, 1, 0));
-		pSimpleShader->DrawArray(GL_POINTS, m_polyline.GetPoints().size());
-	}
-
-	if (m_ui.visibleTriangle) {
-		pSimpleShader->SetColor(Vector3(0, 0, 1));
-		pSimpleShader->SetPosition(m_pTriPosition.get());
-		pSimpleShader->DrawArray(GL_TRIANGLES, m_pTriPosition->Num());
-	}
-
-	/*
-	if (m_ui.visibleUV) {
-		auto viewPort = pResource->GL()->CreateViewport(Vector2i(3, 2), Viewport::BottomRight);
-		
-		auto split = Viewport::SplitHorizontal(viewPort);
-		{
-			pResource->GL()->SetViewport(split[0]);
-			pResource->GL()->EnableScissor(split[0]);
-			pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			pResource->UpdateDebugCamera(Camera::FitToBDB(*pResource->GetCamera(), Polyline::CreateBDB(m_polyline)));
-			pSimpleShader->Use();
-			pSimpleShader->SetPosition(m_pPosition.get());
-			pSimpleShader->SetCamera(pResource->GetDebugCameraBuffer());
-			pSimpleShader->SetModel(GetMatrix());
+		if (m_ui.visibleVertex) {
 			pSimpleShader->SetColor(Vector3(0, 1, 0));
+			pSimpleShader->DrawArray(GL_POINTS, m_polyline.GetPoints().size());
+		}
+
+		if (m_ui.visibleTriangle) {
+			pSimpleShader->SetColor(Vector3(0, 0, 1));
+			pSimpleShader->SetPosition(m_pTriPosition.get());
+			pSimpleShader->DrawArray(GL_TRIANGLES, m_pTriPosition->Num());
+		}
+
+		if (!m_ui.visibleParameter) {
 			if (m_pIndex) {
 				pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
 			} else {
 				pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.GetPoints().size());
 			}
-			if (m_ui.selectedVertex != -1) {
-				if (m_pIndex) {
-					pSimpleShader->DrawElement(GL_POINTS, m_pIndex.get(), 1, m_ui.selectedVertex);
-				} else {
-					pSimpleShader->DrawArray(GL_POINTS, m_ui.selectedVertex, 1);
-				}
-			}
 		}
-
-		{
-			auto uvLine = Polyline::ToUV(m_polyline);
-			m_pUVPosition->Create(uvLine.Get());
-
-			pResource->GL()->SetViewport(split[1]);
-			pResource->GL()->EnableScissor(split[1]);
-			pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			pSimpleShader->Use();
-			pSimpleShader->SetPosition(m_pUVPosition.get());
-			pResource->UpdateDebugCamera(Camera::FitToBDB(*pResource->GetCamera(), Polyline::CreateBDB(uvLine)));
-			pSimpleShader->SetCamera(pResource->GetDebugCameraBuffer());
-			pSimpleShader->SetModel(GetMatrix());
-			pSimpleShader->SetColor(Vector3(1, 0, 0));
-			if (m_pIndex) {
-				pSimpleShader->DrawElement(m_polyline.GetDrawType(), m_pIndex.get());
-			} else {
-				pSimpleShader->DrawArray(m_polyline.GetDrawType(), m_polyline.Get().size());
-			}
-			if (m_ui.selectedVertex != -1) {
-				if (m_pIndex) {
-					pSimpleShader->DrawElement(GL_POINTS, m_pIndex.get(), 1, m_ui.selectedVertex);
-				} else {
-					pSimpleShader->DrawArray(GL_POINTS, m_ui.selectedVertex, 1);
-				}
-			}
-		}
-		pResource->GL()->DisableScissor();
-		pResource->GL()->SetViewportFullWindow();
 	}
-	*/
 
 }
 
@@ -648,14 +596,25 @@ void PolylineNode::ShowUI(UIContext& ui)
 {
 	ImGui::Checkbox("VisibleVertex", &m_ui.visibleVertex);
 	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleTriangle);
+	if (ImGui::Checkbox("VisibleParameter", &m_ui.visibleParameter)) {
+		BuildColorBuffer();
+	}
 }
 
+void PolylineNode::BuildColorBuffer()
+{
+	if (!m_ui.visibleParameter) { return; }
+	if (m_pColor) { return; }
+	m_pColor = std::make_unique<GLBuffer>();
+	m_pColor->Create(m_polyline.CreateParametricColor());
+}
 
 
 MeshNode::MeshNode(const String& name, const Mesh& mesh)
 	: RenderNode(name)
 	, m_mesh(mesh)
 {
+	SetBoundBox(Mesh::CreateBDB(m_mesh));
 }
 
 void MeshNode::BuildGLBuffer()
@@ -675,23 +634,17 @@ void MeshNode::BuildGLBuffer()
 
 void MeshNode::DrawNode(const DrawContext& context)
 {
+	if (!m_ui.visibleTriangle && 
+		!m_ui.visibleVertex) { return; }
 	BuildGLBuffer();
 	const auto& pResource = context.pResource;
 	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
-	// サボり
-	{
-		pResource->UpdateDebugCamera(Camera::FitToBDB(*pResource->GetCamera(), Mesh::CreateBDB(m_mesh)));
-	}
 	pSimpleShader->Use();
 	pSimpleShader->SetPosition(m_pPosition.get());
 	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
-	// サボり
-	{
-		pSimpleShader->SetCamera(pResource->GetDebugCameraBuffer());
-	}
-
 	pSimpleShader->SetModel(GetMatrix());
 	pSimpleShader->SetColor(Vector3(1, 0, 0));
+	if(m_ui.visibleTriangle)
 	if (m_pIndex) {
 		pSimpleShader->DrawElement(m_mesh.GetDrawType(), m_pIndex.get());
 	} else {
@@ -707,7 +660,7 @@ void MeshNode::DrawNode(const DrawContext& context)
 void MeshNode::ShowUI(UIContext& ui)
 {
 	ImGui::Checkbox("VisibleVertex", &m_ui.visibleVertex);
-	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleEdge);
+	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleTriangle);
 }
 
 }

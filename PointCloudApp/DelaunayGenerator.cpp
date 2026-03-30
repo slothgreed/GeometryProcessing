@@ -97,17 +97,55 @@ static void insert_closed_polyline(CDT& cdt, const Vector<Vector3>& poly)
 {
 	const int n = (int)poly.size();
 	if (n < 3) return;
+	for (int i = 0; i < n; i+=2) {
+		auto a = poly[i];
+		auto b = poly[i + 1];
+		cdt.insert_constraint(
+			Point((double)a.x, (double)a.y),
+			Point((double)b.x, (double)b.y));
+	}
+	return;
+	
 
 	for (int i = 0; i < n; ++i) {
-		
 		auto a = poly[i];
 		auto b = poly[(i + 1) % n];
 		cdt.insert_constraint(
-			Point(a.x, a.y),
-			Point(b.x, b.y));
+			Point((double)a.x, (double)a.y),
+			Point((double)b.x, (double)b.y));
 	}
 }
+Vector<Vector3> DelaunayGenerator::Execute2D_CGAL(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
+{
+	CDT cdt;
+	// 1) Insert constraints
+	insert_closed_polyline(cdt, polyline);
+	for (const auto& inner : inPolyline) {
+		insert_closed_polyline(cdt, *inner);
+	}
 
+	// 2) Refine (optional): you can add extra points if you want denser triangulation
+	// cdt.insert(Point( ... ));
+
+	// 3) Mark domain (inside outer minus holes)
+	mark_domains(cdt);
+
+	Vector<Vector3> triangle;
+	// 4) Extract triangles in domain
+	for (auto fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+		if (!fit->info().in_domain()) continue;
+
+		Point p0 = fit->vertex(0)->point();
+		Point p1 = fit->vertex(1)->point();
+		Point p2 = fit->vertex(2)->point();
+
+		triangle.push_back(Vector3(p0.x(), p0.y(), 0.0f));
+		triangle.push_back(Vector3(p1.x(), p1.y(), 0.0f));
+		triangle.push_back(Vector3(p2.x(), p2.y(), 0.0f));
+	}
+
+	return triangle;
+}
 int main2()
 {
 	//CDT cdt;
@@ -285,37 +323,7 @@ DelaunayGenerator::IndexedTriangle DelaunayGenerator::IndexedTriangle::Create(in
 	}
 	return tri;
 }
-Vector<Vector3> DelaunayGenerator::Execute2D_CGAL(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
-{
-	CDT cdt;
-	// 1) Insert constraints
-	insert_closed_polyline(cdt, polyline);
-	for (const auto& inner : inPolyline) {
-		insert_closed_polyline(cdt, *inner);
-	}
 
-	// 2) Refine (optional): you can add extra points if you want denser triangulation
-	// cdt.insert(Point( ... ));
-
-	// 3) Mark domain (inside outer minus holes)
-	mark_domains(cdt);
-
-	Vector<Vector3> triangle;
-	// 4) Extract triangles in domain
-	for (auto fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
-		if (!fit->info().in_domain()) continue;
-
-		Point p0 = fit->vertex(0)->point();
-		Point p1 = fit->vertex(1)->point();
-		Point p2 = fit->vertex(2)->point();
-
-		triangle.push_back(Vector3(p0.x(), p0.y(), 0.0f));
-		triangle.push_back(Vector3(p1.x(), p1.y(), 0.0f));
-		triangle.push_back(Vector3(p2.x(), p2.y(), 0.0f));
-	}
-
-	return triangle;
-}
 Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polyline, const Vector<const Vector<Vector3>*>& inPolyline, int iterate)
 {
 	Vector<Vector3> merge = polyline;

@@ -327,9 +327,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 		endDir = normalize(endDir);
 		float cosTheta = dot(endDir, x);
 		float sinTheta = dot(endDir, y);
-		if (endAngle < 0.0f) {
-			endAngle += glm::two_pi<float>();
-		}
+		endAngle = MathHelper::Normalize0_PI2(std::atan2(sinTheta, cosTheta));
 	}
 
 	float beginAngle = 0.0f;
@@ -664,10 +662,7 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 	float beginAngle = toAngle(begin);
 	float endAngle = toAngle(end);
 
-	float delta = endAngle - beginAngle;
-	if (delta > 3.14159f) { delta -= 2.0f * 3.14159f; }
-	if (delta < -3.14159f) { delta += 2.0f * 3.14159f; }
-
+	float delta = MathHelper::Normalize0_PI2(endAngle - beginAngle);
 	// ‰~ŒÊ‚ð•ªŠ„‚µ‚Ä“_‚ð¶¬
 	for (int i = 0; i <= pointNum; i++) {
 		float t = i / (float)pointNum;
@@ -676,8 +671,7 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 		points.push_back(p);
 	}
 
-
-	return Polyline(std::move(points), Polyline::DrawType::LineLoop);
+	return Polyline(std::move(points), Polyline::DrawType::LineStrip);
 }
 void Circle::Build(float radius, int pointNum, const Vector3& center)
 {

@@ -6,6 +6,8 @@ namespace KI
 class MathHelper
 {
 public:
+	static const float PI;
+	static const float PI2;
 	static const float EPS;
 	static const float EPS_RAD;
 	static const float THR_RAD5;
@@ -23,6 +25,7 @@ public:
 	static float CramesDet(const Vector3& a, const Vector3& b, const Vector3& c);
 	static float ToRadian(float angle);
 	static float ToAngle(float rad);
+	static float Normalize0_PI2(float rad);
 	static Vector4 WorldToScreenPos(const Matrix4x4& proj, const Matrix4x4& view, const Matrix4x4& model, const Vector3& value);
 	static bool InPolyline(const Vector<Vector3>& polyline, const Vector3& point, bool isLoop);
 	static void CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right);

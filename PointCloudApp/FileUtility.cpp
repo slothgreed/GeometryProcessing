@@ -14,7 +14,9 @@ FileUtility::~FileUtility()
 
 bool FileUtility::Load(const String& filePath, String& contents)
 {
-	if (IsExist(filePath))
+	// If the file doesn't exist, fail.
+	// (Existing-file case must continue and actually read.)
+	if (IsExist(filePath) == false)
 	{
 		return false;
 	}
@@ -155,6 +157,10 @@ Vector<String> StringUtility::Split(const String& str, char del)
 
 }
 
+bool StringUtility::Equal(const String& str, const String& target)
+{
+	return str == target;
+}
 bool StringUtility::Contains(const String& str, const String& target)
 {
 	return str.find(target) != std::string::npos;

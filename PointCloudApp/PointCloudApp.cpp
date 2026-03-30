@@ -209,7 +209,7 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreatePolylineTest());
 	}
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
@@ -301,6 +301,7 @@ void PointCloudApp::Execute()
 			m_pResource->GL()->PushRenderTarget(m_pResource->GetDebugTarget());
 			m_pResource->GL()->Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			m_pResource->GL()->SetViewportFullWindow();
+			m_pResource->UpdateCamera(m_pDebugRoot->CalcCameraFitBox());
 			m_pDebugRoot->Draw(drawContext);
 			m_pResource->GL()->PopRenderTarget();
 		}
@@ -394,22 +395,24 @@ void PointCloudApp::ShowUI(UIContext& ui)
 	if (ImGui::TreeNodeEx(m_pRoot->GetName().data(), ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (const auto& child : m_pRoot->GetChild()) {
 			auto open = ImGui::TreeNode(child.first.data());
-			if (ImGui::IsItemClicked()) {
-				m_pSelect = child.second.get();
-			}
-
-			if (open) {
-				ImGui::TreePop();
-			}
+			if (ImGui::IsItemClicked()) { m_pSelect = child.second.get(); }
+			if (open) { ImGui::TreePop(); }
 		}
 		ImGui::TreePop();
-		if (m_ui.animation && m_pSelect) {
-			m_pCameraController->FitToBDB(m_pSelect->CalcCameraFitBox());
+		if (m_ui.animation && m_pSelect) { m_pCameraController->FitToBDB(m_pSelect->CalcCameraFitBox()); }
+	}
+
+	if (ImGui::TreeNodeEx(m_pDebugRoot->GetName().data(), ImGuiTreeNodeFlags_DefaultOpen)) {
+		for (const auto& child : m_pDebugRoot->GetChild()) {
+			auto open = ImGui::TreeNode(child.first.data());
+			if (ImGui::IsItemClicked()) { m_pSelect = child.second.get(); }
+			if (open) { ImGui::TreePop(); }
 		}
+		ImGui::TreePop();
+		if (m_ui.animation && m_pSelect) { m_pCameraController->FitToBDB(m_pSelect->CalcCameraFitBox()); }
 	}
 	ImGui::Checkbox("VisibleSkyBox", &m_ui.visibleSkyBox);
 	if (m_pSelect) {
-		ImGui::SetNextWindowPos(ImVec2(ui.GetRoot().GetLeftBottom().x, ui.GetRoot().GetLeftBottom().y), ImGuiCond_Always);
 		ImGui::Begin(m_pSelect->GetName().data());
 		m_pSelect->ShowUIData(ui);
 		ImGui::End();
@@ -460,7 +463,16 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		pLight->SetColor(color);
 	}
 
-
+	//ImGui::BeginChild("StringList", ImVec2(300, 200), true);
+	//for (int i = 0; i < (int)m_ui.stepFiles.size(); ++i) {
+	//	bool selected = (m_ui.stepSelected == i);
+	//	if (ImGui::Selectable(m_ui.stepFiles[i].c_str(), selected)) {
+	//		m_ui.stepSelected = i;
+	//		ui.ClearDebugNode();
+	//		ui.AddDebugNode(CreateSTEPNodeTest(m_ui.stepFiles[i]));
+	//	}
+	//}
+	//ImGui::EndChild();
 
 	ImGui::Text("Direction:(%lf, %lf, %lf)\n", pLight->GetDirection().x, pLight->GetDirection().y, pLight->GetDirection().z);
 	ImGui::Text("Milli %f, FPS %f", m_cpuProfiler.GetMilli(), m_cpuProfiler.GetFPS());
@@ -609,33 +621,46 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)) * glmUtil::CreateTranslate(pos));
 	return node;
 }
+Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest(const String& fileName)
+{
+	Vector<Shared<RenderNode>> pNodes;
+	int scale = 30;
 
+	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load(fileName, 0));
+	auto bdb = pNode->GetBoundBox();
+	pNode->SetScale(scale / bdb.MaxLength());
+	return pNode;
+}
 Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 {
 	Vector<Shared<RenderNode>> pNodes;
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
-	Vector<String> files;
-	files.push_back("E:\\cgModel\\step\\123Block_Color.stp");
-	//files.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-	//files.push_back("E:\\cgModel\\step\\cubsomcy.stp");
-	//files.push_back("E:\\cgModel\\step\\cubcylso.stp");
-	//files.push_back("E:\\cgModel\\step\\angle1.stp");
-	//files.push_back("E:\\cgModel\\step\\mycylinder.stp");
-	//files.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
-	//files.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	
-	// 円筒の側面からやるべき
-	// for debug.
-	//{
-	//	pNodes.push_back(std::shared_ptr<RenderNode>(STEPLoader::Load(files[5], 0, true)));
-	//	return pNodes;
-	//}
+	{
+		//　高難度データ
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
+		m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp");
+	}
 
-
+	// 完成データ
+	{
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+	}
+		
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));
-	for (int i = 0; i < files.size(); i++) {
-		auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load(files[i], i));
+	for (int i = 0; i < m_ui.stepFiles.size(); i++) {
+		auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load(m_ui.stepFiles[i], i));
 		auto bdb = pNode->GetBoundBox();
 		auto scaleMatrix = glmUtil::CreateScale(scale / bdb.MaxLength());
 		//{
@@ -651,7 +676,7 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 			auto gridCenter = gridPos + Vector3(scale / 2, scale / 2, 0.0);
 			auto localPos = (scale / bdb.MaxLength()) * bdb.Center();
 			auto translate = glmUtil::CreateTranslate(gridCenter - localPos);
-			if (files.size() != 1) {
+			if (m_ui.stepFiles.size() != 1) {
 				pNode->SetTranslate(gridCenter - localPos);
 			}
 			pNode->SetScale(scale / bdb.MaxLength());
@@ -659,11 +684,6 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 		
 
 		pNodes.push_back(pNode);
-	}
-
-	for (int i = 0; i < files.size(); i++) {
-		Vector3 translate = Vector3(scale * (i % gridSize.x), scale * (i / gridSize.y), 0.0f);
-		DebugPrintf::Vec3(translate); DebugPrintf::NewLine();
 	}
 
 	return pNodes;

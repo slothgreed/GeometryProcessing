@@ -54,6 +54,7 @@ public:
 	static std::pair<String, String> SplitAtFirst(const String& str, char delimiter);
 	static String TrimWhiteSpace(const String& str);
 	static bool Contains(const String& str, const String& target);
+	static bool Equal(const String& str, const String& target);
 
 private:
 

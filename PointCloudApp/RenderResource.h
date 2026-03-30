@@ -101,7 +101,7 @@ private:
 
 class Camera;
 class Light;
-
+class BDB;
 namespace ShaderLayout
 {
 	struct Camera
@@ -170,6 +170,8 @@ public:
 	RenderTarget* GetDebugTarget() { return m_pDebugTarget; }
 
 	PBRResource* GetPBR() { return m_pPBR; }
+	void UpdateCamera(const Camera& pCamera);
+	void UpdateCamera(const BDB& bdb);
 	void UpdateDebugCamera(const Camera& camera);
 private:
 	PBRResource* m_pPBR;
