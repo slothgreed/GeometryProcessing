@@ -7,7 +7,7 @@ namespace STEP
 
 Polyline Intersection::CreatePolyline(STEPInterSectionCurve* pIntersectionCurve)
 {
-	
+	return Polyline();
 }
 
 }

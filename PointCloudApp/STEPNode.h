@@ -3,21 +3,10 @@
 #include "RenderNode.h"
 #include "Mesh.h"
 #include "Polyline.h"
+#include "STEPEntity.h"
+#include "STEPTypes.h"
 namespace KI
 {
-struct STEPStruct;
-
-struct STEPEntityBase;
-class STEPRenderNode;
-struct STEPUIContext
-{
-	bool IsSelect(int id) const;
-	int GetSelectId() const;
-	STEPRenderNode* pNode = nullptr;
-	STEPEntityBase* pSelect = nullptr;
-	UIContext* ui = nullptr;
-};
-
 class STEPLoader
 {
 public:
@@ -38,27 +27,6 @@ struct EntityRange
 	int id = 0;
 	size_t first = 0;
 	size_t num = 0;
-};
-
-struct STEPShape
-{
-	Vector<std::pair<int, Mesh>> meshs;
-	Vector<PolylineList> polylineList;
-	void AddMesh(int key, Mesh&& value)
-	{
-		if(value.TriangleNum() != 0) meshs.push_back(std::pair<int, Mesh>(key, std::move(value)));
-	}
-	void AddPolyline(PolylineList&& value)
-	{
-		if(value.Num() != 0) polylineList.push_back(std::move(value));
-	}
-	BDB CreateBDB() const
-	{
-		BDB bdb;
-		for (int i = 0; i < meshs.size(); i++) { bdb.Add(BDB(meshs[i].second.GetPoints())); }
-		for (int i = 0; i < polylineList.size(); i++) { bdb.Add(polylineList[i].CreateBDB()); }
-		return bdb;
-	}
 };
 
 

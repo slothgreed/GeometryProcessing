@@ -220,7 +220,9 @@
     <ClCompile Include="SignedDistanceField.cpp" />
     <ClCompile Include="SimulationNode.cpp" />
     <ClCompile Include="SkyBoxNode.cpp" />
+    <ClCompile Include="STEPEntity.cpp" />
     <ClCompile Include="STEPNode.cpp" />
+    <ClCompile Include="STEPUtility.cpp" />
     <ClCompile Include="TerrainNode.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="PointCloudIO.cpp" />
@@ -304,7 +306,10 @@
     <ClInclude Include="SignedDistanceField.h" />
     <ClInclude Include="SimulationNode.h" />
     <ClInclude Include="SkyBoxNode.h" />
+    <ClInclude Include="STEPEntity.h" />
     <ClInclude Include="STEPNode.h" />
+    <ClInclude Include="STEPTypes.h" />
+    <ClInclude Include="STEPUtility.h" />
     <ClInclude Include="TerrainNode.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="PointCloudIO.h" />

@@ -51,6 +51,18 @@ enum ESTEPEntityType
 	ESTEPCircle,
 	ESTEPCylinderSurface,
 };
+struct STEPStruct;
+struct STEPEntityBase;
+class STEPRenderNode;
+struct UIContext;
+struct STEPUIContext
+{
+	bool IsSelect(int id) const;
+	int GetSelectId() const;
+	STEPRenderNode* pNode = nullptr;
+	STEPEntityBase* pSelect = nullptr;
+	UIContext* ui = nullptr;
+};
 
 }
 
