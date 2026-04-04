@@ -395,7 +395,11 @@ void PointCloudApp::ShowUI(UIContext& ui)
 	if (ImGui::TreeNodeEx(m_pRoot->GetName().data(), ImGuiTreeNodeFlags_DefaultOpen)) {
 		for (const auto& child : m_pRoot->GetChild()) {
 			auto open = ImGui::TreeNode(child.first.data());
-			if (ImGui::IsItemClicked()) { m_pSelect = child.second.get(); }
+			if (ImGui::IsItemClicked()) {
+				m_pSelect = child.second.get();
+				ui.ClearDebugNode();
+				ui.AddDebugNode(child.second);
+			}
 			if (open) { ImGui::TreePop(); }
 		}
 		ImGui::TreePop();
@@ -637,26 +641,36 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
 	{
-		//　高難度データ
+		// 高難度データ
+
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
-		m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");
+		m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
+
+		//// Alignment
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp");
+
+		//// B-Sprine
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");
 	}
 
-	// 完成データ
-	{
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	}
+	
+	//// 完成データ
+	//{
+	//	// CYLINDRICAL_SURFACE
+	//	{
+	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
+	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+	//	}
+	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
+	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+	//  m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
+	//}
 		
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));
 	for (int i = 0; i < m_ui.stepFiles.size(); i++) {

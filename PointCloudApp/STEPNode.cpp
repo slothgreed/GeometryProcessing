@@ -1,4 +1,5 @@
 #include "STEPNode.h"
+#include "STEPTypes.h"
 #include "FileUtility.h"
 #include "RenderNode.h"
 #include "SimpleShader.h"
@@ -13,54 +14,8 @@ namespace KI
 #define FIND_SET_DATA(a,b,c,d) { auto x = step.c.find(d); if(x != step.c.end()) { a.b = x->second->ToData(step);}}
 #define FIND_SET_DATA2(a,b,c) { auto x = step.b.find(c); if(x == step.b.end()) {a = x->second->ToData(step);}}
 
-enum STEPEnum
-{
-	DOLL = -1,
-	ASTERISK = -2,
-};
-const int CIRCLE_SUBDIVISION_NUM = 36;
-struct STEPLine;
-struct STEPPlane;
-struct STEPVector;
-struct STEPDirection;
-struct STEPPoint;
-struct STEPAxis2Placement3D;
-struct STEPEdgeCurve;
-struct STEPVertexPoint;
-struct STEPEdgeLoop;
-struct STEPPolyLoop;
-struct STEPFaceOuterBound;
-struct STEPFaceBound;
-struct STEPOrientedEdge;
-struct STEPAdvancedFace;
-struct STEPFaceSurface;
-struct STEPClosedShell;
-struct STEPOpenShell;
-struct STEPCircle;
-struct STEPCylinderSurface;
 
-enum ESTEPEntityType
-{
-	ESTEPLine,
-	ESTEPPlane,
-	ESTEPVector,
-	ESTEPDirection,
-	ESTEPPoint,
-	ESTEPAxis2Placement3D,
-	ESTEPEdgeCurve,
-	ESTEPVertexPoint,
-	ESTEPEdgeLoop,
-	ESTEPPolyLoop,
-	ESTEPFaceOuterBound,
-	ESTEPFaceBound,
-	ESTEPOrientedEdge,
-	ESTEPAdvancedFace,
-	ESTEPFaceSurface,
-	ESTEPClosedShell,
-	ESTEPOpenShell,
-	ESTEPCircle,
-	ESTEPCylinderSurface,
-};
+const int CIRCLE_SUBDIVISION_NUM = 36;
 #define STEP_DEFINE_CAST(TypeName) \
 static TypeName* Cast(STEPEntityBase* pBase) \
 { \
@@ -91,6 +46,7 @@ struct STEPStruct
 	std::unordered_map<int, STEPEdgeCurve*> edgeCurve;
 	std::unordered_map<int, STEPAxis2Placement3D*> axis2Placement3D;
 	std::unordered_map<int, STEPVertexPoint*> vertexPoint;
+	std::unordered_map<int, STEPInterSectionCurve*> interSectionCurve;
 	std::unordered_map<int, STEPEdgeLoop*> edgeLoop;
 	std::unordered_map<int, STEPPolyLoop*> polyLoop;
 	std::unordered_map<int, STEPFaceOuterBound*> faceOuterBound;
@@ -113,6 +69,7 @@ struct STEPStruct
 		for (auto& v : axis2Placement3D) { delete v.second; }
 		for (auto& v : cylinderSurface) { delete v.second; }
 		for (auto& v : vertexPoint) { delete v.second; }
+		for (auto& v : interSectionCurve) { delete v.second; }
 		for (auto& v : edgeLoop) { delete v.second; }
 		for (auto& v : polyLoop) { delete v.second; }
 		for (auto& v : faceOuterBound) { delete v.second; }
@@ -686,6 +643,7 @@ struct STEPCylinderSurface : public STEPEntityBase
 	}
 };
 
+
 struct STEPPlane : public STEPEntityBase
 {
 	virtual ~STEPPlane() = default;
@@ -734,6 +692,111 @@ struct STEPPlane : public STEPEntityBase
 		}
 	}
 
+};
+
+
+struct STEPInterSectionCurve : public STEPEntityBase
+{
+	virtual ~STEPInterSectionCurve() = default;
+	static constexpr const char* EntityName = "INTERSECTION_CURVE";
+	static constexpr ESTEPEntityType ClassType = ESTEPInterSectionCurve;
+	virtual ESTEPEntityType GetType() const { return ESTEPInterSectionCurve; }
+	STEP_DEFINE_CAST(STEPInterSectionCurve)
+
+	struct Raw
+	{
+		int curveId = 0;
+		int geomId0 = 0;
+		int geomId1 = 0;
+	};
+
+	Raw raw;
+	struct Data
+	{
+		enum class Type
+		{
+			None,
+			Curve3D,
+		};
+		struct Curve
+		{
+			bool IsActive() const { return pLine || pCircle; }
+			STEPLine* pLine = nullptr;
+			STEPCircle* pCircle = nullptr;
+		};
+		Curve curve0;
+
+		struct Surface
+		{
+			bool IsActive() const { return pPlane || pCylinderSurface; }
+			STEPPlane* pPlane = nullptr;
+			STEPCylinderSurface* pCylinderSurface = nullptr;
+		};
+		Surface surf0;
+		Surface surf1;
+		Type type = Type::None;
+	};
+	Data data;
+
+	static void Fetch(STEPStruct& step, const STEPString& stepStr)
+	{
+		auto data = new STEPInterSectionCurve();
+		STEPEntityBase::Fetch(data, stepStr);
+		auto values = STEPString::SplitValue(stepStr.value);
+		if (!STEPString::ValueToRef(values[1], data->raw.curveId)) { assert(0); return; }
+		auto split = STEPString::SplitValue(values[2]);
+		if (!STEPString::ValueToRef(split[0], data->raw.geomId0)) { assert(0); return; }
+		if (!STEPString::ValueToRef(split[1], data->raw.geomId1)) { assert(0); return; }
+		if (StringUtility::Equal(values[3], ".CURVE_3D.")) { data->data.type = Data::Type::Curve3D; }
+		step.interSectionCurve[data->id] = data;
+	}
+
+	void FetchData(const STEPStruct& step)
+	{
+		data.curve0.pLine = FindSetData2(step, step.lines, raw.curveId);
+		if (!data.curve0.IsActive()) {
+			data.curve0.pCircle = FindSetData2(step, step.circles, raw.curveId);
+		}
+		data.surf0.pCylinderSurface = FindSetData2(step, step.cylinderSurface, raw.geomId0);
+		if (!data.surf0.IsActive()) {
+			data.surf0.pPlane = FindSetData2(step, step.planes, raw.geomId0);
+		}
+
+		data.surf1.pCylinderSurface = FindSetData2(step, step.cylinderSurface, raw.geomId1);
+		if (!data.surf1.IsActive()) {
+			data.surf1.pPlane = FindSetData2(step, step.planes, raw.geomId1);
+		}
+
+		if (!data.curve0.IsActive() ||
+			!data.surf0.IsActive() || 
+			!data.surf1.IsActive()) {
+			assert(0);
+		}
+	}
+
+	Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const
+	{
+		return Polyline();
+	}
+	void Printf(const DebugOption& option)
+	{
+		PrintfRaw();
+		if (data.curve0.pLine) { data.curve0.pLine->Printf(option); }
+		if (data.surf0.pPlane) { data.surf0.pPlane->Printf(option); }
+		if (data.surf1.pCylinderSurface) { data.surf1.pCylinderSurface->Printf(option); }
+	}
+
+	void ShowUI(STEPUIContext& ui)
+	{
+		if (ShowBranch(ui, ui.IsSelect(id))) {
+			if (data.curve0.pLine) { data.curve0.pLine->ShowUI(ui); }
+			if (data.surf0.pPlane) { data.surf0.pPlane->ShowUI(ui); }
+			if (data.surf0.pCylinderSurface) { data.surf0.pCylinderSurface->ShowUI(ui); }
+			if (data.surf1.pPlane) { data.surf1.pPlane->ShowUI(ui); }
+			if (data.surf1.pCylinderSurface) { data.surf1.pCylinderSurface->ShowUI(ui); }
+			ImGui::TreePop();
+		}
+	}
 };
 
 struct STEPVertexPoint : public STEPEntityBase
@@ -810,6 +873,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 		STEPVertexPoint* pPoint1 = nullptr;
 		STEPLine* line = nullptr;
 		STEPCircle* circle = nullptr;
+		STEPInterSectionCurve* intersectionCurve = nullptr;
 		bool sameSense = true;
 
 		Vector3 GetBegin() const
@@ -835,6 +899,10 @@ struct STEPEdgeCurve : public STEPEntityBase
 			} else {
 				return data.circle->data.CreatePolyline(data.GetBegin(), data.GetEnd());
 			}
+		}
+
+		if (data.intersectionCurve) {
+			return data.intersectionCurve->data.CreatePolyline(data.GetBegin(), data.GetEnd());
 		}
 
 		return Polyline();
@@ -866,6 +934,9 @@ struct STEPEdgeCurve : public STEPEntityBase
 		if (!data.line) {
 			data.circle = FindSetData2(step, step.circles, raw.lineRef2);
 		}
+		if (!data.line && !data.circle) {
+			data.intersectionCurve = FindSetData2(step, step.interSectionCurve, raw.lineRef2);
+		}
 
 		data.sameSense = raw.sameSense;
 	}
@@ -877,6 +948,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 		if (data.pPoint1) { data.pPoint1->Printf(option); }
 		if (data.line) { data.line->Printf(option); }
 		if (data.circle) { data.circle->Printf(option); }
+		if (data.intersectionCurve) { data.intersectionCurve->Printf(option); }
 	}
 
 
@@ -887,6 +959,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 			if (data.pPoint1) { data.pPoint1->ShowUI(ui); }
 			if (data.line) { data.line->ShowUI(ui); }
 			if (data.circle) { data.circle->ShowUI(ui); }
+			if (data.intersectionCurve) { data.intersectionCurve->ShowUI(ui); }
 			ImGui::TreePop();
 		}
 	}
@@ -1037,14 +1110,14 @@ struct STEPPolyLoop : public STEPEntityBase
 	struct Data
 	{
 		Vector<STEPPoint*> points;
-		Polyline CreatePolyline() const
+		PolylineList CreatePolyline(int id) const
 		{
 			Vector<Vector3> lines(points.size() * 2);
 			for (int i = 0; i < points.size(); i++) {
 				lines[2 * i] = points[i]->data.pos;
 				lines[2 * i + 1] = points[(i + 1)%points.size()]->data.pos;
 			}
-			return Polyline(std::move(lines), Polyline::DrawType::Lines);
+			return PolylineList(id, Polyline(std::move(lines), Polyline::DrawType::Lines));
 		}
 	};
 
@@ -1111,17 +1184,19 @@ struct STEPEdgeLoop : public STEPEntityBase
 	struct Data
 	{
 		Vector<STEPOrientedEdge*> orientedEdges;
-		Polyline CreatePolyline() const
+		PolylineList CreatePolyline() const
 		{
 			Vector<Vector3> points;
-			Polyline polyline;
+			PolylineList polyline;
 			for (size_t i = 0; i < orientedEdges.size(); ++i) {
 				if (orientedEdges[i] == nullptr) { continue; }
 				if (orientedEdges[i]->data.IsCircle()) {
-					polyline.Add(orientedEdges[i]->data.CreatePolyline());
+					polyline.Add(orientedEdges[i]->id,orientedEdges[i]->data.CreatePolyline());
 				} else {
-					polyline.Add(orientedEdges[i]->data.GetBegin());
-					polyline.Add(orientedEdges[i]->data.GetEnd());
+					Polyline line;
+					line.Add(orientedEdges[i]->data.GetBegin());
+					line.Add(orientedEdges[i]->data.GetEnd());
+					polyline.Add(orientedEdges[i]->id, std::move(line));
 				}
 			}
 
@@ -1192,12 +1267,12 @@ struct STEPFaceBoundBase : public STEPEntityBase
 		STEPEdgeLoop* edgeLoop = nullptr;
 		bool orient = true;
 
-		Polyline CreatePolyline() const
+		PolylineList CreatePolyline() const
 		{
 			if (edgeLoop) { return edgeLoop->data.CreatePolyline(); }
-			if (polyLoop) { return polyLoop->data.CreatePolyline(); }
+			if (polyLoop) { return polyLoop->data.CreatePolyline(polyLoop->id); }
 
-			return Polyline();
+			return PolylineList();
 		}
 	};
 
@@ -1296,9 +1371,8 @@ struct STEPFaceBase : public STEPEntityBase
 
 		struct CylidnerEdge
 		{
-			bool IsActive() const { return circle&& axis; }
+			bool IsActive() const { return circle; }
 			STEPOrientedEdge::Data* circle = nullptr;
-			STEPOrientedEdge::Data* axis = nullptr;
 			std::pair<float, Vector3> maxPos{ -INFINITY,Vector3(0,0,0) };
 			std::pair<float, Vector3> minPos{ INFINITY, Vector3(0, 0, 0) };
 			float GetHeight() const { return maxPos.first - minPos.first; }
@@ -1319,10 +1393,6 @@ struct STEPFaceBase : public STEPEntityBase
 					if (ret.minPos.first > v0) { ret.minPos.first = v0; ret.minPos.second = edge->data.GetBegin(); }
 					if (ret.minPos.first > v1) { ret.minPos.first = v1; ret.minPos.second = edge->data.GetEnd(); }
 
-					if (edge->data.IsLine() &&
-						MathHelper::IsSameDir(axis, edge->data.Dir())) {
-						ret.axis = &edge->data;
-					}
 					if (edge->data.IsCircle()) { ret.circle = &edge->data; }
 				}
 			}
@@ -1338,11 +1408,6 @@ struct STEPFaceBase : public STEPEntityBase
 
 					if (ret.minPos.first > v0) { ret.minPos.first = v0; ret.minPos.second = edge->data.GetBegin(); }
 					if (ret.minPos.first > v1) { ret.minPos.first = v1; ret.minPos.second = edge->data.GetEnd(); }
-
-					if (edge->data.IsLine() &&
-						MathHelper::IsSameDir(axis, edge->data.Dir())) {
-						ret.axis = &edge->data;
-					}
 					if (edge->data.IsCircle()) { ret.circle = &edge->data; }
 				}
 			}
@@ -1350,16 +1415,16 @@ struct STEPFaceBase : public STEPEntityBase
 			return ret;
 		}
 		
-		Polyline CreateBoundPolyline() const
+		PolylineList CreateBoundPolyline() const
 		{
-			Polyline bound;
+			PolylineList bound;
 			for (const auto& face : faceBound) { bound.Add(face->data.CreatePolyline()); }
 			return bound;
 		}
 
-		Polyline CreateOuterBoundPolyline() const
+		PolylineList CreateOuterBoundPolyline() const
 		{
-			Polyline outerBound;
+			PolylineList outerBound;
 			for (const auto& face : faceOuterBound) { outerBound.Add(face->data.CreatePolyline()); }
 			return outerBound;
 		}
@@ -1380,17 +1445,24 @@ struct STEPFaceBase : public STEPEntityBase
 					return Polyline::CreateMesh(outerBound, Polyline(), normal);
 				}
 			} else if (cylinder) {
+
+				auto normal = cylinder->data.axis->data.Normal();
+				//if (!orient) { normal = -normal; }
+
 				auto edge = SearchCylinderEdge(
-					cylinder->data.axis->data.point, 
-					cylinder->data.axis->data.Normal());
+					cylinder->data.axis->data.point, normal);
 				if (!edge.IsActive()) { return Mesh(); }
-				Vector3 origin = cylinder->data.axis->data.point + 
-					cylinder->data.axis->data.Normal() * edge.minPos.first;
+				Vector3 origin = cylinder->data.axis->data.point +
+					normal * edge.minPos.first;
+
+				auto begin = edge.circle->GetBegin();
+				auto end = edge.circle->GetEnd();
+				//if (!orient) { begin = -begin; end = -end; }
 				return Cylinder::CreateSideMesh(
 					origin,
-					cylinder->data.axis->data.Normal(),
-					edge.circle->GetEnd(),
+					normal,
 					edge.circle->GetBegin(),
+					edge.circle->GetEnd(),
 					cylinder->data.rad,
 					edge.GetHeight(),
 					orient,
@@ -1549,18 +1621,19 @@ struct STEPShell : public STEPEntityBase
 			if (advancedFace) {
 				auto bound = advancedFace->data.CreateBoundPolyline();
 				auto outerBound = advancedFace->data.CreateOuterBoundPolyline();
-				shape.AddMesh(advancedFace->id, std::move(advancedFace->data.CreateMesh(bound, outerBound).ConvertTriangles()));
-				shape.AddPolyline(advancedFace->id, std::move(bound));
-				shape.AddPolyline(advancedFace->id, std::move(outerBound));
+				shape.AddMesh(advancedFace->id,
+					std::move(advancedFace->data.CreateMesh(bound.CreateMerge(), outerBound.CreateMerge()).ConvertTriangles()));
+				shape.AddPolyline(std::move(bound));
+				shape.AddPolyline(std::move(outerBound));
 			}
 		}
 		for (const auto& faceSurface : step.data.faceSurface) {
 			if (faceSurface) {
 				auto bound = faceSurface->data.CreateBoundPolyline();
 				auto outerBound = faceSurface->data.CreateOuterBoundPolyline();
-				shape.AddMesh(faceSurface->id, std::move(faceSurface->data.CreateMesh(bound, outerBound).ConvertTriangles()));
-				shape.AddPolyline(faceSurface->id, std::move(bound));
-				shape.AddPolyline(faceSurface->id, std::move(outerBound));
+				shape.AddMesh(faceSurface->id, std::move(faceSurface->data.CreateMesh(bound.CreateMerge(), outerBound.CreateMerge()).ConvertTriangles()));
+				shape.AddPolyline(std::move(bound));
+				shape.AddPolyline(std::move(outerBound));
 			}
 		}
 	}
@@ -1798,6 +1871,7 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		else if (StringUtility::Equal(stepStr.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPCylinderSurface::EntityName)) { STEPCylinderSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(step, stepStr); }
 		else { NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {
@@ -1850,29 +1924,31 @@ void STEPRenderNode::BuildGLResource()
 			}
 		}
 
-		for (const auto& p : shape.polylines) {
-			const auto& polyline = p.second;
-			if (polyline.GetPoints().size() == 0) { continue; }
-			if (polyline.GetDrawType() == GL_LINES) {
-				if (polyline.GetIndexs().size() != 0) {
-					m_gpu.lineIndex.pointNum += polyline.GetPoints().size();
-					m_gpu.lineIndex.indexNum += polyline.GetIndexs().size();
-				} else {
-					m_gpu.line.pointNum += polyline.GetPoints().size();
-				}
-			} else 	if (polyline.GetDrawType() == GL_LINE_STRIP) {
-				if (polyline.GetIndexs().size() != 0) {
-					m_gpu.lineStripIndex.pointNum += polyline.GetPoints().size();
-					m_gpu.lineStripIndex.indexNum += polyline.GetIndexs().size();
-				} else {
-					m_gpu.lineStrip.pointNum += polyline.GetPoints().size();
-				}
-			} else 	if (polyline.GetDrawType() == GL_LINE_LOOP) {
-				if (polyline.GetIndexs().size() != 0) {
-					m_gpu.lineLoopIndex.pointNum += polyline.GetPoints().size();
-					m_gpu.lineLoopIndex.indexNum += polyline.GetIndexs().size();
-				} else {
-					m_gpu.lineLoop.pointNum += polyline.GetPoints().size();
+		for (const auto& pList : shape.polylineList) {
+			for (const auto& p : pList.GetPolylines()) {
+				const auto& polyline = p.second;
+				if (polyline.GetPoints().size() == 0) { continue; }
+				if (polyline.GetDrawType() == GL_LINES) {
+					if (polyline.GetIndexs().size() != 0) {
+						m_gpu.lineIndex.pointNum += polyline.GetPoints().size();
+						m_gpu.lineIndex.indexNum += polyline.GetIndexs().size();
+					} else {
+						m_gpu.line.pointNum += polyline.GetPoints().size();
+					}
+				} else 	if (polyline.GetDrawType() == GL_LINE_STRIP) {
+					if (polyline.GetIndexs().size() != 0) {
+						m_gpu.lineStripIndex.pointNum += polyline.GetPoints().size();
+						m_gpu.lineStripIndex.indexNum += polyline.GetIndexs().size();
+					} else {
+						m_gpu.lineStrip.pointNum += polyline.GetPoints().size();
+					}
+				} else 	if (polyline.GetDrawType() == GL_LINE_LOOP) {
+					if (polyline.GetIndexs().size() != 0) {
+						m_gpu.lineLoopIndex.pointNum += polyline.GetPoints().size();
+						m_gpu.lineLoopIndex.indexNum += polyline.GetIndexs().size();
+					} else {
+						m_gpu.lineLoop.pointNum += polyline.GetPoints().size();
+					}
 				}
 			}
 		}
@@ -1912,48 +1988,50 @@ void STEPRenderNode::BuildGLResource()
 				trianglePointOffset += mesh.GetPoints().size();
 			}
 		}
-		
-		for (const auto& p : shape.polylines) {
-			const auto& polyline = p.second;
-			if (polyline.GetPoints().size() == 0) { continue; }
-			if (polyline.GetDrawType() == GL_LINES) {
-				if (polyline.GetIndexs().size()) {
-					m_gpu.lineIndex.pPosition->BufferSubData(lineIndexPointOffset, polyline.GetPoints());
-					lineIndexPointOffset += polyline.GetPoints().size();
 
-					m_gpu.lineIndex.AddEntity(p.first, lineIndexOffset, polyline.GetIndexs().size());
-					m_gpu.lineIndex.pIndex->BufferSubData(lineIndexOffset, polyline.GetIndexs());
-					lineIndexOffset += polyline.GetIndexs().size();
-				} else {
-					m_gpu.line.AddEntity(p.first, linePointOffset, polyline.GetPoints().size());
-					m_gpu.line.pPosition->BufferSubData(linePointOffset, polyline.GetPoints());
-					linePointOffset += polyline.GetPoints().size();
-				}
-			} else if (polyline.GetDrawType() == GL_LINE_STRIP) {
-				if (polyline.GetIndexs().size()) {
-					m_gpu.lineStripIndex.pPosition->BufferSubData(lineStripIndexPointOffset, polyline.GetPoints());
-					lineStripIndexPointOffset += polyline.GetPoints().size();
+		for (const auto& pList : shape.polylineList) {
+			for (const auto& p : pList.GetPolylines()) {
+				const auto& polyline = p.second;
+				if (polyline.GetPoints().size() == 0) { continue; }
+				if (polyline.GetDrawType() == GL_LINES) {
+					if (polyline.GetIndexs().size()) {
+						m_gpu.lineIndex.pPosition->BufferSubData(lineIndexPointOffset, polyline.GetPoints());
+						lineIndexPointOffset += polyline.GetPoints().size();
 
-					m_gpu.lineStripIndex.AddEntity(p.first, lineStripIndexOffset, polyline.GetIndexs().size());
-					m_gpu.lineStripIndex.pIndex->BufferSubData(lineStripIndexOffset, polyline.GetIndexs());
-					lineStripIndexOffset += polyline.GetIndexs().size();
-				} else {
-					m_gpu.lineStrip.AddEntity(p.first, lineStripPointOffset, polyline.GetPoints().size());
-					m_gpu.lineStrip.pPosition->BufferSubData(lineStripPointOffset, polyline.GetPoints());
-					lineStripPointOffset += polyline.GetPoints().size();
-				}
-			} else if (polyline.GetDrawType() == GL_LINE_LOOP) {
-				if (polyline.GetIndexs().size()) {
-					m_gpu.lineLoopIndex.pPosition->BufferSubData(lineLoopIndexPointOffset, polyline.GetPoints());
-					lineLoopIndexPointOffset += polyline.GetPoints().size();
+						m_gpu.lineIndex.AddEntity(p.first, lineIndexOffset, polyline.GetIndexs().size());
+						m_gpu.lineIndex.pIndex->BufferSubData(lineIndexOffset, polyline.GetIndexs());
+						lineIndexOffset += polyline.GetIndexs().size();
+					} else {
+						m_gpu.line.AddEntity(p.first, linePointOffset, polyline.GetPoints().size());
+						m_gpu.line.pPosition->BufferSubData(linePointOffset, polyline.GetPoints());
+						linePointOffset += polyline.GetPoints().size();
+					}
+				} else if (polyline.GetDrawType() == GL_LINE_STRIP) {
+					if (polyline.GetIndexs().size()) {
+						m_gpu.lineStripIndex.pPosition->BufferSubData(lineStripIndexPointOffset, polyline.GetPoints());
+						lineStripIndexPointOffset += polyline.GetPoints().size();
 
-					m_gpu.lineLoopIndex.AddEntity(p.first, lineLoopIndexOffset, polyline.GetIndexs().size());
-					m_gpu.lineLoopIndex.pIndex->BufferSubData(lineLoopIndexOffset, polyline.GetIndexs());
-					lineLoopIndexOffset += polyline.GetIndexs().size();
-				} else {
-					m_gpu.lineLoop.AddEntity(p.first, lineLoopPointOffset, polyline.GetPoints().size());
-					m_gpu.lineLoop.pPosition->BufferSubData(lineLoopPointOffset, polyline.GetPoints());
-					lineLoopPointOffset += polyline.GetPoints().size();
+						m_gpu.lineStripIndex.AddEntity(p.first, lineStripIndexOffset, polyline.GetIndexs().size());
+						m_gpu.lineStripIndex.pIndex->BufferSubData(lineStripIndexOffset, polyline.GetIndexs());
+						lineStripIndexOffset += polyline.GetIndexs().size();
+					} else {
+						m_gpu.lineStrip.AddEntity(p.first, lineStripPointOffset, polyline.GetPoints().size());
+						m_gpu.lineStrip.pPosition->BufferSubData(lineStripPointOffset, polyline.GetPoints());
+						lineStripPointOffset += polyline.GetPoints().size();
+					}
+				} else if (polyline.GetDrawType() == GL_LINE_LOOP) {
+					if (polyline.GetIndexs().size()) {
+						m_gpu.lineLoopIndex.pPosition->BufferSubData(lineLoopIndexPointOffset, polyline.GetPoints());
+						lineLoopIndexPointOffset += polyline.GetPoints().size();
+
+						m_gpu.lineLoopIndex.AddEntity(p.first, lineLoopIndexOffset, polyline.GetIndexs().size());
+						m_gpu.lineLoopIndex.pIndex->BufferSubData(lineLoopIndexOffset, polyline.GetIndexs());
+						lineLoopIndexOffset += polyline.GetIndexs().size();
+					} else {
+						m_gpu.lineLoop.AddEntity(p.first, lineLoopPointOffset, polyline.GetPoints().size());
+						m_gpu.lineLoop.pPosition->BufferSubData(lineLoopPointOffset, polyline.GetPoints());
+						lineLoopPointOffset += polyline.GetPoints().size();
+					}
 				}
 			}
 		}
@@ -1962,8 +2040,8 @@ void STEPRenderNode::BuildGLResource()
 void STEPRenderNode::AddDebugNode(STEPUIContext& context, const STEPEntityBase* pBase)
 {
 	auto pFace = STEPAdvancedFace::Cast(pBase);
-	auto bound = pFace->data.CreateBoundPolyline();
-	auto outerBound = pFace->data.CreateOuterBoundPolyline();
+	auto bound = pFace->data.CreateBoundPolyline().CreateMerge();
+	auto outerBound = pFace->data.CreateOuterBoundPolyline().CreateMerge();
 	auto mesh = pFace->data.CreateMesh(bound, outerBound);
 	context.ui->ClearDebugNode();
 	if (bound.LineNum() != 0) {

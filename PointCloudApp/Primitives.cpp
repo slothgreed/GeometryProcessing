@@ -309,6 +309,10 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 	slices = std::max(3, slices);
 	stacks = std::max(1, stacks);
 
+	Vector3 axisPoint = baseCenter + axis * dot(beginPoint - baseCenter, axis);
+	Vector3 outward = normalize(beginPoint - axisPoint); // ”¼Œa•ûŒü
+	Vector3 faceNormal = orient ? outward : -outward;
+
 	// Ž²•ûŒü
 	Vector3 z = normalize(axis);
 
@@ -327,7 +331,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 		endDir = normalize(endDir);
 		float cosTheta = dot(endDir, x);
 		float sinTheta = dot(endDir, y);
-		endAngle = MathHelper::Normalize0_PI2(std::atan2(sinTheta, cosTheta));
+		endAngle = MathHelper::NormalizePI(std::atan2(sinTheta, cosTheta));
 	}
 
 	float beginAngle = 0.0f;
@@ -364,6 +368,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 		return static_cast<UInt>(row * vertCols + col);
 	};
 
+	orient = true;
 	for (int iy = 0; iy < stacks; ++iy) {
 		for (int ix = 0; ix < slices; ++ix) {
 			UInt i0 = indexOf(iy, ix);
@@ -371,7 +376,13 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 			UInt i2 = indexOf(iy + 1, ix);
 			UInt i3 = indexOf(iy + 1, ix + 1);
 
-			if (orient) {
+			if (ix == 0 && iy == 0) {
+				auto normal = MathHelper::CalcNormal(positions[i0], positions[i1], positions[i2]);
+				if (glm::dot(normal, faceNormal) < 0) { orient = false; }
+			}
+
+			if (orient)
+			{
 				indices.push_back(i0);
 				indices.push_back(i1);
 				indices.push_back(i2);
@@ -387,7 +398,6 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 				indices.push_back(i1);
 				indices.push_back(i2);
 				indices.push_back(i3);
-
 			}
 		}
 	}
@@ -639,11 +649,12 @@ Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const 
 {
 	Vector<Vector3> points;
 	for (int i = 0; i < pointNum; i++) {
-		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
+		auto angle0 = (i / (float)pointNum) * MathHelper::PI2;
 		points.push_back(center + radius * (cosf(angle0) * u + sinf(angle0) * v));
 	}
+	points.push_back(center + radius * (cosf(0) * u + sinf(0) * v));
 
-	return Polyline(std::move(points), Polyline::DrawType::LineLoop);
+	return Polyline(std::move(points), Polyline::DrawType::LineStrip).ConvertLines();
 }
 
 Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end)
@@ -662,22 +673,22 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 	float beginAngle = toAngle(begin);
 	float endAngle = toAngle(end);
 
-	float delta = MathHelper::Normalize0_PI2(endAngle - beginAngle);
+	float delta = MathHelper::NormalizePI(endAngle - beginAngle);
 	// ‰~ŒÊ‚ð•ªŠ„‚µ‚Ä“_‚ð¶¬
-	for (int i = 0; i <= pointNum; i++) {
+	for (int i = 0; i < pointNum; i++) {
 		float t = i / (float)pointNum;
 		float angle = beginAngle + t * delta;
 		Vector3 p = center + radius * (std::cos(angle) * u + std::sin(angle) * v);
 		points.push_back(p);
 	}
-
-	return Polyline(std::move(points), Polyline::DrawType::LineStrip);
+	points.push_back(end);
+	return Polyline(std::move(points), Polyline::DrawType::LineStrip).ConvertLines();
 }
 void Circle::Build(float radius, int pointNum, const Vector3& center)
 {
 	for (int i = 0; i < pointNum; i++) {
-		auto angle0 = (i / (float)pointNum) * 3.14159f * 2.0f;
-		auto angle1 = ((i + 1) / (float)pointNum) * 3.14159f * 2.0f;
+		auto angle0 = (i / (float)pointNum) * MathHelper::PI2;
+		auto angle1 = ((i + 1) / (float)pointNum) * MathHelper::PI2;
 		m_position.push_back(Vector3(
 			radius * cosf(angle0),
 			radius * sinf(angle0),

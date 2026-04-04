@@ -72,6 +72,12 @@ float MathHelper::Normalize0_PI2(float rad)
 	return rad;
 }
 
+float MathHelper::NormalizePI(float rad)
+{
+	while (rad <= -glm::pi<float>()) rad += PI2;
+	while (rad > glm::pi<float>()) rad -= PI2;
+	return rad;
+}
 float MathHelper::CramesDet(const Vector3& a, const Vector3& b, const Vector3& c)
 {
 	return (

@@ -6,6 +6,7 @@ class BDB
 {
 public:
 	BDB();
+	BDB(const Vector<Vector3>& value);
 	BDB(const Vector3& min, const Vector3& max);
 	~BDB();
 	bool IsActive() const;

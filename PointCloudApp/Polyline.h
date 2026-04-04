@@ -48,24 +48,26 @@ public:
 	static Mesh CreateMesh(const Polyline& target, const Polyline& inner, const Vector3& axis);
 	Polyline CreateSmooth() const;
 	Vector<Vector3> CreateParametricColor() const;
-	static BDB CreateBDB(const Polyline& polyline);
+	Polyline& ConvertLines();
 private:
-	void ConvertLines();
 	Vector<Vector3> m_points;
 	Vector<UInt> m_indexs;
-	DrawType m_drawType = DrawType::LineLoop;
+	DrawType m_drawType = DrawType::Lines;
 };
 
 struct PolylineList
 {
 	PolylineList() {};
-	PolylineList(Polyline&& poly) { m_polylines.push_back(std::move(poly)); }
-	void Add(Polyline&& poly) { m_polylines.push_back(std::move(poly)); }
+	PolylineList(int id, Polyline&& poly) { m_polylines.push_back(std::pair<int, Polyline>(id, std::move(poly))); }
+	void Add(int id, Polyline&& poly) { m_polylines.push_back(std::pair<int,Polyline>(id, std::move(poly))); }
 	void Add(PolylineList&& poly);
-	Polyline Merge() const;
+	const Vector<std::pair<int, Polyline>>& GetPolylines() const { return m_polylines; }
+	BDB CreateBDB() const;
+	Polyline CreateMerge() const;
 	size_t Num() const { return m_polylines.size(); }
 private:
-	Vector<Polyline> m_polylines;
+
+	Vector<std::pair<int, Polyline>> m_polylines;
 };
 }
 

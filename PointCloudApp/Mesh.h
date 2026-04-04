@@ -33,7 +33,6 @@ public:
 	const Vector<Vector3>& GetPoints() const { return m_points; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
-	static BDB CreateBDB(const Mesh& mesh);
 	Mesh& ConvertTriangles();
 	Mesh& Reverse();
 private:

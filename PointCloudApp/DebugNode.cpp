@@ -514,7 +514,7 @@ PolylineNode::PolylineNode(const String& name, const Polyline& polyline)
 	: RenderNode(name)
 	, m_polyline(polyline)
 {
-	SetBoundBox(Polyline::CreateBDB(m_polyline));
+	SetBoundBox(BDB(m_polyline.GetPoints()));
 }
 
 void PolylineNode::BuildGLBuffer()
@@ -614,7 +614,7 @@ MeshNode::MeshNode(const String& name, const Mesh& mesh)
 	: RenderNode(name)
 	, m_mesh(mesh)
 {
-	SetBoundBox(Mesh::CreateBDB(m_mesh));
+	SetBoundBox(BDB(m_mesh.GetPoints()));
 }
 
 void MeshNode::BuildGLBuffer()

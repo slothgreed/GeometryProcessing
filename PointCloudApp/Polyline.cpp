@@ -55,14 +55,33 @@ void Polyline::Add(const Polyline& polyline)
     ConvertLines();
     auto p = polyline;
     p.ConvertLines();
+    if (!m_points.empty()) {
+        if (MathHelper::IsSame(m_points.back(), p.m_points.front())) {
+            p.m_points.front() = m_points.back();
+        }
+
+        if (MathHelper::IsSame(p.m_points.back(), m_points.front())) {
+            m_points.front() = p.m_points.back();
+        }
+    }
+
     STLUtil::Insert(m_points, p.m_points);
 }
 
 void Polyline::Add(Polyline&& polyline)
 {
     ConvertLines();
-    auto p = polyline;
+    auto p = std::move(polyline);
     p.ConvertLines();
+    if (!m_points.empty()) {
+        if (MathHelper::IsSame(m_points.back(), p.m_points.front())) {
+            p.m_points.front() = m_points.back();
+        }
+
+        if (MathHelper::IsSame(p.m_points.back(), m_points.front())) {
+            m_points.front() = p.m_points.back();
+        }
+    }
     STLUtil::Insert(m_points, std::move(p.m_points));
 }
 
@@ -71,11 +90,11 @@ void Polyline::Add(const Vector3& point)
     m_points.push_back(point);
 }
 
-void Polyline::ConvertLines()
+Polyline& Polyline::ConvertLines()
 {
     if (m_points.empty()) { m_drawType = DrawType::Lines; }
     if (m_drawType == DrawType::Lines) {
-        if (m_indexs.empty()) { return; }
+        if (m_indexs.empty()) { return *this; }
         Vector<Vector3> points(LineNum() * 2);
         for (size_t i = 0; i < m_indexs.size(); i++) {
             points[i] = m_points[m_indexs[i]];
@@ -119,6 +138,8 @@ void Polyline::ConvertLines()
         m_points = std::move(points);
         m_drawType = DrawType::Lines;
     }
+
+    return *this;
 }
 Vector3 Polyline::GetCenter() const
 {
@@ -155,18 +176,12 @@ Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, const V
         DelaunayGenerator delaunay;
         auto info = MathHelper::CreateProjectInfo(target.GetPoints());
         auto zPosition = MathHelper::Project(target.GetPoints(), info);
-        if (zPosition.front() != zPosition.back()) {
-            zPosition.back() = zPosition.front(); // åÎç∑í≤êÆ
-        }
         delaunay.SetTarget(&zPosition);
         Vector<Vector3> zInnerPosition;
 
         if (inner.GetPoints().size() != 0) {
             if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
             zInnerPosition = MathHelper::Project(inner.GetPoints(), info);
-            if (zInnerPosition.front() != zInnerPosition.back()) {
-                zInnerPosition.back() = zInnerPosition.front(); // åÎç∑í≤êÆ
-            }
             delaunay.AddInner(&zInnerPosition);
         }
         auto result = delaunay.Execute2D_CGAL();
@@ -256,17 +271,6 @@ Vector<Vector3> Polyline::CreateParametricColor() const
     return colors;
 }
 
-BDB Polyline::CreateBDB(const Polyline& polyline)
-{
-    BDB bdb;
-    for (size_t i = 0; i < polyline.GetPoints().size(); i++) {
-        bdb.Add(polyline.GetPoints()[i]);
-    }
-
-    return bdb;
-}
-
-
 void PolylineList::Add(PolylineList&& poly)
 {
     for (int i = 0; i < poly.m_polylines.size(); i++) {
@@ -274,16 +278,22 @@ void PolylineList::Add(PolylineList&& poly)
     }
 }
 
-Polyline PolylineList::Merge() const
+BDB PolylineList::CreateBDB() const
+{
+    BDB bdb;
+    for (int i = 0; i < m_polylines.size(); i++) {
+        bdb.Add(BDB(m_polylines[i].second.GetPoints()));
+    }
+    return bdb;
+}
+Polyline PolylineList::CreateMerge() const
 {
     Polyline line;
     for (auto& polyline : m_polylines) {
-        line.Add(polyline);
+        line.Add(polyline.second);
     }
 
     return line;
 }
-
-
 
 }

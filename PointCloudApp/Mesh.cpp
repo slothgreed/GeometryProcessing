@@ -23,16 +23,6 @@ int Mesh::TriangleNum() const
 	return 0;
 }
 
-BDB Mesh::CreateBDB(const Mesh& mesh)
-{
-	BDB bdb;
-	for (size_t i = 0; i < mesh.GetPoints().size(); i++) {
-		bdb.Add(mesh.GetPoints()[i]);
-	}
-
-	return bdb;
-}
-
 Mesh& Mesh::ConvertTriangles()
 {
 	if (m_drawType == DrawType::Triangles) {

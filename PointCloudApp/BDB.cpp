@@ -13,6 +13,11 @@ BDB::~BDB()
 {
 }
 
+BDB::BDB(const Vector<Vector3>& value)
+	:BDB()
+{
+	for (size_t i = 0; i < value.size(); i++) { Add(value[i]); }
+}
 BDB::BDB(const Vector3& min, const Vector3& max)
 {
 	Set(min, max);
