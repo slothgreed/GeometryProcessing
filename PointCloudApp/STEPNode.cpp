@@ -200,8 +200,9 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		else if (StringUtility::Equal(stepStr.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPCylinderSurface::EntityName)) { STEPCylinderSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPCylindricalSurface::EntityName)) { STEPCylindricalSurface::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPConicalSurface::EntityName)) { STEPConicalSurface::Fetch(step, stepStr); }
 		else { NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {

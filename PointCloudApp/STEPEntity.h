@@ -100,7 +100,8 @@ struct STEPStruct
 	std::unordered_map<int, STEPPoint*> points;
 	std::unordered_map<int, STEPLine*> lines;
 	std::unordered_map<int, STEPCircle*> circles;
-	std::unordered_map<int, STEPCylinderSurface*> cylinderSurface;
+	std::unordered_map<int, STEPCylindricalSurface*> cylindricalSurface;
+	std::unordered_map<int, STEPConicalSurface*> conicalSurface;
 	std::unordered_map<int, STEPPlane*> planes;
 	std::unordered_map<int, STEPVector*> vectors;
 	std::unordered_map<int, STEPDirection*> directions;
@@ -147,6 +148,7 @@ struct STEPEntityBase
 	virtual void Printf(const DebugOption& option) = 0;
 	void ShowLeaf(STEPUIContext& ui);
 	void PrintfRaw();
+	String ToString() const;
 };
 
 struct STEPPoint : public STEPEntityBase
@@ -300,10 +302,10 @@ struct STEPCircle : public STEPEntityBase
 	void ShowUI(STEPUIContext& ui);
 };
 
-struct STEPCylinderSurface : public STEPEntityBase
+struct STEPCylindricalSurface : public STEPEntityBase
 {
-	virtual ~STEPCylinderSurface() = default;
-	STEP_DEFINE_HPP(STEPCylinderSurface, "CYLINDRICAL_SURFACE");
+	virtual ~STEPCylindricalSurface() = default;
+	STEP_DEFINE_HPP(STEPCylindricalSurface, "CYLINDRICAL_SURFACE");
 
 	struct Raw
 	{
@@ -329,28 +331,23 @@ struct STEPCylinderSurface : public STEPEntityBase
 struct STEPConicalSurface : public STEPEntityBase
 {
 	virtual ~STEPConicalSurface() = default;
-	//static constexpr const char* EntityName = "CONICAL_SURFACE";
-	//static constexpr ESTEPEntityType ClassType = ESTEPConicalSurface;
-	//virtual ESTEPEntityType GetType() const { return ESTEPConicalSurface; }
 	STEP_DEFINE_HPP(STEPConicalSurface,"CONICAL_SURFACE")
-	//	struct Raw
-	//{
-	//	int axisRef = -1;
-	//	float rad = 0.0f;
-	//};
-	//Raw raw;
+	struct Raw
+	{
+		int idRef = 0;
+	};
 
-	//struct Data
-	//{
-	//	STEPAxis2Placement3D* axis = nullptr;
-	//	float rad = 0.0f;
-	//};
-	//Data data;
+	Raw raw;
+	struct Data
+	{
+		STEPAxis2Placement3D* axis = nullptr;
+	};
+	Data data;
 
-	//static void Fetch(STEPStruct& step, const STEPString& stepStr);
-	//void FetchData(const STEPStruct& step);
-	//void Printf(const DebugOption& option);
-	//void ShowUI(STEPUIContext& ui);
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	void Printf(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
 };
 
 struct STEPPlane : public STEPEntityBase
@@ -409,7 +406,7 @@ struct STEPInterSectionCurve : public STEPEntityBase
 		{
 			bool IsActive() const { return pPlane || pCylinderSurface; }
 			STEPPlane* pPlane = nullptr;
-			STEPCylinderSurface* pCylinderSurface = nullptr;
+			STEPCylindricalSurface* pCylinderSurface = nullptr;
 		};
 		Surface surf0;
 		Surface surf1;
@@ -645,7 +642,8 @@ struct STEPFaceBase : public STEPEntityBase
 		Vector<STEPFaceBound*> faceBound;
 		Vector<STEPFaceOuterBound*> faceOuterBound;
 		STEPPlane* plane = nullptr;
-		STEPCylinderSurface* cylinder = nullptr;
+		STEPCylindricalSurface* cylinder = nullptr;
+		STEPConicalSurface* conical = nullptr;
 		bool orient = true;
 
 		struct CylidnerEdge
@@ -659,7 +657,7 @@ struct STEPFaceBase : public STEPEntityBase
 			float GetHeight() const { return maxZ.first - minZ.first; }
 		};
 
-		CylidnerEdge SearchCylinderEdge(const STEPCylinderSurface* pCylinder) const;
+		CylidnerEdge SearchCylinderEdge(const STEPCylindricalSurface* pCylinder) const;
 		PolylineList CreateBoundPolyline() const;
 		PolylineList CreateOuterBoundPolyline() const;
 		Mesh CreateMesh(const Polyline& bound, const Polyline& outerBound) const;

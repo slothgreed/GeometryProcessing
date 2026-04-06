@@ -26,7 +26,8 @@ struct STEPFaceSurface;
 struct STEPClosedShell;
 struct STEPOpenShell;
 struct STEPCircle;
-struct STEPCylinderSurface;
+struct STEPCylindricalSurface;
+struct STEPConicalSurface;
 
 enum ESTEPEntityType
 {
@@ -49,7 +50,7 @@ enum ESTEPEntityType
 	ESTEPClosedShell,
 	ESTEPOpenShell,
 	ESTEPCircle,
-	ESTEPCylinderSurface,
+	ESTEPCylindricalSurface,
 	ESTEPConicalSurface,
 };
 struct STEPStruct;

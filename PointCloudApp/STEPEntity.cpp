@@ -119,7 +119,7 @@ STEPStruct::~STEPStruct()
 	for (auto& v : directions) { delete v.second; }
 	for (auto& v : edgeCurve) { delete v.second; }
 	for (auto& v : axis2Placement3D) { delete v.second; }
-	for (auto& v : cylinderSurface) { delete v.second; }
+	for (auto& v : cylindricalSurface) { delete v.second; }
 	for (auto& v : vertexPoint) { delete v.second; }
 	for (auto& v : interSectionCurve) { delete v.second; }
 	for (auto& v : edgeLoop) { delete v.second; }
@@ -178,6 +178,11 @@ void STEPEntityBase::ShowLeaf(STEPUIContext& ui)
 void STEPEntityBase::PrintfRaw()
 {
 	DebugPrintf::StringStr(str); DebugPrintf::NewLine();
+}
+
+String STEPEntityBase::ToString() const
+{
+	return str + "\n";
 }
 
 
@@ -379,29 +384,29 @@ void STEPCircle::ShowUI(STEPUIContext& ui)
 	}
 }
 
-void STEPCylinderSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
+void STEPCylindricalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 {
-	auto data = new STEPCylinderSurface();
+	auto data = new STEPCylindricalSurface();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
 	if (!STEPString::ValueToRef(values[1], data->raw.axisRef)) { assert(0); return; }
 	if (!STEPString::ValueToFloat(values[2], data->raw.rad)) { assert(0); return; }
-	step.cylinderSurface[data->id] = data;
+	step.cylindricalSurface[data->id] = data;
 }
 
-void STEPCylinderSurface::FetchData(const STEPStruct& step)
+void STEPCylindricalSurface::FetchData(const STEPStruct& step)
 {
 	data.axis = FindSetData2(step, step.axis2Placement3D, raw.axisRef);
 	data.rad = raw.rad;
 }
 
-void STEPCylinderSurface::Printf(const DebugOption& option)
+void STEPCylindricalSurface::Printf(const DebugOption& option)
 {
 	PrintfRaw();
 	if (data.axis) { data.axis->Printf(option); }
 }
 
-void STEPCylinderSurface::ShowUI(STEPUIContext& ui)
+void STEPCylindricalSurface::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
 		if (data.axis) { data.axis->ShowUI(ui); }
@@ -409,6 +414,33 @@ void STEPCylinderSurface::ShowUI(STEPUIContext& ui)
 	}
 }
 
+void STEPConicalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPConicalSurface();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.value);
+	if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
+	step.conicalSurface[data->id] = data;
+}
+
+void STEPConicalSurface::FetchData(const STEPStruct& step)
+{
+	data.axis = FindSetData2(step, step.axis2Placement3D, raw.idRef);
+}
+
+void STEPConicalSurface::Printf(const DebugOption& option)
+{
+	PrintfRaw();
+	if (data.axis) { data.axis->Printf(option); }
+}
+
+void STEPConicalSurface::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		if (data.axis) { data.axis->ShowUI(ui); }
+		ImGui::TreePop();
+	}
+}
 
 void STEPPlane::Fetch(STEPStruct& step, const STEPString& stepStr)
 {
@@ -462,12 +494,12 @@ void STEPInterSectionCurve::FetchData(const STEPStruct& step)
 	if (!data.curve0.IsActive()) {
 		data.curve0.pCircle = FindSetData2(step, step.circles, raw.curveId);
 	}
-	data.surf0.pCylinderSurface = FindSetData2(step, step.cylinderSurface, raw.geomId0);
+	data.surf0.pCylinderSurface = FindSetData2(step, step.cylindricalSurface, raw.geomId0);
 	if (!data.surf0.IsActive()) {
 		data.surf0.pPlane = FindSetData2(step, step.planes, raw.geomId0);
 	}
 
-	data.surf1.pCylinderSurface = FindSetData2(step, step.cylinderSurface, raw.geomId1);
+	data.surf1.pCylinderSurface = FindSetData2(step, step.cylindricalSurface, raw.geomId1);
 	if (!data.surf1.IsActive()) {
 		data.surf1.pPlane = FindSetData2(step, step.planes, raw.geomId1);
 	}
@@ -842,7 +874,7 @@ void STEPFaceBound::Fetch(STEPStruct& step, const STEPString& stepStr)
 	step.faceBound[data->id] = data;
 }
 
-STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const STEPCylinderSurface* pCylinder) const
+STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const STEPCylindricalSurface* pCylinder) const
 {
 	CylidnerEdge ret;
 	bool setBegin = false; bool setEnd = false;
@@ -953,13 +985,10 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 
 		auto normal = cylinder->data.axis->data.Normal();
 		//if (!orient) { normal = -normal; }
-
 		auto edge = SearchCylinderEdge(cylinder);
-		//auto edge = SearchCylinderEdge(cylinder->data.axis->data.point, normal);
 		if (!edge.IsActive()) { return Mesh(); }
 		Vector3 origin = cylinder->data.axis->data.point +
 			normal * edge.minZ.first;
-
 		//if (!orient) { begin = -begin; end = -end; }
 		return Cylinder::CreateSideMesh(
 			origin,
@@ -971,6 +1000,9 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 			orient,
 			CIRCLE_SUBDIVISION_NUM,
 			CIRCLE_SUBDIVISION_NUM);
+	} else if (conical) {
+		// TODO;
+		int a = 0;
 	}
 
 	return Mesh();
@@ -986,7 +1018,12 @@ void STEPFaceBase::FetchData(const STEPStruct& step)
 		if (pFaceBound) { data.faceBound.push_back(pFaceBound); continue; }
 	}
 	data.plane = FindSetData2(step, step.planes, raw.geomRef1);
-	data.cylinder = FindSetData2(step, step.cylinderSurface, raw.geomRef1);
+	if (!data.plane) {
+		data.cylinder = FindSetData2(step, step.cylindricalSurface, raw.geomRef1);
+	}
+	if (!data.plane && !data.cylinder) {
+		data.conical = FindSetData2(step, step.conicalSurface, raw.geomRef1);
+	}
 	data.orient = raw.orient;
 }
 
