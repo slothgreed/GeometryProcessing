@@ -34,7 +34,7 @@ public:
 	void Add(const Polyline& point);
 	void Add(Polyline&& point);
 	void Add(const Vector3& point);
-
+	std::pair<Vector3, Vector3> GetLine(int index) const;
 	const Vector<Vector3>& GetPoints() const { return m_points; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 

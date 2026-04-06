@@ -50,6 +50,7 @@ enum ESTEPEntityType
 	ESTEPOpenShell,
 	ESTEPCircle,
 	ESTEPCylinderSurface,
+	ESTEPConicalSurface,
 };
 struct STEPStruct;
 struct STEPEntityBase;

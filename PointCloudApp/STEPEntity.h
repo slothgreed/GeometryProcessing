@@ -26,6 +26,27 @@ static const TypeName* Cast(const STEPEntityBase* pBase) \
     return (pBase->GetType() == TypeName::ClassType) ? static_cast<const TypeName*>(pBase) : nullptr; \
 }\
 
+// 1段目（結合専用）
+#define MACRO_CONCAT(a, b) a##b
+// 2段目（展開させてから結合）
+#define MACRO_CONCAT_EXPAND(a, b) MACRO_CONCAT(a, b)
+
+#define STEP_DEFINE_HPP(TypeName,_EntityName) \
+static constexpr const char* EntityName = _EntityName;\
+static constexpr ESTEPEntityType ClassType = MACRO_CONCAT_EXPAND(E,TypeName);\
+virtual ESTEPEntityType GetType() const { return MACRO_CONCAT_EXPAND(E,TypeName); }\
+static TypeName* Cast(STEPEntityBase* pBase) \
+{ \
+    if (!pBase) { return nullptr; } \
+    return  (pBase->GetType() == TypeName::ClassType) ? static_cast<TypeName*>(pBase) : nullptr; \
+} \
+\
+static const TypeName* Cast(const STEPEntityBase* pBase) \
+{ \
+    if (!pBase) { return nullptr; } \
+    return (pBase->GetType() == TypeName::ClassType) ? static_cast<const TypeName*>(pBase) : nullptr; \
+}\
+
 struct DebugOption
 {
 	int level = -1;
@@ -97,30 +118,7 @@ struct STEPStruct
 	std::unordered_map<int, STEPClosedShell*> closedShell;
 	std::unordered_map<int, STEPOpenShell*> openShell;
 
-	~STEPStruct()
-	{
-		for (auto& v : points) { delete v.second; }
-		for (auto& v : lines) { delete v.second; }
-		for (auto& v : circles) { delete v.second; }
-		for (auto& v : planes) { delete v.second; }
-		for (auto& v : vectors) { delete v.second; }
-		for (auto& v : directions) { delete v.second; }
-		for (auto& v : edgeCurve) { delete v.second; }
-		for (auto& v : axis2Placement3D) { delete v.second; }
-		for (auto& v : cylinderSurface) { delete v.second; }
-		for (auto& v : vertexPoint) { delete v.second; }
-		for (auto& v : interSectionCurve) { delete v.second; }
-		for (auto& v : edgeLoop) { delete v.second; }
-		for (auto& v : polyLoop) { delete v.second; }
-		for (auto& v : faceOuterBound) { delete v.second; }
-		for (auto& v : faceBound) { delete v.second; }
-		for (auto& v : orientedEdge) { delete v.second; }
-		for (auto& v : advancedFace) { delete v.second; }
-		for (auto& v : faceSurface) { delete v.second; }
-		for (auto& v : closedShell) { delete v.second; }
-		for (auto& v : openShell) { delete v.second; }
-	}
-
+	~STEPStruct();
 };
 
 template <typename Struct>
@@ -154,10 +152,7 @@ struct STEPEntityBase
 struct STEPPoint : public STEPEntityBase
 {
 	virtual ~STEPPoint() = default;
-	static constexpr const char* EntityName = "CARTESIAN_POINT";
-	static constexpr ESTEPEntityType ClassType = ESTEPPoint;
-	virtual ESTEPEntityType GetType() const { return ESTEPPoint; }
-	STEP_DEFINE_CAST(STEPPoint)
+	STEP_DEFINE_HPP(STEPPoint, "CARTESIAN_POINT");
 
 	struct Data
 	{
@@ -176,10 +171,7 @@ struct STEPPoint : public STEPEntityBase
 struct STEPDirection : public STEPEntityBase
 {
 	virtual ~STEPDirection() = default;
-	static constexpr const char* EntityName = "DIRECTION";
-	static constexpr ESTEPEntityType ClassType = ESTEPDirection;
-	virtual ESTEPEntityType GetType() const { return ESTEPDirection; }
-	STEP_DEFINE_CAST(STEPDirection)
+	STEP_DEFINE_HPP(STEPDirection, "DIRECTION");
 
 	Vector3 direction;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
@@ -191,10 +183,7 @@ struct STEPDirection : public STEPEntityBase
 struct STEPVector : public STEPEntityBase
 {
 	virtual ~STEPVector() = default;
-	static constexpr const char* EntityName = "VECTOR";
-	static constexpr ESTEPEntityType ClassType = ESTEPVector;
-	virtual ESTEPEntityType GetType() const { return ESTEPVector; }
-	STEP_DEFINE_CAST(STEPVector)
+	STEP_DEFINE_HPP(STEPVector, "VECTOR");
 
 	struct Raw
 	{
@@ -221,10 +210,7 @@ struct STEPVector : public STEPEntityBase
 struct STEPLine : public STEPEntityBase
 {
 	virtual ~STEPLine() = default;
-	static constexpr const char* EntityName = "LINE";
-	static constexpr ESTEPEntityType ClassType = ESTEPLine;
-	virtual ESTEPEntityType GetType() const { return ESTEPLine; }
-	STEP_DEFINE_CAST(STEPLine)
+	STEP_DEFINE_HPP(STEPLine, "LINE");
 
 	struct Raw
 	{
@@ -240,6 +226,7 @@ struct STEPLine : public STEPEntityBase
 
 		STEPPoint* point = nullptr;
 		STEPVector* vector0 = nullptr;
+		Polyline CreatePolyline();
 	};
 	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
@@ -252,10 +239,7 @@ struct STEPLine : public STEPEntityBase
 struct STEPAxis2Placement3D : public STEPEntityBase
 {
 	virtual ~STEPAxis2Placement3D() = default;
-	static constexpr const char* EntityName = "AXIS2_PLACEMENT_3D";
-	static constexpr ESTEPEntityType ClassType = ESTEPAxis2Placement3D;
-	virtual ESTEPEntityType GetType() const { return ESTEPAxis2Placement3D; }
-	STEP_DEFINE_CAST(STEPAxis2Placement3D)
+	STEP_DEFINE_HPP(STEPAxis2Placement3D, "AXIS2_PLACEMENT_3D");
 
 	struct Raw
 	{
@@ -291,10 +275,7 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 struct STEPCircle : public STEPEntityBase
 {
 	virtual ~STEPCircle() = default;
-	static constexpr const char* EntityName = "CIRCLE";
-	static constexpr ESTEPEntityType ClassType = ESTEPCircle;
-	virtual ESTEPEntityType GetType() const { return ESTEPCircle; }
-	STEP_DEFINE_CAST(STEPCircle)
+	STEP_DEFINE_HPP(STEPCircle, "CIRCLE");
 		
 	struct Raw
 	{
@@ -322,10 +303,7 @@ struct STEPCircle : public STEPEntityBase
 struct STEPCylinderSurface : public STEPEntityBase
 {
 	virtual ~STEPCylinderSurface() = default;
-	static constexpr const char* EntityName = "CYLINDRICAL_SURFACE";
-	static constexpr ESTEPEntityType ClassType = ESTEPCylinderSurface;
-	virtual ESTEPEntityType GetType() const { return ESTEPCylinderSurface; }
-	STEP_DEFINE_CAST(STEPCylinderSurface)
+	STEP_DEFINE_HPP(STEPCylinderSurface, "CYLINDRICAL_SURFACE");
 
 	struct Raw
 	{
@@ -348,13 +326,37 @@ struct STEPCylinderSurface : public STEPEntityBase
 };
 
 
+struct STEPConicalSurface : public STEPEntityBase
+{
+	virtual ~STEPConicalSurface() = default;
+	//static constexpr const char* EntityName = "CONICAL_SURFACE";
+	//static constexpr ESTEPEntityType ClassType = ESTEPConicalSurface;
+	//virtual ESTEPEntityType GetType() const { return ESTEPConicalSurface; }
+	STEP_DEFINE_HPP(STEPConicalSurface,"CONICAL_SURFACE")
+	//	struct Raw
+	//{
+	//	int axisRef = -1;
+	//	float rad = 0.0f;
+	//};
+	//Raw raw;
+
+	//struct Data
+	//{
+	//	STEPAxis2Placement3D* axis = nullptr;
+	//	float rad = 0.0f;
+	//};
+	//Data data;
+
+	//static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	//void FetchData(const STEPStruct& step);
+	//void Printf(const DebugOption& option);
+	//void ShowUI(STEPUIContext& ui);
+};
+
 struct STEPPlane : public STEPEntityBase
 {
 	virtual ~STEPPlane() = default;
-	static constexpr const char* EntityName = "PLANE";
-	static constexpr ESTEPEntityType ClassType = ESTEPPlane;
-	virtual ESTEPEntityType GetType() const { return ESTEPPlane; }
-	STEP_DEFINE_CAST(STEPPlane)
+	STEP_DEFINE_HPP(STEPPlane, "PLANE");
 
 	struct Raw
 	{
@@ -378,10 +380,7 @@ struct STEPPlane : public STEPEntityBase
 struct STEPInterSectionCurve : public STEPEntityBase
 {
 	virtual ~STEPInterSectionCurve() = default;
-	static constexpr const char* EntityName = "INTERSECTION_CURVE";
-	static constexpr ESTEPEntityType ClassType = ESTEPInterSectionCurve;
-	virtual ESTEPEntityType GetType() const { return ESTEPInterSectionCurve; }
-	STEP_DEFINE_CAST(STEPInterSectionCurve)
+	STEP_DEFINE_HPP(STEPInterSectionCurve, "INTERSECTION_CURVE");
 
 	struct Raw
 	{
@@ -429,10 +428,7 @@ struct STEPInterSectionCurve : public STEPEntityBase
 struct STEPVertexPoint : public STEPEntityBase
 {
 	virtual ~STEPVertexPoint() = default;
-	static constexpr const char* EntityName = "VERTEX_POINT";
-	static constexpr ESTEPEntityType ClassType = ESTEPVertexPoint;
-	virtual ESTEPEntityType GetType() const { return ESTEPVertexPoint; }
-	STEP_DEFINE_CAST(STEPVertexPoint)
+	STEP_DEFINE_HPP(STEPVertexPoint, "VERTEX_POINT");
 
 	struct Raw
 	{
@@ -454,10 +450,7 @@ struct STEPVertexPoint : public STEPEntityBase
 struct STEPEdgeCurve : public STEPEntityBase
 {
 	virtual ~STEPEdgeCurve() = default;
-	static constexpr const char* EntityName = "EDGE_CURVE";
-	static constexpr ESTEPEntityType ClassType = ESTEPEdgeCurve;
-	virtual ESTEPEntityType GetType() const { return ESTEPEdgeCurve; }
-	STEP_DEFINE_CAST(STEPEdgeCurve)
+	STEP_DEFINE_HPP(STEPEdgeCurve, "EDGE_CURVE");
 
 	struct Raw
 	{
@@ -496,10 +489,7 @@ struct STEPEdgeCurve : public STEPEntityBase
 struct STEPOrientedEdge : public STEPEntityBase
 {
 	virtual ~STEPOrientedEdge() = default;
-	static constexpr const char* EntityName = "ORIENTED_EDGE";
-	static constexpr ESTEPEntityType ClassType = ESTEPOrientedEdge;
-	virtual ESTEPEntityType GetType() const { return ESTEPOrientedEdge; }
-	STEP_DEFINE_CAST(STEPOrientedEdge)
+	STEP_DEFINE_HPP(STEPOrientedEdge, "ORIENTED_EDGE");
 
 	struct Raw
 	{
@@ -540,10 +530,7 @@ struct STEPOrientedEdge : public STEPEntityBase
 struct STEPPolyLoop : public STEPEntityBase
 {
 	virtual ~STEPPolyLoop() = default;
-	static constexpr const char* EntityName = "POLY_LOOP";
-	static constexpr ESTEPEntityType ClassType = ESTEPPolyLoop;
-	virtual ESTEPEntityType GetType() const { return ESTEPPolyLoop; }
-	STEP_DEFINE_CAST(STEPPolyLoop)
+	STEP_DEFINE_HPP(STEPPolyLoop, "POLY_LOOP");
 
 	struct Raw
 	{
@@ -569,10 +556,7 @@ struct STEPPolyLoop : public STEPEntityBase
 struct STEPEdgeLoop : public STEPEntityBase
 {
 	virtual ~STEPEdgeLoop() = default;
-	static constexpr const char* EntityName = "EDGE_LOOP";
-	static constexpr ESTEPEntityType ClassType = ESTEPEdgeLoop;
-	virtual ESTEPEntityType GetType() const { return ESTEPEdgeLoop; }
-	STEP_DEFINE_CAST(STEPEdgeLoop)
+	STEP_DEFINE_HPP(STEPEdgeLoop, "EDGE_LOOP");
 
 	struct Raw
 	{
@@ -627,10 +611,7 @@ struct STEPFaceBoundBase : public STEPEntityBase
 struct STEPFaceOuterBound : public STEPFaceBoundBase
 {
 	virtual ~STEPFaceOuterBound() = default;
-	static constexpr const char* EntityName = "FACE_OUTER_BOUND";
-	static constexpr ESTEPEntityType ClassType = ESTEPFaceOuterBound;
-	virtual ESTEPEntityType GetType() const { return ESTEPFaceOuterBound; }
-	STEP_DEFINE_CAST(STEPFaceOuterBound)
+	STEP_DEFINE_HPP(STEPFaceOuterBound, "FACE_OUTER_BOUND");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 };
@@ -638,10 +619,7 @@ struct STEPFaceOuterBound : public STEPFaceBoundBase
 struct STEPFaceBound : public STEPFaceBoundBase
 {
 	virtual ~STEPFaceBound() = default;
-	static constexpr const char* EntityName = "FACE_BOUND";
-	static constexpr ESTEPEntityType ClassType = ESTEPFaceBound;
-	virtual ESTEPEntityType GetType() const { return ESTEPFaceBound; }
-	STEP_DEFINE_CAST(STEPFaceBound)
+	STEP_DEFINE_HPP(STEPFaceBound, "FACE_BOUND");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 };
@@ -672,14 +650,16 @@ struct STEPFaceBase : public STEPEntityBase
 
 		struct CylidnerEdge
 		{
-			bool IsActive() const { return circle; }
+			bool IsActive() const { return true; }
 			STEPOrientedEdge::Data* circle = nullptr;
-			std::pair<float, Vector3> maxPos{ -INFINITY,Vector3(0,0,0) };
-			std::pair<float, Vector3> minPos{ INFINITY, Vector3(0, 0, 0) };
-			float GetHeight() const { return maxPos.first - minPos.first; }
+			std::pair<float, Vector3> maxZ{ -INFINITY,Vector3(0, 0, 0) };
+			std::pair<float, Vector3> minZ{ INFINITY, Vector3(0, 0, 0) };
+			Vector3 begin = Vector3(0, 0, 0);
+			Vector3 end = Vector3(0, 0, 0);
+			float GetHeight() const { return maxZ.first - minZ.first; }
 		};
 
-		CylidnerEdge SearchCylinderEdge(const Vector3& origin, const Vector3& axis) const;
+		CylidnerEdge SearchCylinderEdge(const STEPCylinderSurface* pCylinder) const;
 		PolylineList CreateBoundPolyline() const;
 		PolylineList CreateOuterBoundPolyline() const;
 		Mesh CreateMesh(const Polyline& bound, const Polyline& outerBound) const;
@@ -697,10 +677,7 @@ struct STEPFaceBase : public STEPEntityBase
 struct STEPFaceSurface : public STEPFaceBase
 {
 	virtual ~STEPFaceSurface() = default;
-	static constexpr const char* EntityName = "FACE_SURFACE";
-	static constexpr ESTEPEntityType ClassType = ESTEPFaceSurface;
-	virtual ESTEPEntityType GetType() const { return ESTEPFaceSurface; }
-	STEP_DEFINE_CAST(STEPFaceSurface)
+	STEP_DEFINE_HPP(STEPFaceSurface, "FACE_SURFACE");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 
@@ -709,10 +686,7 @@ struct STEPFaceSurface : public STEPFaceBase
 struct STEPAdvancedFace : public STEPFaceBase
 {
 	virtual ~STEPAdvancedFace() = default;
-	static constexpr const char* EntityName = "ADVANCED_FACE";
-	static constexpr ESTEPEntityType ClassType = ESTEPAdvancedFace;
-	virtual ESTEPEntityType GetType() const { return ESTEPAdvancedFace; }
-	STEP_DEFINE_CAST(STEPAdvancedFace)
+	STEP_DEFINE_HPP(STEPAdvancedFace, "ADVANCED_FACE");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 };
@@ -745,10 +719,7 @@ struct STEPShell : public STEPEntityBase
 struct STEPClosedShell : public STEPShell
 {
 	virtual ~STEPClosedShell() = default;
-	static constexpr const char* EntityName = "CLOSED_SHELL";
-	static constexpr ESTEPEntityType ClassType = ESTEPClosedShell;
-	virtual ESTEPEntityType GetType() const { return ESTEPClosedShell; }
-	STEP_DEFINE_CAST(STEPClosedShell)
+	STEP_DEFINE_HPP(STEPClosedShell, "CLOSED_SHELL");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
@@ -759,10 +730,7 @@ struct STEPClosedShell : public STEPShell
 struct STEPOpenShell : public STEPShell
 {
 	virtual ~STEPOpenShell() = default;
-	static constexpr const char* EntityName = "OPEN_SHELL";
-	static constexpr ESTEPEntityType ClassType = ESTEPOpenShell;
-	virtual ESTEPEntityType GetType() const { return ESTEPOpenShell; }
-	STEP_DEFINE_CAST(STEPOpenShell)
+	STEP_DEFINE_HPP(STEPOpenShell, "OPEN_SHELL");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);

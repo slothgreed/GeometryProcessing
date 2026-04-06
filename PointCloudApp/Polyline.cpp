@@ -90,6 +90,24 @@ void Polyline::Add(const Vector3& point)
     m_points.push_back(point);
 }
 
+std::pair<Vector3, Vector3> Polyline::GetLine(int index) const
+{
+    if (m_indexs.empty()) {
+        if (m_drawType == Polyline::DrawType::Lines) {
+            return  std::pair<Vector3, Vector3>(m_points[2 * index], m_points[2 * index + 1]);
+        } else {
+            assert(0);
+        }
+    } else {
+        if (m_drawType == Polyline::DrawType::Lines) {
+            return  std::pair<Vector3, Vector3>(m_points[m_indexs[2 * index]], m_points[m_indexs[2 * index + 1]]);
+        } else {
+            assert(0);
+        }
+    }
+    return std::pair<Vector3,Vector3>();
+}
+
 Polyline& Polyline::ConvertLines()
 {
     if (m_points.empty()) { m_drawType = DrawType::Lines; }

@@ -25,6 +25,7 @@ public:
 	static float CramesDet(const Vector3& a, const Vector3& b, const Vector3& c);
 	static float ToRadian(float angle);
 	static float ToAngle(float rad);
+	static float ToAngle(const Vector3& origin, const Vector3& target, const Vector3& u, const Vector3& v, float radius);
 	static float Normalize0_PI2(float rad);
 	static float NormalizePI(float rad);
 	static Vector4 WorldToScreenPos(const Matrix4x4& proj, const Matrix4x4& view, const Matrix4x4& model, const Vector3& value);

@@ -641,10 +641,9 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
 	{
+		//実施中
+		m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
 		// 高難度データ
-
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
-		m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
 
 		//// Alignment
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp");
@@ -656,12 +655,13 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	}
 
 	
-	//// 完成データ
+	////// 完成データ
 	//{
 	//	// CYLINDRICAL_SURFACE
 	//	{
 	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
 	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
 	//	}
 	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
 	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
@@ -669,7 +669,7 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
 	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
 	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	//  m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
+	//    m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
 	//}
 		
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));

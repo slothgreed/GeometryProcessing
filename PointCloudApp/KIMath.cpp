@@ -63,6 +63,13 @@ float MathHelper::ToAngle(float rad)
 {
 	return rad * 180 / glm::pi<float>();
 }
+float MathHelper::ToAngle(const Vector3& origin, const Vector3& target, const Vector3& u, const Vector3& v, float radius)
+{
+	Vector3 d = target - origin;
+	float x = glm::dot(d, u) / radius;
+	float y = glm::dot(d, v) / radius;
+	return std::atan2(y, x);
+}
 float MathHelper::Normalize0_PI2(float rad)
 {
 	rad = std::fmod(rad, PI2);

@@ -381,8 +381,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 				if (glm::dot(normal, faceNormal) < 0) { orient = false; }
 			}
 
-			if (orient)
-			{
+			if (orient)	{
 				indices.push_back(i0);
 				indices.push_back(i1);
 				indices.push_back(i2);
@@ -660,18 +659,8 @@ Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const 
 Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end)
 {
 	Vector<Vector3> points;
-
-	// begin, end ‚ÌŠp“x‚ğ‹‚ß‚é
-	auto toAngle = [&](const Vector3& p)
-	{
-		Vector3 d = p - center;
-		float x = glm::dot(d, u) / radius;
-		float y = glm::dot(d, v) / radius;
-		return std::atan2(y, x);
-	};
-
-	float beginAngle = toAngle(begin);
-	float endAngle = toAngle(end);
+	float beginAngle = MathHelper::ToAngle(center,begin,u,v,radius);
+	float endAngle = MathHelper::ToAngle(center, end, u, v, radius);
 
 	float delta = MathHelper::NormalizePI(endAngle - beginAngle);
 	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
