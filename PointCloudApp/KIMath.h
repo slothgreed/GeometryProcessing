@@ -6,6 +6,7 @@ namespace KI
 class MathHelper
 {
 public:
+	static const float PI_HALF;
 	static const float PI;
 	static const float PI2;
 	static const float EPS;
@@ -25,9 +26,10 @@ public:
 	static float CramesDet(const Vector3& a, const Vector3& b, const Vector3& c);
 	static float ToRadian(float angle);
 	static float ToAngle(float rad);
-	static float ToAngle(const Vector3& origin, const Vector3& target, const Vector3& u, const Vector3& v, float radius);
+	static float ToRadian(const Vector3& d, const Vector3& u, const Vector3& v, float radius);
 	static float Normalize0_PI2(float rad);
 	static float NormalizePI(float rad);
+	static float UnWrapDiffRad(float v1, float v2);
 	static Vector4 WorldToScreenPos(const Matrix4x4& proj, const Matrix4x4& view, const Matrix4x4& model, const Vector3& value);
 	static bool InPolyline(const Vector<Vector3>& polyline, const Vector3& point, bool isLoop);
 	static void CalcClasterPoints(const Vector<Vector3>& points, const Vector3& begin, const Vector3& end, Vector<Vector3>& left, Vector<Vector3>& right);
@@ -36,6 +38,8 @@ public:
 	static bool IsSameDir(const Vector3& v1, const Vector3& v2);
 	static bool IsSame(const Vector3& v1, const Vector3& v2);
 	static bool IsZero(float v1);
+	static bool IsSameRad(float v1, float v2);
+	static bool IsZero(const Vector3& value);
 	static bool IsOne(float v1);
 	static bool IsZPlus(const Vector3& value);
 	static bool IsZMinus(const Vector3& value);
@@ -43,7 +47,7 @@ public:
 	static Vector3 Transform(const Matrix4x4& matrix, const Vector3& world);
 	static Vector<Vector3> Rotate(const Vector<Vector3>& point, const Matrix4x4& matrix);
 	static Matrix4x4 CreateZAxisMatrix(const Vector3& normal);
-
+	static Vector3 CreatePerpendicular(const Vector3& n);
 	struct ProjectInfo
 	{
 		Vector3 origin;

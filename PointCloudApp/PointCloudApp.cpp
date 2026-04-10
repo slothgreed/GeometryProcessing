@@ -159,14 +159,14 @@ void PointCloudApp::Execute()
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
 	{
-		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
-		auto pSTEPNode = CreateSTEPNodeTest();
-		for (const auto& pNode : pSTEPNode) {
-			m_pRoot->AddNode(pNode);
-		}
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+		//auto pSTEPNode = CreateSTEPNodeTest();
+		//for (const auto& pNode : pSTEPNode) {
+		//	m_pRoot->AddNode(pNode);
+		//}
+		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
 	}
 
 	// PBR
@@ -642,7 +642,15 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	Vector2i gridSize = Vector2i(5, 5);
 	{
 		//実施中
-		m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE419_orig.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE1170_orig.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE144_orig.step");
+
+		//toroidal
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE940_orig.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE1089_orig.step");
+
 		// 高難度データ
 
 		//// Alignment

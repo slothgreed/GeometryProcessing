@@ -4,6 +4,7 @@
 #include <glm/gtx/vector_angle.hpp>
 namespace KI
 {
+const float MathHelper::PI_HALF = 3.14159f / 2;
 const float MathHelper::PI = 3.14159f;
 const float MathHelper::PI2 = 6.28318f;
 const float MathHelper::EPS = 0.0001f;
@@ -63,9 +64,8 @@ float MathHelper::ToAngle(float rad)
 {
 	return rad * 180 / glm::pi<float>();
 }
-float MathHelper::ToAngle(const Vector3& origin, const Vector3& target, const Vector3& u, const Vector3& v, float radius)
+float MathHelper::ToRadian(const Vector3& d, const Vector3& u, const Vector3& v, float radius)
 {
-	Vector3 d = target - origin;
 	float x = glm::dot(d, u) / radius;
 	float y = glm::dot(d, v) / radius;
 	return std::atan2(y, x);
@@ -84,6 +84,13 @@ float MathHelper::NormalizePI(float rad)
 	while (rad <= -glm::pi<float>()) rad += PI2;
 	while (rad > glm::pi<float>()) rad -= PI2;
 	return rad;
+}
+float MathHelper::UnWrapDiffRad(float v1, float v2)
+{
+	while (v1 - v2 > PI) v1 -= PI2;
+	while (v1 - v2 < -PI) v1 += PI2;
+
+	return v1;
 }
 float MathHelper::CramesDet(const Vector3& a, const Vector3& b, const Vector3& c)
 {
@@ -163,12 +170,23 @@ bool MathHelper::IsSame(const Vector3& v1, const Vector3& v2)
 		IsSame(v1.y, v2.y) &&
 		IsSame(v1.z, v2.z);
 }
-
+bool MathHelper::IsSameRad(float v1, float v2)
+{
+	float d = std::fmod(v1 - v2, PI2);
+	if (d < -PI) d += PI2;
+	if (d > PI) d -= PI2;
+	return std::abs(d) < EPS;
+}
 bool MathHelper::IsZero(float v1)
 {
-	return fabs(v1) < 1e-6f;
+	return fabs(v1) < EPS;
 }
 
+bool MathHelper::IsZero(const Vector3& value)
+{
+	static Vector3 zero = Vector3(0, 0, 0);
+	return IsSame(value, zero);
+}
 bool MathHelper::IsOne(float v1)
 {
 	return IsSame(v1, 1.0f);
@@ -305,6 +323,15 @@ Matrix4x4 MathHelper::CreateZAxisMatrix(const Vector3& normal)
 
 	return glm::rotate(glm::mat4(1.0f), angle, axis);
 
+}
+
+Vector3 MathHelper::CreatePerpendicular(const Vector3& n)
+{
+	if (std::abs(n.x) < 0.9f) {
+		return normalize(cross(n, Vector3(1, 0, 0)));
+	} else {
+		return normalize(cross(n, Vector3(0, 1, 0)));
+	}
 }
 Intersect::Result Intersect::PointToBox(const glm::vec3& P, const BDB& bdb, bool innerDist)
 {

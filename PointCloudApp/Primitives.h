@@ -43,6 +43,13 @@ public:
 	Cone(float _radius, float _height, int _partition);
 	~Cone() {};
 
+	// ’¸Šp
+	static Vector3 CalcApex(const Vector3& center, const Vector3& axis, float radius, float semiAngleDeg);
+	static Mesh CreateSideMesh(
+		const Vector3& baseCenter, const Vector3& axis,
+		const Vector3& beginPoint, const Vector3& endPoint,
+		float radius, float height, float semiAngleDeg, bool orient, int slices, int stacks);
+
 private:
 	// radius = x around;
 	// height = y value;
@@ -115,6 +122,16 @@ class Torus : public Primitive
 public:
 	Torus(float _inRad, float _outRad, int _nsides, int _rings);
 	~Torus() {};
+
+	static
+		Vector2 ToUV(const Vector3& center, const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis,
+			float majorRadius, const Vector3& target);
+
+	static Mesh CreateMesh(
+		const Vector3& center, const Vector3& axis, const Vector3& refDirection,
+		float majorRadius, float minorRadius,
+		float uBegin, float uEnd, float vBegin, float vEnd,
+		bool orient,int uSegments, int vSegments);
 private:
 
 	float inRad;
@@ -139,10 +156,12 @@ class Axis : public Primitive
 {
 public:
 	Axis(float size);
-	~Axis();
+	Axis(const Vector3& locate, const Vector3& size);
+	Axis(const Vector3& locate, const Vector3& u, const Vector3& v, const Vector3& axis);
+	~Axis() = default;
 
 private:
-	void Build(float size);
+	void Build(const Vector3& locate, const Vector3& size);
 };
 
 
@@ -173,7 +192,7 @@ public:
 		Vector3 m_vAxis;
 		float m_radius;
 	};
-
+	static Vector3 GetPoint(float radius, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end, float parameter);
 	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
 	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end);
 

@@ -28,6 +28,7 @@ struct STEPOpenShell;
 struct STEPCircle;
 struct STEPCylindricalSurface;
 struct STEPConicalSurface;
+struct STEPToroidalSurface;
 
 enum ESTEPEntityType
 {
@@ -52,6 +53,7 @@ enum ESTEPEntityType
 	ESTEPCircle,
 	ESTEPCylindricalSurface,
 	ESTEPConicalSurface,
+	ESTEPToroidalSurface,
 };
 struct STEPStruct;
 struct STEPEntityBase;
@@ -64,6 +66,7 @@ struct STEPUIContext
 	STEPRenderNode* pNode = nullptr;
 	STEPEntityBase* pSelect = nullptr;
 	UIContext* ui = nullptr;
+	String filePath;
 };
 
 }

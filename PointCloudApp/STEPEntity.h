@@ -102,6 +102,7 @@ struct STEPStruct
 	std::unordered_map<int, STEPCircle*> circles;
 	std::unordered_map<int, STEPCylindricalSurface*> cylindricalSurface;
 	std::unordered_map<int, STEPConicalSurface*> conicalSurface;
+	std::unordered_map<int, STEPToroidalSurface*> toroidalSurface;
 	std::unordered_map<int, STEPPlane*> planes;
 	std::unordered_map<int, STEPVector*> vectors;
 	std::unordered_map<int, STEPDirection*> directions;
@@ -145,7 +146,7 @@ struct STEPEntityBase
 	virtual ESTEPEntityType GetType() const = 0;
 	virtual void ShowUI(STEPUIContext& ui) = 0;
 	bool ShowBranch(STEPUIContext& ui, bool select);
-	virtual void Printf(const DebugOption& option) = 0;
+	virtual String Dump(const DebugOption& option) = 0;
 	void ShowLeaf(STEPUIContext& ui);
 	void PrintfRaw();
 	String ToString() const;
@@ -155,18 +156,11 @@ struct STEPPoint : public STEPEntityBase
 {
 	virtual ~STEPPoint() = default;
 	STEP_DEFINE_HPP(STEPPoint, "CARTESIAN_POINT");
-
-	struct Data
-	{
-		Vector3 pos;
-	};
-	
-	Data data;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+	Vector3 pos;
 
 };
 
@@ -178,7 +172,7 @@ struct STEPDirection : public STEPEntityBase
 	Vector3 direction;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -187,26 +181,15 @@ struct STEPVector : public STEPEntityBase
 	virtual ~STEPVector() = default;
 	STEP_DEFINE_HPP(STEPVector, "VECTOR");
 
-	struct Raw
-	{
-		int idRef = -1;
-		float length = 0.0f;
-	};
-
-	Raw raw;
-	struct Data
-	{
-		STEPDirection* driection = nullptr;
-		Vector3 vector;
-	};
-
-	Data data;
-
+	
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 
+	std::pair<int, STEPDirection*> direction;
+	float length = 0.0f;
+	Vector3 vector;
 };
 
 struct STEPLine : public STEPEntityBase
@@ -214,28 +197,16 @@ struct STEPLine : public STEPEntityBase
 	virtual ~STEPLine() = default;
 	STEP_DEFINE_HPP(STEPLine, "LINE");
 
-	struct Raw
-	{
-		int beginRef = -1;
-		int vectorRef = -1;
-	};
+	Polyline CreatePolyline();
 
-	Raw raw;
-	struct Data
-	{
-		Vector3 begin;
-		Vector3 vector;
 
-		STEPPoint* point = nullptr;
-		STEPVector* vector0 = nullptr;
-		Polyline CreatePolyline();
-	};
-	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 
+	std::pair<int, STEPPoint*> point;
+	std::pair<int, STEPVector*> vector;
 };
 
 struct STEPAxis2Placement3D : public STEPEntityBase
@@ -269,7 +240,7 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -279,27 +250,19 @@ struct STEPCircle : public STEPEntityBase
 	virtual ~STEPCircle() = default;
 	STEP_DEFINE_HPP(STEPCircle, "CIRCLE");
 		
-	struct Raw
-	{
-		int axisRef = -1;
-		float rad = 0.0f;
-	};
-	Raw raw;
+	
+	Vector3 GetPoint(const Vector3& begin, const Vector3& end, float parameter) const;
+	Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const;
 
-	struct Data
-	{
-		STEPAxis2Placement3D* axis = nullptr;
-		float rad = 0.0f;
-
-		Polyline CreatePolyline() const;
-		Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const;
-	};
-	Data data;
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+
+	std::pair<int, STEPAxis2Placement3D*> axis;
+	float rad = 0.0f;
+
 };
 
 struct STEPCylindricalSurface : public STEPEntityBase
@@ -307,24 +270,13 @@ struct STEPCylindricalSurface : public STEPEntityBase
 	virtual ~STEPCylindricalSurface() = default;
 	STEP_DEFINE_HPP(STEPCylindricalSurface, "CYLINDRICAL_SURFACE");
 
-	struct Raw
-	{
-		int axisRef = -1;
-		float rad = 0.0f;
-	};
-	Raw raw;
-
-	struct Data
-	{
-		STEPAxis2Placement3D* axis = nullptr;
-		float rad = 0.0f;
-	};
-	Data data;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+
+	std::pair<int, STEPAxis2Placement3D*> axis;
+	float rad = 0.0f;
 };
 
 
@@ -332,22 +284,29 @@ struct STEPConicalSurface : public STEPEntityBase
 {
 	virtual ~STEPConicalSurface() = default;
 	STEP_DEFINE_HPP(STEPConicalSurface,"CONICAL_SURFACE")
-	struct Raw
-	{
-		int idRef = 0;
-	};
-
-	Raw raw;
-	struct Data
-	{
-		STEPAxis2Placement3D* axis = nullptr;
-	};
-	Data data;
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+
+	std::pair<int, STEPAxis2Placement3D*> axis;
+	float radius = 0.0f;
+	float angle = 0.0f;
+};
+
+struct STEPToroidalSurface : public STEPEntityBase
+{
+	virtual ~STEPToroidalSurface() = default;
+	STEP_DEFINE_HPP(STEPToroidalSurface, "TOROIDAL_SURFACE")
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+
+	std::pair<int, STEPAxis2Placement3D*> axis;
+	float majorRadius = 0.0f;
+	float minorRadius = 0.0f;
 };
 
 struct STEPPlane : public STEPEntityBase
@@ -355,22 +314,12 @@ struct STEPPlane : public STEPEntityBase
 	virtual ~STEPPlane() = default;
 	STEP_DEFINE_HPP(STEPPlane, "PLANE");
 
-	struct Raw
-	{
-		int idRef = 0;
-	};
-
-	Raw raw;
-	struct Data
-	{
-		STEPAxis2Placement3D* axis = nullptr;
-	};
-	Data data;
-
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+
+	std::pair<int, STEPAxis2Placement3D*> axis;
 };
 
 
@@ -418,7 +367,7 @@ struct STEPInterSectionCurve : public STEPEntityBase
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -427,21 +376,11 @@ struct STEPVertexPoint : public STEPEntityBase
 	virtual ~STEPVertexPoint() = default;
 	STEP_DEFINE_HPP(STEPVertexPoint, "VERTEX_POINT");
 
-	struct Raw
-	{
-		int idRef = -1;
-	};
-
-	Raw raw;
-	struct Data
-	{
-		STEPPoint* point = nullptr;
-	};
-	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+	std::pair<int, STEPPoint*> point;
 };
 
 struct STEPEdgeCurve : public STEPEntityBase
@@ -474,12 +413,13 @@ struct STEPEdgeCurve : public STEPEntityBase
 		Vector3 GetEnd() const { return sameSense ? end : begin; }
 	};
 
+	Vector3 GetPoint(float parameter);
 	Polyline CreatePolyline() const;
 
 	Data data;
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -519,7 +459,7 @@ struct STEPOrientedEdge : public STEPEntityBase
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 
 };
@@ -545,7 +485,7 @@ struct STEPPolyLoop : public STEPEntityBase
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -572,7 +512,7 @@ struct STEPEdgeLoop : public STEPEntityBase
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -601,7 +541,7 @@ struct STEPFaceBoundBase : public STEPEntityBase
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr, STEPFaceBoundBase* data);
 	void FetchData(const STEPStruct& step);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -644,12 +584,11 @@ struct STEPFaceBase : public STEPEntityBase
 		STEPPlane* plane = nullptr;
 		STEPCylindricalSurface* cylinder = nullptr;
 		STEPConicalSurface* conical = nullptr;
+		STEPToroidalSurface* toroidal = nullptr;
 		bool orient = true;
 
 		struct CylidnerEdge
 		{
-			bool IsActive() const { return true; }
-			STEPOrientedEdge::Data* circle = nullptr;
 			std::pair<float, Vector3> maxZ{ -INFINITY,Vector3(0, 0, 0) };
 			std::pair<float, Vector3> minZ{ INFINITY, Vector3(0, 0, 0) };
 			Vector3 begin = Vector3(0, 0, 0);
@@ -657,18 +596,30 @@ struct STEPFaceBase : public STEPEntityBase
 			float GetHeight() const { return maxZ.first - minZ.first; }
 		};
 
+		struct ToroidalEdge
+		{
+			float uBegin = INFINITY;
+			float uEnd = -INFINITY;
+			bool vDir = true;
+			bool uDir = true;
+			float vBegin = INFINITY;
+			float vEnd = -INFINITY;
+		};
+
+		ToroidalEdge SearchToroidalEdge(const STEPToroidalSurface* pToroidal) const;
 		CylidnerEdge SearchCylinderEdge(const STEPCylindricalSurface* pCylinder) const;
+		CylidnerEdge SearchConicalEdge(const STEPConicalSurface* pConical) const;
 		PolylineList CreateBoundPolyline() const;
 		PolylineList CreateOuterBoundPolyline() const;
 		Mesh CreateMesh(const Polyline& bound, const Polyline& outerBound) const;
 	};
 
 	void FetchData(const STEPStruct& step);
-
+	STEPAxis2Placement3D* GetAxis() const;
 	Raw raw;
 	Data data;
 
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
 
@@ -710,7 +661,7 @@ struct STEPShell : public STEPEntityBase
 	static void Fetch(STEPStruct& step, const STEPString& stepStr, STEPShell* pShell);
 	void FetchData(const STEPStruct& step, STEPShell::Data* data);
 	void CreateMesh(const STEPShell& step, STEPShape& shape);
-	void Printf(const DebugOption& option);
+	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 
 };

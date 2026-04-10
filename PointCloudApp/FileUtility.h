@@ -22,6 +22,7 @@ public:
 	static bool Load(const String& filePath, String& contents);
 	static bool Load(const String& filePath, Vector<String>& contents);
 	static String GetExtension(const String& filePath);
+	static String RemoveExtension(const String& filePath);
 	static String GetDirectoryPath(const String& filePath);
 	static String GetFileName(const String& filePath);
 	static bool CheckExtension(const String& filePath, const String& ext);

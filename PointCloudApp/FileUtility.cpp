@@ -62,6 +62,13 @@ String FileUtility::GetExtension(const String& filePath)
 	return filePath.substr(index, filePath.size() - index);
 }
 
+String FileUtility::RemoveExtension(const String& filePath)
+{
+	int index = (int)filePath.find_last_of('.');
+	if (index == String::npos)	return filePath; // Šg’£Žq‚È‚µ
+	return filePath.substr(0, index);
+}
+
 String FileUtility::GetFileName(const String& filePath)
 {
 	try {

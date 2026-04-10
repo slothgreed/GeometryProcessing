@@ -215,9 +215,9 @@ unsigned int ColorUtility::PackColor3f(const Vector3& value)
 Vector3 ColorUtility::UnPackColor3f(unsigned int value)
 {
 	Vector3 color;
-	color.x = (value >> 16) & 255 / 255;
-	color.y = (value >> 8) & 255 / 255;
-	color.z = (value) & 255 / 255;
+	color.x = ((value >> 16) & 255) / 255.0f;
+	color.y = ((value >> 8) & 255) / 255.0f;
+	color.z = ((value) & 255) / 255.0f;
 	return color;
 }
 

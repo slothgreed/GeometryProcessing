@@ -105,8 +105,7 @@ String STEPString::ToString() const
 {
 	return
 		"#" + StringUtility::ToString(id) +
-		", " + name +
-		", " + value;
+		"=" + name + value;
 }
 
 STEPStruct::~STEPStruct()
@@ -155,11 +154,23 @@ bool STEPEntityBase::ShowBranch(STEPUIContext& ui, bool select)
 			if (ImGui::MenuItem("CreateNode")) {
 				ui.pNode->AddDebugNode(ui, this);
 			}
+
+			if (ImGui::MenuItem("OutputFile")) {
+				auto str = Dump(DebugOption());
+				FileWriter writer;
+				String shell = "#0=CLOSED_SHELL('',(#" + StringUtility::ToString(id) + "));\n";
+				writer.Open(FileUtility::RemoveExtension(ui.filePath) + "_FACE" + StringUtility::ToString(id) + "_orig.step");
+				writer.Write("DATA;\n");
+				writer.Write(shell);
+				writer.Write(str, true);
+				writer.Close();
+			}
 		}
 
 		if (ImGui::MenuItem("DebugPrintf")) {
+			auto str = Dump(DebugOption());
 			DebugPrintf::StringStr("------------------------------\n");
-			Printf(DebugOption());
+			DebugPrintf::StringStr(str);
 			DebugPrintf::StringStr("------------------------------\n");
 		}
 		ImGui::EndPopup();
@@ -192,17 +203,17 @@ void STEPPoint::Fetch(STEPStruct& step, const STEPString& stepStr)
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
 	values = STEPString::SplitValue(values[1]);
-	if (!STEPString::ValueToFloat(values[0], data->data.pos.x)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[1], data->data.pos.y)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[0], data->pos.x)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[1], data->pos.y)) { assert(0); return; }
 	if (values.size() == 3) {
-		if (!STEPString::ValueToFloat(values[2], data->data.pos.z)) { assert(0); return; }
+		if (!STEPString::ValueToFloat(values[2], data->pos.z)) { assert(0); return; }
 	}
 	step.points[data->id] = data;
 }
 
 void STEPPoint::FetchData(const STEPStruct& step) {}
 
-void STEPPoint::Printf(const DebugOption& option) { STEPEntityBase::PrintfRaw(); }
+String STEPPoint::Dump(const DebugOption& option) { return STEPEntityBase::ToString(); }
 void STEPPoint::ShowUI(STEPUIContext& ui) { ShowLeaf(ui); }
 
 void STEPDirection::Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -218,7 +229,7 @@ void STEPDirection::Fetch(STEPStruct& step, const STEPString& stepStr)
 }
 
 void STEPDirection::FetchData(const STEPStruct& step) {}
-void STEPDirection::Printf(const DebugOption& option) { STEPEntityBase::PrintfRaw(); }
+String STEPDirection::Dump(const DebugOption& option) { return STEPEntityBase::ToString(); }
 void STEPDirection::ShowUI(STEPUIContext& ui) { ShowLeaf(ui); }
 
 void STEPVector::Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -226,30 +237,29 @@ void STEPVector::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPVector();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->raw.length)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->direction.first)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[2], data->length)) { assert(0); return; }
 
 	step.vectors[data->id] = data;
 }
 
 void STEPVector::FetchData(const STEPStruct& step)
 {
-	data.driection = FindSetData2(step, step.directions, raw.idRef);
-	data.vector = data.driection->direction;
-	data.vector = glm::normalize(data.vector);
-	data.vector *= raw.length;
+	direction.second = FindSetData2(step, step.directions, direction.first);
+	vector = glm::normalize(direction.second->direction) * length;
 }
 
-void STEPVector::Printf(const DebugOption& option)
+String STEPVector::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.driection) { data.driection->Printf(option); }
+	String str = ToString();
+	if (direction.second) { str += direction.second->Dump(option); }
+	return str;
 }
 
 void STEPVector::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.driection) { data.driection->ShowUI(ui); }
+		if (direction.second) { direction.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
@@ -259,38 +269,36 @@ void STEPLine::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPLine();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.beginRef)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[2], data->raw.vectorRef)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->point.first)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[2], data->vector.first)) { assert(0); return; }
 	step.lines[data->id] = data;
 }
 
 void STEPLine::FetchData(const STEPStruct& step)
 {
-	data.point = FindSetData2(step, step.points, raw.beginRef);
-	data.begin = data.point->data.pos;
-
-	data.vector0 = FindSetData2(step, step.vectors, raw.vectorRef);
-	data.vector = data.vector0->data.vector;
+	point.second = FindSetData2(step, step.points, point.first);
+	vector.second = FindSetData2(step, step.vectors, vector.first);
 }
 
-Polyline STEPLine::Data::CreatePolyline()
+Polyline STEPLine::CreatePolyline()
 {
-	return Polyline(Vector<Vector3>{begin, begin + vector});
+	return Polyline(Vector<Vector3>{point.second->pos, point.second->pos + vector.second->vector});
 }
 
-void STEPLine::Printf(const DebugOption& option)
+String STEPLine::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.point) { data.point->Printf(option); }
-	if (data.vector0) { data.vector0->Printf(option); }
+	String str = ToString();
+	if (point.second) { str += point.second->Dump(option); }
+	if (vector.second) { str += vector.second->Dump(option); }
+	return str;
 }
 
 
 void STEPLine::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.point) { data.point->ShowUI(ui); }
-		if (data.vector0) { data.vector0->ShowUI(ui); }
+		if (point.second) { point.second->ShowUI(ui); }
+		if (vector.second) { vector.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
@@ -311,7 +319,7 @@ void STEPAxis2Placement3D::Fetch(STEPStruct& step, const STEPString& stepStr)
 void STEPAxis2Placement3D::FetchData(const STEPStruct& step)
 {
 	data.point0 = FindSetData2(step, step.points, raw.pointRef);
-	data.point = data.point0->data.pos;
+	data.point = data.point0->pos;
 
 	data.direction1 = FindSetData2(step, step.directions, raw.dirRef1);
 	if (data.direction1) data.dir1 = data.direction1->direction;
@@ -321,12 +329,13 @@ void STEPAxis2Placement3D::FetchData(const STEPStruct& step)
 	if (data.direction2) data.dir2 = data.direction2->direction;
 }
 
-void STEPAxis2Placement3D::Printf(const DebugOption& option)
+String STEPAxis2Placement3D::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.point0) { data.point0->Printf(option); }
-	if (data.direction1) { data.direction1->Printf(option); }
-	if (data.direction2) { data.direction2->Printf(option); }
+	auto str = ToString();
+	if (data.point0) { str += data.point0->Dump(option); }
+	if (data.direction1) { str += data.direction1->Dump(option); }
+	if (data.direction2) { str += data.direction2->Dump(option); }
+	return str;
 }
 
 void STEPAxis2Placement3D::ShowUI(STEPUIContext& ui)
@@ -340,18 +349,21 @@ void STEPAxis2Placement3D::ShowUI(STEPUIContext& ui)
 }
 
 
-Polyline STEPCircle::Data::CreatePolyline() const
+Vector3 STEPCircle::GetPoint(const Vector3& begin, const Vector3& end, float parameter) const
 {
-	auto v = glm::cross(axis->data.dir1, axis->data.dir2);
-	return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM,
-		glm::normalize(axis->data.dir2), glm::normalize(v), axis->data.point);
+	return Circle::GetPoint(rad, glm::normalize(axis.second->data.U()), glm::normalize(axis.second->data.V()), 
+		axis.second->data.point, begin, end, parameter);
 }
 
-Polyline STEPCircle::Data::CreatePolyline(const Vector3& begin, const Vector3& end) const
+Polyline STEPCircle::CreatePolyline(const Vector3& begin, const Vector3& end) const
 {
-	auto v = glm::cross(axis->data.dir1, axis->data.dir2);
-	return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM,
-		glm::normalize(axis->data.dir2), glm::normalize(v), axis->data.point, begin, end);
+	if (MathHelper::IsSame(begin, end)) {
+		return Circle::CreateLine(rad, CIRCLE_SUBDIVISION_NUM,
+			glm::normalize(axis.second->data.U()), glm::normalize(axis.second->data.V()), axis.second->data.point);
+	} else {
+		return Circle::CreateArc(rad, CIRCLE_SUBDIVISION_NUM,
+			glm::normalize(axis.second->data.U()), glm::normalize(axis.second->data.V()), axis.second->data.point, begin, end);
+	}
 }
 
 void STEPCircle::Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -359,27 +371,27 @@ void STEPCircle::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPCircle();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.axisRef)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->raw.rad)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
 	step.circles[data->id] = data;
 }
 
 void STEPCircle::FetchData(const STEPStruct& step)
 {
-	data.axis = FindSetData2(step, step.axis2Placement3D, raw.axisRef);
-	data.rad = raw.rad;
+	axis.second = FindSetData2(step, step.axis2Placement3D, axis.first);
 }
 
-void STEPCircle::Printf(const DebugOption& option)
+String STEPCircle::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.axis) { data.axis->Printf(option); }
+	auto str = ToString();
+	if (axis.second) { str += axis.second->Dump(option); }
+	return str;
 }
 
 void STEPCircle::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.axis) { data.axis->ShowUI(ui); }
+		if (axis.second) { axis.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
@@ -389,55 +401,91 @@ void STEPCylindricalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPCylindricalSurface();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.axisRef)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->raw.rad)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
 	step.cylindricalSurface[data->id] = data;
 }
 
 void STEPCylindricalSurface::FetchData(const STEPStruct& step)
 {
-	data.axis = FindSetData2(step, step.axis2Placement3D, raw.axisRef);
-	data.rad = raw.rad;
+	axis.second = FindSetData2(step, step.axis2Placement3D, axis.first);
 }
 
-void STEPCylindricalSurface::Printf(const DebugOption& option)
+String STEPCylindricalSurface::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.axis) { data.axis->Printf(option); }
+	auto str = ToString();
+	if (axis.second) { str += axis.second->Dump(option); }
+	return str;
 }
 
 void STEPCylindricalSurface::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.axis) { data.axis->ShowUI(ui); }
+		if (axis.second) { axis.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
+
+
+void STEPToroidalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPToroidalSurface();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.value);
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[2], data->majorRadius)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[3], data->minorRadius)) { assert(0); return; }
+	step.toroidalSurface[data->id] = data;
+}
+
+void STEPToroidalSurface::FetchData(const STEPStruct& step)
+{
+	axis.second = FindSetData2(step, step.axis2Placement3D, axis.first);
+}
+
+String STEPToroidalSurface::Dump(const DebugOption& option)
+{
+	auto str = ToString();
+	if (axis.second) { str += axis.second->Dump(option); }
+	return str;
+}
+
+void STEPToroidalSurface::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		if (axis.second) { axis.second->ShowUI(ui); }
+		ImGui::TreePop();
+	}
+}
+
 
 void STEPConicalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 {
 	auto data = new STEPConicalSurface();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[2], data->radius)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[3], data->angle)) { assert(0); return; }
 	step.conicalSurface[data->id] = data;
 }
 
 void STEPConicalSurface::FetchData(const STEPStruct& step)
 {
-	data.axis = FindSetData2(step, step.axis2Placement3D, raw.idRef);
+	axis.second = FindSetData2(step, step.axis2Placement3D, axis.first);
 }
 
-void STEPConicalSurface::Printf(const DebugOption& option)
+String STEPConicalSurface::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.axis) { data.axis->Printf(option); }
+	auto str = ToString();
+	if (axis.second) { str += axis.second->Dump(option); }
+	return str;
 }
 
 void STEPConicalSurface::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.axis) { data.axis->ShowUI(ui); }
+		if (axis.second) { axis.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
@@ -447,25 +495,26 @@ void STEPPlane::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPPlane();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
 	step.planes[data->id] = data;
 }
 
 void STEPPlane::FetchData(const STEPStruct& step)
 {
-	data.axis = FindSetData2(step, step.axis2Placement3D, raw.idRef);
+	axis.second = FindSetData2(step, step.axis2Placement3D, axis.first);
 }
 
-void STEPPlane::Printf(const DebugOption& option)
+String STEPPlane::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.axis) { data.axis->Printf(option); }
+	auto str = ToString();
+	if (axis.second) { str += axis.second->Dump(option); }
+	return str;
 }
 
 void STEPPlane::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.axis) { data.axis->ShowUI(ui); }
+		if (axis.second) { axis.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
@@ -512,13 +561,14 @@ void STEPInterSectionCurve::FetchData(const STEPStruct& step)
 }
 
 
-void STEPInterSectionCurve::Printf(const DebugOption& option)
+String STEPInterSectionCurve::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.curve0.pLine) { data.curve0.pLine->Printf(option); }
-	if (data.curve0.pCircle) { data.curve0.pCircle->Printf(option); }
-	if (data.surf0.pPlane) { data.surf0.pPlane->Printf(option); }
-	if (data.surf1.pCylinderSurface) { data.surf1.pCylinderSurface->Printf(option); }
+	auto str = ToString();
+	if (data.curve0.pLine) { str += data.curve0.pLine->Dump(option); }
+	if (data.curve0.pCircle) { str += data.curve0.pCircle->Dump(option); }
+	if (data.surf0.pPlane) { str += data.surf0.pPlane->Dump(option); }
+	if (data.surf1.pCylinderSurface) { str += data.surf1.pCylinderSurface->Dump(option); }
+	return str;
 }
 
 void STEPInterSectionCurve::ShowUI(STEPUIContext& ui)
@@ -539,29 +589,48 @@ void STEPVertexPoint::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPVertexPoint();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.idRef)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->point.first)) { assert(0); return; }
 	step.vertexPoint[data->id] = data;
 }
 
 void STEPVertexPoint::FetchData(const STEPStruct& step)
 {
-	data.point = FindSetData2(step, step.points, raw.idRef);
+	point.second = FindSetData2(step, step.points, point.first);
 }
 
-void STEPVertexPoint::Printf(const DebugOption& option)
+String STEPVertexPoint::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.point) { data.point->Printf(option); }
+	auto str = ToString();
+	if (point.second) { str += point.second->Dump(option); }
+	return str;
 }
 
 void STEPVertexPoint::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		if (data.point) { data.point->ShowUI(ui); }
+		if (point.second) { point.second->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
 
+Vector3 STEPEdgeCurve::GetPoint(float parameter)
+{
+	if (data.line) {
+		auto len = data.GetEnd() - data.GetBegin();
+		return data.GetBegin() + len * parameter;
+	}
+
+	if (data.circle) {
+		return data.circle->GetPoint(data.GetBegin(), data.GetEnd(), parameter);
+	}
+
+	if (data.intersectionCurve) {
+		assert(0);
+		return Vector3();
+	}
+
+	return Vector3();
+}
 Polyline STEPEdgeCurve::CreatePolyline() const
 {
 	if (data.line) {
@@ -569,11 +638,7 @@ Polyline STEPEdgeCurve::CreatePolyline() const
 	}
 
 	if (data.circle) {
-		if (MathHelper::IsSame(data.GetBegin(), data.GetEnd())) {
-			return data.circle->data.CreatePolyline();
-		} else {
-			return data.circle->data.CreatePolyline(data.GetBegin(), data.GetEnd());
-		}
+		return data.circle->CreatePolyline(data.GetBegin(), data.GetEnd());
 	}
 
 	if (data.intersectionCurve) {
@@ -599,10 +664,10 @@ void STEPEdgeCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 void STEPEdgeCurve::FetchData(const STEPStruct& step)
 {
 	data.pPoint0 = FindSetData2(step, step.vertexPoint, raw.vertRef0);
-	data.begin = data.pPoint0->data.point->data.pos;
+	data.begin = data.pPoint0->point.second->pos;
 
 	data.pPoint1 = FindSetData2(step, step.vertexPoint, raw.vertRef1);
-	data.end = data.pPoint1->data.point->data.pos;
+	data.end = data.pPoint1->point.second->pos;
 
 	data.line = FindSetData2(step, step.lines, raw.lineRef2);
 	if (!data.line) {
@@ -615,14 +680,15 @@ void STEPEdgeCurve::FetchData(const STEPStruct& step)
 	data.sameSense = raw.sameSense;
 }
 
-void STEPEdgeCurve::Printf(const DebugOption& option)
+String STEPEdgeCurve::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.pPoint0) { data.pPoint0->Printf(option); }
-	if (data.pPoint1) { data.pPoint1->Printf(option); }
-	if (data.line) { data.line->Printf(option); }
-	if (data.circle) { data.circle->Printf(option); }
-	if (data.intersectionCurve) { data.intersectionCurve->Printf(option); }
+	auto str = ToString();
+	if (data.pPoint0) { str += data.pPoint0->Dump(option); }
+	if (data.pPoint1) { str += data.pPoint1->Dump(option); }
+	if (data.line) { str += data.line->Dump(option); }
+	if (data.circle) { str += data.circle->Dump(option); }
+	if (data.intersectionCurve) { str += data.intersectionCurve->Dump(option); }
+	return str;
 }
 
 
@@ -667,25 +733,26 @@ void STEPOrientedEdge::FetchData(const STEPStruct& step)
 		data.begin = data.edgeCurve->data.begin;
 	} else {
 		data.vertex0 = FindSetData2(step, step.vertexPoint, raw.vertRef0);
-		data.begin = data.vertex0->data.point->data.pos;
+		data.begin = data.vertex0->point.second->pos;
 	}
 
 	if (raw.vertRef1 == STEPEnum::ASTERISK) {
 		data.end = data.edgeCurve->data.end;
 	} else {
 		data.vertex1 = FindSetData2(step, step.vertexPoint, raw.vertRef1);
-		data.end = data.vertex1->data.point->data.pos;
+		data.end = data.vertex1->point.second->pos;
 	}
 
 	data.orient = raw.orient;
 }
 
-void STEPOrientedEdge::Printf(const DebugOption& option)
+String STEPOrientedEdge::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.edgeCurve) { data.edgeCurve->Printf(option); }
-	if (data.vertex0) { data.vertex0->Printf(option); }
-	if (data.vertex1) { data.vertex1->Printf(option); }
+	auto str = ToString();
+	if (data.edgeCurve) { str += data.edgeCurve->Dump(option); }
+	if (data.vertex0) { str += data.vertex0->Dump(option); }
+	if (data.vertex1) { str += data.vertex1->Dump(option); }
+	return str;
 }
 
 void STEPOrientedEdge::ShowUI(STEPUIContext& ui)
@@ -702,8 +769,8 @@ PolylineList STEPPolyLoop::Data::CreatePolyline(int id) const
 {
 	Vector<Vector3> lines(points.size() * 2);
 	for (int i = 0; i < points.size(); i++) {
-		lines[2 * i] = points[i]->data.pos;
-		lines[2 * i + 1] = points[(i + 1) % points.size()]->data.pos;
+		lines[2 * i] = points[i]->pos;
+		lines[2 * i + 1] = points[(i + 1) % points.size()]->pos;
 	}
 	return PolylineList(id, Polyline(std::move(lines), Polyline::DrawType::Lines));
 }
@@ -731,12 +798,13 @@ void STEPPolyLoop::FetchData(const STEPStruct& step)
 	}
 }
 
-void STEPPolyLoop::Printf(const DebugOption& option)
+String STEPPolyLoop::Dump(const DebugOption& option)
 {
-	PrintfRaw();
+	auto str = ToString();
 	for (size_t i = 0; i < data.points.size(); i++) {
-		data.points[i]->Printf(option);
+		str += data.points[i]->Dump(option);
 	}
+	return str;
 }
 
 void STEPPolyLoop::ShowUI(STEPUIContext& ui)
@@ -780,11 +848,11 @@ void STEPEdgeLoop::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto values = STEPString::SplitValue(stepStr.value);
 	values = STEPString::SplitValue(values[1]);
 
-data->raw.idRef.resize(values.size());
-for (int i = 0; i < data->raw.idRef.size(); i++) {
-	if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { assert(0); return; }
-}
-step.edgeLoop[data->id] = data;
+	data->raw.idRef.resize(values.size());
+	for (int i = 0; i < data->raw.idRef.size(); i++) {
+		if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { assert(0); return; }
+	}
+	step.edgeLoop[data->id] = data;
 }
 
 void STEPEdgeLoop::FetchData(const STEPStruct& step)
@@ -795,13 +863,14 @@ void STEPEdgeLoop::FetchData(const STEPStruct& step)
 	}
 }
 
-void STEPEdgeLoop::Printf(const DebugOption& option)
+String STEPEdgeLoop::Dump(const DebugOption& option)
 {
-	PrintfRaw();
+	auto str = ToString();
 	for (auto orientedEdge : data.orientedEdges) {
 		if (orientedEdge == nullptr) { continue; }
-		orientedEdge->Printf(option);
+		str += orientedEdge->Dump(option);
 	}
+	return str;
 }
 
 void STEPEdgeLoop::ShowUI(STEPUIContext& ui)
@@ -844,11 +913,12 @@ void STEPFaceBoundBase::FetchData(const STEPStruct& step)
 	data.orient = raw.orient;
 }
 
-void STEPFaceBoundBase::Printf(const DebugOption& option)
+String STEPFaceBoundBase::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-	if (data.edgeLoop) { data.edgeLoop->Printf(option); }
-	if (data.polyLoop) { data.polyLoop->Printf(option); }
+	auto str = ToString();
+	if (data.edgeLoop) { str += data.edgeLoop->Dump(option); }
+	if (data.polyLoop) { str += data.polyLoop->Dump(option); }
+	return str;
 }
 
 void STEPFaceBoundBase::ShowUI(STEPUIContext& ui)
@@ -874,6 +944,158 @@ void STEPFaceBound::Fetch(STEPStruct& step, const STEPString& stepStr)
 	step.faceBound[data->id] = data;
 }
 
+STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchConicalEdge(const STEPConicalSurface* pConical) const
+{
+	CylidnerEdge ret;
+	bool setBegin = false; bool setEnd = false;
+	for (const auto& face : faceBound) {
+		auto edgeLoop = face->data.edgeLoop;
+		if (!edgeLoop) { continue; }
+		for (const auto& edge : edgeLoop->data.orientedEdges) {
+			auto begin = edge->data.GetBegin() - pConical->axis.second->data.point;
+			auto end = edge->data.GetEnd() - pConical->axis.second->data.point;
+			auto v0 = glm::dot(begin, pConical->axis.second->data.Normal());
+			auto v1 = glm::dot(end, pConical->axis.second->data.Normal());
+
+			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pConical->axis.second->data.Normal());
+			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pConical->axis.second->data.Normal());
+			{
+				if (ret.maxZ.first < v0) { ret.maxZ.first = v0; ret.maxZ.second = edge->data.GetBegin(); }
+				if (ret.maxZ.first < v1) { ret.maxZ.first = v1; ret.maxZ.second = edge->data.GetEnd(); }
+
+				if (ret.minZ.first > v0) { ret.minZ.first = v0; ret.minZ.second = edge->data.GetBegin(); }
+				if (ret.minZ.first > v1) { ret.minZ.first = v1; ret.minZ.second = edge->data.GetEnd(); }
+
+				if (sameBeginDir) {
+					ret.begin = edge->data.GetBegin();
+					setBegin = true;
+				}
+
+				if (sameEndDir) {
+					ret.end = edge->data.GetEnd();
+					setEnd = true;
+				}
+			}
+		}
+	}
+
+	for (const auto& face : faceOuterBound) {
+		auto edgeLoop = face->data.edgeLoop;
+		if (!edgeLoop) { continue; }
+		for (const auto& edge : edgeLoop->data.orientedEdges) {
+			auto begin = edge->data.GetBegin() - pConical->axis.second->data.point;
+			auto end = edge->data.GetEnd() - pConical->axis.second->data.point;
+			auto v0 = glm::dot(begin, pConical->axis.second->data.Normal());
+			auto v1 = glm::dot(end, pConical->axis.second->data.Normal());
+
+			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pConical->axis.second->data.Normal());
+			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pConical->axis.second->data.Normal());
+			{
+				if (ret.maxZ.first < v0) { ret.maxZ.first = v0; ret.maxZ.second = edge->data.GetBegin(); }
+				if (ret.maxZ.first < v1) { ret.maxZ.first = v1; ret.maxZ.second = edge->data.GetEnd(); }
+
+				if (ret.minZ.first > v0) { ret.minZ.first = v0; ret.minZ.second = edge->data.GetBegin(); }
+				if (ret.minZ.first > v1) { ret.minZ.first = v1; ret.minZ.second = edge->data.GetEnd(); }
+
+				if (sameBeginDir) {
+					ret.begin = edge->data.GetBegin();
+					setBegin = true;
+				}
+
+				if (sameEndDir) {
+					ret.end = edge->data.GetEnd();
+					setEnd = true;
+				}
+			}
+		}
+	}
+
+	// •êü1–{‚ÌŽž
+	if (setBegin && !setEnd) { ret.end = ret.begin; }
+	if (!setBegin && setEnd) { ret.begin = ret.end; }
+	// •êü‚ª‚È‚¢‚Æ‚«
+	if (!setBegin && !setEnd) {
+		ret.begin = pConical->axis.second->data.point + pConical->axis.second->data.U() * pConical->radius;
+		ret.end = ret.begin;
+	}
+	return ret;
+}
+
+STEPFaceBase::Data::ToroidalEdge STEPFaceBase::Data::SearchToroidalEdge(const STEPToroidalSurface* pToroidal) const
+{
+	auto center = pToroidal->axis.second->data.point;
+	auto xAxis = glm::normalize(pToroidal->axis.second->data.U());
+	auto yAxis = glm::normalize(pToroidal->axis.second->data.V());
+	auto zAxis = glm::normalize(pToroidal->axis.second->data.Normal());
+	ToroidalEdge ret;
+	for (const auto& face : faceBound) {
+		auto edgeLoop = face->data.edgeLoop;
+		if (!edgeLoop) { continue; }
+		for (const auto& edge : edgeLoop->data.orientedEdges) {
+			auto begin = Torus::ToUV(center, xAxis, yAxis, zAxis, pToroidal->majorRadius, edge->data.GetBegin());
+			auto mid3D = edge->data.edgeCurve->GetPoint(0.5f);
+			auto mid = Torus::ToUV(center, xAxis, yAxis, zAxis, pToroidal->majorRadius, mid3D);
+			auto end = Torus::ToUV(center, xAxis, yAxis, zAxis, pToroidal->majorRadius, edge->data.GetEnd());
+			auto diff1 = mid - begin; auto diff2 = end - mid;
+			
+			auto beginAngle = MathHelper::ToRadian(edge->data.GetBegin() - center, xAxis, yAxis, 1);
+			auto midAngle = MathHelper::ToRadian(mid3D - center, xAxis, yAxis, 1);
+			auto endAngle = MathHelper::ToRadian(edge->data.GetEnd() - center, xAxis, yAxis, 1);
+			auto v1 = MathHelper::UnWrapDiffRad(endAngle, midAngle);
+			auto v2 = MathHelper::UnWrapDiffRad(midAngle, beginAngle);
+
+			if (MathHelper::IsSameRad(diff1.x, 0.0f) && MathHelper::IsSameRad(diff2.x, 0.0f)) {
+				// v •ûŒü
+				ret.vDir = (v2 - v1) > 0.0f;
+			} else if(MathHelper::IsSameRad(diff1.y, 0.0f) && MathHelper::IsSameRad(diff2.y, 0.0f)){
+				// u •ûŒü
+				ret.uDir = (v2 - v1) > 0.0f;
+			} else {
+				assert(0);
+			}
+
+			begin.x = MathHelper::Normalize0_PI2(begin.x);
+			begin.y = MathHelper::Normalize0_PI2(begin.y);
+			ret.uBegin = std::min(begin.x, ret.uBegin);
+			ret.uEnd = std::max(begin.x, ret.uEnd);
+			ret.vBegin = std::min(begin.y, ret.vBegin);
+			ret.vEnd = std::max(begin.y, ret.vEnd);
+
+			end.x = MathHelper::Normalize0_PI2(end.x);
+			end.y = MathHelper::Normalize0_PI2(end.y);
+
+			ret.uBegin = std::min(end.x, ret.uBegin);
+			ret.uEnd = std::max(end.x, ret.uEnd);
+			ret.vBegin = std::min(end.y, ret.vBegin);
+			ret.vEnd = std::max(end.y, ret.vEnd);
+		}
+	}
+
+
+	for (const auto& face : faceOuterBound) {
+		auto edgeLoop = face->data.edgeLoop;
+		if (!edgeLoop) { continue; }
+		for (const auto& edge : edgeLoop->data.orientedEdges) {
+			auto begin = Torus::ToUV(center, xAxis, yAxis, zAxis, pToroidal->majorRadius, edge->data.GetBegin());
+			begin.x = MathHelper::Normalize0_PI2(begin.x);
+			begin.y = MathHelper::Normalize0_PI2(begin.y);
+			ret.uBegin = std::min(begin.x, ret.uBegin);
+			ret.uEnd = std::max(begin.x, ret.uEnd);
+			ret.vBegin = std::min(begin.y, ret.vBegin);
+			ret.vEnd = std::max(begin.y, ret.vEnd);
+
+			auto end = Torus::ToUV(center, xAxis, yAxis, zAxis, pToroidal->majorRadius, edge->data.GetEnd());
+			end.x = MathHelper::Normalize0_PI2(end.x);
+			end.y = MathHelper::Normalize0_PI2(end.y);
+			ret.uBegin = std::min(end.x, ret.uBegin);
+			ret.uEnd = std::max(end.x, ret.uEnd);
+			ret.vBegin = std::min(end.y, ret.vBegin);
+			ret.vEnd = std::max(end.y, ret.vEnd);
+		}
+	}
+
+	return ret;
+}
 STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const STEPCylindricalSurface* pCylinder) const
 {
 	CylidnerEdge ret;
@@ -882,14 +1104,13 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const ST
 		auto edgeLoop = face->data.edgeLoop;
 		if (!edgeLoop) { continue; }
 		for (const auto& edge : edgeLoop->data.orientedEdges) {
-			auto begin = edge->data.GetBegin() - pCylinder->data.axis->data.point;
-			auto end = edge->data.GetEnd() - pCylinder->data.axis->data.point;
-			auto v0 = glm::dot(begin, pCylinder->data.axis->data.Normal());
-			auto v1 = glm::dot(end, pCylinder->data.axis->data.Normal());
+			auto begin = edge->data.GetBegin() - pCylinder->axis.second->data.point;
+			auto end = edge->data.GetEnd() - pCylinder->axis.second->data.point;
+			auto v0 = glm::dot(begin, pCylinder->axis.second->data.Normal());
+			auto v1 = glm::dot(end, pCylinder->axis.second->data.Normal());
 
-			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pCylinder->data.axis->data.Normal());
-			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pCylinder->data.axis->data.Normal());
-			//if (sameBeginDir || sameEndDir)
+			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pCylinder->axis.second->data.Normal());
+			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pCylinder->axis.second->data.Normal());
 			{
 				if (ret.maxZ.first < v0) { ret.maxZ.first = v0; ret.maxZ.second = edge->data.GetBegin(); }
 				if (ret.maxZ.first < v1) { ret.maxZ.first = v1; ret.maxZ.second = edge->data.GetEnd(); }
@@ -914,14 +1135,13 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const ST
 		auto edgeLoop = face->data.edgeLoop;
 		if (!edgeLoop) { continue; }
 		for (const auto& edge : edgeLoop->data.orientedEdges) {
-			auto begin = edge->data.GetBegin() - pCylinder->data.axis->data.point;
-			auto end = edge->data.GetEnd() - pCylinder->data.axis->data.point;
-			auto v0 = glm::dot(begin, pCylinder->data.axis->data.Normal());
-			auto v1 = glm::dot(end, pCylinder->data.axis->data.Normal());
+			auto begin = edge->data.GetBegin() - pCylinder->axis.second->data.point;
+			auto end = edge->data.GetEnd() - pCylinder->axis.second->data.point;
+			auto v0 = glm::dot(begin, pCylinder->axis.second->data.Normal());
+			auto v1 = glm::dot(end, pCylinder->axis.second->data.Normal());
 
-			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pCylinder->data.axis->data.Normal());
-			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pCylinder->data.axis->data.Normal());
-			//if (sameBeginDir || sameEndDir)
+			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pCylinder->axis.second->data.Normal());
+			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pCylinder->axis.second->data.Normal());
 			{
 				if (ret.maxZ.first < v0) { ret.maxZ.first = v0; ret.maxZ.second = edge->data.GetBegin(); }
 				if (ret.maxZ.first < v1) { ret.maxZ.first = v1; ret.maxZ.second = edge->data.GetEnd(); }
@@ -947,7 +1167,7 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const ST
 	if (!setBegin && setEnd) { ret.begin = ret.end; }
 	// •êü‚ª‚È‚¢‚Æ‚«
 	if (!setBegin && !setEnd) {
-		ret.begin = pCylinder->data.axis->data.point + pCylinder->data.axis->data.U() * pCylinder->data.rad;
+		ret.begin = pCylinder->axis.second->data.point + pCylinder->axis.second->data.U() * pCylinder->rad;
 		ret.end = ret.begin;
 	}
 	return ret;
@@ -970,7 +1190,7 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 {
 	if (plane) {
 		if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
-		auto normal = glm::normalize(plane->data.axis->data.Normal());
+		auto normal = glm::normalize(plane->axis.second->data.Normal());
 		if (!orient) {
 			normal = -normal;
 		}
@@ -982,12 +1202,10 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 			return Polyline::CreateMesh(outerBound, Polyline(), normal);
 		}
 	} else if (cylinder) {
-
-		auto normal = cylinder->data.axis->data.Normal();
+		auto normal = cylinder->axis.second->data.Normal();
 		//if (!orient) { normal = -normal; }
 		auto edge = SearchCylinderEdge(cylinder);
-		if (!edge.IsActive()) { return Mesh(); }
-		Vector3 origin = cylinder->data.axis->data.point +
+		Vector3 origin = cylinder->axis.second->data.point +
 			normal * edge.minZ.first;
 		//if (!orient) { begin = -begin; end = -end; }
 		return Cylinder::CreateSideMesh(
@@ -995,20 +1213,64 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 			normal,
 			edge.begin,
 			edge.end,
-			cylinder->data.rad,
+			cylinder->rad,
 			edge.GetHeight(),
 			orient,
 			CIRCLE_SUBDIVISION_NUM,
 			CIRCLE_SUBDIVISION_NUM);
 	} else if (conical) {
-		// TODO;
-		int a = 0;
+		auto edge = SearchConicalEdge(conical);
+		return Cone::CreateSideMesh(
+			conical->axis.second->data.point,
+			conical->axis.second->data.Normal(),
+			edge.begin,edge.end,
+			conical->radius,
+			edge.GetHeight(),
+			conical->angle,
+			!orient,
+			CIRCLE_SUBDIVISION_NUM,
+			CIRCLE_SUBDIVISION_NUM);
+	} else if (toroidal) {
+		auto edge = SearchToroidalEdge(toroidal);
+		auto normal = toroidal->axis.second->data.Normal();
+		auto u = toroidal->axis.second->data.U();
+		return Torus::CreateMesh(
+			toroidal->axis.second->data.point,
+			edge.vDir ? normal : normal,
+			edge.uDir ? -u : u,
+			toroidal->majorRadius,
+			toroidal->minorRadius,
+			edge.uBegin, edge.uEnd,
+			edge.vBegin, edge.vEnd,
+			orient,
+			CIRCLE_SUBDIVISION_NUM,
+			CIRCLE_SUBDIVISION_NUM);
 	}
 
 	return Mesh();
 }
 
+STEPAxis2Placement3D* STEPFaceBase::GetAxis() const
+{
+	if (data.plane) {
+		return data.plane->axis.second;
+	}
 
+	if (data.cylinder) {
+		return data.cylinder->axis.second;
+	}
+
+	if (data.conical) {
+		return data.conical->axis.second;
+	}
+
+	if (data.toroidal) {
+		return data.toroidal->axis.second;
+	}
+
+	assert(0);
+	return nullptr;
+}
 void STEPFaceBase::FetchData(const STEPStruct& step)
 {
 	for (auto i = 0; i < raw.faceRef0.size(); i++) {
@@ -1024,17 +1286,22 @@ void STEPFaceBase::FetchData(const STEPStruct& step)
 	if (!data.plane && !data.cylinder) {
 		data.conical = FindSetData2(step, step.conicalSurface, raw.geomRef1);
 	}
+	if (!data.plane && !data.cylinder && !data.conical) {
+		data.toroidal = FindSetData2(step, step.toroidalSurface, raw.geomRef1);
+	}
 	data.orient = raw.orient;
 }
 
-void STEPFaceBase::Printf(const DebugOption& option)
+String STEPFaceBase::Dump(const DebugOption& option)
 {
-	PrintfRaw();
-
-	for (auto& outerBound : data.faceOuterBound) { outerBound->Printf(option); }
-	for (auto& faceBound : data.faceBound) { faceBound->Printf(option); }
-	if (data.plane) { data.plane->Printf(option); }
-	if (data.cylinder) { data.cylinder->Printf(option); }
+	auto str = ToString();
+	for (auto& outerBound : data.faceOuterBound) { str += outerBound->Dump(option); }
+	for (auto& faceBound : data.faceBound) { str += faceBound->Dump(option); }
+	if (data.plane) { str += data.plane->Dump(option); }
+	if (data.cylinder) { str += data.cylinder->Dump(option); }
+	if (data.conical) { str += data.conical->Dump(option); }
+	if (data.toroidal) { str += data.toroidal->Dump(option); }
+	return str;
 }
 
 void STEPFaceBase::ShowUI(STEPUIContext& ui)
@@ -1049,7 +1316,8 @@ void STEPFaceBase::ShowUI(STEPUIContext& ui)
 
 		if (data.plane) { data.plane->ShowUI(ui); }
 		if (data.cylinder) { data.cylinder->ShowUI(ui); }
-
+		if (data.conical) { data.conical->ShowUI(ui); }
+		if (data.toroidal) { data.toroidal->ShowUI(ui); }
 		ImGui::TreePop();
 	}
 }
@@ -1110,7 +1378,6 @@ void STEPShell::FetchData(const STEPStruct& step, STEPShell::Data* data)
 		auto pFaceSurface = FindSetData2(step, step.faceSurface, raw.faceRef[i]);
 		if (pFaceSurface) { data->faceSurface.push_back(pFaceSurface); }
 	}
-
 }
 
 void STEPShell::CreateMesh(const STEPShell& step, STEPShape& shape)
@@ -1136,12 +1403,14 @@ void STEPShell::CreateMesh(const STEPShell& step, STEPShape& shape)
 	}
 }
 
-void STEPShell::Printf(const DebugOption& option)
+String STEPShell::Dump(const DebugOption& option)
 {
-	PrintfRaw();
+	auto str = ToString();
 
-	for (auto& face : data.advancedFace) { face->Printf(option); }
-	for (auto& surface : data.faceSurface) { surface->Printf(option); }
+	for (auto& face : data.advancedFace) { str += face->Dump(option); }
+	for (auto& surface : data.faceSurface) { str += surface->Dump(option); }
+
+	return str;
 }
 
 void STEPShell::ShowUI(STEPUIContext& ui)

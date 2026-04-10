@@ -8,6 +8,7 @@
 #include "Utility.h"
 #include "Primitives.h"
 #include "DebugNode.h"
+#include "PrimitiveNode.h"
 #include "STEPEntity.h"
 #include <functional>
 namespace KI
@@ -169,6 +170,7 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 	auto& step = *pStep;
 	for (int i = dataIndex + 1; i < contents.size(); i++) {
 		if (contents[i] == "ENDSEC;")break;
+		if (contents[i].empty())continue;
 		auto content = contents[i];
 		if (content[content.size() - 1] != ';') {
 			int add = 0;
@@ -203,6 +205,7 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		else if (StringUtility::Equal(stepStr.name, STEPCylindricalSurface::EntityName)) { STEPCylindricalSurface::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(step, stepStr); }
 		else if (StringUtility::Equal(stepStr.name, STEPConicalSurface::EntityName)) { STEPConicalSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.name, STEPToroidalSurface::EntityName)) { STEPToroidalSurface::Fetch(step, stepStr); }
 		else { NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {
@@ -375,6 +378,14 @@ void STEPRenderNode::AddDebugNode(STEPUIContext& context, const STEPEntityBase* 
 	auto outerBound = pFace->data.CreateOuterBoundPolyline().CreateMerge();
 	auto mesh = pFace->data.CreateMesh(bound, outerBound);
 	context.ui->ClearDebugNode();
+
+	auto pAxis = pFace->GetAxis();
+	if (pAxis) {
+		auto len = BDB(mesh.GetPoints()).MaxLength();
+		auto axis = std::make_shared<Axis>(pAxis->data.point, pAxis->data.U() * len, pAxis->data.V() * len, pAxis->data.Normal() * len);
+		context.ui->AddDebugNode(std::make_shared<PrimitiveNode>(pBase->str + "::Axis", axis));
+	}
+	
 	if (bound.LineNum() != 0) {
 		context.ui->AddDebugNode(std::make_shared<PolylineNode>(pBase->str + "::Bound", bound));
 	}
@@ -498,6 +509,7 @@ void STEPRenderNode::ShowUI(UIContext& ui)
 {
 	uiContext.ui = &ui;
 	uiContext.pNode = this;
+	uiContext.filePath = GetName();
 	ImGui::Checkbox("VisibleBDB",&m_ui.visibleBDB);
 	ImGui::Checkbox("VisibleMesh", &m_ui.visibleMesh);
 	if (ImGui::TreeNode("Root")) {

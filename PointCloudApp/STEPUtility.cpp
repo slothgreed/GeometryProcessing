@@ -8,7 +8,7 @@ Polyline Intersection::CreatePolyline(const STEPInterSectionCurve::Data& data, c
 {
 	if (data.type == STEPInterSectionCurve::Data::Type::Curve3D) {
 		if (data.curve0.pCircle) {
-			return data.curve0.pCircle->data.CreatePolyline(begin, end);
+			return data.curve0.pCircle->CreatePolyline(begin, end);
 		} else if(data.curve0.pLine){
 			Polyline line;
 			line.Add(begin); line.Add(end);

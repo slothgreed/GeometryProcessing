@@ -178,6 +178,147 @@ Cone::Cone(float _radius, float _height, int _partition)
 	m_primitiveType = GL_TRIANGLES;
 }
 
+Vector3 Cone::CalcApex(const Vector3& center, const Vector3& axis, float radius, float semiAngleDeg)
+{
+	float tanAlpha = std::tan(MathHelper::ToRadian(semiAngleDeg));
+
+	// tan(alpha)=0 ‚Í‰~’Œˆµ‚¢‚È‚Ì‚ÅƒK[ƒh
+	if (MathHelper::IsZero(tanAlpha)) {	return center;}
+
+	return center + glm::normalize(axis) * (-radius / tanAlpha);
+}
+Mesh Cone::CreateSideMesh(
+	const Vector3& baseCenter, const Vector3& axis,
+	const Vector3& beginPoint, const Vector3& endPoint,
+	float radius, float height, float semiAngleDeg, bool orient, int slices, int stacks)
+{
+	Vector<Vector3> position;
+	Vector<UInt> indices;
+	slices = std::max(3, slices);
+	stacks = std::max(1, stacks);
+
+	// -----------------------------
+	// ²•ûŒü
+	// -----------------------------
+	Vector3 z = glm::normalize(axis);
+
+	// -----------------------------
+	// beginPoint ‚ğŠî€‚É‹ÇŠÀ•WŒn\’z
+	// x: ‰~ü•ûŒü‚ÌŠî€
+	// y: x ‚Æ z ‚É’¼Œğ‚·‚é‚à‚¤ˆê•û
+	// -----------------------------
+	Vector3 beginDir = beginPoint - baseCenter;
+	beginDir = beginDir - z * glm::dot(beginDir, z);
+
+	// –œˆê beginDir ‚ª²‚É‹ß‚·‚¬‚éê‡‚Ì•ÛŒ¯
+	if (MathHelper::IsZero(beginDir)) {
+		Vector3 fallback = (std::abs(z.z) < 0.999f) ? Vector3(0, 0, 1) : Vector3(1, 0, 0);
+		beginDir = glm::cross(fallback, z);
+	}
+
+	Vector3 x = glm::normalize(beginDir);
+	Vector3 y = glm::normalize(glm::cross(z, x));
+
+	// -----------------------------
+	// end angle ‚ÌZo
+	// beginPoint ‚ğŠp“x0‚Æ‚İ‚È‚·
+	// -----------------------------
+	auto closed = MathHelper::IsSame(beginPoint, endPoint);
+	float endAngle = MathHelper::PI2;
+	if (!closed) {
+		Vector3 d = endPoint - baseCenter;
+		d = d - z * glm::dot(d, z);
+		if (MathHelper::IsZero(glm::length2(d))) {
+			endAngle = 0.0f;
+		} else {
+			d = glm::normalize(d);
+			endAngle = MathHelper::ToRadian(d, x, y, 1);
+			endAngle = MathHelper::NormalizePI(endAngle);
+		}
+	}
+
+	// -----------------------------
+	// ”¼’¸Šp -> ”¼Œa•Ï‰»—Ê
+	// r(h) = radius - h * tan(alpha)
+	// -----------------------------
+	float tanAlpha = std::tan(MathHelper::ToRadian(semiAngleDeg));
+	if (glm::dot(Cone::CalcApex(baseCenter, axis, radius, semiAngleDeg) - baseCenter, axis) < 0) {
+		z = -z;
+	}
+
+	// -----------------------------
+	// ’¸“_¶¬
+	// apex ‚ğŠÜ‚Şê‡AÅã’i”¼Œa‚ª 0 ‹ß–T‚É‚È‚é‚±‚Æ‚ª‚ ‚é
+	// ‚»‚Ìê‡‚àˆê’U‚»‚Ì‚Ü‚Ü¶¬‚·‚é
+	// -----------------------------
+	const int ringVertexCount = closed ? slices : (slices + 1);
+
+	for (int iy = 0; iy <= stacks; ++iy) {
+		float vTex = static_cast<float>(iy) / static_cast<float>(stacks);
+		float h = height * vTex;
+		float r = radius - h * tanAlpha;
+
+		// •‰”¼Œa‚É‚Í‚µ‚È‚¢
+		if (r < 0.0f) r = 0.0f;
+		Vector3 center = baseCenter + z * h;
+
+		for (int ix = 0; ix < ringVertexCount; ++ix) {
+			float uTex = static_cast<float>(ix) / static_cast<float>(slices);
+			float angle = endAngle * uTex;
+			Vector3 radial = x * std::cos(angle) + y * std::sin(angle);
+			position.push_back(center + radial * r);
+		}
+	}
+
+	// -----------------------------
+	// ƒCƒ“ƒfƒbƒNƒX¶¬
+	// apex s‚ª’×‚ê‚Ä‚¢‚Ä‚àŠî–{‚Í quad •ªŠ„‚Å’£‚é
+	// •K—v‚É‰‚¶‚Ä‘Ş‰»OŠpŒ`‚ğƒXƒLƒbƒv
+	// -----------------------------
+	auto AddTriangle = [&](uint32_t a, uint32_t b, uint32_t c)
+	{
+		const Vector3& p0 = position[a];
+		const Vector3& p1 = position[b];
+		const Vector3& p2 = position[c];
+
+		Vector3 e0 = p1 - p0;
+		Vector3 e1 = p2 - p0;
+		if (MathHelper::IsZero(glm::cross(e0, e1)))	return; // ‘Ş‰»OŠpŒ`‚ÍÌ‚Ä‚é
+
+		if (!orient) {
+			indices.push_back(a);
+			indices.push_back(b);
+			indices.push_back(c);
+		} else {
+			indices.push_back(a);
+			indices.push_back(c);
+			indices.push_back(b);
+		}
+	};
+
+	for (int iy = 0; iy < stacks; ++iy) {
+		int row0 = iy * ringVertexCount;
+		int row1 = (iy + 1) * ringVertexCount;
+
+		for (int ix = 0; ix < slices; ++ix) {
+			int i0 = row0 + ix;
+			int i1 = row0 + ((ix + 1) % ringVertexCount);
+			int i2 = row1 + ix;
+			int i3 = row1 + ((ix + 1) % ringVertexCount);
+
+			if (!closed) {
+				i1 = row0 + (ix + 1);
+				i3 = row1 + (ix + 1);
+			}
+
+			AddTriangle(i0, i2, i1);
+			AddTriangle(i1, i2, i3);
+		}
+	}
+
+	return Mesh(std::move(position), std::move(indices), Mesh::DrawType::Triangles);
+}
+
 Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 	: baseRad(_baseRad)
 	, topRad(_topRad)
@@ -557,6 +698,116 @@ Torus::Torus(float _inRad, float _outRad, int _nsides, int _rings)
 	m_primitiveType = GL_TRIANGLES;
 }
 
+
+Vector2 Torus::ToUV(const Vector3& center, const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis, float majorRadius, const Vector3& target)
+{
+	Vector3 d = target - center;
+
+	float px = glm::dot(d, xAxis);
+	float py = glm::dot(d, yAxis);
+	float pz = glm::dot(d, zAxis);
+
+	// ‘å‰~•ûŒü‚ÌŠp“x
+	float u = std::atan2(py, px);
+
+	// ²‚©‚çŒ©‚½•½–Ê“à‹——£
+	float rho = std::sqrt(px * px + py * py);
+
+	// ¬‰~•ûŒü‚ÌŠp“x
+	float v = std::atan2(pz, rho - majorRadius);
+
+	return Vector2(u, v);
+}
+Mesh Torus::CreateMesh(
+	const Vector3& center, const Vector3& axis, const Vector3& refDirection,
+	float majorRadius, float minorRadius, float uBegin, float uEnd, float vBegin, float vEnd,
+	bool orient, int uSegments, int vSegments)
+{
+	Vector<Vector3> positions;
+	Vector<UInt> indices;
+
+	uSegments = std::max(3, uSegments);
+	vSegments = std::max(3, vSegments);
+
+	if (majorRadius <= 0.0f || minorRadius <= 0.0f) { return Mesh(); }
+	Vector3 z = glm::normalize(axis);
+	if (MathHelper::IsZero(z)) { return Mesh(); }
+	//if (!vDir) { z = -z; }
+
+	// refDirection ‚ğ z ‚É’¼Œğ‰»‚µ‚Ä X ‚Æ‚·‚é
+	Vector3 x = refDirection - z * glm::dot(refDirection, z);
+	if (MathHelper::IsZero(x)) {
+		x = MathHelper::CreatePerpendicular(z);
+	} else {
+		x = glm::normalize(x);
+	}
+
+	Vector3 y = glm::normalize(glm::cross(z, x));
+	if (MathHelper::IsZero(y)) { return Mesh(); }
+
+	const int cols = uSegments + 1;
+	const int rows = vSegments + 1;
+
+	for (int j = 0; j <= vSegments; ++j) {
+		float tv = static_cast<float>(j) / static_cast<float>(vSegments);
+		float v = glm::mix(vBegin, vEnd, tv);
+
+		float cv = std::cos(v);
+		float sv = std::sin(v);
+
+		for (int i = 0; i <= uSegments; ++i) {
+			float tu = static_cast<float>(i) / static_cast<float>(uSegments);
+			float u = glm::mix(uBegin, uEnd, tu);
+
+			float cu = std::cos(u);
+			float su = std::sin(u);
+
+			// ƒg[ƒ‰ƒX’†S‰~ã‚Ì•ûŒü
+			Vector3 radial = cu * x + su * y;
+			// ’†S‰~ã‚Ì“_
+			Vector3 circleCenter = center + majorRadius * radial;
+
+			// ¬‰~‚Ì–@ü•ûŒü
+			auto normal = glm::normalize(cv * radial + sv * z);
+			positions.push_back(circleCenter + minorRadius * normal);
+		}
+	}
+
+	auto indexOf = [cols](int i, int j) -> UInt
+	{
+		return static_cast<UInt>(j * cols + i);
+	};
+
+	for (int j = 0; j < vSegments; ++j) {
+		for (int i = 0; i < uSegments; ++i) {
+			UInt i0 = indexOf(i + 0, j + 0);
+			UInt i1 = indexOf(i + 1, j + 0);
+			UInt i2 = indexOf(i + 1, j + 1);
+			UInt i3 = indexOf(i + 0, j + 1);
+
+			if (orient) {
+				indices.push_back(i0);
+				indices.push_back(i1);
+				indices.push_back(i2);
+
+				indices.push_back(i0);
+				indices.push_back(i2);
+				indices.push_back(i3);
+			} else {
+				indices.push_back(i0);
+				indices.push_back(i2);
+				indices.push_back(i1);
+
+				indices.push_back(i0);
+				indices.push_back(i3);
+				indices.push_back(i2);
+			}
+		}
+	}
+
+	return Mesh(std::move(positions), std::move(indices), Mesh::DrawType::Triangles);
+}
+
 Triangle::Triangle()
 {
 	Build();
@@ -582,23 +833,44 @@ void Triangle::Build()
 
 Axis::Axis(float size)
 {
-	Build(size);
+	Build(Vector3(0, 0, 0), Vector3(size, size, size));
+}
+Axis::Axis(const Vector3& locate, const Vector3& size)
+{
+	Build(locate, size);
 }
 
-Axis::~Axis()
+Axis::Axis(const Vector3& locate, const Vector3& u, const Vector3& v, const Vector3& axis)
 {
+	m_position.push_back(locate); m_position.push_back(locate + u);
+	m_position.push_back(locate); m_position.push_back(locate + v);
+	m_position.push_back(locate); m_position.push_back(locate + axis);
+
+
+	m_color.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+	m_color.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
+	m_color.push_back(Vector4(0.0, 1.0, 0.0, 1.0));
+	m_color.push_back(Vector4(0.0, 1.0, 0.0, 1.0));
+	m_color.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+	m_color.push_back(Vector4(0.0, 0.0, 1.0, 1.0));
+
+	m_index.push_back(0); m_index.push_back(1);
+	m_index.push_back(2); m_index.push_back(3);
+	m_index.push_back(4); m_index.push_back(5);
+
+	m_primitiveType = GL_LINES;
 }
 
-void Axis::Build(float size)
+void Axis::Build(const Vector3& locate, const Vector3& size)
 {
-	m_position.push_back(Vector3(0.0, 0.0, 0.0));
-	m_position.push_back(Vector3(size, 0.0, 0.0));
+	m_position.push_back(locate);
+	m_position.push_back(Vector3(locate.x + size.x, locate.y, locate.z));
 
-	m_position.push_back(Vector3(0.0, 0.0, 0.0));
-	m_position.push_back(Vector3(0.0, size, 0.0));
+	m_position.push_back(locate);
+	m_position.push_back(Vector3(locate.x, locate.y + size.y, locate.z));
 
-	m_position.push_back(Vector3(0.0, 0.0, 0.0));
-	m_position.push_back(Vector3(0.0, 0.0, size));
+	m_position.push_back(locate);
+	m_position.push_back(Vector3(locate.x, locate.y, locate.z + size.z));
 
 
 	m_color.push_back(Vector4(1.0, 0.0, 0.0, 1.0));
@@ -644,6 +916,20 @@ Circle::~Circle()
 {
 }
 
+Vector3 Circle::GetPoint(float radius, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end, float parameter)
+{
+	float delta = 0.0f;
+	float beginAngle = MathHelper::ToRadian(begin - center, u, v, radius);
+	if (MathHelper::IsSame(begin, end)) {
+		delta = MathHelper::PI2;
+	} else {
+		float endAngle = MathHelper::ToRadian(end - center, u, v, radius);
+		delta = MathHelper::NormalizePI(endAngle - beginAngle);
+	}
+	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
+	float angle = beginAngle + delta * parameter;
+	return Vector3(center + radius * (std::cos(angle) * u + std::sin(angle) * v));
+}
 Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center)
 {
 	Vector<Vector3> points;
@@ -659,8 +945,8 @@ Polyline Circle::CreateLine(float radius, int pointNum, const Vector3& u, const 
 Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end)
 {
 	Vector<Vector3> points;
-	float beginAngle = MathHelper::ToAngle(center,begin,u,v,radius);
-	float endAngle = MathHelper::ToAngle(center, end, u, v, radius);
+	float beginAngle = MathHelper::ToRadian(begin - center, u, v, radius);
+	float endAngle = MathHelper::ToRadian(end - center, u, v, radius);
 
 	float delta = MathHelper::NormalizePI(endAngle - beginAngle);
 	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
