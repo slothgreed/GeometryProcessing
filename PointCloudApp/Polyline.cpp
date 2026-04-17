@@ -52,6 +52,7 @@ int Polyline::LineNum() const
 
 void Polyline::Add(const Polyline& polyline)
 {
+    if (polyline.GetPoints().empty()) { return; }
     ConvertLines();
     auto p = polyline;
     p.ConvertLines();
@@ -70,6 +71,7 @@ void Polyline::Add(const Polyline& polyline)
 
 void Polyline::Add(Polyline&& polyline)
 {
+    if (polyline.GetPoints().empty()) { return; }
     ConvertLines();
     auto p = std::move(polyline);
     p.ConvertLines();

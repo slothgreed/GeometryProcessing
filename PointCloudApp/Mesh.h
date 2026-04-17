@@ -29,10 +29,20 @@ public:
 	}
 	~Mesh() {};
 
+	struct Triangle
+	{
+		Vector3 p0;
+		Vector3 p1;
+		Vector3 p2;
+	};
+
 	int TriangleNum() const;
+	Triangle GetTriangle(int index) const;
 	const Vector<Vector3>& GetPoints() const { return m_points; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
+
+
 	Mesh& ConvertTriangles();
 	Mesh& Reverse();
 private:

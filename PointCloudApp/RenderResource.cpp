@@ -1,7 +1,7 @@
 #include "RenderResource.h"
 #include "Camera.h"
 #include "Light.h"
-
+#include "PostEffect.h"
 namespace KI
 {
 Viewport Viewport::Create(const Vector2i& windowSize, const Vector2i& ratioSize, Viewport::Anchor anchor)
@@ -183,6 +183,7 @@ void RenderResource::Build()
 	m_pPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
 	m_pTmpComputeTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
 	m_pTmpPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
+	m_pTexturePlane = new RenderTextureNode();
 
 };
 void RenderResource::UpdateCamera()
@@ -280,6 +281,7 @@ void RenderResource::Finalize()
 	RELEASE_INSTANCE(m_pTmpComputeTarget);
 	RELEASE_INSTANCE(m_pPostEffectTarget);
 	RELEASE_INSTANCE(m_pPBR);
+	RELEASE_INSTANCE(m_pTexturePlane);
 }
 
 

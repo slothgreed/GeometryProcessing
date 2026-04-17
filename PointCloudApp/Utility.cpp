@@ -280,6 +280,10 @@ bool glmUtil::iszero(const Vector3& value)
 		-MathHelper::EPS < value.z && value.z < MathHelper::EPS;
 }
 
+float glmUtil::Cross(const Vector2& a, const Vector2& b)
+{
+	return a.x * b.y - a.y * b.x;
+}
 Matrix4x4 glmUtil::CreateScale(const Vector3& value)
 {
 	return glm::scale(mat4(1), value);

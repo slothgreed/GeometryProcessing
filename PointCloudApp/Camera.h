@@ -101,7 +101,7 @@ public:
 	Frustum CreateFrustum() const;
 	static Matrix4x4 Create2DProj(const Vector2i& size);
 	static Camera FitToBDB(const Camera& camera, const BDB& bdb);
-
+	
 private:
 	enum Mode
 	{

@@ -56,6 +56,7 @@ template <typename T> using List = std::list<T>;
 template <typename T> using Shared= std::shared_ptr<T>;
 template <typename T> using Unique = std::unique_ptr<T>;
 template <typename T> using Vector = std::vector<T>;
+template <typename T, std::size_t N> using Array = std::array<T, N>;
 template <typename T> using Optional = std::optional<T>;
 template <typename T> using USet = std::unordered_set<T>;
 template <std::size_t T> using BitSet = std::bitset<T>;

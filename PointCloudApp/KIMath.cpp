@@ -11,6 +11,21 @@ const float MathHelper::EPS = 0.0001f;
 const float MathHelper::EPS_RAD = 0.01f;
 const float MathHelper::THR_RAD5 = 0.996f; // 5“x
 
+bool MathHelper::ToScreen(const Vector4i& viewport, const Matrix4x4& viewProj, const Matrix4x4& model, const Vector3& position, Vector3& screen)
+{
+	Vector4 clip = viewProj * model * Vector4(position, 1.0f);
+	if (clip.w == 0.0f) { return false; }
+	
+	Vector3 ndc = Vector3(clip.x, clip.y, clip.z) / clip.w;
+
+	auto width = viewport.z - viewport.x;
+	auto height = viewport.a - viewport.y;
+	screen.x = viewport.x + (ndc.x * 0.5f + 0.5f) * width;
+	screen.y = viewport.y + (1.0f - (ndc.y * 0.5f + 0.5f)) * height;
+	screen.z = ndc.z * 0.5f + 0.5f;
+
+	return true;
+}
 void MathHelper::SphericalToCartesian(float radius, float x, float y, Vector3& result)
 {
 	result.x = radius * sin(y) * cos(x);
@@ -106,25 +121,16 @@ float MathHelper::CramesDet(const Vector3& a, const Vector3& b, const Vector3& c
 Vector4 MathHelper::WorldToScreenPos(const Matrix4x4& proj, const Matrix4x4& view, const Matrix4x4& model, const Vector3& value)
 {
 	vec4  result = proj * view * model * vec4(value.x, value.y, value.z, 1.0);
-
 	return result / result.w;
 }
 
-float MathHelper::Round(float value, float eps)
-{
-	if (1.0f - value < eps) {
-		return 1.0f;
-	}
-	else if (1.0 + value < eps) {
-		return -1.0f;
-	}
-
-	return value;
-}
 
 Matrix4x4 MathHelper::CreateRotateMatrix(const Vector3& source, const Vector3& target)
 {
-	float dot = Round(glm::dot(source, target));
+	float dot = glm::dot(source, target);
+	if (1.0f - dot < 0.0001f) {	dot = 1.0f;	}
+	else if (1.0 + dot < 0.0001f) {	dot = -1.0f;}
+
 	if (dot == 1.0f) {
 		return Matrix4x4(1);
 	}

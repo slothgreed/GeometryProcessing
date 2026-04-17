@@ -159,14 +159,14 @@ void PointCloudApp::Execute()
 	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 
 	{
-		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
 		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
-		//auto pSTEPNode = CreateSTEPNodeTest();
-		//for (const auto& pNode : pSTEPNode) {
-		//	m_pRoot->AddNode(pNode);
-		//}
-		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+		auto pSTEPNode = CreateSTEPNodeTest();
+		for (const auto& pNode : pSTEPNode) {
+			m_pRoot->AddNode(pNode);
+		}
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
 	}
 
 	// PBR
@@ -246,7 +246,6 @@ void PointCloudApp::Execute()
 	pLight->SetDirection(Vector3(0, 0, 1));
 
 
-	auto pTexturePalne = std::make_unique<RenderTextureNode>();
 	m_pResource->GL()->SetWindowSize(m_windowSize);
 	m_pResource->GL()->EnablePolygonOffset(1.0f, 1.0f);
 	m_pResource->GL()->SetLineWidth(5.0f);
@@ -254,7 +253,6 @@ void PointCloudApp::Execute()
 	m_pResource->SetMainCamera(m_pCamera);
 	m_pResource->SetLight(pLight);
 	m_pResource->SetRenderTarget(pForwardTarget.get());
-	m_pResource->SetTexturePlane(pTexturePalne.get());
 	DrawContext drawContext(m_pResource.get());
 	ComputeTextureCombiner combiner;
 	combiner.Build();
@@ -656,8 +654,9 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 		//// Alignment
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp");
 
-		//// B-Sprine
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
+		//// B-Spline
+		m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy.step");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");
 	}

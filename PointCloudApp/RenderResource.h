@@ -38,7 +38,8 @@ struct Viewport
 	};
 
 	const Vector4i& Get() const { return m_value; }
-
+	const int Width() const { return m_value.z - m_value.x; }
+	const int Height() const { return m_value.w - m_value.y; }
 	static Viewport Create(const Vector2i& windowSize, const Vector2i& ratioSize, Anchor anghor);
 	static std::array<Viewport, 2> SplitHorizontal(const Viewport& viewport);
 	static std::array<Viewport, 2> SplitVertical(const Viewport& viewport);
@@ -164,7 +165,6 @@ public:
 	void UpdateCamera();
 	void UpdatePBR();
 	void InitRenderTarget(const Vector2& size);
-	void SetTexturePlane(RenderTextureNode* pPlane) { m_pTexturePlane = pPlane; };
 	const RenderTextureNode* GetTexturePlane() const { return m_pTexturePlane; }
 	RenderTarget* GetPostEffectTarget() { return m_pPostEffectTarget; }
 	RenderTarget* GetDebugTarget() { return m_pDebugTarget; }

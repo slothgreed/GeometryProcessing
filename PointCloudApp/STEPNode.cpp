@@ -16,87 +16,7 @@ namespace KI
 
 void NotDefineEntity(const String& str)
 {
-	// 形状に不必要なEntity
-	// マテリアル情報も含まれる。
-	static const std::vector<std::string> equals = {
-		"ACTION_DIRECTIVE",
-		"ACTION_METHOD",
-		"ANGULAR_LOCATION",
-		"APPLIED_AREA",
-		"CHAMFER",
-		"CHAMFER_OFFSET",
-		"CIRCULAR_CLOSED_PROFILE",
-		"COLOUR_RGB",
-		"COORDINATED_UNIVERSAL_TIME_OFFSET",
-		"DERIVED_UNIT",
-		"DERIVED_UNIT_ELEMENT",
-		"DESCRIPTIVE_REPRESENTATION_ITEM",
-		"DESIGN_CONTEXT",
-		"DIRECTED_ACTION",
-		"DRAUGHTING_PRE_DEFINED_COLOUR",
-		"FACE_SHAPE_REPRESENTATION",
-		"FILL_AREA_STYLE",
-		"FILL_AREA_STYLE_COLOUR",
-		"HOLE_BOTTOM",
-		"INSTANCED_FEATURE",
-		"LENGTH_MEASURE_WITH_UNIT",
-		"LOCAL_TIME",
-		"MACHINING_FEATURE",
-		"MAKE_FROM_USAGE_OPTION",
-		"MATERIAL_DESIGNATION",
-		"MEASURE_QUALIFICATION",
-		"MEASURE_REPRESENTATION_ITEM",
-		"MEASURE_WITH_UNIT",
-		"ORDERED_PART",
-		"ORGANIZATION",
-		"ORGANIZATION_ROLE",
-		"OUTER_ROUND",
-		"PATH_FEATURE_COMPONENT",
-		"PLANE_ANGLE_MEASURE_WITH_UNIT",
-		"PLUS_MINUS_TOLERANCE",
-		"PRECISION_QUALIFIER",
-		"PRESENTATION_STYLE_ASSIGNMENT",
-		"QUALIFIED_REPRESENTATION_ITEM",
-		"REPRESENTATION",
-		"REPRESENTATION_ITEM",
-		"REVOLVED_PROFILE",
-		"ROUND_HOLE",
-		"SHAPE_ASPECT",
-		"SHAPE_ASPECT_RELATIONSHIP",
-		"SHAPE_DEFINING_RELATIONSHIP",
-		"SHAPE_DEFINITION_REPRESENTATION",
-		"SHAPE_DIMENSION_REPRESENTATION",
-		"SHAPE_REPRESENTATION_RELATIONSHIP",
-		"SHAPE_REPRESENTATION_WITH_PARAMETERS",
-		"SQUARE_U_PROFILE",
-		"STANDARD_UNCERTAINTY",
-		"STYLED_ITEM",
-		"SURFACE_SIDE_STYLE",
-		"SURFACE_STYLE_FILL_AREA",
-		"SURFACE_STYLE_USAGE",
-		"THREAD",
-		"TOLERANCE_VALUE",
-		"VEE_PROFILE",
-		"VERSIONED_ACTION_REQUEST",
-	};
-
-	static const std::vector<std::string> contains = {
-		"APPROVAL",
-		"APPLICATION",
-		"FEATURE",
-		"PRODUCT",
-		"PERSON",
-		"CC_DESIGN",
-		"DIMENSIONAL",
-		"DATUM",
-		"DATA",
-		"DATE",
-		"MECHANICAL",
-		"PROPERTY",
-		"SECURITY",
-		"MEASURE"
-	};
-
+	
 	"LENGTH_MEASURE_WITH_UNIT";
 	"ADVANCED_BREP_SHAPE_REPRESENTATION";
 	"MANIFOLD_SOLID_BREP";
@@ -105,13 +25,13 @@ void NotDefineEntity(const String& str)
 	"SHAPE_REPRESENTATION_RELATIONSHIP";
 
 	auto stepStr = STEPString::Create(str);
-	for (const auto& key : equals) {
-		if (StringUtility::Equal(stepStr.name, key)) {
+	for (const auto& key : g_ignoreEqualEntity) {
+		if (StringUtility::Equal(stepStr.entity.name, key)) {
 			return;
 		}
 	}
 
-	for (const auto& key : contains) {
+	for (const auto& key : g_ignoreContainsEntity) {
 		if (StringUtility::Contains(str, key)) {
 			return;
 		}
@@ -185,27 +105,39 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		}
 		bool writeEntity = true;
 		auto stepStr = STEPString::Create(content);
-		if (StringUtility::Equal(stepStr.name, STEPPoint::EntityName)) { STEPPoint::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPDirection::EntityName)) { STEPDirection::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPVector::EntityName)) { STEPVector::Fetch(step, stepStr);}
-		else if (StringUtility::Equal(stepStr.name, STEPPlane::EntityName)) { STEPPlane::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPLine::EntityName)) { STEPLine::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPAxis2Placement3D::EntityName)) { STEPAxis2Placement3D::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPPolyLoop::EntityName)) { STEPPolyLoop::Fetch(step, stepStr); } else if (StringUtility::Contains(stepStr.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPFaceSurface::EntityName)) { STEPFaceSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPCylindricalSurface::EntityName)) { STEPCylindricalSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPConicalSurface::EntityName)) { STEPConicalSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.name, STEPToroidalSurface::EntityName)) { STEPToroidalSurface::Fetch(step, stepStr); }
+
+		auto multiEntityType = stepStr.GetMultiEntityType();
+		if (multiEntityType != ESTEPNone) {
+			if (multiEntityType == ESTEPBSplineCurve) {
+				STEPBSplineCurve::Fetch(step, stepStr);
+			} else if (multiEntityType == ESTEPBSplineSurface) {
+				STEPBSplineSurface::Fetch(step, stepStr);
+			}
+		}
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPoint::EntityName)) { STEPPoint::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPDirection::EntityName)) { STEPDirection::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPVector::EntityName)) { STEPVector::Fetch(step, stepStr);}
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPlane::EntityName)) { STEPPlane::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPLine::EntityName)) { STEPLine::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPAxis2Placement3D::EntityName)) { STEPAxis2Placement3D::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPolyLoop::EntityName)) { STEPPolyLoop::Fetch(step, stepStr); } 
+		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceSurface::EntityName)) { STEPFaceSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPCylindricalSurface::EntityName)) { STEPCylindricalSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPConicalSurface::EntityName)) { STEPConicalSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPToroidalSurface::EntityName)) { STEPToroidalSurface::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPQuasiUniformCurve::EntityName)) { STEPQuasiUniformCurve::Fetch(step, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPBSplineSurfaceWithKnots::EntityName)) { STEPBSplineSurfaceWithKnots::Fetch(step, stepStr); }
 		else { NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {

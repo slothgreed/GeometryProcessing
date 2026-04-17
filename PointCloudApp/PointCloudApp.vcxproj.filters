@@ -314,6 +314,9 @@
     <ClCompile Include="STEPUtility.cpp">
       <Filter>ソース ファイル\Utility\STEP</Filter>
     </ClCompile>
+    <ClCompile Include="SoftwareRasterizer.cpp">
+      <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -588,6 +591,9 @@
     </ClInclude>
     <ClInclude Include="STEPUtility.h">
       <Filter>ソース ファイル\Utility\STEP</Filter>
+    </ClInclude>
+    <ClInclude Include="SoftwareRasterizer.h">
+      <Filter>ソース ファイル\App</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

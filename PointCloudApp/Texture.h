@@ -33,75 +33,102 @@ private:
 };
 
 struct PixelData
+{
+	struct Iterator
 	{
-		struct Iterator
+		Iterator(const PixelData* pixel, int index)
+			: m_pixel(pixel)
+			, m_index(index)
 		{
-			Iterator(const PixelData* pixel, int index)
-				: m_pixel(pixel)
-				, m_index(index)
-			{
-			}
-
-			bool operator!=(const Iterator& other) const { return m_index != other.m_index; }
-			Iterator& operator++() { ++m_index; return *this; }
-			Vector4 operator*() const
-			{
-				int c = m_pixel->component;
-				const unsigned char* p = m_pixel->data + m_index * c;
-				Vector4 v{ 0, 0, 0, 255 };
-				if (c > 0) v.x = p[0];
-				if (c > 1) v.y = p[1];
-				if (c > 2) v.z = p[2];
-				if (c > 3) v.w = p[3];
-				return v;
-			}
-
-		private:
-			const PixelData* m_pixel = nullptr;
-			int m_index = 0;
-		};
-
-
-		PixelData() {};
-		~PixelData() {};
-
-		Iterator begin() const { return PixelData::Iterator(this, 0); }
-		Iterator end() const { return PixelData::Iterator(this, width * height); }
-
-		bool IsIn(const Vector2i& xy) const { return IsIn(xy.x, xy.y); }
-
-		bool IsIn(int x, int y) const
-		{
-			return
-				0 <= x && x < width &&
-				0 <= y && y < height;
 		}
-		Vector4 Get(const Vector2i& xy) const
+
+		bool operator!=(const Iterator& other) const { return m_index != other.m_index; }
+		Iterator& operator++() { ++m_index; return *this; }
+		Vector4 operator*() const
 		{
-			return Get(xy.x, xy.y);
-		}
-		Vector4 Get(int x, int y) const
-		{
-			if (data == nullptr) { return Vector4(0); }
-			if (!IsIn(x, y)) { return Vector4(0); }
-			unsigned char* p = &data[(y * width + x) * component];
+			int c = m_pixel->component;
+			const unsigned char* p = m_pixel->data + m_index * c;
 			Vector4 v{ 0, 0, 0, 255 };
-			if (component > 0) v.x = p[0];
-			if (component > 1) v.y = p[1];
-			if (component > 2) v.z = p[2];
-			if (component > 3) v.w = p[3];
+			if (c > 0) v.x = p[0];
+			if (c > 1) v.y = p[1];
+			if (c > 2) v.z = p[2];
+			if (c > 3) v.w = p[3];
 			return v;
 		}
-		
-		Vector2i IndexToXY(int index) const
-		{
-			return Vector2i(index % width, index / width);
-		}
-		int width = 0;
-		int height = 0;
-		int component = 0;
-		unsigned char* data = nullptr;
+
+	private:
+		const PixelData* m_pixel = nullptr;
+		int m_index = 0;
 	};
+
+
+	PixelData() {};
+	~PixelData() { Free(); };
+
+	Iterator begin() const { return PixelData::Iterator(this, 0); }
+	Iterator end() const { return PixelData::Iterator(this, width * height); }
+
+	bool IsIn(const Vector2i& xy) const { return IsIn(xy.x, xy.y); }
+
+	bool IsIn(int x, int y) const
+	{
+		return
+			0 <= x && x < width &&
+			0 <= y && y < height;
+	}
+	Vector4 Get(const Vector2i& xy) const
+	{
+		return Get(xy.x, xy.y);
+	}
+	Vector4 Get(int x, int y) const
+	{
+		if (data == nullptr) { return Vector4(0); }
+		if (!IsIn(x, y)) { return Vector4(0); }
+		unsigned char* p = &data[(y * width + x) * component];
+		Vector4 v{ 0, 0, 0, 255 };
+		if (component > 0) v.x = p[0];
+		if (component > 1) v.y = p[1];
+		if (component > 2) v.z = p[2];
+		if (component > 3) v.w = p[3];
+		return v;
+	}
+
+	void Free()
+	{
+		if (m_allocate) { delete[] data; } m_allocate = false;
+	}
+	void Allocate(int x, int y, int _component)
+	{
+		Free();
+		data = new unsigned char[x * y * _component];
+		std::fill(data, data + x * y * _component, 0);
+		width = x;
+		height = y;
+		component = _component;
+		m_allocate = true;
+	}
+	void Set(int x, int y, const Vector4& value)
+	{
+		if (component == 4) {
+			data[(y * width + x) * component + 0] = value.x;
+			data[(y * width + x) * component + 1] = value.y;
+			data[(y * width + x) * component + 2] = value.z;
+			data[(y * width + x) * component + 3] = value.a;
+		} else {
+			assert(0);
+		}
+	}
+	
+	Vector2i IndexToXY(int index) const
+	{
+		return Vector2i(index % width, index / width);
+	}
+	int width = 0;
+	int height = 0;
+	int component = 0;
+	unsigned char* data = nullptr;
+	bool m_allocate = false;
+};
 class Texture
 {
 public:
@@ -110,27 +137,25 @@ public:
 	class Format
 	{
 	public:
-		GLenum target;
-		GLint level;
-		GLint internalformat;
-		GLsizei width;
-		GLsizei height;
-		GLsizei depth;
-		GLint border;
-		GLenum format;
-		GLenum type;
-		Format() :
-			target(GL_TEXTURE_2D),
-			level(0),
-			internalformat(GL_RGBA),
-			width(1),
-			height(1),
-			depth(1),
-			border(0),
-			format(GL_RGBA),
-			type(GL_UNSIGNED_BYTE) {}
-
+		GLenum target = GL_TEXTURE_2D;
+		GLint level = 0;
+		GLint internalformat = GL_RGBA;
+		GLsizei width = 1;
+		GLsizei height = 1;
+		GLsizei depth = 1;
+		GLint border = 0;
+		GLenum format = GL_RGBA;
+		GLenum type = GL_UNSIGNED_BYTE;
+		Format() {}
 		~Format() {}
+
+		static Format Create(int width, int height)
+		{
+			Format format;
+			format.width = width;
+			format.height = height;
+			return format;
+		}
 
 		bool operator==(const Format& rhs) const
 		{

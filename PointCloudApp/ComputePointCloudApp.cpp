@@ -220,9 +220,7 @@ void ComputePointCloudApp::Execute()
 	m_pResource->Build();
 
 	GPUProfiler profiler("Render");
-	auto pNode = std::make_unique<RenderTextureNode>();
 	context.pResource = m_pResource.get();
-	context.pResource->SetTexturePlane(pNode.get());
 
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

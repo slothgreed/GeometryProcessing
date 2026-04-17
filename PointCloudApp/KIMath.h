@@ -16,13 +16,13 @@ public:
 	MathHelper() {};
 	~MathHelper() {};
 
+	static bool ToScreen(const Vector4i& viewport, const Matrix4x4& viewProj, const Matrix4x4& model, const Vector3& position, Vector3& screen);
 	static void SphericalToCartesian(float radius, float x, float y, Vector3& result);
 	static void CartesianToSpherical(const Vector3& position, float& radian, float& theta, float& phi);
 	static float CalcTriangleArea(const Vector3& v1, const Vector3& v2, const Vector3& v3); // counter cloclk wise
 	static Vector3 CalcNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3); // counter cloclk wise
 	static float CalcRadian(const Vector3& v1, const Vector3& v2);
 	static Matrix4x4 CreateRotateMatrix(const Vector3& source, const Vector3& target);
-	static float Round(float value, float eps = 0.0001f);
 	static float CramesDet(const Vector3& a, const Vector3& b, const Vector3& c);
 	static float ToRadian(float angle);
 	static float ToAngle(float rad);

@@ -91,6 +91,8 @@ class glmUtil
 {
 public:
 	bool iszero(const Vector3& value);
+	static float Cross(const Vector2& a, const Vector2& b);
+
 	static Matrix4x4 CreateScale(const Vector3& value);
 	static Matrix4x4 CreateScale(float value);
 	static Matrix4x4 CreateRotate(float rad, const Vector3& axis);
@@ -104,7 +106,7 @@ public:
 	static Vector3 ToTranslate(const Matrix4x4& matrix);
 	static Vector3 ToRotateAngle(const Matrix4x4& matrix);
 	static Quaternion CreateQuart(const Vector4& vec);
-
+	
 	static String ToString(const Vector2& value);
 	static String ToString(const Vector3& value);
 	static String ToString(const Vector4& value);

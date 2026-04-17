@@ -11,7 +11,87 @@ namespace KI
 #define FIND_SET_DATA(a,b,c,d) { auto x = step.c.find(d); if(x != step.c.end()) { a.b = x->second->ToData(step);}}
 #define FIND_SET_DATA2(a,b,c) { auto x = step.b.find(c); if(x == step.b.end()) {a = x->second->ToData(step);}}
 
+// 形状に不必要なEntity
+// マテリアル情報も含まれる。
+static const Vector<String> g_ignoreEqualEntity = {
+	"ACTION_DIRECTIVE",
+	"ACTION_METHOD",
+	"ANGULAR_LOCATION",
+	"APPLIED_AREA",
+	"CHAMFER",
+	"CHAMFER_OFFSET",
+	"CIRCULAR_CLOSED_PROFILE",
+	"COLOUR_RGB",
+	"COORDINATED_UNIVERSAL_TIME_OFFSET",
+	"DERIVED_UNIT",
+	"DERIVED_UNIT_ELEMENT",
+	"DESCRIPTIVE_REPRESENTATION_ITEM",
+	"DESIGN_CONTEXT",
+	"DIRECTED_ACTION",
+	"DRAUGHTING_PRE_DEFINED_COLOUR",
+	"FACE_SHAPE_REPRESENTATION",
+	"FILL_AREA_STYLE",
+	"FILL_AREA_STYLE_COLOUR",
+	"HOLE_BOTTOM",
+	"INSTANCED_FEATURE",
+	"LENGTH_MEASURE_WITH_UNIT",
+	"LOCAL_TIME",
+	"MACHINING_FEATURE",
+	"MAKE_FROM_USAGE_OPTION",
+	"MATERIAL_DESIGNATION",
+	"MEASURE_QUALIFICATION",
+	"MEASURE_REPRESENTATION_ITEM",
+	"MEASURE_WITH_UNIT",
+	"ORDERED_PART",
+	"ORGANIZATION",
+	"ORGANIZATION_ROLE",
+	"OUTER_ROUND",
+	"PATH_FEATURE_COMPONENT",
+	"PLANE_ANGLE_MEASURE_WITH_UNIT",
+	"PLUS_MINUS_TOLERANCE",
+	"PRECISION_QUALIFIER",
+	"PRESENTATION_STYLE_ASSIGNMENT",
+	"QUALIFIED_REPRESENTATION_ITEM",
+	"REPRESENTATION",
+	"REPRESENTATION_ITEM",
+	"REVOLVED_PROFILE",
+	"ROUND_HOLE",
+	"SHAPE_ASPECT",
+	"SHAPE_ASPECT_RELATIONSHIP",
+	"SHAPE_DEFINING_RELATIONSHIP",
+	"SHAPE_DEFINITION_REPRESENTATION",
+	"SHAPE_DIMENSION_REPRESENTATION",
+	"SHAPE_REPRESENTATION_RELATIONSHIP",
+	"SHAPE_REPRESENTATION_WITH_PARAMETERS",
+	"SQUARE_U_PROFILE",
+	"STANDARD_UNCERTAINTY",
+	"STYLED_ITEM",
+	"SURFACE_SIDE_STYLE",
+	"SURFACE_STYLE_FILL_AREA",
+	"SURFACE_STYLE_USAGE",
+	"THREAD",
+	"TOLERANCE_VALUE",
+	"VEE_PROFILE",
+	"VERSIONED_ACTION_REQUEST",
+};
 
+static const Vector<String> g_ignoreContainsEntity = {
+	"APPROVAL",
+	"APPLICATION",
+	"FEATURE",
+	"DOCUMENT",
+	"PRODUCT",
+	"PERSON",
+	"CC_DESIGN",
+	"DIMENSIONAL",
+	"DATUM",
+	"DATA",
+	"DATE",
+	"MECHANICAL",
+	"PROPERTY",
+	"SECURITY",
+	"MEASURE"
+};
 const int CIRCLE_SUBDIVISION_NUM = 36;
 #define STEP_DEFINE_CAST(TypeName) \
 static TypeName* Cast(STEPEntityBase* pBase) \
@@ -80,18 +160,31 @@ struct STEPString
 	STEPString() :id(-1) {};
 	~STEPString() {};
 	int id;
-	String value;
-	String name;
+	struct Entity
+	{
+		String name;
+		String value;
+	};
+	Entity entity;
+	Vector<Entity> multiEntity;
+
 	static STEPString Create(const String& str);
+	ESTEPEntityType GetMultiEntityType() const;
+	static Vector<Entity> CreateMultiEntity(const String& str);
 	static Vector<String> SplitValue(const String& value);
 	String CreateRemoveLabelStr() const;
 	static String RemoveBracket(const String& str);
+	static bool ValueToInt(const String& str, int& value);
 	static bool ValueToRef(const String& str, int& value);
 	static bool ValueToFloat(const String& str, float& value);
 	static bool IsAsterisk(const String& str);
 	// 文字がドル記号か判定
 	static bool IsDollar(const String& str);
 	static bool ValueToBool(const String& str, bool& value);
+	static bool ValueToLogical(const String& str, STEPLogicalType& value);
+	static bool ValueToBSplineCurveForm(const String& str, STEPBSplineCurveFormType& value);
+	static bool ValueToBSplineSurfaceForm(const String& str, STEPBSplineSurfaceFormType& value);
+	static bool ValueToKnot(const String& str, STEPKnotType& value);
 	String ToString() const;
 };
 
@@ -114,11 +207,15 @@ struct STEPStruct
 	std::unordered_map<int, STEPPolyLoop*> polyLoop;
 	std::unordered_map<int, STEPFaceOuterBound*> faceOuterBound;
 	std::unordered_map<int, STEPFaceBound*> faceBound;
+	std::unordered_map<int, STEPQuasiUniformCurve*> quasiUniformCurve;
 	std::unordered_map<int, STEPOrientedEdge*> orientedEdge;
 	std::unordered_map<int, STEPAdvancedFace*> advancedFace;
 	std::unordered_map<int, STEPFaceSurface*> faceSurface;
 	std::unordered_map<int, STEPClosedShell*> closedShell;
 	std::unordered_map<int, STEPOpenShell*> openShell;
+	std::unordered_map<int, STEPBSplineCurve*> bSplineCurve;
+	std::unordered_map<int, STEPBSplineSurfaceWithKnots*> bSplineSurfaceWithKnots;
+	std::unordered_map<int, STEPBSplineSurface*> bSplineSurface;
 
 	~STEPStruct();
 };
@@ -141,12 +238,12 @@ struct STEPEntityBase
 	virtual ~STEPEntityBase() = default;
 	int id = -1;
 	String str;
-
 	static void Fetch(STEPEntityBase* data, const STEPString& stepStr);
 	virtual ESTEPEntityType GetType() const = 0;
 	virtual void ShowUI(STEPUIContext& ui) = 0;
-	bool ShowBranch(STEPUIContext& ui, bool select);
 	virtual String Dump(const DebugOption& option) = 0;
+
+	bool ShowBranch(STEPUIContext& ui, bool select);
 	void ShowLeaf(STEPUIContext& ui);
 	void PrintfRaw();
 	String ToString() const;
@@ -407,6 +504,8 @@ struct STEPEdgeCurve : public STEPEntityBase
 		STEPLine* line = nullptr;
 		STEPCircle* circle = nullptr;
 		STEPInterSectionCurve* intersectionCurve = nullptr;
+		STEPQuasiUniformCurve* quasiUniformCurve = nullptr;
+		STEPBSplineCurve* bsplineCurve = nullptr;
 		bool sameSense = true;
 
 		Vector3 GetBegin() const { return sameSense ? begin : end; }
@@ -488,6 +587,7 @@ struct STEPPolyLoop : public STEPEntityBase
 	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
 };
+
 
 
 struct STEPEdgeLoop : public STEPEntityBase
@@ -585,6 +685,8 @@ struct STEPFaceBase : public STEPEntityBase
 		STEPCylindricalSurface* cylinder = nullptr;
 		STEPConicalSurface* conical = nullptr;
 		STEPToroidalSurface* toroidal = nullptr;
+		STEPBSplineSurfaceWithKnots* bSplineSurfaceWithKnots = nullptr;
+		STEPBSplineSurface* bSplineSurface = nullptr;
 		bool orient = true;
 
 		struct CylidnerEdge
@@ -684,6 +786,107 @@ struct STEPOpenShell : public STEPShell
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
 	STEPShape CreateMesh(const STEPStruct& step);
+};
+
+
+struct STEPQuasiUniformCurve : public STEPEntityBase
+{
+	virtual ~STEPQuasiUniformCurve() = default;
+	STEP_DEFINE_HPP(STEPQuasiUniformCurve, "QUASI_UNIFORM_CURVE");
+
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+
+	Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const;
+	int degree = 1; // 次元
+	Vector<std::pair<int, STEPPoint*>> points;
+	STEPBSplineCurveFormType form = STEPBSplineCurveFormType::UNSPECIFIED;
+	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
+	STEPLogicalType closed = STEPLogicalType::UNDEFINED;
+
+};
+
+struct STEPBSplineCurve : public STEPEntityBase
+{
+	virtual ~STEPBSplineCurve() = default;
+	static constexpr const char* STEPBSplineCurveWithNotEntityName = "B_SPLINE_CURVE_WITH_KNOTS";
+	static constexpr const char* STEPRationalBSplineCurveEntityName = "RATIONAL_B_SPLINE_CURVE";
+	STEP_DEFINE_HPP(STEPBSplineCurve, "B_SPLINE_CURVE");
+	
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+
+	void Fetch(const String& str);
+	void FetchKnot(const String& str);
+	void FetchRational(const String& str);
+
+	Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const;
+	
+	int degree = 0;
+	Vector<std::pair<int, STEPPoint*>> points;
+	Vector<float> rational;
+	Vector<int> multiple;
+	Vector<float> knots;
+	Vector<float> expandKnots;
+	STEPKnotType knotType;
+	STEPBSplineCurveFormType form = STEPBSplineCurveFormType::UNSPECIFIED;
+	STEPLogicalType closed = STEPLogicalType::UNDEFINED;
+	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
+};
+
+
+struct STEPBSplineSurfaceWithKnots : public STEPEntityBase
+{
+	virtual ~STEPBSplineSurfaceWithKnots() = default;
+	STEP_DEFINE_HPP(STEPBSplineSurfaceWithKnots, "B_SPLINE_SURFACE_WITH_KNOTS");
+
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+
+	Mesh CreateMesh() const;
+	STEPUV<int> degree;
+	Vector<std::pair<STEPUV<int>, STEPUV<STEPPoint*>>> points;
+	STEPBSplineSurfaceFormType form = STEPBSplineSurfaceFormType::UNSPECIFIED;
+	STEPUV<STEPLogicalType> closed;
+	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
+
+};
+
+
+struct STEPBSplineSurface : public STEPEntityBase
+{
+	virtual ~STEPBSplineSurface() = default;
+	STEP_DEFINE_HPP(STEPBSplineSurface, "B_SPLINE_SURFACE");
+	static constexpr const char* STEPRationalBSplineSurfaceEntityName = "RATIONAL_B_SPLINE_SURFACE";
+
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void Fetch(const String& str);
+	void FetchKnot(const String& str);
+	void FetchRational(const String& str);
+
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+	int GetUNum() const { return points.size(); }
+	int GetVNum() const { return points[0].size(); }
+	Mesh CreateMesh() const;
+	bool IsValid() const;
+
+	STEPUV<int> degree;
+	Vector<Vector<std::pair<int, STEPPoint*>>> points;
+	STEPBSplineSurfaceFormType form = STEPBSplineSurfaceFormType::UNSPECIFIED;
+	STEPUV<STEPLogicalType> closed;
+	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
+	STEPUV<Vector<int>> multiple;
+	STEPUV<Vector<float>> knots;
+	Vector<Vector<float>> rational;
+	STEPKnotType knotType;
 };
 }
 

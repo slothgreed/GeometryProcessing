@@ -51,11 +51,12 @@ private:
 class GeometryUtility
 {
 public:
-	GeometryUtility();
-	~GeometryUtility();
+	GeometryUtility() {};
+	~GeometryUtility() = default;
 
 	static void CreateTangentBasis(const Vector3& value, Vector3& t1, Vector3& t2);
 	static float CalcCotangent(const Vector3& p0, const Vector3& p1, const Vector3& p2);
+	static bool InTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Vector2& target);
 private:
 
 };

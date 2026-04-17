@@ -43,5 +43,43 @@ private:
 	Vector3 m_max;
 	
 };
+
+struct Rangei
+{
+public:
+	bool IsIn(int v) const { return v >= min && v <= max; }
+	int Length() const { return max - min; }
+	void Add(int v)
+	{
+		min = std::min(min, v);
+		max = std::max(max, v);
+	}
+
+	int Min() const { return min; }
+	int Max() const { return max; }
+private:
+	int min = std::numeric_limits<int>::infinity();
+	int max = -std::numeric_limits<int>::infinity();
+};
+
+struct Rangef
+{
+public:
+	bool IsIn(float v) const { return v >= min && v <= max; }
+	float Length() const { return max - min; }
+	void Add(float v)
+	{
+		min = std::min(min, v);
+		max = std::max(max, v);
+	}
+	
+	int RoundMin() const { return (int)std::round(min); }
+	int RoundMax() const { return (int)std::round(max); }
+	float Min() const { return min; }
+	float Max() const { return max; }
+private:
+	float min = std::numeric_limits<float>::infinity();
+	float max = -std::numeric_limits<float>::infinity();
+};
 }
 #endif BOUNDING_BOX_H

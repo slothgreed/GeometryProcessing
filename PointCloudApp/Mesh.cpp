@@ -23,6 +23,27 @@ int Mesh::TriangleNum() const
 	return 0;
 }
 
+Mesh::Triangle Mesh::GetTriangle(int index) const
+{
+	Triangle tri;
+	if (m_drawType == DrawType::Triangles) {
+		if (m_indexs.empty()) {
+			tri.p0 = m_points[3 * index + 0];
+			tri.p1 = m_points[3 * index + 1];
+			tri.p2 = m_points[3 * index + 2];
+			return tri;
+		} else {
+			tri.p0 = m_points[m_indexs[3 * index + 0]];
+			tri.p1 = m_points[m_indexs[3 * index + 1]];
+			tri.p2 = m_points[m_indexs[3 * index + 2]];
+			return tri;
+		}
+	} else {
+		assert(0);
+		return tri;
+	}
+}
+
 Mesh& Mesh::ConvertTriangles()
 {
 	if (m_drawType == DrawType::Triangles) {
