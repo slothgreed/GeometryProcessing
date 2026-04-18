@@ -21,7 +21,6 @@ void ScrollCallBack(GLFWwindow* window, double x, double y)
 
 void WindowSizeCallBack(GLFWwindow* window, int width, int height)
 {
-
 	g_instance->ResizeEvent(width, height);
 }
 

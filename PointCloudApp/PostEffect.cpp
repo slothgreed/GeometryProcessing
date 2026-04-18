@@ -21,22 +21,37 @@ void TextureDrawer::Execute(const DrawContext& context, const CubemapTexture* pT
 	pShader->BindTexture(*pTexture);
 	pShader->Draw(*context.pResource->GetTexturePlane());
 }
-RenderTextureNode::RenderTextureNode()
+TexturePlane::TexturePlane()
 {
 	BuildGLBuffer();
 }
 
-void RenderTextureNode::BuildGLBuffer()
+void TexturePlane::BuildGLBuffer()
 {
-	RenderPlane plane;
+	Vector<Vector3> position(4);
+	position[0] = Vector3(-1.0, -1.0, 0.0);
+	position[1] = Vector3(1.0, -1.0, 0.0);
+	position[2] = Vector3(1.0, 1.0, 0.0);
+	position[3] = Vector3(-1.0, 1.0, 0.0);
+
+	Vector<Vector2> texcoord(4);
+	texcoord[0] = Vector2(0, 0.0);
+	texcoord[1] = Vector2(1.0, 0.0);
+	texcoord[2] = Vector2(1.0, 1.0);
+	texcoord[3] = Vector2(0, 1.0);
+
+	Vector<UInt> index(6);
+	index[0] = 0;	index[1] = 1;	index[2] = 2;
+	index[3] = 0;	index[4] = 2;	index[5] = 3;
+
 	m_pPositionBuffer = std::make_unique<GLBuffer>();
-	m_pPositionBuffer->Create(plane.Position());
-	
+	m_pPositionBuffer->Create(position);
+
 	m_pTexcoordBuffer = std::make_unique<GLBuffer>();
-	m_pTexcoordBuffer->Create(plane.Texcoord());
-	
+	m_pTexcoordBuffer->Create(texcoord);
+
 	m_pIndexBuffer = std::make_unique<GLBuffer>();
-	m_pIndexBuffer->Create(plane.Index());
+	m_pIndexBuffer->Create(index);
 }
 ShaderPath ComputeTextureCombiner::GetShaderPath()
 {

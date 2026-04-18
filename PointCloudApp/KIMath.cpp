@@ -21,7 +21,7 @@ bool MathHelper::ToScreen(const Vector4i& viewport, const Matrix4x4& viewProj, c
 	auto width = viewport.z - viewport.x;
 	auto height = viewport.a - viewport.y;
 	screen.x = viewport.x + (ndc.x * 0.5f + 0.5f) * width;
-	screen.y = viewport.y + (1.0f - (ndc.y * 0.5f + 0.5f)) * height;
+	screen.y = viewport.y + (ndc.y * 0.5f + 0.5f) * height;
 	screen.z = ndc.z * 0.5f + 0.5f;
 
 	return true;

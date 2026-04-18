@@ -93,7 +93,8 @@ public:
 	float Right() const { return m_ortho.m_right; }
 	float Top() const { return m_ortho.m_top; }
 	float Bottom() const { return m_ortho.m_bottom; }
-	const Matrix4x4& GetViewProj() const { return m_View * m_Project; }
+	const Vector4i& GetViewport() const { return m_viewport; }
+	Matrix4x4 GetViewProj() const { return m_Project * m_View; }
 	Vector3 ScreenToWorld(const Vector3& pos) const;
 	Vector3 WorldToScreen(const Vector3& world) const;
 	Vector2 GetOnePixelDistance(const Vector3& worldPos) const;

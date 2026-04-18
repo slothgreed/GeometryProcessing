@@ -3,6 +3,7 @@
 #include "TheApp.h"
 #include "RenderResource.h"
 #include "CameraController.h"
+#include "MouseInput.h"
 namespace KI
 {
 

@@ -31,9 +31,9 @@ public:
 
 	struct Triangle
 	{
-		Vector3 p0;
-		Vector3 p1;
-		Vector3 p2;
+		Vector3 pos0;
+		Vector3 pos1;
+		Vector3 pos2;
 	};
 
 	int TriangleNum() const;

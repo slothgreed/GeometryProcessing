@@ -511,11 +511,11 @@ void IComputeShader::BarrierImage()
 
 
 
-void IPostEffectShader::Draw(const RenderTextureNode& node)
+void IPostEffectShader::Draw(const TexturePlane& plane)
 {
-	SetPosition(node.GetPositionBuffer().get());
-	SetTexcoord(node.GetTexcoordBuffer().get());
-	DrawElement(RenderPlane::GetPrimitiveType(), node.GetIndexBuffer().get());
+	SetPosition(plane.GetPositionBuffer().get());
+	SetTexcoord(plane.GetTexcoordBuffer().get());
+	DrawElement(plane.GetPrimitiveType(), plane.GetIndexBuffer().get());
 }
 
 

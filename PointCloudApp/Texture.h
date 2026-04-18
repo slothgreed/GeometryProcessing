@@ -85,7 +85,7 @@ struct PixelData
 		if (data == nullptr) { return Vector4(0); }
 		if (!IsIn(x, y)) { return Vector4(0); }
 		unsigned char* p = &data[(y * width + x) * component];
-		Vector4 v{ 0, 0, 0, 255 };
+		Vector4 v{ p[0], p[0], p[0], 255 };
 		if (component > 0) v.x = p[0];
 		if (component > 1) v.y = p[1];
 		if (component > 2) v.z = p[2];
@@ -97,23 +97,36 @@ struct PixelData
 	{
 		if (m_allocate) { delete[] data; } m_allocate = false;
 	}
+
+	void Fill(unsigned char value)
+	{
+		std::fill(data, data + width * height * component, value);
+	}
 	void Allocate(int x, int y, int _component)
 	{
 		Free();
 		data = new unsigned char[x * y * _component];
-		std::fill(data, data + x * y * _component, 0);
 		width = x;
 		height = y;
 		component = _component;
+		Fill(0);
 		m_allocate = true;
+	}
+	void Set(int x, int y, unsigned char value)
+	{
+		if (component == 1) {
+			data[y * width + x] = value;
+		} else {
+			assert(0);
+		}
 	}
 	void Set(int x, int y, const Vector4& value)
 	{
 		if (component == 4) {
-			data[(y * width + x) * component + 0] = value.x;
-			data[(y * width + x) * component + 1] = value.y;
-			data[(y * width + x) * component + 2] = value.z;
-			data[(y * width + x) * component + 3] = value.a;
+			data[(y * width + x) * component + 0] = (unsigned char)value.x;
+			data[(y * width + x) * component + 1] = (unsigned char)value.y;
+			data[(y * width + x) * component + 2] = (unsigned char)value.z;
+			data[(y * width + x) * component + 3] = (unsigned char)value.a;
 		} else {
 			assert(0);
 		}

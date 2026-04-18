@@ -31,12 +31,13 @@ private:
 
 };
 
-class RenderTextureNode
+class TexturePlane
 {
 public:
-	RenderTextureNode();
-	~RenderTextureNode() {};
+	TexturePlane();
+	~TexturePlane() {};
 
+	GLuint GetPrimitiveType() const { return GL_TRIANGLES; }
 	const Unique<GLBuffer>& GetPositionBuffer() const { return m_pPositionBuffer; }
 	const Unique<GLBuffer>& GetTexcoordBuffer() const { return m_pTexcoordBuffer; }
 	const Unique<GLBuffer>& GetIndexBuffer() const { return m_pIndexBuffer; }

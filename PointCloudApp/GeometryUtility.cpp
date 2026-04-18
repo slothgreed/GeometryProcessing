@@ -234,15 +234,14 @@ float GeometryUtility::CalcCotangent(const Vector3& p0, const Vector3& p1, const
     return cos_theta / sin_theta;
 }
 
-bool GeometryUtility::InTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Vector2& target)
+
+bool GeometryUtility::IsCCW(const Vector2& screen0, const Vector2& screen1, const Vector2& screen2)
 {
-    float w0 = glmUtil::Cross(target - p1, p2 - p1);
-    float w1 = glmUtil::Cross(target - p2, p0 - p2);
-    float w2 = glmUtil::Cross(target - p0, p1 - p0);
+    return CalcArea(screen0, screen1, screen2) > 0.0f;
+}
 
-    return
-        (w0 >= 0.0f && w1 >= 0.0f && w2 >= 0.0f) ||
-        (w0 <= 0.0f && w1 <= 0.0f && w2 <= 0.0f);
-
+float GeometryUtility::CalcArea(const Vector2& screen0, const Vector2& screen1, const Vector2& screen2)
+{
+    return glmUtil::Cross(screen1 - screen0, screen2 - screen0);
 }
 }

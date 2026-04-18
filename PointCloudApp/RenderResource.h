@@ -165,7 +165,7 @@ public:
 	void UpdateCamera();
 	void UpdatePBR();
 	void InitRenderTarget(const Vector2& size);
-	const RenderTextureNode* GetTexturePlane() const { return m_pTexturePlane; }
+	const TexturePlane* GetTexturePlane() const { return m_pTexturePlane; }
 	RenderTarget* GetPostEffectTarget() { return m_pPostEffectTarget; }
 	RenderTarget* GetDebugTarget() { return m_pDebugTarget; }
 
@@ -187,7 +187,7 @@ private:
 	RenderTarget* m_pRenderTarget;
 	RenderTarget* m_pPostEffectTarget;
 	ShaderTable m_pShaderTable;
-	RenderTextureNode* m_pTexturePlane;
+	TexturePlane* m_pTexturePlane;
 	RenderTarget* m_pTmpComputeTarget; // コンピュートシェーダの描画結果をマージするときに一時的に使うターゲット 
 	RenderTarget* m_pTmpPostEffectTarget;
 	RenderTarget* m_pDebugTarget;

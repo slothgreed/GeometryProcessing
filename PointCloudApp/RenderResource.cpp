@@ -1,6 +1,7 @@
 #include "RenderResource.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Utility.h"
 #include "PostEffect.h"
 namespace KI
 {
@@ -183,7 +184,7 @@ void RenderResource::Build()
 	m_pPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
 	m_pTmpComputeTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
 	m_pTmpPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
-	m_pTexturePlane = new RenderTextureNode();
+	m_pTexturePlane = new TexturePlane();
 
 };
 void RenderResource::UpdateCamera()

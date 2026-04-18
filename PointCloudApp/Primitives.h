@@ -200,17 +200,6 @@ private:
 	void Build(float radius, int pointNum, const Vector3& center);
 };
 
-class RenderPlane : public Primitive
-{
-public:
-	RenderPlane();
-	~RenderPlane() {};
-
-	static GLuint GetPrimitiveType();
-private:
-	void Build();
-};
-
 class SkyBox : public Primitive
 {
 public:

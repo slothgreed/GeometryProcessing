@@ -156,19 +156,26 @@ void PointCloudApp::Execute()
 		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	//}
 	
-	//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
-
+	// PointCloud
 	{
-		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
-		auto pSTEPNode = CreateSTEPNodeTest();
-		for (const auto& pNode : pSTEPNode) {
-			m_pRoot->AddNode(pNode);
-		}
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+		//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 	}
 
+	// STEP
+	{
+		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		//auto pSTEPNode = CreateSTEPNodeTest();
+		//for (const auto& pNode : pSTEPNode) {
+		//	m_pRoot->AddNode(pNode);
+		//}
+		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+	}
+
+	// Simulation
+	{
+		//m_pRoot->AddNode(std::make_shared<SimulationNode>());
+	}
 	// PBR
 	{
 		//m_pRoot->AddNode(CreatePBRTest());
@@ -185,15 +192,11 @@ void PointCloudApp::Execute()
 	}
 
 
-	m_pCamera->SetLookAt(Vector3(0, 0, -500), Vector3(0, 0, 0), m_pCamera->Up());
+	//m_pCamera->SetLookAt(Vector3(0, 0, -500), Vector3(0, 0, 0), m_pCamera->Up());
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\dragon.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\cube.xyz")));
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\bunny4000.xyz")));
-	
-	
-	
-
 	//pPointCloud->Multi(glm::rotate(-90.0f, Vector3(1, 0, 0)));
 	//pPointCloud->To2D();
 	//auto pPointCloud = (Shared<PointCloud>(PointCloud::Load("E:\\MyProgram\\KIProject\\PointCloudApp\\resource\\PointCloud\\lucy.xyz")));
@@ -202,11 +205,13 @@ void PointCloudApp::Execute()
 
 	// Test
 	{
+		m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateDelaunayTest());
 		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
 		//m_pRoot->AddNode(CreateImageTest());
 		//m_pRoot->AddNode(CreatePolylineTest());
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
 	
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

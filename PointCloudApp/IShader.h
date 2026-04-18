@@ -143,7 +143,7 @@ private:
 
 };
 
-class RenderTextureNode;
+class TexturePlane;
 class IPostEffectShader : public IShadingShader
 {
 public:
@@ -152,7 +152,7 @@ public:
 
 	void SetPosition(GLBuffer* pPosition);
 	void SetTexcoord(GLBuffer* pTexture);
-	void Draw(const RenderTextureNode& node);
+	void Draw(const TexturePlane& node);
 };
 
 class IMeshShader : public IShader
