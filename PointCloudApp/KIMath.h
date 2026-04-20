@@ -16,7 +16,7 @@ public:
 	MathHelper() {};
 	~MathHelper() {};
 
-	static bool ToScreen(const Vector4i& viewport, const Matrix4x4& viewProj, const Matrix4x4& model, const Vector3& position, Vector3& screen);
+	static bool ToScreen(const Vector4i& viewport, const Matrix4x4& mvp, const Vector3& position, Vector3& screen);
 	static void SphericalToCartesian(float radius, float x, float y, Vector3& result);
 	static void CartesianToSpherical(const Vector3& position, float& radian, float& theta, float& phi);
 	static float CalcTriangleArea(const Vector3& v1, const Vector3& v2, const Vector3& v3); // counter cloclk wise

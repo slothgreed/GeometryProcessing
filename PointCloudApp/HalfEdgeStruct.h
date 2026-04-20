@@ -89,6 +89,7 @@ public:
 	const Vector3& GetVertex(int index) const { return m_position[index]; }
 	const Vector<Vector3>& GetVertex() const { return m_position; }
 	void SetVertex(int index, const Vector3& value) { m_position[index] = value; }
+	const Vector<Vector3>& GetFaceNormal();
 	const Vector<Vector3>& GetNormal();
 	const Vector<Vector3>& GetNormal() const { assert(m_parameter.vertexNormal.size() == 0); return m_parameter.vertexNormal; }
 	Edge GetEdge(int edgeIndex) const;
@@ -132,7 +133,7 @@ public:
 	const Vector3& GetNextPos(int edgeIndex) const;
 
 private:
-
+	void CreateFaceNormal();
 	void CreateNormal();
 	void CreateFace();
 	Vector<HalfEdgeStruct::IndexedFace> m_face;
@@ -147,10 +148,23 @@ private:
 		Vector<float> heatValue;
 		Vector<float> vertexArea;
 		Vector<Vector3> vertexNormal;
+		Vector<Vector3> faceNormal;
 		Vector<float> minCurvature;
 		Vector<float> maxCurvature;
 		Vector<Vector3> minDirection;
 		Vector<Vector3> maxDirection;
+		void Reset()
+		{
+			cotangent = Eigen::SparseMatrix<float>();
+			heatValue.clear();
+			vertexArea.clear();
+			vertexNormal.clear();
+			faceNormal.clear();
+			minCurvature.clear();
+			maxCurvature.clear();
+			minDirection.clear();
+			maxDirection.clear();
+		}
 	};
 
 	Parameter m_parameter;

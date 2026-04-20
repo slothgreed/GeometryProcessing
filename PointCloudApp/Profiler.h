@@ -13,6 +13,7 @@ public:
 
 	void Start();
 	void Stop();
+	void Output(const String& output);
 	void Output();
 	float GetFPS();
 	float GetMilli();

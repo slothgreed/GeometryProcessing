@@ -383,6 +383,7 @@ void PointCloudApp::Execute()
 	}
 
 	RELEASE_INSTANCE(m_gpuProfiler);
+	glDeleteVertexArrays(1, &VertexArrayID);
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
 }

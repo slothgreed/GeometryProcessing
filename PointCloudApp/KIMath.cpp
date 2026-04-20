@@ -11,9 +11,9 @@ const float MathHelper::EPS = 0.0001f;
 const float MathHelper::EPS_RAD = 0.01f;
 const float MathHelper::THR_RAD5 = 0.996f; // 5“x
 
-bool MathHelper::ToScreen(const Vector4i& viewport, const Matrix4x4& viewProj, const Matrix4x4& model, const Vector3& position, Vector3& screen)
+bool MathHelper::ToScreen(const Vector4i& viewport, const Matrix4x4& mvp, const Vector3& position, Vector3& screen)
 {
-	Vector4 clip = viewProj * model * Vector4(position, 1.0f);
+	Vector4 clip = mvp * Vector4(position, 1.0f);
 	if (clip.w == 0.0f) { return false; }
 	
 	Vector3 ndc = Vector3(clip.x, clip.y, clip.z) / clip.w;

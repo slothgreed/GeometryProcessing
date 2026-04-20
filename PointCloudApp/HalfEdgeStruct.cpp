@@ -209,6 +209,11 @@ void HalfEdgeStruct::CreateFace()
 		m_face[counter++] = std::move(face);
 	}
 }
+const Vector<Vector3>& HalfEdgeStruct::GetFaceNormal()
+{
+	if (m_parameter.faceNormal.size() == 0) { CreateFaceNormal(); }
+	return m_parameter.faceNormal;
+}
 const Vector<Vector3>& HalfEdgeStruct::GetNormal()
 {
 	if (m_parameter.vertexNormal.size() == 0) { CreateNormal(); }
@@ -229,6 +234,15 @@ float HalfEdgeStruct::CalcDihedralAngle(int edgeIndex) const
 	auto normal2 = CalcFaceNormal(m_halfEdge[m_halfEdge[edgeIndex].oppositeEdge].face);
 	return glm::dot(normal1, normal2);
 }
+
+void HalfEdgeStruct::CreateFaceNormal()
+{
+	m_parameter.faceNormal.resize(m_face.size());
+	for (size_t i = 0; i < m_face.size(); i++) {
+		m_parameter.faceNormal[i] = CalcFaceNormal(i);
+	}
+}
+
 void HalfEdgeStruct::CreateNormal()
 {
 	m_parameter.vertexNormal.resize(m_position.size());

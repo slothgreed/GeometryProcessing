@@ -21,6 +21,11 @@ void CPUProfiler::Stop()
 	QueryPerformanceCounter(&m_end);
 }
 
+void CPUProfiler::Output(const String& output)
+{
+	printf(output.data());
+	Output();
+}
 void CPUProfiler::Output()
 {
 	printf("time %lf[ms]\n", GetMilli());
