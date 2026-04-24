@@ -35,6 +35,7 @@
 #include "FileUtility.h"
 #include "ImageAlgorithm.h"
 #include "ImageNode.h"
+#include "STEPNode.h"
 #include <Eigen/Core>
 namespace KI
 {
@@ -634,7 +635,7 @@ Shared<RenderNode> PointCloudApp::CreateSTEPNodeTest(const String& fileName)
 	Vector<Shared<RenderNode>> pNodes;
 	int scale = 30;
 
-	auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load(fileName, 0));
+	auto pNode = std::make_shared<STEPRenderNode>(fileName, std::shared_ptr<STEPStruct>(STEPLoader::Load(fileName)));
 	auto bdb = pNode->GetBoundBox();
 	pNode->SetScale(scale / bdb.MaxLength());
 	return pNode;
@@ -687,7 +688,10 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 		
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));
 	for (int i = 0; i < m_ui.stepFiles.size(); i++) {
-		auto pNode = std::shared_ptr<RenderNode>(STEPLoader::Load(m_ui.stepFiles[i], i));
+		auto pNode = std::make_shared<STEPRenderNode>(
+			m_ui.stepFiles[i] + IntToString(i), 
+			std::shared_ptr<STEPStruct>(STEPLoader::Load(m_ui.stepFiles[i])));
+
 		auto bdb = pNode->GetBoundBox();
 		auto scaleMatrix = glmUtil::CreateScale(scale / bdb.MaxLength());
 		//{

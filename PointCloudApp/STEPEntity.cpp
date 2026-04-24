@@ -239,6 +239,33 @@ STEPStruct::~STEPStruct()
 
 }
 
+void STEPEntityBase::NotDefineEntity(const String& str)
+{
+
+	"LENGTH_MEASURE_WITH_UNIT";
+	"ADVANCED_BREP_SHAPE_REPRESENTATION";
+	"MANIFOLD_SOLID_BREP";
+	"UNCERTAINTY_MEASURE_WITH_UNIT";
+	"SHAPE_DEFINITION_REPRESENTATION";
+	"SHAPE_REPRESENTATION_RELATIONSHIP";
+
+	auto stepStr = STEPString::Create(str);
+	for (const auto& key : g_ignoreEqualEntity) {
+		if (StringUtility::Equal(stepStr.entity.name, key)) {
+			return;
+		}
+	}
+
+	for (const auto& key : g_ignoreContainsEntity) {
+		if (StringUtility::Contains(str, key)) {
+			return;
+		}
+	}
+
+	// 検討していないエンティティ
+	printf("%s\n", str.data());
+}
+
 
 void STEPEntityBase::Fetch(STEPEntityBase* data, const STEPString& stepStr)
 {

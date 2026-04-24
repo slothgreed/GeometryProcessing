@@ -44,42 +44,32 @@ private:
 	
 };
 
-struct Rangei
+template<typename T>
+struct Range
 {
 public:
-	bool IsIn(int v) const { return v >= min && v <= max; }
-	int Length() const { return max - min; }
-	void Add(int v)
+	bool IsIn(T v) const { return v >= min && v <= max; }
+	T Length() const { return max - min; }
+	void Add(T v)
 	{
 		min = std::min(min, v);
 		max = std::max(max, v);
 	}
 
-	int Min() const { return min; }
-	int Max() const { return max; }
+	T Min() const { return min; }
+	T Max() const { return max; }
 private:
-	int min = std::numeric_limits<int>::infinity();
-	int max = -std::numeric_limits<int>::infinity();
+	T min = std::numeric_limits<T>::max();
+	T max = std::numeric_limits<T>::lowest();
 };
 
-struct Rangef
+typedef Range<int> Rangei;	
+
+struct Rangef : public Range<float>
 {
 public:
-	bool IsIn(float v) const { return v >= min && v <= max; }
-	float Length() const { return max - min; }
-	void Add(float v)
-	{
-		min = std::min(min, v);
-		max = std::max(max, v);
-	}
-	
-	int RoundMin() const { return (int)std::round(min); }
-	int RoundMax() const { return (int)std::round(max); }
-	float Min() const { return min; }
-	float Max() const { return max; }
-private:
-	float min = std::numeric_limits<float>::infinity();
-	float max = -std::numeric_limits<float>::infinity();
+	int RoundMin() const { return (int)std::round(Min()); }
+	int RoundMax() const { return (int)std::round(Max()); }
 };
 }
 #endif BOUNDING_BOX_H

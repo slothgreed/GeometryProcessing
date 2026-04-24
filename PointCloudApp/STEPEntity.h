@@ -243,6 +243,7 @@ struct STEPEntityBase
 	virtual void ShowUI(STEPUIContext& ui) = 0;
 	virtual String Dump(const DebugOption& option) = 0;
 
+	static void NotDefineEntity(const String& str);
 	bool ShowBranch(STEPUIContext& ui, bool select);
 	void ShowLeaf(STEPUIContext& ui);
 	void PrintfRaw();

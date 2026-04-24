@@ -18,15 +18,18 @@ public:
 	virtual void ProcessMouseEvent(const MouseInput& input);
 	virtual void ResizeEvent(int width, int height);
 
-private:
-	void Printf(int x, int y);
 	struct UI
 	{
 		bool useTBB = false;
+		bool useSIMD = false;
+		bool useEdgeFunction = false;
 		int tbbGrainSize = 0;
 		bool pickMode = false;
 		bool showDepth = false;
 	};
+private:
+	void Printf(int x, int y);
+
 
 	UI m_ui;
 	void Rasterize();

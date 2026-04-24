@@ -14,58 +14,7 @@
 namespace KI
 {
 
-void NotDefineEntity(const String& str)
-{
-	
-	"LENGTH_MEASURE_WITH_UNIT";
-	"ADVANCED_BREP_SHAPE_REPRESENTATION";
-	"MANIFOLD_SOLID_BREP";
-	"UNCERTAINTY_MEASURE_WITH_UNIT";
-	"SHAPE_DEFINITION_REPRESENTATION";
-	"SHAPE_REPRESENTATION_RELATIONSHIP";
-
-	auto stepStr = STEPString::Create(str);
-	for (const auto& key : g_ignoreEqualEntity) {
-		if (StringUtility::Equal(stepStr.entity.name, key)) {
-			return;
-		}
-	}
-
-	for (const auto& key : g_ignoreContainsEntity) {
-		if (StringUtility::Contains(str, key)) {
-			return;
-		}
-	}
-
-	// 検討していないエンティティ
-	printf("%s\n", str.data());
-}
-
-
-RenderNode* STEPLoader::CreateRenderNode(const String& name, const Shared<STEPStruct>& step)
-{
-	BDB bdb;
-	Vector<STEPShape> shapes;
-	for (const auto& shell : step->closedShell) {
-		auto shape = shell.second->CreateMesh(*step);
-		bdb.Add(shape.CreateBDB());
-		shapes.push_back(std::move(shape));
-	}
-
-	for (const auto& shell : step->openShell) {
-		auto shape = shell.second->CreateMesh(*step);
-		bdb.Add(shape.CreateBDB());
-		shapes.push_back(std::move(shape));
-	}
-
-	STEPRenderNode* pRenderNode = new STEPRenderNode(name, step);
-	pRenderNode->SetBoundBox(bdb);
-	pRenderNode->SetShape(std::move(shapes));
-
-	return pRenderNode;
-}
-
-RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
+STEPStruct* STEPLoader::Load(const String& name, bool saveOriginal)
 {
 	auto extension = FileUtility::GetExtension(name);
 	if (!(extension == ".step" || extension == ".stp")) { return nullptr; }
@@ -86,8 +35,7 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 
 	if (dataIndex == -1) { return nullptr; }
 
-	auto pStep = std::make_shared<STEPStruct>();
-	auto& step = *pStep;
+	auto pStep = new STEPStruct();
 	for (int i = dataIndex + 1; i < contents.size(); i++) {
 		if (contents[i] == "ENDSEC;")break;
 		if (contents[i].empty())continue;
@@ -109,36 +57,36 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		auto multiEntityType = stepStr.GetMultiEntityType();
 		if (multiEntityType != ESTEPNone) {
 			if (multiEntityType == ESTEPBSplineCurve) {
-				STEPBSplineCurve::Fetch(step, stepStr);
+				STEPBSplineCurve::Fetch(*pStep, stepStr);
 			} else if (multiEntityType == ESTEPBSplineSurface) {
-				STEPBSplineSurface::Fetch(step, stepStr);
+				STEPBSplineSurface::Fetch(*pStep, stepStr);
 			}
 		}
-		else if (StringUtility::Equal(stepStr.entity.name, STEPPoint::EntityName)) { STEPPoint::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPDirection::EntityName)) { STEPDirection::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPVector::EntityName)) { STEPVector::Fetch(step, stepStr);}
-		else if (StringUtility::Equal(stepStr.entity.name, STEPPlane::EntityName)) { STEPPlane::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPLine::EntityName)) { STEPLine::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPAxis2Placement3D::EntityName)) { STEPAxis2Placement3D::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPPolyLoop::EntityName)) { STEPPolyLoop::Fetch(step, stepStr); } 
-		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceSurface::EntityName)) { STEPFaceSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPCircle::EntityName)) { STEPCircle::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPCylindricalSurface::EntityName)) { STEPCylindricalSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPConicalSurface::EntityName)) { STEPConicalSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPToroidalSurface::EntityName)) { STEPToroidalSurface::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPQuasiUniformCurve::EntityName)) { STEPQuasiUniformCurve::Fetch(step, stepStr); }
-		else if (StringUtility::Equal(stepStr.entity.name, STEPBSplineSurfaceWithKnots::EntityName)) { STEPBSplineSurfaceWithKnots::Fetch(step, stepStr); }
-		else { NotDefineEntity(content); writeEntity = false; }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPoint::EntityName)) { STEPPoint::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPDirection::EntityName)) { STEPDirection::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPVector::EntityName)) { STEPVector::Fetch(*pStep, stepStr);}
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPlane::EntityName)) { STEPPlane::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPLine::EntityName)) { STEPLine::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPAxis2Placement3D::EntityName)) { STEPAxis2Placement3D::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPEdgeCurve::EntityName)) { STEPEdgeCurve::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPVertexPoint::EntityName)) { STEPVertexPoint::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPEdgeLoop::EntityName)) { STEPEdgeLoop::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPolyLoop::EntityName)) { STEPPolyLoop::Fetch(*pStep, stepStr); } 
+		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceBound::EntityName)) { STEPFaceBound::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceOuterBound::EntityName)) { STEPFaceOuterBound::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPOrientedEdge::EntityName)) { STEPOrientedEdge::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPAdvancedFace::EntityName)) { STEPAdvancedFace::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPFaceSurface::EntityName)) { STEPFaceSurface::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPClosedShell::EntityName)) { STEPClosedShell::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPOpenShell::EntityName)) { STEPOpenShell::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPCircle::EntityName)) { STEPCircle::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPCylindricalSurface::EntityName)) { STEPCylindricalSurface::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPInterSectionCurve::EntityName)) { STEPInterSectionCurve::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPConicalSurface::EntityName)) { STEPConicalSurface::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPToroidalSurface::EntityName)) { STEPToroidalSurface::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPQuasiUniformCurve::EntityName)) { STEPQuasiUniformCurve::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPBSplineSurfaceWithKnots::EntityName)) { STEPBSplineSurfaceWithKnots::Fetch(*pStep, stepStr); }
+		else { STEPEntityBase::NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {
 			writer.Write(content, true);
@@ -149,7 +97,7 @@ RenderNode* STEPLoader::Load(const String& name, int index, bool saveOriginal)
 		writer.Close();
 	}
 
-	return CreateRenderNode(name + IntToString(index), pStep);
+	return pStep;
 }
 
 void STEPRenderNode::RenderBatch::Allocate(GLuint type)
@@ -165,7 +113,26 @@ void STEPRenderNode::RenderBatch::Allocate(GLuint type)
 	}
 	drawType = type;
 }
+void STEPRenderNode::BuildShape()
+{
+	BDB bdb;
+	Vector<STEPShape> shapes;
+	for (const auto& shell : m_step->closedShell) {
+		auto shape = shell.second->CreateMesh(*m_step);
+		bdb.Add(shape.CreateBDB());
+		shapes.push_back(std::move(shape));
+	}
 
+	for (const auto& shell : m_step->openShell) {
+		auto shape = shell.second->CreateMesh(*m_step);
+		bdb.Add(shape.CreateBDB());
+		shapes.push_back(std::move(shape));
+	}
+
+	m_shape = std::move(shapes);
+	SetBoundBox(bdb);
+
+}
 void STEPRenderNode::BuildGLResource()
 {
 	if (m_shape.size() == 0) { return; }

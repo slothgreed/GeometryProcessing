@@ -448,6 +448,8 @@ int GLUtil::GetPrimitiveSize(int value)
 int GLUtil::GetFormatSize(int value)
 {
 	if (value == GL_RED ||
+		value == GL_R16F ||
+		value == GL_R32F ||
 		value == GL_DEPTH_COMPONENT) {
 		return 1;
 	} else if (
@@ -456,6 +458,8 @@ int GLUtil::GetFormatSize(int value)
 		return 3;
 	} else if (
 		value == GL_RGBA ||
+		value == GL_RGBA8||
+		value == GL_RGBA32F ||
 		value == GL_BGRA) {
 		return 4;
 	} else {

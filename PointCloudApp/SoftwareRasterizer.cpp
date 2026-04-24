@@ -6,6 +6,7 @@
 #include "HalfEdgeLoader.h"
 #include "Profiler.h"
 #include "tbb/parallel_for.h"
+#include "SIMDAPI.h"
 namespace KI
 {
 void SoftwareRasterizer::Initialize()
@@ -65,6 +66,7 @@ struct TBB_Function
 		Camera* pCamera;
 		Matrix4x4 mvp;
 		Vector2i windowSize;
+		SoftwareRasterizer::UI* ui;
 		PixelDataf* colorPixel;
 		PixelDataf* depthPixel;
 		PixelDataf* debugPixel;
@@ -72,9 +74,9 @@ struct TBB_Function
 	TBB_Function(const Args& args) : m_args(args) {}
 	void operator()(tbb::blocked_range<int>& r) const
 	{
-		for (int k = r.begin(); k != r.end(); ++k) {
+		for (int k = r.begin(); k != r.end(); k++) {
 			auto tri = m_args.pBunny->GetFace(k);
-			const auto& normal = m_args.pBunny->GetFaceNormal()[k];
+			auto normal = m_args.pBunny->CalcFaceNormal(k);
 			Vector3 screen0;
 			Vector3 screen1;
 			Vector3 screen2;
@@ -82,8 +84,9 @@ struct TBB_Function
 			if (!MathHelper::ToScreen(m_args.pCamera->GetViewport(), m_args.mvp, tri.pos1, screen1)) { continue; }
 			if (!MathHelper::ToScreen(m_args.pCamera->GetViewport(), m_args.mvp, tri.pos2, screen2)) { continue; }
 
-
-			{
+			if (m_args.ui->useSIMD) {
+				auto f8Array = std::array<float, 8>{ 0 };
+				auto laneMask = SIMD::F32X8({ 0,1,2,3,4,5,6,7 });
 				auto e0 = EdgeFunction(screen1, screen2);
 				auto e1 = EdgeFunction(screen2, screen0);
 				auto e2 = EdgeFunction(screen0, screen1);
@@ -100,65 +103,174 @@ struct TBB_Function
 				int minY = std::max(0, yRange.RoundMin());
 				int maxY = std::min(m_args.windowSize.y - 1, yRange.RoundMax());
 
-				
-				float w0_raw = e0.Evaluate(minX, minY); 
-				float w1_raw = e1.Evaluate(minX, minY); 
-				float w2_raw = e2.Evaluate(minX, minY);
-				for (int i = minX; i < maxX; i++) {
-					for (int j = minY; j < maxY; j++) {
-						const bool in =
-							(w0_raw >= 0.0f && w1_raw >= 0.0f && w2_raw >= 0.0f) ||
-							(w0_raw <= 0.0f && w1_raw <= 0.0f && w2_raw <= 0.0f);
-						if (in) {
-							float w0 = w0_raw * area;
-							float w1 = w1_raw * area;
-							float w2 = w2_raw * area;
 
-							float targetZ = w0 * screen0.z + w1 * screen1.z + w2 * screen2.z;
-							targetZ = pow(targetZ, 50.0f);
-							if (m_args.depthPixel->GetR(i, j) > targetZ) {
-								m_args.debugPixel->Set(i, j, Vector4(k, 0, 0, 0));
-								m_args.depthPixel->Set(i, j, Vector4(targetZ, targetZ, targetZ, 255.0f));
-								m_args.colorPixel->Set(i, j, Vector4(normal, 255.0f));
+				float w0_tri = e0.Evaluate(minX + 0.5f, minY + 0.5f);
+				float w1_tri = e1.Evaluate(minX + 0.5f, minY + 0.5f);
+				float w2_tri = e2.Evaluate(minX + 0.5f, minY + 0.5f);
+
+				float areaScreen0 = area * screen0.z;
+				float areaScreen1 = area * screen1.z;
+				float areaScreen2 = area * screen2.z;
+				for (int j = minY; j < maxY; j++) {
+					float w0_raw = w0_tri;
+					float w1_raw = w1_tri;
+					float w2_raw = w2_tri;
+					auto depthPixel = m_args.depthPixel->GetHeightData(j);
+					auto colorPixel = m_args.colorPixel->GetHeightData(j);
+					auto debugPixel = m_args.debugPixel->GetHeightData(j);
+
+					int i = minX;
+					auto w0_rawSIMD = SIMD::F32X8(w0_raw) + laneMask * SIMD::F32X8(e0.edge.x);
+					auto w1_rawSIMD = SIMD::F32X8(w1_raw) + laneMask * SIMD::F32X8(e1.edge.x);
+					auto w2_rawSIMD = SIMD::F32X8(w2_raw) + laneMask * SIMD::F32X8(e2.edge.x);
+					auto areaScreen0SIMD = SIMD::F32X8(areaScreen0);
+					auto areaScreen1SIMD = SIMD::F32X8(areaScreen1);
+					auto areaScreen2SIMD = SIMD::F32X8(areaScreen2);
+					for (; i + 7 < maxX; i += 8) {
+						auto depthPixelSIMD = SIMD::F32X8(&depthPixel[i]);
+						auto drawTarget = (w0_rawSIMD >= 0.0f) & (w1_rawSIMD >= 0.0f) & (w2_rawSIMD >= 0.0f);
+						if (drawTarget.GetMask() != 0) {
+							auto targetZ =
+								w0_rawSIMD * areaScreen0SIMD +
+								w1_rawSIMD * areaScreen1SIMD +
+								w2_rawSIMD * areaScreen2SIMD;
+
+							auto maskDepth = drawTarget & (depthPixelSIMD > targetZ);
+							auto targetZBit = maskDepth.GetMask();
+							if (targetZBit != 0) {
+								targetZ.Store(f8Array.data());
+								for (int lane = 0; lane < 8; lane++) {
+									if (targetZBit & (1 << lane)) {
+										depthPixel[i + lane] = f8Array[lane];
+										colorPixel[(i + lane) * 4 + 0] = normal.x;
+										colorPixel[(i + lane) * 4 + 1] = normal.y;
+										colorPixel[(i + lane) * 4 + 2] = normal.z;
+										colorPixel[(i + lane) * 4 + 3] = 255.0f;
+										debugPixel[(i + lane) * 4 + 0] = k;
+									}
+								}
 							}
 						}
-						w0_raw += e0.edge.y;
-						w1_raw += e1.edge.y;
-						w2_raw += e2.edge.y;
+						w0_rawSIMD = w0_rawSIMD + e0.edge.x * 8.0f;
+						w1_rawSIMD = w1_rawSIMD + e1.edge.x * 8.0f;
+						w2_rawSIMD = w2_rawSIMD + e2.edge.x * 8.0f;
 					}
-					w0_raw += e0.edge.x;
-					w1_raw += e1.edge.x;
-					w2_raw += e2.edge.x;
+
+
+					w0_raw = w0_tri + (i - minX) * e0.edge.x;
+					w1_raw = w1_tri + (i - minX) * e1.edge.x;
+					w2_raw = w2_tri + (i - minX) * e2.edge.x;
+					for (; i < maxX; i++) {
+						if (w0_raw >= 0.0f && w1_raw >= 0.0f && w2_raw >= 0.0f) {
+							float targetZ =
+								w0_raw * areaScreen0 +
+								w1_raw * areaScreen1 +
+								w2_raw * areaScreen2;
+							if (depthPixel[i] > targetZ) {
+								depthPixel[i] = targetZ;
+								colorPixel[i * 4 + 0] = normal.x;
+								colorPixel[i * 4 + 1] = normal.y;
+								colorPixel[i * 4 + 2] = normal.z;
+								colorPixel[i * 4 + 3] = 255.0f;
+								debugPixel[i * 4 + 0] = k;
+							}
+						}
+						w0_raw += e0.edge.x;
+						w1_raw += e1.edge.x;
+						w2_raw += e2.edge.x;
+					}
+
+					w0_tri += e0.edge.y;
+					w1_tri += e1.edge.y;
+					w2_tri += e2.edge.y;
 				}
+			} else if (m_args.ui->useEdgeFunction) {
+				auto e0 = EdgeFunction(screen1, screen2);
+				auto e1 = EdgeFunction(screen2, screen0);
+				auto e2 = EdgeFunction(screen0, screen1);
+				float area = e2.Evaluate(screen2.x, screen2.y);
+				if (area <= 0.0f) { continue; }
+				area = 1 / area;
 
-				continue;
-			}
+				Rangef xRange, yRange;
+				xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
+				yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
+
+				int minX = std::max(0, xRange.RoundMin());
+				int maxX = std::min(m_args.windowSize.x - 1, xRange.RoundMax());
+				int minY = std::max(0, yRange.RoundMin());
+				int maxY = std::min(m_args.windowSize.y - 1, yRange.RoundMax());
 
 
+				float w0_tri = e0.Evaluate(minX + 0.5f, minY + 0.5f);
+				float w1_tri = e1.Evaluate(minX + 0.5f, minY + 0.5f);
+				float w2_tri = e2.Evaluate(minX + 0.5f, minY + 0.5f);
 
-			auto area = GeometryUtility::CalcArea(screen0, screen1, screen2);
-			if (area <= 0.0f) { continue; }
-
-			Rangef xRange, yRange;
-			xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
-			yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
-
-			int minX = std::max(0, xRange.RoundMin());
-			int maxX = std::min(m_args.windowSize.x - 1, xRange.RoundMax());
-			int minY = std::max(0, yRange.RoundMin());
-			int maxY = std::min(m_args.windowSize.y - 1, yRange.RoundMax());
-
-			for (int i = minX; i < maxX; i++) {
+				float areaScreen0 = area * screen0.z;
+				float areaScreen1 = area * screen1.z;
+				float areaScreen2 = area * screen2.z;
 				for (int j = minY; j < maxY; j++) {
-					float targetZ = 0.0f;
-					Vector2 target{ i + 0.5f, j + 0.5f };
-					if (IsDrawTriangle(screen0, screen1, screen2, area, target, targetZ)) {
-						targetZ = pow(targetZ, 50.0); // ŒÖ’£
-						if (m_args.depthPixel->GetR(i, j) > targetZ) {
-							// triangle Index
-							m_args.debugPixel->Set(i, j, Vector4(k, 0, 0, 0));
-							m_args.depthPixel->Set(i, j, targetZ);
-							m_args.colorPixel->Set(i, j, Vector4(normal, 255.0f));
+					float w0_raw = w0_tri;
+					float w1_raw = w1_tri;
+					float w2_raw = w2_tri;
+					auto depthPixel = m_args.depthPixel->GetHeightData(j);
+					auto colorPixel = m_args.colorPixel->GetHeightData(j);
+					auto debugPixel = m_args.debugPixel->GetHeightData(j);
+
+					for (int i = minX; i < maxX; i++) {
+						if (w0_raw >= 0.0f && w1_raw >= 0.0f && w2_raw >= 0.0f) {
+							float targetZ =
+								w0_raw * areaScreen0 +
+								w1_raw * areaScreen1 +
+								w2_raw * areaScreen2;
+
+							targetZ = pow(targetZ, 50.0f);
+							if (depthPixel[i] > targetZ) {
+								depthPixel[i] = targetZ;
+								colorPixel[i * 4 + 0] = normal.x;
+								colorPixel[i * 4 + 1] = normal.y;
+								colorPixel[i * 4 + 2] = normal.z;
+								colorPixel[i * 4 + 3] = 255.0f;
+								debugPixel[i * 4 + 0] = k;
+							}
+						}
+						w0_raw += e0.edge.x;
+						w1_raw += e1.edge.x;
+						w2_raw += e2.edge.x;
+						if (e0.edge.x < 0.0f && w0_raw < 0.0f) { break; }
+						if (e1.edge.x < 0.0f && w1_raw < 0.0f) { break; }
+						if (e2.edge.x < 0.0f && w2_raw < 0.0f) { break; }
+					}
+
+					w0_tri += e0.edge.y;
+					w1_tri += e1.edge.y;
+					w2_tri += e2.edge.y;
+				}
+			} else {
+				auto area = GeometryUtility::CalcArea(screen0, screen1, screen2);
+				if (area <= 0.0f) { continue; }
+				auto invArea = 1 / area;
+
+				Rangef xRange, yRange;
+				xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
+				yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
+
+				int minX = std::max(0, xRange.RoundMin());
+				int maxX = std::min(m_args.windowSize.x - 1, xRange.RoundMax());
+				int minY = std::max(0, yRange.RoundMin());
+				int maxY = std::min(m_args.windowSize.y - 1, yRange.RoundMax());
+
+				for (int j = minY; j < maxY; j++) {
+					for (int i = minX; i < maxX; i++) {
+						float targetZ = 0.0f;
+						Vector2 target{ i + 0.5f, j + 0.5f };
+						if (IsDrawTriangle(screen0, screen1, screen2, invArea, target, targetZ)) {
+							if (m_args.depthPixel->GetR(i, j) > targetZ) {
+								// triangle Index
+								m_args.debugPixel->Set(i, j, Vector4(k, 0, 0, 0));
+								m_args.depthPixel->Set(i, j, targetZ);
+								m_args.colorPixel->Set(i, j, Vector4(normal, 255.0f));
+							}
 						}
 					}
 				}
@@ -191,7 +303,7 @@ void SoftwareRasterizer::Execute()
 	glBindVertexArray(VertexArrayID);
 
 	m_pColorTexture->Allocate(Texture2D::CreateRGBAF(m_windowSize.x, m_windowSize.y));
-	m_pDepthTexture->Allocate(Texture2D::CreateRGBAF(m_windowSize.x, m_windowSize.y));
+	m_pDepthTexture->Allocate(Texture2D::CreateRF(m_windowSize.x, m_windowSize.y));
 	Rasterize();
 
 	ImGui::CreateContext();
@@ -222,6 +334,13 @@ void SoftwareRasterizer::Execute()
 			Rasterize();
 		}
 
+		if(ImGui::Checkbox("UseSIMD", &m_ui.useSIMD)) {
+			Rasterize();
+		}
+
+		if (ImGui::Checkbox("UseEdgeFunction", &m_ui.useEdgeFunction)) {
+			Rasterize();
+		}
 		if (ImGui::Checkbox("ShowDepth", &m_ui.showDepth)) {
 			Rasterize();
 		}
@@ -274,7 +393,7 @@ void SoftwareRasterizer::ProcessMouseEvent(const MouseInput& input)
 		profiler.Start();
 		Rasterize();
 		profiler.Stop();
-		profiler.Output();
+		profiler.Output("All");
 	}
 
 }
@@ -313,7 +432,7 @@ void SoftwareRasterizer::ResizeEvent(int width, int height)
 	m_depthPixel.Allocate(m_windowSize.x, m_windowSize.y, 1);
 	m_debugPixel.Allocate(m_windowSize.x, m_windowSize.y, 4);
 	m_pColorTexture->Allocate(Texture2D::CreateRGBAF(m_windowSize.x, m_windowSize.y));
-	m_pDepthTexture->Allocate(Texture2D::CreateRGBAF(m_windowSize.x, m_windowSize.y));
+	m_pDepthTexture->Allocate(Texture2D::CreateRF(m_windowSize.x, m_windowSize.y));
 	if (m_pCamera) {
 		m_pCameraController->SetAspect(m_windowSize.x, m_windowSize.y);
 		m_pCamera->SetViewport(Vector4i(0, 0, width, height));
@@ -337,14 +456,14 @@ void SoftwareRasterizer::Rasterize()
 	args.colorPixel = &m_colorPixel;
 	args.depthPixel = &m_depthPixel;
 	args.debugPixel = &m_debugPixel;
-
+	args.ui = &m_ui;
 	if(m_ui.useTBB)
 	{
 		CPUProfiler profiler;
 		profiler.Start();
-		tbb::parallel_for(tbb::blocked_range<int>(0, m_pBunny->GetFaceNum(), 1 << m_ui.tbbGrainSize), TBB_Function(args));
+		tbb::parallel_for(tbb::blocked_range<int>(0, m_pBunny->GetFaceNum(),1), TBB_Function(args));
 		profiler.Stop();
-		profiler.Output();
+		profiler.Output("Rasterize:");
 		if (m_ui.showDepth) {
 			m_pDepthTexture->Update(m_depthPixel.data);
 		} else {
@@ -374,88 +493,204 @@ void SoftwareRasterizer::Rasterize()
 		if (!MathHelper::ToScreen(m_pCamera->GetViewport(), mvp, tri.pos1, screen1)) { continue; }
 		if (!MathHelper::ToScreen(m_pCamera->GetViewport(), mvp, tri.pos2, screen2)) { continue; }
 		
-		//{
-		//	auto e0 = EdgeFunction(screen1, screen2);
-		//	auto e1 = EdgeFunction(screen2, screen0);
-		//	auto e2 = EdgeFunction(screen0, screen1);
-		//	float area = e2.Evaluate(screen2.x, screen2.y);
-		//	if (area <= 0.0f) { continue; }
-		//	area = 1 / area;
+		if (m_ui.useSIMD) {
+			auto f8Array = std::array<float, 8>{ 0 };
+			auto laneMask = SIMD::F32X8({ 0,1,2,3,4,5,6,7 });
+			auto e0 = EdgeFunction(screen1, screen2);
+			auto e1 = EdgeFunction(screen2, screen0);
+			auto e2 = EdgeFunction(screen0, screen1);
+			float area = e2.Evaluate(screen2.x, screen2.y);
+			if (area <= 0.0f) { continue; }
+			area = 1 / area;
 
-		//	Rangef xRange, yRange;
-		//	xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
-		//	yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
+			Rangef xRange, yRange;
+			xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
+			yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
 
-		//	int minX = std::max(0, xRange.RoundMin());
-		//	int maxX = std::min(m_windowSize.x - 1, xRange.RoundMax());
-		//	int minY = std::max(0, yRange.RoundMin());
-		//	int maxY = std::min(m_windowSize.y - 1, yRange.RoundMax());
-
-
-		//	float w0_tri = e0.Evaluate(minX + 0.5f, minY + 0.5f);
-		//	float w1_tri = e1.Evaluate(minX + 0.5f, minY + 0.5f);
-		//	float w2_tri = e2.Evaluate(minX + 0.5f, minY + 0.5f);
-		//	for (int i = minX; i < maxX; i++) {
-		//		float w0_raw = w0_tri + (i - minX) * e0.edge.x;
-		//		float w1_raw = w1_tri + (i - minX) * e1.edge.x;
-		//		float w2_raw = w2_tri + (i - minX) * e2.edge.x;
-
-		//		for (int j = minY; j < maxY; j++) {
-		//			if (w0_raw >= 0.0f && w1_raw >= 0.0f && w2_raw >= 0.0f) {
-		//				float targetZ = 
-		//					w0_raw * area * screen0.z + 
-		//					w1_raw * area * screen1.z + 
-		//					w2_raw * area * screen2.z;
-
-		//				targetZ = pow(targetZ, 50.0f);
-		//				if (m_depthPixel.GetR(i, j) > targetZ) {
-		//					m_debugPixel.Set(i, j, Vector4(k, 0, 0, 0));
-		//					m_depthPixel.Set(i, j, Vector4(targetZ, targetZ, targetZ, 255.0f));
-		//					m_colorPixel.Set(i, j, Vector4(normal, 255.0f));
-		//				}
-		//			}
-		//			w0_raw += e0.edge.y;
-		//			w1_raw += e1.edge.y;
-		//			w2_raw += e2.edge.y;
-		//		}
-		//	}
-
-		//	continue;
-		//}
-		
-		
-		auto area = GeometryUtility::CalcArea(screen0, screen1, screen2);
-		if (area <= 0.0f) { continue; }
-		auto invArea = 1 / area;
-
-		Rangef xRange, yRange;
-		xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
-		yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
-
-		int minX = std::max(0, xRange.RoundMin());
-		int maxX = std::min(m_windowSize.x - 1, xRange.RoundMax());
-		int minY = std::max(0, yRange.RoundMin());
-		int maxY = std::min(m_windowSize.y - 1, yRange.RoundMax());
+			int minX = std::max(0, xRange.RoundMin());
+			int maxX = std::min(m_windowSize.x - 1, xRange.RoundMax());
+			int minY = std::max(0, yRange.RoundMin());
+			int maxY = std::min(m_windowSize.y - 1, yRange.RoundMax());
 
 
-		for (int i = minX; i < maxX; i++) {
+			float w0_tri = e0.Evaluate(minX + 0.5f, minY + 0.5f);
+			float w1_tri = e1.Evaluate(minX + 0.5f, minY + 0.5f);
+			float w2_tri = e2.Evaluate(minX + 0.5f, minY + 0.5f);
+
+			float areaScreen0 = area * screen0.z;
+			float areaScreen1 = area * screen1.z;
+			float areaScreen2 = area * screen2.z;
 			for (int j = minY; j < maxY; j++) {
-				float targetZ = 0.0f;
-				Vector2 target{ i + 0.5f, j + 0.5f };
-				if (IsDrawTriangle(screen0, screen1, screen2, invArea, target, targetZ)) {
-					targetZ = pow(targetZ, 50.0); // ŒÖ’£
-					if (m_depthPixel.GetR(i, j) > targetZ) {
-						// triangle Index
-						m_debugPixel.Set(i, j, Vector4(k, 0, 0, 0));
-						m_depthPixel.Set(i, j, targetZ);
-						m_colorPixel.Set(i, j, Vector4(normal, 255.0f));
+				float w0_raw = w0_tri;
+				float w1_raw = w1_tri;
+				float w2_raw = w2_tri;
+				auto depthPixel = m_depthPixel.GetHeightData(j);
+				auto colorPixel = m_colorPixel.GetHeightData(j);
+				auto debugPixel = m_debugPixel.GetHeightData(j);
+
+				int i = minX;
+				auto w0_rawSIMD = SIMD::F32X8(w0_raw) + laneMask * SIMD::F32X8(e0.edge.x);
+				auto w1_rawSIMD = SIMD::F32X8(w1_raw) + laneMask * SIMD::F32X8(e1.edge.x);
+				auto w2_rawSIMD = SIMD::F32X8(w2_raw) + laneMask * SIMD::F32X8(e2.edge.x);
+				auto areaScreen0SIMD = SIMD::F32X8(areaScreen0);
+				auto areaScreen1SIMD = SIMD::F32X8(areaScreen1);
+				auto areaScreen2SIMD = SIMD::F32X8(areaScreen2);
+				for (; i + 7 < maxX; i+=8) {
+					auto depthPixelSIMD = SIMD::F32X8(&depthPixel[i]);
+					auto drawTarget = (w0_rawSIMD >= 0.0f) & (w1_rawSIMD >= 0.0f) & (w2_rawSIMD >= 0.0f);
+					if (drawTarget.GetMask() != 0) {
+						auto targetZ =
+							w0_rawSIMD * areaScreen0SIMD +
+							w1_rawSIMD * areaScreen1SIMD +
+							w2_rawSIMD * areaScreen2SIMD;
+
+						auto maskDepth = drawTarget & (depthPixelSIMD > targetZ);
+						auto targetZBit = maskDepth.GetMask();
+						if (targetZBit != 0) {
+							targetZ.Store(f8Array.data());
+							for (int lane = 0; lane < 8; lane++) {
+								if (targetZBit & (1 << lane)) {
+									depthPixel[i + lane] = f8Array[lane];
+									colorPixel[(i + lane) * 4 + 0] = normal.x;
+									colorPixel[(i + lane) * 4 + 1] = normal.y;
+									colorPixel[(i + lane) * 4 + 2] = normal.z;
+									colorPixel[(i + lane) * 4 + 3] = 255.0f;
+									debugPixel[(i + lane) * 4 + 0] = k;
+								}
+							}
+						}
+					}
+					w0_rawSIMD = w0_rawSIMD + e0.edge.x * 8.0f;
+					w1_rawSIMD = w1_rawSIMD + e1.edge.x * 8.0f;
+					w2_rawSIMD = w2_rawSIMD + e2.edge.x * 8.0f;
+				}
+
+
+				w0_raw = w0_tri + (i - minX) * e0.edge.x;
+				w1_raw = w1_tri + (i - minX) * e1.edge.x;
+				w2_raw = w2_tri + (i - minX) * e2.edge.x;
+				for(; i < maxX; i++)
+				{
+					if (w0_raw >= 0.0f && w1_raw >= 0.0f && w2_raw >= 0.0f) {
+						float targetZ =
+							w0_raw * areaScreen0 +
+							w1_raw * areaScreen1 +
+							w2_raw * areaScreen2;
+						if (depthPixel[i] > targetZ) {
+							depthPixel[i] = targetZ;
+							colorPixel[i * 4 + 0] = normal.x;
+							colorPixel[i * 4 + 1] = normal.y;
+							colorPixel[i * 4 + 2] = normal.z;
+							colorPixel[i * 4 + 3] = 255.0f;
+							debugPixel[i * 4 + 0] = k;
+						}
+					}
+					w0_raw += e0.edge.x;
+					w1_raw += e1.edge.x;
+					w2_raw += e2.edge.x;
+				}
+
+				w0_tri += e0.edge.y;
+				w1_tri += e1.edge.y;
+				w2_tri += e2.edge.y;
+			}
+		} else if (m_ui.useEdgeFunction) {
+			auto e0 = EdgeFunction(screen1, screen2);
+			auto e1 = EdgeFunction(screen2, screen0);
+			auto e2 = EdgeFunction(screen0, screen1);
+			float area = e2.Evaluate(screen2.x, screen2.y);
+			if (area <= 0.0f) { continue; }
+			area = 1 / area;
+
+			Rangef xRange, yRange;
+			xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
+			yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
+
+			int minX = std::max(0, xRange.RoundMin());
+			int maxX = std::min(m_windowSize.x - 1, xRange.RoundMax());
+			int minY = std::max(0, yRange.RoundMin());
+			int maxY = std::min(m_windowSize.y - 1, yRange.RoundMax());
+
+
+			float w0_tri = e0.Evaluate(minX + 0.5f, minY + 0.5f);
+			float w1_tri = e1.Evaluate(minX + 0.5f, minY + 0.5f);
+			float w2_tri = e2.Evaluate(minX + 0.5f, minY + 0.5f);
+
+			float areaScreen0 = area * screen0.z;
+			float areaScreen1 = area * screen1.z;
+			float areaScreen2 = area * screen2.z;
+			for (int j = minY; j < maxY; j++) {
+				float w0_raw = w0_tri;
+				float w1_raw = w1_tri;
+				float w2_raw = w2_tri;
+				auto depthPixel = m_depthPixel.GetHeightData(j);
+				auto colorPixel = m_colorPixel.GetHeightData(j);
+				auto debugPixel = m_debugPixel.GetHeightData(j);
+
+				for (int i = minX; i < maxX; i++) {
+					if (w0_raw >= 0.0f && w1_raw >= 0.0f && w2_raw >= 0.0f) {
+						float targetZ =
+							w0_raw * areaScreen0 +
+							w1_raw * areaScreen1 +
+							w2_raw * areaScreen2;
+
+						targetZ = pow(targetZ, 50.0f);
+						if(depthPixel[i] > targetZ)
+						{
+							depthPixel[i] = targetZ;
+							colorPixel[i * 4 + 0] = normal.x;
+							colorPixel[i * 4 + 1] = normal.y;
+							colorPixel[i * 4 + 2] = normal.z;
+							colorPixel[i * 4 + 3] = 255.0f;
+							debugPixel[i * 4 + 0] = k;
+						}
+					}
+					w0_raw += e0.edge.x;
+					w1_raw += e1.edge.x;
+					w2_raw += e2.edge.x;
+					if (e0.edge.x < 0.0f && w0_raw < 0.0f) { break; }
+					if (e1.edge.x < 0.0f && w1_raw < 0.0f) { break; }
+					if (e2.edge.x < 0.0f && w2_raw < 0.0f) { break; }
+				}
+
+				w0_tri += e0.edge.y;
+				w1_tri += e1.edge.y;
+				w2_tri += e2.edge.y;
+			}
+		} else {
+			auto area = GeometryUtility::CalcArea(screen0, screen1, screen2);
+			if (area <= 0.0f) { continue; }
+			auto invArea = 1 / area;
+
+			Rangef xRange, yRange;
+			xRange.Add(screen0.x); xRange.Add(screen1.x); xRange.Add(screen2.x);
+			yRange.Add(screen0.y); yRange.Add(screen1.y); yRange.Add(screen2.y);
+
+			int minX = std::max(0, xRange.RoundMin());
+			int maxX = std::min(m_windowSize.x - 1, xRange.RoundMax());
+			int minY = std::max(0, yRange.RoundMin());
+			int maxY = std::min(m_windowSize.y - 1, yRange.RoundMax());
+
+			for (int j = minY; j < maxY; j++) {
+				for (int i = minX; i < maxX; i++) {
+					float targetZ = 0.0f;
+					Vector2 target{ i + 0.5f, j + 0.5f };
+					if (IsDrawTriangle(screen0, screen1, screen2, invArea, target, targetZ)) {
+						targetZ = pow(targetZ, 50.0); // ŒÖ’£
+						if (m_depthPixel.GetR(i, j) > targetZ) {
+							// triangle Index
+							m_debugPixel.Set(i, j, Vector4(k, 0, 0, 0));
+							m_depthPixel.Set(i, j, targetZ);
+							m_colorPixel.Set(i, j, Vector4(normal, 255.0f));
+						}
 					}
 				}
 			}
 		}
 	}
+
 	profiler.Stop();
-	profiler.Output();
+	profiler.Output("Rasterize:");
 	if (m_ui.showDepth) {
 		m_pDepthTexture->Update(m_depthPixel.data);
 	} else {

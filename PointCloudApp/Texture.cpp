@@ -144,78 +144,24 @@ void Texture2D::Allocate(const Format& format)
 	Bind();
 	BindSampler(m_sampler);
 	glTexStorage2D(GL_TEXTURE_2D, format.level + 1, format.internalformat, format.width, format.height);
+	if (GLUtil::GetFormatSize(format.internalformat) == 1) {
+		glTextureParameteri(Handle(), GL_TEXTURE_SWIZZLE_R, GL_RED);
+		glTextureParameteri(Handle(), GL_TEXTURE_SWIZZLE_G, GL_RED);
+		glTextureParameteri(Handle(), GL_TEXTURE_SWIZZLE_B, GL_RED);
+		glTextureParameteri(Handle(), GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	}
 	m_format = format;
 	OUTPUT_GLERROR;
 }
 
 void Texture2D::Update(void* data)
 {
-	// ハンドルが未作成なら生成しておく
-	if (m_handle == 0) {
-		glGenTextures(1, &m_handle);
-	}
-
 	Bind();
 	BindSampler(m_sampler);
-
-	// 現在のピクセルストア状態を保存
-	GLint prevUnpackAlign = 4;
-	GLint prevRowLength = 0;
-	glGetIntegerv(GL_UNPACK_ALIGNMENT, &prevUnpackAlign);
-	glGetIntegerv(GL_UNPACK_ROW_LENGTH, &prevRowLength);
-
-	// バイト単位の行幅を計算して最適な UNPACK_ALIGNMENT を決定
-	const int components = GLUtil::GetFormatSize(m_format.format); // コンポーネント数
-	int typeSize = 1;
-	switch (m_format.type) {
-	case GL_UNSIGNED_BYTE: typeSize = 1; break;
-	case GL_UNSIGNED_SHORT: typeSize = 2; break;
-	case GL_UNSIGNED_INT: typeSize = 4; break;
-	case GL_FLOAT: typeSize = 4; break;
-	default: typeSize = 1; break;
-	}
-	long long rowBytes = static_cast<long long>(m_format.width) * components * typeSize;
-
-	GLint align = 1;
-	if (rowBytes % 8 == 0) align = 8;
-	else if (rowBytes % 4 == 0) align = 4;
-	else if (rowBytes % 2 == 0) align = 2;
-	else align = 1;
-
-	// 単チャネル浮動小数点（例: GL_R32F）はドライバ互換性のため 1 を使うと安定することがある
-	if (m_format.format == GL_RED && m_format.type == GL_FLOAT) {
-		align = 1;
-	}
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, align);
-	// 行長を明示的に 0 (デフォルト) にしておく（念のため）
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-	// 2D テクスチャ前提の実装なので target をチェック
-	assert(m_format.target == GL_TEXTURE_2D);
-
 	glTexSubImage2D(GL_TEXTURE_2D,
 		m_format.level, 0, 0,
 		m_format.width, m_format.height, m_format.format, m_format.type, data);
-
-	// ミップマップ有効なら再生成
-	if (m_sampler.mipmap) {
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-
-	// 元のピクセルストア状態を復元
-	glPixelStorei(GL_UNPACK_ALIGNMENT, prevUnpackAlign);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, prevRowLength);
-
 	OUTPUT_GLERROR;
-	//Bind();
-	//BindSampler(m_sampler);
-	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	//glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-	//glTexSubImage2D(GL_TEXTURE_2D,
-	//	m_format.level, 0, 0,
-	//	m_format.width, m_format.height, m_format.format, m_format.type, data);
-	//OUTPUT_GLERROR;
 }
 void Texture2D::Build(int width, int height)
 {

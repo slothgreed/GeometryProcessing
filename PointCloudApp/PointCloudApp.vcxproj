@@ -305,6 +305,7 @@
     <ClInclude Include="ShapeDiameterFunction.h" />
     <ClInclude Include="ShapeMatching.h" />
     <ClInclude Include="SignedDistanceField.h" />
+    <ClInclude Include="SIMDAPI.h" />
     <ClInclude Include="SimulationNode.h" />
     <ClInclude Include="SkyBoxNode.h" />
     <ClInclude Include="SoftwareRasterizer.h" />

@@ -13,9 +13,8 @@ public:
 	STEPLoader() {};
 	~STEPLoader() {};
 
-	static RenderNode* Load(const String& name, int index, bool saveOriginal = false);
+	static STEPStruct* Load(const String& name, bool saveOriginal = false);
 private:
-	static RenderNode* CreateRenderNode(const String& name, const Shared<STEPStruct>& step);
 
 };
 struct EntityRange
@@ -36,7 +35,10 @@ public:
 	STEPRenderNode(const String& name, const Shared<STEPStruct>& step)
 		: RenderNode(name)
 		, m_rotateMatrix(Matrix4x4(1))
-		, m_step(step){};
+		, m_step(step)
+	{
+		BuildShape();
+	};
 	virtual ~STEPRenderNode() {};
 
 	void AddDebugNode(STEPUIContext& context, const STEPEntityBase* pBase);
@@ -45,6 +47,7 @@ public:
 
 	void SetShape(Vector<STEPShape>&& shape) { m_shape = std::move(shape); }
 private:
+	void BuildShape();
 	virtual void UpdateData(float diff);
 	void BuildGLResource();
 

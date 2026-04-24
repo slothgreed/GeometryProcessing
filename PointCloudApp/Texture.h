@@ -139,6 +139,12 @@ struct PixelDataT
 		}
 	}
 	
+	T* GetHeightData(int y) const
+	{
+		return data + y * width * component;
+	}
+
+	
 	Vector2i IndexToXY(int index) const
 	{
 		return Vector2i(index % width, index / width);

@@ -595,6 +595,9 @@
     <ClInclude Include="SoftwareRasterizer.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
+    <ClInclude Include="SIMDAPI.h">
+      <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
