@@ -238,7 +238,7 @@ GLTFAnimation::Channel::Path ConvertAnimationPathType(TargetPath path)
     } else if (path == TARGET_WEIGHTS) {
         return GLTFAnimation::Channel::Path::Weight;
     } else {
-        assert(0);
+        Assert::Failed();
         return GLTFAnimation::Channel::Path::Translate;
     }
 }
@@ -281,7 +281,7 @@ Vector<GLTFAnimation> GLTFLoader::LoadAnimation(const Microsoft::glTF::GLTFResou
                     sampler.transform[k].w = output[4 * k + 3];
                 }
             } else {
-                assert(0);
+                Assert::Failed();
             }
         }
 
@@ -356,7 +356,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                         bdb.Add(vertexBuffer[k + vertexOffset].position);
                     }
                 } else {
-                    assert(0);
+                    Assert::Failed();
                 }
                 hasPosition = true;
             }
@@ -367,7 +367,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, normal);
                     for (size_t k = 0; 3 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].normal = Vector3(binary[3 * k], binary[3 * k + 1], binary[3 * k + 2]); }
                 } else {
-                    assert(0);
+                    Assert::Failed();
                 }
 
                 hasNormal = true;
@@ -378,7 +378,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, texCoord);
                     for (size_t k = 0; 2 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].texcoord = Vector2(binary[2 * k], binary[2 * k + 1]); }
                 } else {
-                    assert(0);
+                    Assert::Failed();
                 }
                 hasTexcoord = true;
             }
@@ -388,7 +388,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, tangent);
                     for (size_t k = 0; 4 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].tangent = Vector4(binary[4 * k], binary[4 * k + 1], binary[4 * k + 2], binary[4 * k + 3]); }
                 } else {
-                    assert(0);
+                    Assert::Failed();
                 }
                 hasTangent = true;
             }
@@ -399,7 +399,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                     const auto& binary = pResource->ReadBinaryData<unsigned short>(*pDocument, joint);
                     for (size_t k = 0; 4 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].joint = Vector4(binary[4 * k], binary[4 * k + 1], binary[4 * k + 2], binary[4 * k + 3]); }
                 } else {
-                    assert(0);
+                    Assert::Failed();
                 }
                 hasJoint = true;
             }
@@ -410,7 +410,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
                     const auto& binary = pResource->ReadBinaryData<float>(*pDocument, weight);
                     for (size_t k = 0; 4 * k < binary.size(); k++) { vertexBuffer[k + vertexOffset].weight = Vector4(binary[4 * k], binary[4 * k + 1], binary[4 * k + 2], binary[4 * k + 3]); }
                 } else {
-                    assert(0);
+                    Assert::Failed();
                 }
                 hasWeight = true;
             }
@@ -422,7 +422,7 @@ Vector<GLTFMesh> GLTFLoader::LoadMesh(const Microsoft::glTF::GLTFResourceReader*
 
     auto pIndexBuffer = std::make_unique<GLBuffer>();
     if (ushortBuffer.size() != 0 && uintBuffer.size() != 0) {
-        assert(0);
+        Assert::Failed();
     }
     if (ushortBuffer.size() != 0) {
         pIndexBuffer->Create(ushortBuffer);

@@ -669,7 +669,7 @@ struct STEPFaceBase : public STEPEntityBase
 	{
 		Vector<int> faceRef0;
 		int geomRef1 = -1;
-		bool orient = true;
+		bool sameScene = true;
 	};
 
 	enum class GeomType
@@ -688,7 +688,7 @@ struct STEPFaceBase : public STEPEntityBase
 		STEPToroidalSurface* toroidal = nullptr;
 		STEPBSplineSurfaceWithKnots* bSplineSurfaceWithKnots = nullptr;
 		STEPBSplineSurface* bSplineSurface = nullptr;
-		bool orient = true;
+		bool sameScene = true;
 
 		struct CylidnerEdge
 		{
@@ -839,28 +839,40 @@ struct STEPBSplineCurve : public STEPEntityBase
 	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
 };
 
+struct STEPBSplineSurfaceBase : public STEPEntityBase
+{
+	virtual ~STEPBSplineSurfaceBase() = default;
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+	int GetUNum() const { return points.size(); }
+	int GetVNum() const { return points[0].size(); }
+	void FetchData(const STEPStruct& step);
 
-struct STEPBSplineSurfaceWithKnots : public STEPEntityBase
+	Mesh CreateMesh(const Polyline& bound, const Polyline& outerBound, bool sameScene) const;
+	bool IsValid() const;
+	STEPUV<int> degree;
+	Vector<Vector<std::pair<int, STEPPoint*>>> points;
+	STEPBSplineSurfaceFormType form = STEPBSplineSurfaceFormType::UNSPECIFIED;
+	STEPUV<STEPLogicalType> closed;
+	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
+	STEPUV<Vector<int>> multiple;
+	STEPUV<Vector<float>> knots;
+	STEPUV<Vector<float>> expandKnots;
+	Vector<Vector<float>> rational;
+
+	STEPKnotType knotType;
+};
+
+struct STEPBSplineSurfaceWithKnots : public STEPBSplineSurfaceBase
 {
 	virtual ~STEPBSplineSurfaceWithKnots() = default;
 	STEP_DEFINE_HPP(STEPBSplineSurfaceWithKnots, "B_SPLINE_SURFACE_WITH_KNOTS");
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
-	void FetchData(const STEPStruct& step);
-	String Dump(const DebugOption& option);
-	void ShowUI(STEPUIContext& ui);
-
-	Mesh CreateMesh() const;
-	STEPUV<int> degree;
-	Vector<std::pair<STEPUV<int>, STEPUV<STEPPoint*>>> points;
-	STEPBSplineSurfaceFormType form = STEPBSplineSurfaceFormType::UNSPECIFIED;
-	STEPUV<STEPLogicalType> closed;
-	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
-
 };
 
 
-struct STEPBSplineSurface : public STEPEntityBase
+struct STEPBSplineSurface : public STEPBSplineSurfaceBase
 {
 	virtual ~STEPBSplineSurface() = default;
 	STEP_DEFINE_HPP(STEPBSplineSurface, "B_SPLINE_SURFACE");
@@ -870,24 +882,6 @@ struct STEPBSplineSurface : public STEPEntityBase
 	void Fetch(const String& str);
 	void FetchKnot(const String& str);
 	void FetchRational(const String& str);
-
-	void FetchData(const STEPStruct& step);
-	String Dump(const DebugOption& option);
-	void ShowUI(STEPUIContext& ui);
-	int GetUNum() const { return points.size(); }
-	int GetVNum() const { return points[0].size(); }
-	Mesh CreateMesh() const;
-	bool IsValid() const;
-
-	STEPUV<int> degree;
-	Vector<Vector<std::pair<int, STEPPoint*>>> points;
-	STEPBSplineSurfaceFormType form = STEPBSplineSurfaceFormType::UNSPECIFIED;
-	STEPUV<STEPLogicalType> closed;
-	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;
-	STEPUV<Vector<int>> multiple;
-	STEPUV<Vector<float>> knots;
-	Vector<Vector<float>> rational;
-	STEPKnotType knotType;
 };
 }
 

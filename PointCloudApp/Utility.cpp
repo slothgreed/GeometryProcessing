@@ -463,11 +463,18 @@ int GLUtil::GetFormatSize(int value)
 		value == GL_BGRA) {
 		return 4;
 	} else {
-		assert(0);
+		Assert::Failed();
 	}
 
 	return 1;
 }
 
-
+void Assert::Failed()
+{
+	Assert::Failed();
+}
+void Assert::Failed(const String& str)
+{
+	assert(0 && str.data());
+}
 }

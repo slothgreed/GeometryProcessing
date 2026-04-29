@@ -339,7 +339,7 @@ void FileWriter::WriteBinary(void* contents, Format format, bool endl)
 		m_fileStream.write((char*)contents, sizeof(int));
 		break;
 	default:
-		assert(0);
+		Assert::Failed();
 		break;
 	}
 

@@ -98,13 +98,13 @@ std::pair<Vector3, Vector3> Polyline::GetLine(int index) const
         if (m_drawType == Polyline::DrawType::Lines) {
             return  std::pair<Vector3, Vector3>(m_points[2 * index], m_points[2 * index + 1]);
         } else {
-            assert(0);
+            Assert::Failed();
         }
     } else {
         if (m_drawType == Polyline::DrawType::Lines) {
             return  std::pair<Vector3, Vector3>(m_points[m_indexs[2 * index]], m_points[m_indexs[2 * index + 1]]);
         } else {
-            assert(0);
+            Assert::Failed();
         }
     }
     return std::pair<Vector3,Vector3>();
@@ -239,7 +239,7 @@ bool Polyline::IsPlane() const
 
 Polyline Polyline::CreateSmooth() const
 {
-    if (!(m_drawType == DrawType::LineLoop || m_drawType == DrawType::LineStrip)) { assert(0); return Polyline(); }
+    if (!(m_drawType == DrawType::LineLoop || m_drawType == DrawType::LineStrip)) { Assert::Failed(); return Polyline(); }
    auto lines = m_points;
    if (lines.size() == 0) { return Polyline(); }
    Vector<Vector3> polyline;
@@ -287,7 +287,7 @@ Vector<Vector3> Polyline::CreateParametricColor() const
         }
     }
 
-    assert(0);
+    Assert::Failed();
     return colors;
 }
 

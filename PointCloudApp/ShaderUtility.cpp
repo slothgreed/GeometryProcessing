@@ -35,7 +35,7 @@ GLuint ShaderUtility::Compile(const String& code, GLuint shaderType)
 
 		GLchar* errorLog = new GLchar[maxLength];
 		glGetShaderInfoLog(id, maxLength, &maxLength, errorLog);
-		assert(0);
+		Assert::Failed();
 		delete[] errorLog;
 		errorLog = nullptr;
 	}
@@ -66,7 +66,7 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint fragId)
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
 		String str = errorLog;
 		printf(str.data());
-		assert(0);
+		Assert::Failed();
 		delete[] errorLog;
 		errorLog = nullptr;
 	}
@@ -101,7 +101,7 @@ GLuint ShaderUtility::Link(GLuint vertexId, GLuint tescId, GLuint teseId, GLuint
 		GLchar* errorLog = new GLchar[maxLength];
 		String str = errorLog;
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
-		assert(0);
+		Assert::Failed();
 		delete[] errorLog;
 		errorLog = nullptr;
 	}
@@ -140,7 +140,7 @@ GLuint ShaderUtility::LinkCompute(GLuint computeId)
 
 		GLchar* errorLog = new GLchar[maxLength];
 		glGetProgramInfoLog(programId, maxLength, &maxLength, errorLog);
-		assert(0);
+		Assert::Failed();
 		delete[] errorLog;
 		errorLog = nullptr;
 	}

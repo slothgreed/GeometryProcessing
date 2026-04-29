@@ -25,7 +25,7 @@ void AlphaShape2D::Execute()
     // 1. run through all pairs of points
     for (int i = 0; i < points.size() - 1; i++) {
         for (int j = i + 1; j < points.size(); j++) {
-            if (points[i] == points[j]) { assert(0); } // alternatively, continue
+            if (points[i] == points[j]) { Assert::Failed(); } // alternatively, continue
             auto dist = glm::distance(points[i], points[j]);
             if (dist > 2 * alpha) { continue; } // circle fits between points ==> p_i, p_j can't be alpha-exposed                    
 

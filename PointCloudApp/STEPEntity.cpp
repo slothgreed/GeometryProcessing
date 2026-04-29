@@ -84,14 +84,16 @@ Vector<String> STEPString::SplitValue(const String& value)
 				--depth;
 				if (depth == 0) {
 					// 最外の括弧が閉じたらリストとして追加
-					result.push_back(value.substr(start, i - start));
+					auto removeWhiteSpaceStr = StringUtility::TrimWhiteSpace(value.substr(start, i - start));
+					result.push_back(removeWhiteSpaceStr);
 				}
 			}
 			// 括弧内のカンマで区切り
 			else if (depth == 1 && ch == ',' && (i == start || value[i - 1] != '\\')) {
-				// カンマを区切りとして分ける（エスケープ文字も処理）
-				result.push_back(value.substr(start, i - start));
-				start = i + 1;
+			// カンマを区切りとして分ける（エスケープ文字も処理）
+			auto removeWhiteSpaceStr = StringUtility::TrimWhiteSpace(value.substr(start, i - start));
+			result.push_back(removeWhiteSpaceStr);
+			start = i + 1;
 		}
 	}
 	return result;
@@ -112,9 +114,9 @@ String STEPString::RemoveBracket(const String& str)
 
 bool STEPString::ValueToRef(const String& str, int& value)
 {
+	if (str.empty()) { return false; }
 	if (IsAsterisk(str)) { value = STEPEnum::ASTERISK; return true; }
 	if (IsDollar(str)) { value = STEPEnum::DOLL; return true; }
-	if (str.empty()) { return false; }
 
 	// 先頭が '#' の場合は除去
 	auto numStr = (str[0] == '#') ? str.substr(1) : str;
@@ -153,7 +155,7 @@ bool STEPString::ValueToBool(const String& str, bool& value)
 {
 	if (StringUtility::Contains(str, ".T.")) { value = true;  return true; }
 	if (StringUtility::Contains(str, ".F.")) { value = false;  return true; }
-	assert(0); return false;
+	Assert::Failed(); return false;
 }
 
 bool STEPString::ValueToLogical(const String& str, STEPLogicalType& value)
@@ -161,7 +163,7 @@ bool STEPString::ValueToLogical(const String& str, STEPLogicalType& value)
 	if (StringUtility::Contains(str, ".T.")) { value = STEPLogicalType::True;  return true; }
 	if (StringUtility::Contains(str, ".F.")) { value = STEPLogicalType::False;  return true; }
 	if (StringUtility::Contains(str, ".U.")) { value = STEPLogicalType::UNDEFINED;  return true; }
-	assert(0); return false;
+	Assert::Failed(); return false;
 }
 
 bool STEPString::ValueToBSplineCurveForm(const String& str, STEPBSplineCurveFormType& value)
@@ -172,7 +174,7 @@ bool STEPString::ValueToBSplineCurveForm(const String& str, STEPBSplineCurveForm
 	if (StringUtility::Contains(str, ".PARABOLIC_ARC.")) { value = STEPBSplineCurveFormType::PARABOLIC_ARC;  return true; }
 	if (StringUtility::Contains(str, ".HYPERBOLIC_ARC.")) { value = STEPBSplineCurveFormType::HYPERBOLIC_ARC;  return true; }
 	if (StringUtility::Contains(str, ".UNSPECIFIED.")) { value = STEPBSplineCurveFormType::UNSPECIFIED;  return true; }
-	assert(0); return false;
+	Assert::Failed(); return false;
 }
 
 bool STEPString::ValueToKnot(const String& str, STEPKnotType& value)
@@ -181,7 +183,7 @@ bool STEPString::ValueToKnot(const String& str, STEPKnotType& value)
 	if (StringUtility::Contains(str, ".QUASI_UNIFORM_KNOTS.")) { value = STEPKnotType::QUASI_UNIFORM_KNOTS;  return true; }
 	if (StringUtility::Contains(str, ".PIECEWISE_BEZIER_KNOTS.")) { value = STEPKnotType::PIECEWISE_BEZIER_KNOTS;  return true; }
 	if (StringUtility::Contains(str, ".UNSPECIFIED.")) { value = STEPKnotType::UNSPECIFIED;  return true; }
-	assert(0); return false;
+	Assert::Failed(); return false;
 }
 
 bool STEPString::ValueToBSplineSurfaceForm(const String& str, STEPBSplineSurfaceFormType& value)
@@ -197,7 +199,7 @@ bool STEPString::ValueToBSplineSurfaceForm(const String& str, STEPBSplineSurface
 	if (StringUtility::Contains(str, ".QUADRIC_SURF.")) { value = STEPBSplineSurfaceFormType::QUADRIC_SURF;  return true; }
 	if (StringUtility::Contains(str, ".SURF_OF_LINEAR_EXTRUSION.")) { value = STEPBSplineSurfaceFormType::SURF_OF_LINEAR_EXTRUSION;  return true; }
 	if (StringUtility::Contains(str, ".UNSPECIFIED.")) { value = STEPBSplineSurfaceFormType::UNSPECIFIED;  return true; }
-	assert(0); return false;
+	Assert::Failed(); return false;
 }
 
 
@@ -337,10 +339,10 @@ void STEPPoint::Fetch(STEPStruct& step, const STEPString& stepStr)
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
 	values = STEPString::SplitValue(values[1]);
-	if (!STEPString::ValueToFloat(values[0], data->pos.x)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[1], data->pos.y)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[0], data->pos.x)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[1], data->pos.y)) { Assert::Failed(); return; }
 	if (values.size() == 3) {
-		if (!STEPString::ValueToFloat(values[2], data->pos.z)) { assert(0); return; }
+		if (!STEPString::ValueToFloat(values[2], data->pos.z)) { Assert::Failed(); return; }
 	}
 	step.points[data->id] = data;
 }
@@ -356,9 +358,9 @@ void STEPDirection::Fetch(STEPStruct& step, const STEPString& stepStr)
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
 	values = STEPString::SplitValue(values[1]);
-	if (!STEPString::ValueToFloat(values[0], data->direction.x)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[1], data->direction.y)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->direction.z)) { assert(0); return; }
+	if (!STEPString::ValueToFloat(values[0], data->direction.x)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[1], data->direction.y)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[2], data->direction.z)) { Assert::Failed(); return; }
 	step.directions[data->id] = data;
 }
 
@@ -371,8 +373,8 @@ void STEPVector::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPVector();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->direction.first)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->length)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->direction.first)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[2], data->length)) { Assert::Failed(); return; }
 
 	step.vectors[data->id] = data;
 }
@@ -403,8 +405,8 @@ void STEPLine::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPLine();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->point.first)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[2], data->vector.first)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->point.first)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[2], data->vector.first)) { Assert::Failed(); return; }
 	step.lines[data->id] = data;
 }
 
@@ -443,9 +445,9 @@ void STEPAxis2Placement3D::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPAxis2Placement3D();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.pointRef)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[2], data->raw.dirRef1)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[3], data->raw.dirRef2)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->raw.pointRef)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[2], data->raw.dirRef1)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[3], data->raw.dirRef2)) { Assert::Failed(); return; }
 
 	step.axis2Placement3D[data->id] = data;
 }
@@ -505,8 +507,8 @@ void STEPCircle::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPCircle();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[2], data->rad)) { Assert::Failed(); return; }
 	step.circles[data->id] = data;
 }
 
@@ -535,8 +537,8 @@ void STEPCylindricalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPCylindricalSurface();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->rad)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[2], data->rad)) { Assert::Failed(); return; }
 	step.cylindricalSurface[data->id] = data;
 }
 
@@ -566,9 +568,9 @@ void STEPToroidalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPToroidalSurface();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->majorRadius)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[3], data->minorRadius)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[2], data->majorRadius)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[3], data->minorRadius)) { Assert::Failed(); return; }
 	step.toroidalSurface[data->id] = data;
 }
 
@@ -598,9 +600,9 @@ void STEPConicalSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPConicalSurface();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[2], data->radius)) { assert(0); return; }
-	if (!STEPString::ValueToFloat(values[3], data->angle)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[2], data->radius)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToFloat(values[3], data->angle)) { Assert::Failed(); return; }
 	step.conicalSurface[data->id] = data;
 }
 
@@ -629,7 +631,7 @@ void STEPPlane::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPPlane();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->axis.first)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->axis.first)) { Assert::Failed(); return; }
 	step.planes[data->id] = data;
 }
 
@@ -663,10 +665,10 @@ void STEPInterSectionCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPInterSectionCurve();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.curveId)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->raw.curveId)) { Assert::Failed(); return; }
 	auto split = STEPString::SplitValue(values[2]);
-	if (!STEPString::ValueToRef(split[0], data->raw.geomId0)) { assert(0); return; }
-	if (!STEPString::ValueToRef(split[1], data->raw.geomId1)) { assert(0); return; }
+	if (!STEPString::ValueToRef(split[0], data->raw.geomId0)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(split[1], data->raw.geomId1)) { Assert::Failed(); return; }
 	if (StringUtility::Equal(values[3], ".CURVE_3D.")) { data->data.type = Data::Type::Curve3D; }
 	step.interSectionCurve[data->id] = data;
 }
@@ -690,7 +692,7 @@ void STEPInterSectionCurve::FetchData(const STEPStruct& step)
 	if (!data.curve0.IsActive() ||
 		!data.surf0.IsActive() ||
 		!data.surf1.IsActive()) {
-		assert(0);
+		Assert::Failed();
 	}
 }
 
@@ -723,7 +725,7 @@ void STEPVertexPoint::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPVertexPoint();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->point.first)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->point.first)) { Assert::Failed(); return; }
 	step.vertexPoint[data->id] = data;
 }
 
@@ -759,7 +761,7 @@ Vector3 STEPEdgeCurve::GetPoint(float parameter)
 	}
 
 	if (data.intersectionCurve) {
-		assert(0);
+		Assert::Failed();
 		return Vector3();
 	}
 
@@ -786,7 +788,7 @@ Polyline STEPEdgeCurve::CreatePolyline() const
 	if (data.bsplineCurve) {
 		return data.bsplineCurve->CreatePolyline(data.GetBegin(), data.GetEnd());
 	}
-	assert(0);
+	Assert::Failed();
 	return Polyline();
 }
 
@@ -795,10 +797,10 @@ void STEPEdgeCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPEdgeCurve();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[3], data->raw.lineRef2)) { assert(0); return; }
-	if (!STEPString::ValueToBool(values[4], data->raw.sameSense)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[3], data->raw.lineRef2)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToBool(values[4], data->raw.sameSense)) { Assert::Failed(); return; }
 
 	step.edgeCurve[data->id] = data;
 }
@@ -874,10 +876,10 @@ void STEPOrientedEdge::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPOrientedEdge();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { assert(0); return; }
-	if (!STEPString::ValueToRef(values[3], data->raw.edgeCurveRef2)) { assert(0); return; }
-	if (!STEPString::ValueToBool(values[4], data->raw.orient)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->raw.vertRef0)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[2], data->raw.vertRef1)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[3], data->raw.edgeCurveRef2)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToBool(values[4], data->raw.orient)) { Assert::Failed(); return; }
 	step.orientedEdge[data->id] = data;
 }
 
@@ -941,7 +943,7 @@ void STEPPolyLoop::Fetch(STEPStruct& step, const STEPString& stepStr)
 
 	data->raw.idRef.resize(values.size());
 	for (int i = 0; i < data->raw.idRef.size(); i++) {
-		if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { Assert::Failed(); return; }
 	}
 	step.polyLoop[data->id] = data;
 }
@@ -1006,7 +1008,7 @@ void STEPEdgeLoop::Fetch(STEPStruct& step, const STEPString& stepStr)
 
 	data->raw.idRef.resize(values.size());
 	for (int i = 0; i < data->raw.idRef.size(); i++) {
-		if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { Assert::Failed(); return; }
 	}
 	step.edgeLoop[data->id] = data;
 }
@@ -1055,8 +1057,8 @@ void STEPFaceBoundBase::Fetch(STEPStruct& step, const STEPString& stepStr, STEPF
 {
 	auto values = STEPString::SplitValue(stepStr.entity.value);
 	STEPEntityBase::Fetch(data, stepStr);
-	if (!STEPString::ValueToRef(values[1], data->raw.idRef0)) { assert(0); return; }
-	if (!STEPString::ValueToBool(values[2], data->raw.orient)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[1], data->raw.idRef0)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToBool(values[2], data->raw.orient)) { Assert::Failed(); return; }
 }
 
 void STEPFaceBoundBase::FetchData(const STEPStruct& step)
@@ -1207,7 +1209,7 @@ STEPFaceBase::Data::ToroidalEdge STEPFaceBase::Data::SearchToroidalEdge(const ST
 				// u 方向
 				ret.uDir = (v2 - v1) > 0.0f;
 			} else {
-				assert(0);
+				Assert::Failed();
 			}
 
 			begin.x = MathHelper::Normalize0_PI2(begin.x);
@@ -1347,7 +1349,7 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 	if (plane) {
 		if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
 		auto normal = glm::normalize(plane->axis.second->data.Normal());
-		if (!orient) {
+		if (!sameScene) {
 			normal = -normal;
 		}
 		if (bound.PointNum() && outerBound.PointNum()) {
@@ -1371,7 +1373,7 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 			edge.end,
 			cylinder->rad,
 			edge.GetHeight(),
-			orient,
+			sameScene,
 			CIRCLE_SUBDIVISION_NUM,
 			CIRCLE_SUBDIVISION_NUM);
 	} else if (conical) {
@@ -1383,7 +1385,7 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 			conical->radius,
 			edge.GetHeight(),
 			conical->angle,
-			!orient,
+			!sameScene,
 			CIRCLE_SUBDIVISION_NUM,
 			CIRCLE_SUBDIVISION_NUM);
 	} else if (toroidal) {
@@ -1398,13 +1400,13 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 			toroidal->minorRadius,
 			edge.uBegin, edge.uEnd,
 			edge.vBegin, edge.vEnd,
-			orient,
+			sameScene,
 			CIRCLE_SUBDIVISION_NUM,
 			CIRCLE_SUBDIVISION_NUM);
 	} else if(bSplineSurfaceWithKnots){
-		return bSplineSurfaceWithKnots->CreateMesh();
+		return bSplineSurfaceWithKnots->CreateMesh(bound, outerBound, sameScene);
 	} else if (bSplineSurface) {
-		return bSplineSurface->CreateMesh();
+		return bSplineSurface->CreateMesh(bound, outerBound, sameScene);
 	}
 
 	return Mesh();
@@ -1457,7 +1459,7 @@ void STEPFaceBase::FetchData(const STEPStruct& step)
 		data.bSplineSurface = FindSetData2(step, step.bSplineSurface, raw.geomRef1);
 	}
 
-	data.orient = raw.orient;
+	data.sameScene = raw.sameScene;
 }
 
 String STEPFaceBase::Dump(const DebugOption& option)
@@ -1502,11 +1504,11 @@ void STEPFaceSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto faces = STEPString::SplitValue(values[1]);
 	pData->raw.faceRef0.resize(faces.size());
 	for (int i = 0; i < faces.size(); i++) {
-		if (!STEPString::ValueToRef(faces[i], pData->raw.faceRef0[i])) { assert(0); return; }
+		if (!STEPString::ValueToRef(faces[i], pData->raw.faceRef0[i])) { Assert::Failed(); return; }
 	}
 
-	if (!STEPString::ValueToRef(values[2], pData->raw.geomRef1)) { assert(0); return; }
-	if (!STEPString::ValueToBool(values[3], pData->raw.orient)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[2], pData->raw.geomRef1)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToBool(values[3], pData->raw.sameScene)) { Assert::Failed(); return; }
 	step.faceSurface[pData->id] = pData;
 }
 
@@ -1519,11 +1521,11 @@ void STEPAdvancedFace::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto faces = STEPString::SplitValue(values[1]);
 	data->raw.faceRef0.resize(faces.size());
 	for (int i = 0; i < faces.size(); i++) {
-		if (!STEPString::ValueToRef(faces[i], data->raw.faceRef0[i])) { assert(0); return; }
+		if (!STEPString::ValueToRef(faces[i], data->raw.faceRef0[i])) { Assert::Failed(); return; }
 	}
 
-	if (!STEPString::ValueToRef(values[2], data->raw.geomRef1)) { assert(0); return; }
-	if (!STEPString::ValueToBool(values[3], data->raw.orient)) { assert(0); return; }
+	if (!STEPString::ValueToRef(values[2], data->raw.geomRef1)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToBool(values[3], data->raw.sameScene)) { Assert::Failed(); return; }
 	step.advancedFace[data->id] = data;
 }
 
@@ -1535,7 +1537,7 @@ void STEPShell::Fetch(STEPStruct& step, const STEPString& stepStr, STEPShell* pS
 	values = STEPString::SplitValue(values[1]);
 	pShell->raw.faceRef.resize(values.size());
 	for (int i = 0; i < values.size(); i++) {
-		if (!STEPString::ValueToRef(values[i], pShell->raw.faceRef[i])) { assert(0); return; }
+		if (!STEPString::ValueToRef(values[i], pShell->raw.faceRef[i])) { Assert::Failed(); return; }
 	}
 	STEPEntityBase::Fetch(pShell, stepStr);
 }
@@ -1644,15 +1646,15 @@ void STEPQuasiUniformCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto data = new STEPQuasiUniformCurve();
 	STEPEntityBase::Fetch(data, stepStr);
 	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToInt(values[1], data->degree)) { assert(0); return; }
+	if (!STEPString::ValueToInt(values[1], data->degree)) { Assert::Failed(); return; }
 	auto split = STEPString::SplitValue(values[2]);
 	data->points.resize(split.size());
 	for (size_t i = 0; i < split.size(); i++) {
-		if (!STEPString::ValueToRef(split[i], data->points[i].first)) { assert(0); return; }
+		if (!STEPString::ValueToRef(split[i], data->points[i].first)) { Assert::Failed(); return; }
 	}
-	if (!STEPString::ValueToBSplineCurveForm(values[3], data->form)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[4], data->closed)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[5], data->intersect)) { assert(0); return; }
+	if (!STEPString::ValueToBSplineCurveForm(values[3], data->form)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[4], data->closed)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[5], data->intersect)) { Assert::Failed(); return; }
 	step.quasiUniformCurve[data->id] = data;
 }
 
@@ -1667,14 +1669,14 @@ Polyline STEPQuasiUniformCurve::CreatePolyline(const Vector3& begin, const Vecto
 		return line;
 	}
 
-	assert(0);
+	Assert::Failed();
 	return Polyline();
 }
 void STEPQuasiUniformCurve::FetchData(const STEPStruct& step)
 {
 	for (size_t i = 0; i < points.size(); i++) {
 		points[i].second = FindSetData2(step, step.points, points[i].first);
-		if (!points[i].second) { assert(0); continue; }
+		if (!points[i].second) { Assert::Failed(); continue; }
 	}
 }
 String STEPQuasiUniformCurve::Dump(const DebugOption& option)
@@ -1698,7 +1700,7 @@ void STEPQuasiUniformCurve::ShowUI(STEPUIContext& ui)
 
 void STEPBSplineCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 {
-	if (stepStr.multiEntity.empty()) { assert(0); return; }
+	if (stepStr.multiEntity.empty()) { Assert::Failed(); return; }
 	auto data = new STEPBSplineCurve();
 	STEPEntityBase::Fetch(data, stepStr);
 	for (size_t i = 0; i < stepStr.multiEntity.size(); i++) {
@@ -1714,7 +1716,7 @@ void STEPBSplineCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 				StringUtility::Equal(entity.value, "('')")) {
 				// value 無視パターン
 			} else {
-				assert(0);
+				Assert::Failed();
 			}
 		}
 	}
@@ -1725,15 +1727,15 @@ void STEPBSplineCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 void STEPBSplineCurve::Fetch(const String& str)
 {
 	auto values = STEPString::SplitValue(str);
-	if (!STEPString::ValueToInt(values[0], degree)) { assert(0); return; }
+	if (!STEPString::ValueToInt(values[0], degree)) { Assert::Failed(); return; }
 	auto split = STEPString::SplitValue(values[1]);
 	points.resize(split.size());
 	for (size_t i = 0; i < split.size(); i++) {
-		if (!STEPString::ValueToRef(split[i], points[i].first)) { assert(0); return; }
+		if (!STEPString::ValueToRef(split[i], points[i].first)) { Assert::Failed(); return; }
 	}
-	if (!STEPString::ValueToBSplineCurveForm(values[2], form)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[3], closed)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[4], intersect)) { assert(0); return; }
+	if (!STEPString::ValueToBSplineCurveForm(values[2], form)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[3], closed)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[4], intersect)) { Assert::Failed(); return; }
 
 }
 
@@ -1743,28 +1745,25 @@ void STEPBSplineCurve::FetchKnot(const String& str)
 	auto multStr = STEPString::SplitValue(values[0]);
 	for (size_t i = 0; i < multStr.size(); i++) {
 		int multi = 0;
-		if (!STEPString::ValueToInt(multStr[i], multi)) { assert(0); continue; }
+		if (!STEPString::ValueToInt(multStr[i], multi)) { Assert::Failed(); continue; }
 		multiple.push_back(multi);
 	}
 
 	auto knotStr = STEPString::SplitValue(values[1]);
 	for (size_t i = 0; i < knotStr.size(); i++) {
 		float knot = 0;
-		if (!STEPString::ValueToFloat(knotStr[i], knot)) { assert(0); continue; }
+		if (!STEPString::ValueToFloat(knotStr[i], knot)) { Assert::Failed(); continue; }
 		knots.push_back(knot);
 	}
 
 	if (multiple.size() != knots.size()) {
-		assert(0);
+		Assert::Failed();
 	}
 
-	for (size_t i = 0; i < multiple.size(); i++) {
-		for (size_t j = 0; j < multiple[i]; j++) {
-			expandKnots.push_back(knots[i]);
-		}
-	}
+	expandKnots = STEP::BSplineBuilder::CreateExpandedKnots(multiple, knots);
+	if (!STEP::BSplineBuilder::CheckKnotSize(expandKnots, points.size(), degree)) { Assert::Failed(); return; }
 
-	if (!STEPString::ValueToKnot(values.back(), knotType)) { assert(0); return; }
+	if (!STEPString::ValueToKnot(values.back(), knotType)) { Assert::Failed(); return; }
 }
 
 void STEPBSplineCurve::FetchRational(const String& str)
@@ -1777,7 +1776,7 @@ void STEPBSplineCurve::FetchRational(const String& str)
 	}
 	rational.resize(values.size());
 	for (size_t i = 0; i < rational.size(); i++) {
-		if (!STEPString::ValueToFloat(values[i], rational[i])) { assert(0); continue; }
+		if (!STEPString::ValueToFloat(values[i], rational[i])) { Assert::Failed(); continue; }
 	}
 }
 
@@ -1789,7 +1788,7 @@ void STEPBSplineCurve::FetchData(const STEPStruct& step)
 {
 	for (size_t i = 0; i < points.size(); i++) {
 		points[i].second = FindSetData2(step, step.points, points[i].first);
-		if (!points[i].second) { assert(0); continue; }
+		if (!points[i].second) { Assert::Failed(); continue; }
 	}
 }
 
@@ -1812,157 +1811,132 @@ void STEPBSplineCurve::ShowUI(STEPUIContext& ui)
 	}
 }
 
-void STEPBSplineSurfaceWithKnots::Fetch(STEPStruct& step, const STEPString& stepStr)
-{
-	auto data = new STEPBSplineSurfaceWithKnots();
-	STEPEntityBase::Fetch(data, stepStr);
-	auto values = STEPString::SplitValue(stepStr.entity.value);
-	if (!STEPString::ValueToInt(values[1], data->degree.u)) { assert(0); return; }
-	if (!STEPString::ValueToInt(values[2], data->degree.v)) { assert(0); return; }
-	auto split = STEPString::SplitValue(values[3]);
-	data->points.resize(split.size());
-	for (size_t i = 0; i < split.size(); i++) {
-		auto uvStr = STEPString::SplitValue(split[i]);
-		if (!STEPString::ValueToRef(uvStr[0], data->points[i].first.u)) { assert(0); return; }
-		if (!STEPString::ValueToRef(uvStr[1], data->points[i].first.v)) { assert(0); return; }
-	}
-	if (!STEPString::ValueToBSplineSurfaceForm(values[4], data->form)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[5], data->closed.u)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[6], data->closed.v)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[7], data->intersect)) { assert(0); return; }
-	step.bSplineSurfaceWithKnots[data->id] = data;
 
-}
-void STEPBSplineSurfaceWithKnots::FetchData(const STEPStruct& step)
-{
-	for (size_t i = 0; i < points.size(); i++) {
-		points[i].second.u = FindSetData2(step, step.points, points[i].first.u);
-		if (!points[i].second.u) { assert(0); continue; }
-		points[i].second.v = FindSetData2(step, step.points, points[i].first.v);
-		if (!points[i].second.v) { assert(0); continue; }
-	}
-}
-String STEPBSplineSurfaceWithKnots::Dump(const DebugOption& option)
+String STEPBSplineSurfaceBase::Dump(const DebugOption& option)
 {
 	auto str = ToString();
 	for (size_t i = 0; i < points.size(); i++) {
-		str += points[i].second.u->Dump(option);
-		str += points[i].second.v->Dump(option);
+		for (size_t j = 0; j < points[i].size(); j++) {
+			str += points[i][j].second->Dump(option);
+		}
 	}
 
 	return str;
 }
-void STEPBSplineSurfaceWithKnots::ShowUI(STEPUIContext& ui)
+void STEPBSplineSurfaceBase::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
 		for (size_t i = 0; i < points.size(); i++) {
-			if (points[i].second.u) { points[i].second.u->ShowUI(ui); }
-			if (points[i].second.v) { points[i].second.v->ShowUI(ui); }
+			for (size_t j = 0; j < points[i].size(); j++) {
+				if (points[i][j].second) { points[i][j].second->ShowUI(ui); }
+			}
 		}
 		ImGui::TreePop();
 	}
 }
 
-Mesh STEPBSplineSurfaceWithKnots::CreateMesh() const
+void STEPBSplineSurfaceWithKnots::Fetch(STEPStruct& step, const STEPString& stepStr)
 {
-	return Mesh();
-}
-
-
-
-
-void STEPBSplineSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
-{
-	auto data = new STEPBSplineSurface();
+	auto data = new STEPBSplineSurfaceWithKnots();
 	STEPEntityBase::Fetch(data, stepStr);
-	for (size_t i = 0; i < stepStr.multiEntity.size(); i++) {
-		const auto& entity = stepStr.multiEntity[i];
-		if (StringUtility::Equal(entity.name, STEPBSplineSurfaceWithKnots::EntityName)) {
-			data->FetchKnot(entity.value);
-		} else if (StringUtility::Equal(entity.name, STEPRationalBSplineSurfaceEntityName)) {
-			data->FetchRational(entity.value);
-		} else if (StringUtility::Equal(entity.name, STEPBSplineSurface::EntityName)) {
-			data->Fetch(entity.value);
-		} else {
-			if (StringUtility::Equal(entity.value, "()") ||
-				StringUtility::Equal(entity.value, "('')")) {
-				// value 無視パターン
-			} else {
-				assert(0);
-			}
-		}
-	}
-
-	step.bSplineSurface[data->id] = data;
-}
-
-void STEPBSplineSurface::Fetch(const String& str)
-{
-	auto values = STEPString::SplitValue(str);
-	if (!STEPString::ValueToInt(values[0], degree.u)) { assert(0); return; }
-	if (!STEPString::ValueToInt(values[1], degree.v)) { assert(0); return; }
-	auto split = STEPString::SplitValue(values[2]);
-	points.resize(split.size());
+	auto values = STEPString::SplitValue(stepStr.entity.value);
+	if (!STEPString::ValueToInt(values[1], data->degree.u)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToInt(values[2], data->degree.v)) { Assert::Failed(); return; }
+	auto split = STEPString::SplitValue(values[3]);
+	data->points.resize(split.size());
 	for (size_t i = 0; i < split.size(); i++) {
 		auto uvStr = STEPString::SplitValue(split[i]);
-		points[i].resize(uvStr.size());
+		data->points[i].resize(uvStr.size());
 		for (size_t j = 0; j < uvStr.size(); j++) {
-			if (!STEPString::ValueToRef(uvStr[j], points[i][j].first)) { assert(0); return; }
+			if (!STEPString::ValueToRef(uvStr[j], data->points[i][j].first)) { Assert::Failed(); return; }
 		}
 	}
-	if (!STEPString::ValueToBSplineSurfaceForm(values[3], form)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[4], closed.u)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[5], closed.v)) { assert(0); return; }
-	if (!STEPString::ValueToLogical(values[6], intersect)) { assert(0); return; }
+	if (!STEPString::ValueToBSplineSurfaceForm(values[4], data->form)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[5], data->closed.u)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[6], data->closed.v)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[7], data->intersect)) { Assert::Failed(); return; }
+	split = STEPString::SplitValue(values[8]);
+	data->multiple.u.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToInt(split[i], data->multiple.u[i])) { Assert::Failed(); return; }
+	}
+
+	split = STEPString::SplitValue(values[9]);
+	data->multiple.v.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToInt(split[i], data->multiple.v[i])) { Assert::Failed(); return; }
+	}
+
+	split = STEPString::SplitValue(values[10]);
+	data->knots.u.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToFloat(split[i], data->knots.u[i])) { Assert::Failed(); return; }
+	}
+
+	split = STEPString::SplitValue(values[11]);
+	data->knots.v.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToFloat(split[i], data->knots.v[i])) { Assert::Failed(); return; }
+	}
+
+	if (!STEPString::ValueToKnot(values[12], data->knotType)) { Assert::Failed(); return; }
+
+	step.bSplineSurfaceWithKnots[data->id] = data;
+
 }
-void STEPBSplineSurface::FetchKnot(const String& str)
+
+void STEPBSplineSurfaceBase::FetchData(const STEPStruct& step)
 {
-	auto values = STEPString::SplitValue(str);
-	auto split = STEPString::SplitValue(values[0]);
-	multiple.u.resize(split.size());
-	for (size_t i = 0; i < split.size(); i++) {
-		if (!STEPString::ValueToInt(split[i], multiple.u[i])) { assert(0); return; }
-	}
-
-	split = STEPString::SplitValue(values[1]);
-	multiple.v.resize(split.size());
-	for (size_t i = 0; i < split.size(); i++) {
-		if (!STEPString::ValueToInt(split[i], multiple.v[i])) { assert(0); return; }
-	}
-
-	split = STEPString::SplitValue(values[2]);
-	knots.u.resize(split.size());
-	for (size_t i = 0; i < split.size(); i++) {
-		if (!STEPString::ValueToFloat(split[i], knots.u[i])) { assert(0); return; }
-	}
-
-	split = STEPString::SplitValue(values[3]);
-	knots.v.resize(split.size());
-	for (size_t i = 0; i < split.size(); i++) {
-		if (!STEPString::ValueToFloat(split[i], knots.v[i])) { assert(0); return; }
-	}
-
-	if (!STEPString::ValueToKnot(values[4], knotType)) { assert(0); return; }
-}
-void STEPBSplineSurface::FetchRational(const String& str)
-{
-	auto values = STEPString::SplitValue(str);
-	if (values.empty()) { return; }
-	if (values[0].empty()) { return; }
-	if (values[0][0] == '(') {
-		values = STEPString::SplitValue(values[0]);
-	}
-	rational.resize(values.size());
-	for (size_t i = 0; i < rational.size(); i++) {
-		auto uvStr = STEPString::SplitValue(values[i]);
-		rational[i].resize(uvStr.size());
-		for (size_t j = 0; j < uvStr.size(); j++) {
-			if (!STEPString::ValueToFloat(uvStr[j], rational[i][j])) { assert(0); continue; }
+	for (size_t i = 0; i < points.size(); i++) {
+		for (size_t j = 0; j < points[i].size(); j++) {
+			points[i][j].second = FindSetData2(step, step.points, points[i][j].first);
+			if (!points[i][j].second) { Assert::Failed(); continue; }
 		}
 	}
+
+	expandKnots.u = STEP::BSplineBuilder::CreateExpandedKnots(multiple.u, knots.u);
+	expandKnots.v = STEP::BSplineBuilder::CreateExpandedKnots(multiple.v, knots.v);
+
+	if (!STEP::BSplineBuilder::CheckKnotSize(expandKnots.u, points.size(), degree.u)) { Assert::Failed(); return; }
+	if (!STEP::BSplineBuilder::CheckKnotSize(expandKnots.v, points[0].size(), degree.v)) { Assert::Failed(); return; }
+
 }
 
-bool STEPBSplineSurface::IsValid() const
+Mesh STEPBSplineSurfaceBase::CreateMesh(const Polyline& bound, const Polyline& outerBound, bool sameScene) const
+{
+	if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
+	Vector<Vector3> uvBound;
+	Vector<Vector3> uvOuterBound;
+	if (bound.PointNum()) {
+		uvBound.resize(bound.PointNum());
+		for (size_t i = 0; i < bound.PointNum(); i++) {
+			Vector2 uv;
+			STEP::BSplineBuilder::ProjectPointToUV(*this, bound.GetPoints()[i], uv);
+			uvBound[i] = Vector3(uv.x, uv.y, 0);
+		}
+	}
+	if (outerBound.PointNum()) {
+		uvOuterBound.resize(outerBound.PointNum());
+		for (size_t i = 0; i < outerBound.PointNum(); i++) {
+			Vector2 uv;
+			STEP::BSplineBuilder::ProjectPointToUV(*this, outerBound.GetPoints()[i], uv);
+			uvOuterBound[i] = Vector3(uv.x, uv.y, 0);
+		}
+	}
+	auto mesh = Polyline::CreateMesh(Polyline(std::move(uvOuterBound)), Polyline(std::move(uvBound)), sameScene ? Vector3(0, 0, 1) : Vector3(0, 0, -1));
+	Vector<Vector3> vertices(mesh.GetPoints().size());
+	for (size_t i = 0; i < mesh.GetPoints().size(); i++) {
+		if(!STEP::BSplineBuilder::Evaluate(*this, Vector2(mesh.GetPoints()[i].x, mesh.GetPoints()[i].y), vertices[i])) {
+		//	Assert::Failed();
+			continue;
+		}
+	}
+
+	mesh.SetPoints(std::move(vertices));
+	return mesh;
+}
+
+bool STEPBSplineSurfaceBase::IsValid() const
 {
 	if (GetUNum() == 0) { return false; }
 	if (GetVNum() == 0) { return false; }
@@ -1983,40 +1957,100 @@ bool STEPBSplineSurface::IsValid() const
 		}
 	}
 
+	return true;
 }
-Mesh STEPBSplineSurface::CreateMesh() const
+
+
+
+void STEPBSplineSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 {
-	return STEP::BSplineBuilder::CreateMesh(*this, CIRCLE_SUBDIVISION_NUM, CIRCLE_SUBDIVISION_NUM);
-}
-void STEPBSplineSurface::FetchData(const STEPStruct& step)
-{
-	for (size_t i = 0; i < points.size(); i++) {
-		for (size_t j = 0; j < points[i].size(); j++) {
-			points[i][j].second = FindSetData2(step, step.points, points[i][j].first);
-			if (!points[i][j].second) { assert(0); continue; }
-		}
-	}
-}
-String STEPBSplineSurface::Dump(const DebugOption& option)
-{
-	auto str = ToString();
-	for (size_t i = 0; i < points.size(); i++) {
-		for (size_t j = 0; j < points[i].size(); j++) {
-			str += points[i][j].second->Dump(option);
+	auto data = new STEPBSplineSurface();
+	STEPEntityBase::Fetch(data, stepStr);
+	for (size_t i = 0; i < stepStr.multiEntity.size(); i++) {
+		const auto& entity = stepStr.multiEntity[i];
+		if (StringUtility::Equal(entity.name, STEPBSplineSurfaceWithKnots::EntityName)) {
+			data->FetchKnot(entity.value);
+		} else if (StringUtility::Equal(entity.name, STEPRationalBSplineSurfaceEntityName)) {
+			data->FetchRational(entity.value);
+		} else if (StringUtility::Equal(entity.name, STEPBSplineSurface::EntityName)) {
+			data->Fetch(entity.value);
+		} else {
+			if (StringUtility::Equal(entity.value, "()") ||
+				StringUtility::Equal(entity.value, "('')")) {
+				// value 無視パターン
+			} else {
+				Assert::Failed();
+			}
 		}
 	}
 
-	return str;
+	step.bSplineSurface[data->id] = data;
 }
-void STEPBSplineSurface::ShowUI(STEPUIContext& ui)
+
+void STEPBSplineSurface::Fetch(const String& str)
 {
-	if (ShowBranch(ui, ui.IsSelect(id))) {
-		for (size_t i = 0; i < points.size(); i++) {
-			for (size_t j = 0; j < points[i].size(); j++) {
-				if (points[i][j].second) { points[i][j].second->ShowUI(ui); }
-			}
+	auto values = STEPString::SplitValue(str);
+	if (!STEPString::ValueToInt(values[0], degree.u)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToInt(values[1], degree.v)) { Assert::Failed(); return; }
+	auto split = STEPString::SplitValue(values[2]);
+	points.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		auto uvStr = STEPString::SplitValue(split[i]);
+		points[i].resize(uvStr.size());
+		for (size_t j = 0; j < uvStr.size(); j++) {
+			if (!STEPString::ValueToRef(uvStr[j], points[i][j].first)) { Assert::Failed(); return; }
 		}
-		ImGui::TreePop();
+	}
+	if (!STEPString::ValueToBSplineSurfaceForm(values[3], form)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[4], closed.u)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[5], closed.v)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToLogical(values[6], intersect)) { Assert::Failed(); return; }
+}
+void STEPBSplineSurface::FetchKnot(const String& str)
+{
+	auto values = STEPString::SplitValue(str);
+	auto split = STEPString::SplitValue(values[0]);
+	multiple.u.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToInt(split[i], multiple.u[i])) { Assert::Failed(); return; }
+	}
+
+	split = STEPString::SplitValue(values[1]);
+	multiple.v.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToInt(split[i], multiple.v[i])) { Assert::Failed(); return; }
+	}
+
+	split = STEPString::SplitValue(values[2]);
+	knots.u.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToFloat(split[i], knots.u[i])) { Assert::Failed(); return; }
+	}
+
+	split = STEPString::SplitValue(values[3]);
+	knots.v.resize(split.size());
+	for (size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToFloat(split[i], knots.v[i])) { Assert::Failed(); return; }
+	}
+
+	if (!STEPString::ValueToKnot(values[4], knotType)) { Assert::Failed(); return; }
+}
+void STEPBSplineSurface::FetchRational(const String& str)
+{
+	auto values = STEPString::SplitValue(str);
+	if (values.empty()) { return; }
+	if (values[0].empty()) { return; }
+	if (values[0][0] == '(') {
+		values = STEPString::SplitValue(values[0]);
+	}
+	rational.resize(values.size());
+	for (size_t i = 0; i < rational.size(); i++) {
+		auto uvStr = STEPString::SplitValue(values[i]);
+		rational[i].resize(uvStr.size());
+		for (size_t j = 0; j < uvStr.size(); j++) {
+			if (!STEPString::ValueToFloat(uvStr[j], rational[i][j])) { Assert::Failed(); continue; }
+		}
 	}
 }
+
 }

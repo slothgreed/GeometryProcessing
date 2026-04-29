@@ -16,7 +16,7 @@ HalfEdgeStruct* HalfEdgeLoader::Load(const String& filePath)
 		vertexSize == 0 ||
 		edgeSize == 0 ||
 		faceSize == 0) {
-		assert(0);
+		Assert::Failed();
 	}
 
 	Vector<HalfEdge> halfEdge(edgeSize);

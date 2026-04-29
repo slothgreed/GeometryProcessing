@@ -134,7 +134,7 @@ Vector<int> HalfEdgeStruct::GetAroundEdge(int posIndex) const
 		if (edge.beforeEdge == edge.nextEdge ||
 			edge.beforeEdge == edge.oppositeEdge ||
 			edge.nextEdge == edge.oppositeEdge) {
-			//assert(0);
+			//Assert::Failed();
 			break;
 		}
 		if (loopEdge.size() == 6) {

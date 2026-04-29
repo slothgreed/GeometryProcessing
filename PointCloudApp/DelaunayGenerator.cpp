@@ -571,7 +571,7 @@ Vector3 DelaunayGenerator::IndexedTriangle::Convert(int index, const DelaunayGen
 		sum += pGen->m_inner[i]->size();
 	}
 
-	assert(0);
+	Assert::Failed();
 	return Vector3();
 }
 

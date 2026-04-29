@@ -123,7 +123,7 @@ struct PixelDataT
 		if (component = 1) {
 			data[(y * width + x) * component + 0] = (T)value;
 		} else {
-			assert(0);
+			Assert::Failed();
 		}
 	}
 
@@ -135,7 +135,7 @@ struct PixelDataT
 			data[(y * width + x) * component + 2] = (T)value.z;
 			data[(y * width + x) * component + 3] = (T)value.a;
 		} else {
-			assert(0);
+			Assert::Failed();
 		}
 	}
 	

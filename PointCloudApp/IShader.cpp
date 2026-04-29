@@ -77,7 +77,7 @@ void IShadingShader::DrawElement(GLuint primitiveType, GLBuffer* pIndexBuffer, i
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pIndexBuffer->Handle());
 	offset *= pIndexBuffer->SizeOfData();
 	if (pIndexBuffer->SizeOfData() != 4) {
-		assert(0);
+		Assert::Failed();
 		offset *= sizeof(unsigned int);
 	}
 	glDrawElements(primitiveType, num, pIndexBuffer->DataType(), (void*)offset);
@@ -304,12 +304,12 @@ void IMeshShader::Build()
 	auto meshLocalSize = String("layout(local_size_x="+ IntToString(GetMeshThreadNum()) + ") in;\n");
 	auto maxVertex = GetMaxVertices();
 	if (maxVertex > GLAPIExt::Info()->GetMeshletMaxVertex()) {
-		assert(0);
+		Assert::Failed();
 		maxVertex = GLAPIExt::Info()->GetMeshletMaxVertex();
 	}
 	auto maxPrimitive = GetMaxPrimitives();
 	if (maxPrimitive > GLAPIExt::Info()->GetMeshletMaxPrimitive()) {
-		assert(0);
+		Assert::Failed();
 		maxPrimitive = GLAPIExt::Info()->GetMeshletMaxPrimitive();
 	}
 	auto meshOutSize = String("layout(max_vertices="+IntToString(maxVertex) + ", max_primitives="+IntToString(maxPrimitive) + ") out;\n");
@@ -419,7 +419,7 @@ void IComputeShader::Build()
 		localSize.y > maxLocalSize.y ||
 		localSize.z > maxLocalSize.z ||
 		localSize.x * localSize.y * localSize.z > maxLocalSize.w) {
-		assert(0);
+		Assert::Failed();
 	}
 	auto threadStr = "layout(local_size_x = " + IntToString(localSize.x) + ", local_size_y = " + IntToString(localSize.y) + ", local_size_z = " + IntToString(localSize.z) + ") in;\n";
 	auto computeCode = ShaderUtility::LoadFromFile(localPath + shaderPath.shader[SHADER_PROGRAM_COMPUTE]);
@@ -453,7 +453,7 @@ void IComputeShader::BindTexture(int location, int mipmap, const Texture* pTextu
 	if (!(access == GL_WRITE_ONLY ||
 		access == GL_READ_ONLY ||
 		access == GL_READ_WRITE)) {
-		assert(0);
+		Assert::Failed();
 		return;
 	}
 

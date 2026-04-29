@@ -153,7 +153,7 @@ Matrix4x4 MathHelper::CreateRotateMatrix(const Vector3& source, const Vector3& t
 		std::abs(test.y - target.y) < 0.001 &&
 		std::abs(test.z - target.z) < 0.001))
 	{
-		assert(0);
+		Assert::Failed();
 	}
 
 	return glm::toMat4(axis);

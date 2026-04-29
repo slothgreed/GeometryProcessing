@@ -181,7 +181,7 @@ int GLBuffer::ComponentSize() const
 		m_dataType == DATA_UINT) {
 		return m_sizeOfData / 4;
 	} else {
-		assert(0);
+		Assert::Failed();
 		return 0;
 	}
 }

@@ -39,7 +39,7 @@ Mesh::Triangle Mesh::GetTriangle(int index) const
 			return tri;
 		}
 	} else {
-		assert(0);
+		Assert::Failed();
 		return tri;
 	}
 }
@@ -55,7 +55,7 @@ Mesh& Mesh::ConvertTriangles()
 		m_points = std::move(points);
 		m_indexs.clear();
 	} else {
-		assert(0);
+		Assert::Failed();
 	}
 
 	return *this;
@@ -82,7 +82,7 @@ Mesh& Mesh::Reverse()
 			m_indexs = std::move(indexs);
 		}
 	} else {
-		assert(0);
+		Assert::Failed();
 	}
 
 	return *this;

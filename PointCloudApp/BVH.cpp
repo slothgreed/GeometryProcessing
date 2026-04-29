@@ -192,7 +192,7 @@ void BVH::DebugForAllLeaf()
 	if (leafNum == m_pHalfEdge->GetMorton().Get().size()) {
 		std::cerr << "BVH is Success!" << std::endl;
 	} else {
-		assert(0);
+		Assert::Failed();
 		std::cerr << "BVH is notSucess!" << std::endl;
 	}
 }

@@ -13,7 +13,7 @@ GLuint Primitive::GetDrawType() const
 {
 	if (m_primitiveType == GL_NONE)
 	{
-		assert(0);
+		Assert::Failed();
 		return GL_POINTS;
 	}
 	return m_primitiveType;

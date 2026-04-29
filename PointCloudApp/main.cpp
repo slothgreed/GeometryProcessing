@@ -65,8 +65,8 @@ int main()
     
 	//KI::ComputeShaderTest app;
 	//KI::ComputePointCloudApp app;
-	//KI::PointCloudApp app;
-	KI::SoftwareRasterizer app;
+	KI::PointCloudApp app;
+	//KI::SoftwareRasterizer app;
 	//KI::MeshShaderTest app;
 	app.Initialize();
 	app.Execute();

@@ -166,11 +166,11 @@ void PointCloudApp::Execute()
 	{
 		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
 		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		//auto pSTEPNode = CreateSTEPNodeTest();
-		//for (const auto& pNode : pSTEPNode) {
-		//	m_pRoot->AddNode(pNode);
-		//}
-		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+		auto pSTEPNode = CreateSTEPNodeTest();
+		for (const auto& pNode : pSTEPNode) {
+			m_pRoot->AddNode(pNode);
+		}
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
 	}
 
 	// Simulation
@@ -206,7 +206,7 @@ void PointCloudApp::Execute()
 
 	// Test
 	{
-		m_pRoot->AddNode(CreateBunnyNodeTest());
+		//m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateDelaunayTest());
 		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
@@ -646,7 +646,19 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
 	{
+		{
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Ai-14R.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Cruise_Assembly.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\NissanGT-R.STEP");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Rocky_House.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\ROTOR-201NAL-Z7.STEP");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Scania-8x4.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Scania-Engine-V8-XT-Turbo.step");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\UMC-500_SS_Solid_Model_2019-06_r1.stp");
+
+		}
 		//実施中
+		m_ui.stepFiles.push_back("E:\\cgModel\\step\\turbine.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE419_orig.step");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE1170_orig.step");
@@ -662,7 +674,7 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp");
 
 		//// B-Spline
-		m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy.step");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");

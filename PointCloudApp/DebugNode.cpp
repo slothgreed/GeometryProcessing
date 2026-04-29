@@ -508,6 +508,7 @@ GridNode::GridNode(const String& name, const Vector3& min, const Vector3& max, f
 	m_pPrimitive->SetPosition(std::move(positions));
 	m_pPrimitive->SetType(GL_LINES);
 	DebugNode::SetPrimitive(m_pPrimitive);
+	SetBoundBox(BDB(min, max));	
 }
 
 PolylineNode::PolylineNode(const String& name, const Polyline& polyline)

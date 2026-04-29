@@ -47,7 +47,7 @@ bool FrameBuffer::Validate() const
 {
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		assert(0);
+		Assert::Failed();
 		return false;
 	}
 

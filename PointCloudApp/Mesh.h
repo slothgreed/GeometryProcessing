@@ -38,6 +38,7 @@ public:
 
 	int TriangleNum() const;
 	Triangle GetTriangle(int index) const;
+	void SetPoints(Vector<Vector3>&& points) { m_points = std::move(points); }	
 	const Vector<Vector3>& GetPoints() const { return m_points; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }

@@ -114,7 +114,7 @@ void Texture2D::ClearMaxValue()
 		GLuint maxValue = 0x7F7FFFFF;
 		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &maxValue);
 	} else {
-		assert(0);
+		Assert::Failed();
 	}
 }
 void Texture2D::Clear(int value)
@@ -134,7 +134,7 @@ void Texture2D::Clear(int value)
 		float values = (float)value;
 		glClearTexImage(m_handle, 0, m_format.format, m_format.type, &values);
 	} else {
-		assert(0);
+		Assert::Failed();
 	}
 }
 
@@ -200,7 +200,7 @@ void Texture2D::Copy(const Texture2D& texture)
 {
 	if (m_handle == -1) { return; }
 	Resize(texture.Size().x, texture.Size().y);
-	if (texture.GetFormat() != m_format) { assert(0); return; }
+	if (texture.GetFormat() != m_format) { Assert::Failed(); return; }
 	glCopyImageSubData(
 		texture.Handle(), texture.GetFormat().target, 0, 0, 0, 0,
 		m_handle, m_format.target, 0, 0, 0, 0,

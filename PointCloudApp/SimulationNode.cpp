@@ -169,13 +169,13 @@ void SimulationNode::TestPosition()
         if (pos.x < m_space.Min().x ||
             pos.y < m_space.Min().y ||
             pos.z < m_space.Min().z) {
-            assert(0);
+            Assert::Failed();
         }
 
         if (pos.x > m_space.Max().x ||
             pos.y > m_space.Max().y ||
             pos.z > m_space.Max().z) {
-            assert(0);
+            Assert::Failed();
         }
 
     }
@@ -443,7 +443,7 @@ ShaderPath SimulationNode::CellIDUpdater::GetShaderPath()
     } else if(m_phase == 2) {
         path.extension[SHADER_PROGRAM_COMPUTE].push_back("#define PHASE_2\n");
     } else {
-        assert(0);
+        Assert::Failed();
     }
     path.shader[SHADER_PROGRAM_COMPUTE] = "simulation\\updateCellID.comp";
     return path;
@@ -469,7 +469,7 @@ ShaderPath SimulationNode::CellIDUpdaterPrefixSum::GetShaderPath()
     } else if (m_phase == 3) {
         path.extension[SHADER_PROGRAM_COMPUTE].push_back("#define PHASE_3\n");
     } else {
-        assert(0);
+        Assert::Failed();
     }
 
     path.shader[SHADER_PROGRAM_COMPUTE] = "simulation\\updateCellID_prefixSum.comp";

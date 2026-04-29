@@ -155,7 +155,7 @@ KDTree::Node* KDTree::Build(int left, int right, int depth)
 			m_index.begin() + right,
 			PointComparator(m_pPointCloud->GetData().get(), Axis::Z));
 	} else {
-		assert(0);
+		Assert::Failed();
 	}
 
 	auto pNode = new Node();
@@ -204,7 +204,7 @@ KDTree::Node* KDTree::FindNode(Node* pNode, int depth, const Vector3& target)
 		return FindNode(pNode->pRight, depth + 1, target);
 	}
 
-	assert(0);
+	Assert::Failed();
 	return nullptr;
 }
 

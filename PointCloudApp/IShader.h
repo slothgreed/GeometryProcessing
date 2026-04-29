@@ -90,7 +90,7 @@ public:
 	virtual ~IShadingShader();
 	virtual void Build();
 	virtual void FetchUniformLocation() = 0;
-	virtual void SetModel(const Matrix4x4& value) { assert(0); };
+	virtual void SetModel(const Matrix4x4& value) { Assert::Failed(); };
 	virtual int GetDrawTargetNum() const { return 1; }
 	void BindTexture(int location, int unit, const Texture& texture);
 	void BindCubemap(int location, int unit, const CubemapTexture& texture);

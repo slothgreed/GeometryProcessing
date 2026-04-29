@@ -145,6 +145,18 @@ public:
 	}
 };
 
+class Assert
+{
+public:
+	Assert();
+	~Assert();
+
+	static void Failed();
+	static void Failed(const String& str);
+private:
+
+};
+
 
 }
 #endif UTILITY_H

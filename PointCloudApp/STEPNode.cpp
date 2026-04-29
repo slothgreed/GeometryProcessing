@@ -19,7 +19,10 @@ STEPStruct* STEPLoader::Load(const String& name, bool saveOriginal)
 	auto extension = FileUtility::GetExtension(name);
 	if (!(extension == ".step" || extension == ".stp")) { return nullptr; }
 	Vector<String> contents;
-	if (!FileUtility::Load(name, contents)) { return nullptr; }
+	if (!FileUtility::Load(name, contents)) {
+		assert(0, "Failed to load STEP file: " + name);
+		return nullptr;
+	}
 	FileWriter writer;
 	if (saveOriginal) {
 		writer.Open(name + ".orig");
