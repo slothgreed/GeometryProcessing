@@ -3,6 +3,7 @@
 #include "Texture.h"
 #include "Primitives.h"
 #include "PostEffect.h"
+#include "Utility.h"
 namespace KI
 {
 IShader::~IShader()

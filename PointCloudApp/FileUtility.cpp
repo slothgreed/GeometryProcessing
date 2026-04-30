@@ -1,4 +1,6 @@
 #include "FileUtility.h"
+#include "Utility.h"
+
 #include <filesystem>
 namespace KI
 {

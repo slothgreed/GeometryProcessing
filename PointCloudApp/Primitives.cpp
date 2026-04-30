@@ -242,10 +242,10 @@ Mesh Cone::CreateSideMesh(
 	// r(h) = radius - h * tan(alpha)
 	// -----------------------------
 	float tanAlpha = std::tan(MathHelper::ToRadian(semiAngleDeg));
-	if (glm::dot(Cone::CalcApex(baseCenter, axis, radius, semiAngleDeg) - baseCenter, axis) < 0) {
+	auto apex = Cone::CalcApex(baseCenter, axis, radius, semiAngleDeg);
+	if (glm::dot(apex - baseCenter, axis) < 0) {
 		z = -z;
 	}
-
 	// -----------------------------
 	// 頂点生成
 	// apex を含む場合、最上段半径が 0 近傍になることがある

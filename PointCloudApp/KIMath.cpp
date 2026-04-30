@@ -1,4 +1,6 @@
 #include "KIMath.h"
+#include "Utility.h"
+
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/vector_angle.hpp>

@@ -645,7 +645,20 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	Vector<Shared<RenderNode>> pNodes;
 	int scale = 30;
 	Vector2i gridSize = Vector2i(5, 5);
+
+	enum STEP_FOLDER
 	{
+		largeData,
+		ap224,
+		ap214,
+		ap209,
+		ap203e2,
+		ap203
+	};
+
+	STEP_FOLDER folder = ap203e2;
+	{
+		if(folder == largeData)
 		{
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Ai-14R.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Cruise_Assembly.stp");
@@ -655,10 +668,91 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Scania-8x4.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Scania-Engine-V8-XT-Turbo.step");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\UMC-500_SS_Solid_Model_2019-06_r1.stp");
-
+		} else if (folder == ap224) {
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224\\ap224_995288709.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224\\ap224_995315479.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224\\ap224_995602415.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224\\ap224_997423743.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224\\ap224_997865309.stp");
+		} else if (folder == ap214)	{
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap214\\as1-ac-214.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap214\\as1-ec-214.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap214\\as1-md-214.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap214\\as1-tc-214.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap214\\as1-ug-214.stp");
+		} else if (folder == ap209) {
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap209\\blower.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap209\\mshaft.stp");
+		} else if(folder == ap203e2) {
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Color.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Dimension.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Short_Note.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_cylindricity.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_diamsize.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_flatness.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_limitsandfits.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_linearsize.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_perp.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_surfacetex.stp");
+		} else if(folder == ap203) {
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\1797609in.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\2827056.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\4pinplug.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\53711_74563f01_na.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\angle1.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\as1_pe.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\bernetl.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\block.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\boeing_part.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\boeing_part_simple.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\bracket1-part.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\bull.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\calo.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\calosoe.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\chair.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\clevis21.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\clevis22.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\clevis23.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\clip.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\cubcylso.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\cubsomcy.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\cylcub.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\daratech.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\doghouse.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\filler.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\gehaeuse.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\hose-fitting.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\interacting_pockets.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\iso14649-demo.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\jack_in_the_box.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\lower_carriage.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\mohne.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\monster4.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\moon_buggy.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\moon_buggy_asm.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\mycami2.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\nasty_cheese.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\ph4m3-st.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\piston.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\rear.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\snet.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\socket.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\socks.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\st203-bapl.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\team.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\teampart.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\tork.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\turbine.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\unterlaf.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\upper_carriage.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\vaccase_asm_solid.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\valve.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\vs_training.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\weldment_asm_solid.stp");
 		}
+
 		//実施中
-		m_ui.stepFiles.push_back("E:\\cgModel\\step\\turbine.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\turbine.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE419_orig.step");
 		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE1170_orig.step");
@@ -689,13 +783,13 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
 	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
 	//	}
-	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
-	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
-	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
-	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
-	//	m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	//    m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+	    // m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
 	//}
 		
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));

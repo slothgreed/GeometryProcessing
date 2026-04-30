@@ -226,6 +226,7 @@ STEPStruct::~STEPStruct()
 	for (auto& v : vertexPoint) { delete v.second; }
 	for (auto& v : interSectionCurve) { delete v.second; }
 	for (auto& v : edgeLoop) { delete v.second; }
+	for (auto& v : polyLine) { delete v.second; }
 	for (auto& v : polyLoop) { delete v.second; }
 	for (auto& v : faceOuterBound) { delete v.second; }
 	for (auto& v : faceBound) { delete v.second; }
@@ -360,7 +361,9 @@ void STEPDirection::Fetch(STEPStruct& step, const STEPString& stepStr)
 	values = STEPString::SplitValue(values[1]);
 	if (!STEPString::ValueToFloat(values[0], data->direction.x)) { Assert::Failed(); return; }
 	if (!STEPString::ValueToFloat(values[1], data->direction.y)) { Assert::Failed(); return; }
-	if (!STEPString::ValueToFloat(values[2], data->direction.z)) { Assert::Failed(); return; }
+	if (values.size() == 3) {
+		if (!STEPString::ValueToFloat(values[2], data->direction.z)) { Assert::Failed(); return; }
+	}
 	step.directions[data->id] = data;
 }
 
@@ -891,14 +894,18 @@ void STEPOrientedEdge::FetchData(const STEPStruct& step)
 		data.begin = data.edgeCurve->data.begin;
 	} else {
 		data.vertex0 = FindSetData2(step, step.vertexPoint, raw.vertRef0);
-		data.begin = data.vertex0->point.second->pos;
+		if (data.vertex0) {
+			data.begin = data.vertex0->point.second->pos;
+		}
 	}
 
 	if (raw.vertRef1 == STEPEnum::ASTERISK) {
 		data.end = data.edgeCurve->data.end;
 	} else {
 		data.vertex1 = FindSetData2(step, step.vertexPoint, raw.vertRef1);
-		data.end = data.vertex1->point.second->pos;
+		if (data.vertex1) {
+			data.end = data.vertex1->point.second->pos;
+		}
 	}
 
 	data.orient = raw.orient;
@@ -923,12 +930,64 @@ void STEPOrientedEdge::ShowUI(STEPUIContext& ui)
 	}
 }
 
-PolylineList STEPPolyLoop::Data::CreatePolyline(int id) const
+PolylineList STEPPolyLine::CreatePolyline() const
 {
 	Vector<Vector3> lines(points.size() * 2);
 	for (int i = 0; i < points.size(); i++) {
-		lines[2 * i] = points[i]->pos;
-		lines[2 * i + 1] = points[(i + 1) % points.size()]->pos;
+		lines[2 * i] = points[i].second->pos;
+		lines[2 * i + 1] = points[(i + 1) % points.size()].second->pos;
+	}
+	return PolylineList(id, Polyline(std::move(lines), Polyline::DrawType::Lines));
+
+}
+void STEPPolyLine::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPPolyLine();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.entity.value);
+	values = STEPString::SplitValue(values[1]);
+
+	data->points.resize(values.size());
+	for (int i = 0; i < data->points.size(); i++) {
+		if (!STEPString::ValueToRef(values[i], data->points[i].first)) { Assert::Failed(); return; }
+	}
+	step.polyLine[data->id] = data;
+}
+void STEPPolyLine::FetchData(const STEPStruct& step)
+{
+	for (auto i = 0; i < points.size(); i++) {
+		points[i].second = FindSetData2(step, step.points, points[i].first);
+	}
+}
+String STEPPolyLine::Dump(const DebugOption& option)
+{
+	auto str = ToString();
+	for (size_t i = 0; i < points.size(); i++) {
+		if (points[i].second) {
+			str += points[i].second->Dump(option);
+		}
+	}
+	return str;
+}
+void STEPPolyLine::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		for (size_t i = 0; i < points.size(); i++) {
+			if (points[i].second) {
+				points[i].second->ShowUI(ui);
+			}
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+PolylineList STEPPolyLoop::CreatePolyline() const
+{
+	Vector<Vector3> lines(points.size() * 2);
+	for (int i = 0; i < points.size(); i++) {
+		lines[2 * i] = points[i].second->pos;
+		lines[2 * i + 1] = points[(i + 1) % points.size()].second->pos;
 	}
 	return PolylineList(id, Polyline(std::move(lines), Polyline::DrawType::Lines));
 }
@@ -941,26 +1000,27 @@ void STEPPolyLoop::Fetch(STEPStruct& step, const STEPString& stepStr)
 	auto values = STEPString::SplitValue(stepStr.entity.value);
 	values = STEPString::SplitValue(values[1]);
 
-	data->raw.idRef.resize(values.size());
-	for (int i = 0; i < data->raw.idRef.size(); i++) {
-		if (!STEPString::ValueToRef(values[i], data->raw.idRef[i])) { Assert::Failed(); return; }
+	data->points.resize(values.size());
+	for (int i = 0; i < data->points.size(); i++) {
+		if (!STEPString::ValueToRef(values[i], data->points[i].first)) { Assert::Failed(); return; }
 	}
 	step.polyLoop[data->id] = data;
 }
 
 void STEPPolyLoop::FetchData(const STEPStruct& step)
 {
-	data.points.resize(raw.idRef.size());
-	for (auto i = 0; i < raw.idRef.size(); i++) {
-		data.points[i] = FindSetData2(step, step.points, raw.idRef[i]);
+	for (auto i = 0; i < points.size(); i++) {
+		points[i].second = FindSetData2(step, step.points, points[i].first);
 	}
 }
 
 String STEPPolyLoop::Dump(const DebugOption& option)
 {
 	auto str = ToString();
-	for (size_t i = 0; i < data.points.size(); i++) {
-		str += data.points[i]->Dump(option);
+	for (size_t i = 0; i < points.size(); i++) {
+		if (points[i].second) {
+			str += points[i].second->Dump(option);
+		}
 	}
 	return str;
 }
@@ -968,8 +1028,10 @@ String STEPPolyLoop::Dump(const DebugOption& option)
 void STEPPolyLoop::ShowUI(STEPUIContext& ui)
 {
 	if (ShowBranch(ui, ui.IsSelect(id))) {
-		for (size_t i = 0; i < data.points.size(); i++) {
-			data.points[i]->ShowUI(ui);
+		for (size_t i = 0; i < points.size(); i++) {
+			if (points[i].second) {
+				points[i].second->ShowUI(ui);
+			}
 		}
 
 		ImGui::TreePop();
@@ -1047,7 +1109,7 @@ void STEPEdgeLoop::ShowUI(STEPUIContext& ui)
 PolylineList STEPFaceBoundBase::Data::CreatePolyline() const
 {
 	if (edgeLoop) { return edgeLoop->data.CreatePolyline(); }
-	if (polyLoop) { return polyLoop->data.CreatePolyline(polyLoop->id); }
+	if (polyLoop) { return polyLoop->CreatePolyline(); }
 
 	return PolylineList();
 }

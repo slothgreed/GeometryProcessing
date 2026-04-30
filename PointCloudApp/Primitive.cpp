@@ -1,5 +1,7 @@
 #include "Primitive.h"
 #include "BDB.h"
+#include "Utility.h"
+
 namespace KI
 {
 Primitive::Primitive()

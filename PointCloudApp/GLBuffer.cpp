@@ -1,4 +1,6 @@
 #include "GLBuffer.h"
+#include "Utility.h"
+
 namespace KI
 {
 GLBuffer::GLBuffer()

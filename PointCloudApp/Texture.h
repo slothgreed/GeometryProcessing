@@ -1,6 +1,7 @@
 #ifndef TEXTURE_H
 #define	TEXTURE_H
 #include "GLTypes.h"
+#include "Utility.h"
 namespace KI
 {
 

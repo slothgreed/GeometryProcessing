@@ -5,7 +5,7 @@
 #define ATTRIB_NORMAL   1
 #define ATTRIB_COLOR   2
 #define ATTRIB_TEXCOORD   2
-
+#include "Utility.h"
 #include "GLBuffer.h"
 namespace KI
 {

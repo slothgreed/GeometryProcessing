@@ -1,5 +1,5 @@
 #include "Mesh.h"
-
+#include "Utility.h"
 namespace KI
 {
 int Mesh::TriangleNum() const

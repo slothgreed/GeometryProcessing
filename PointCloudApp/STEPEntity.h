@@ -28,10 +28,12 @@ static const Vector<String> g_ignoreEqualEntity = {
 	"DESCRIPTIVE_REPRESENTATION_ITEM",
 	"DESIGN_CONTEXT",
 	"DIRECTED_ACTION",
+	"DRAUGHTING_MODEL",
 	"DRAUGHTING_PRE_DEFINED_COLOUR",
 	"FACE_SHAPE_REPRESENTATION",
 	"FILL_AREA_STYLE",
 	"FILL_AREA_STYLE_COLOUR",
+	"GEOMETRIC_CURVE_SET", // 注記寸法用3Dではない。
 	"HOLE_BOTTOM",
 	"INSTANCED_FEATURE",
 	"LENGTH_MEASURE_WITH_UNIT",
@@ -73,12 +75,16 @@ static const Vector<String> g_ignoreEqualEntity = {
 	"TOLERANCE_VALUE",
 	"VEE_PROFILE",
 	"VERSIONED_ACTION_REQUEST",
+	"VERTEX_LOOP" // 幾何だがあっても意味はない。
+
 };
 
 static const Vector<String> g_ignoreContainsEntity = {
 	"APPROVAL",
+	"ANNOTATION",
 	"APPLICATION",
 	"FEATURE",
+	"DRAUGHTING",
 	"DOCUMENT",
 	"PRODUCT",
 	"PERSON",
@@ -204,6 +210,7 @@ struct STEPStruct
 	std::unordered_map<int, STEPVertexPoint*> vertexPoint;
 	std::unordered_map<int, STEPInterSectionCurve*> interSectionCurve;
 	std::unordered_map<int, STEPEdgeLoop*> edgeLoop;
+	std::unordered_map<int, STEPPolyLine*> polyLine;
 	std::unordered_map<int, STEPPolyLoop*> polyLoop;
 	std::unordered_map<int, STEPFaceOuterBound*> faceOuterBound;
 	std::unordered_map<int, STEPFaceBound*> faceBound;
@@ -225,8 +232,8 @@ Struct* FindSetData2(const STEPStruct& step, const std::unordered_map<int, Struc
 {
 	auto it = container.find(key);
 	if (it == container.end()) {
-		DebugPrintf::Int("#=", key);
-		DebugPrintf::StringStr(", NotFound", Struct::EntityName); DebugPrintf::NewLine();
+		//DebugPrintf::Int("#=", key);
+		//DebugPrintf::StringStr(", NotFound", Struct::EntityName); DebugPrintf::NewLine();
 		return nullptr;
 	}
 	it->second->FetchData(step);
@@ -296,7 +303,6 @@ struct STEPLine : public STEPEntityBase
 	STEP_DEFINE_HPP(STEPLine, "LINE");
 
 	Polyline CreatePolyline();
-
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
@@ -564,29 +570,29 @@ struct STEPOrientedEdge : public STEPEntityBase
 
 };
 
+struct STEPPolyLine : public STEPEntityBase
+{
+	virtual ~STEPPolyLine() = default;
+	STEP_DEFINE_HPP(STEPPolyLine, "POLYLINE");
+	PolylineList CreatePolyline() const;
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+	Vector<std::pair<int, STEPPoint*>> points;
+};
 struct STEPPolyLoop : public STEPEntityBase
 {
 	virtual ~STEPPolyLoop() = default;
 	STEP_DEFINE_HPP(STEPPolyLoop, "POLY_LOOP");
 
-	struct Raw
-	{
-		Vector<int> idRef;
-	};
-	Raw raw;
-
-	struct Data
-	{
-		Vector<STEPPoint*> points;
-		PolylineList CreatePolyline(int id) const;
-	};
-
-	Data data;
+	PolylineList CreatePolyline() const;
 
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
 	String Dump(const DebugOption& option);
 	void ShowUI(STEPUIContext& ui);
+	Vector<std::pair<int, STEPPoint*>> points;
 };
 
 

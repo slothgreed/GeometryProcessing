@@ -1,4 +1,5 @@
 #include "FrameBuffer.h"
+#include "Utility.h"
 namespace KI
 {
 FrameBuffer::FrameBuffer()

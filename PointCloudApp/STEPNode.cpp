@@ -89,6 +89,7 @@ STEPStruct* STEPLoader::Load(const String& name, bool saveOriginal)
 		else if (StringUtility::Equal(stepStr.entity.name, STEPToroidalSurface::EntityName)) { STEPToroidalSurface::Fetch(*pStep, stepStr); }
 		else if (StringUtility::Equal(stepStr.entity.name, STEPQuasiUniformCurve::EntityName)) { STEPQuasiUniformCurve::Fetch(*pStep, stepStr); }
 		else if (StringUtility::Equal(stepStr.entity.name, STEPBSplineSurfaceWithKnots::EntityName)) { STEPBSplineSurfaceWithKnots::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPPolyLine::EntityName)) { STEPPolyLine::Fetch(*pStep, stepStr); } 
 		else { STEPEntityBase::NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {
@@ -118,6 +119,7 @@ void STEPRenderNode::RenderBatch::Allocate(GLuint type)
 }
 void STEPRenderNode::BuildShape()
 {
+	if (!m_step) { return; }
 	BDB bdb;
 	Vector<STEPShape> shapes;
 	for (const auto& shell : m_step->closedShell) {

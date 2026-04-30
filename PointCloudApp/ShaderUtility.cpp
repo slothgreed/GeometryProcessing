@@ -1,4 +1,5 @@
 #include "ShaderUtility.h"
+#include "Utility.h"
 #include <filesystem>
 #include <fstream>
 namespace KI

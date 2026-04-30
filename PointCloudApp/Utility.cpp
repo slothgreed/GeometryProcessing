@@ -8,59 +8,80 @@ Vector<Vector3> g_RGB;
 
 void DebugPrintf::Bool(const String& name, bool value)
 {
+#ifdef _DEBUG
 	std::cout << name << ":" << (value ? "True" : "False");
+#endif 
 }
 
 void DebugPrintf::Int(const String& name, int value)
 {
+#ifdef _DEBUG
 	std::cout << name << ":" << value;
+#endif 
 }
 
 void DebugPrintf::Float(const String& name, float value)
 {
+#ifdef _DEBUG
 	std::cout << name << ":" <<value;
+#endif 
 }
 
 void DebugPrintf::Vec3(const Vector3& value)
 {
+#ifdef _DEBUG
 	std::cout << value.x << "," << value.y << "," << value.z;
+#endif 
 }
 void DebugPrintf::NewLine()
 {
+#ifdef _DEBUG
 	std::cout << "\n";
+#endif 
 }
 void DebugPrintf::Vec3(const String& name, const Vector3& value)
 {
+#ifdef _DEBUG
 	std::cout << name.data() << ":" << value.x << "," << value.y << "," << value.z;
+#endif 
 }
 
 void DebugPrintf::Vec4(const String& name, const Vector4& value)
 {
+#ifdef _DEBUG
 	printf((name + ":%lf,%lf,%lf,%lf").data(), value.x, value.y, value.z, value.w);
+#endif 
 }
 
 void DebugPrintf::Mat4(const String& name, const Matrix4x4& mat)
 {
+#ifdef _DEBUG
 	printf(
 		"%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf",
 		mat[0][0], mat[0][1], mat[0][2], mat[0][3],
 		mat[1][0], mat[1][1], mat[1][2], mat[1][3],
 		mat[2][0], mat[2][1], mat[2][2], mat[2][3],
 		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
+#endif 
 }
 
 void DebugPrintf::StringStr(const String& name, const String& str)
 {
+#ifdef _DEBUG
 	std::cout << name << ":" << str;
+#endif 
 }
 
 void DebugPrintf::StringStr(const String& name)
 {
+#ifdef _DEBUG
 	std::cout << name;
+#endif 
 }
 
 void DebugPrintf::Vec3Array(const String& name, const Vector<Vector3>& data)
 {
+#ifdef _DEBUG
 	std::cout << "std::vector<glm::vec3> " << name << " = {\n";
 	for (size_t i = 0; i < data.size(); i++) {
 		std::cout << "    glm::vec3("
@@ -71,6 +92,7 @@ void DebugPrintf::Vec3Array(const String& name, const Vector<Vector3>& data)
 		std::cout << "\n";
 	}
 	std::cout << "};\n";
+#endif 
 }
 
 
@@ -471,7 +493,7 @@ int GLUtil::GetFormatSize(int value)
 
 void Assert::Failed()
 {
-	Assert::Failed();
+	//assert(0);
 }
 void Assert::Failed(const String& str)
 {

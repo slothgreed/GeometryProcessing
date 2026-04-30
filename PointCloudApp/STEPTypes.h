@@ -17,6 +17,7 @@ struct STEPAxis2Placement3D;
 struct STEPEdgeCurve;
 struct STEPVertexPoint;
 struct STEPEdgeLoop;
+struct STEPPolyLine;
 struct STEPPolyLoop;
 struct STEPFaceOuterBound;
 struct STEPFaceBound;
@@ -46,6 +47,7 @@ enum ESTEPEntityType
 	ESTEPEdgeCurve,
 	ESTEPVertexPoint,
 	ESTEPEdgeLoop,
+	ESTEPPolyLine,
 	ESTEPPolyLoop,
 	ESTEPFaceOuterBound,
 	ESTEPFaceBound,

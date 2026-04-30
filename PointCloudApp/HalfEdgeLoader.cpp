@@ -1,5 +1,7 @@
 #include "HalfEdgeLoader.h"
 #include "FileUtility.h"
+#include "Utility.h"
+
 namespace KI
 {
 HalfEdgeStruct* HalfEdgeLoader::Load(const String& filePath)
