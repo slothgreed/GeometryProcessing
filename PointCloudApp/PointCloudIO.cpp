@@ -123,16 +123,29 @@ void PointCloudIO::LoadBin(PointCloud* pPointCloud, const String& name)
 	pPointCloud->m_position.resize(num);
 	pPointCloud->m_normal.resize(normComp == 1 ? num : 0);
 	pPointCloud->m_color.resize(colComp == 1 ? num : 0);
+	int floatNum = num * 3;
+	if (normComp == 1) {
+		floatNum += num * 3;
+	}
+	if (colComp == 1) {
+		floatNum += num * 3;
+	}
+	std::vector<float> data(floatNum);
+	reader.ReadVector(data.data(), floatNum);
 
+	int floatIndex = 0;
 	for (int i = 0; i < pPointCloud->m_position.size(); i++) {
-		pPointCloud->m_position[i] = reader.ReadVec3();
+		pPointCloud->m_position[i] = Vector4(data[floatIndex],data[floatIndex+1],data[floatIndex+2], 1.0);
+		floatIndex += 3;
 
 		if (pPointCloud->m_normal.size() > 0) {
-			pPointCloud->m_normal[i] = reader.ReadVec3();
+			pPointCloud->m_normal[i] = Vector3(data[floatIndex],data[floatIndex+1],data[floatIndex+2]);
+			floatIndex += 3;
 		}
 
 		if (pPointCloud->m_color.size() > 0) {
-			pPointCloud->m_color[i] = Vector4(reader.ReadVec3(),1.0);
+			pPointCloud->m_color[i] = Vector4(data[floatIndex],data[floatIndex+1],data[floatIndex+2],1.0);
+			floatIndex += 3;
 		}
 
 		pPointCloud->m_bdb.Add(pPointCloud->m_position[i]);

@@ -1,0 +1,110 @@
+
+struct Point
+{
+ float x; float y; float z;
+};
+
+layout(std430,binding = 0) buffer posBuffer
+{
+	Point position[];
+};
+
+layout(std430,binding = 1) buffer indexBuffer
+{
+	uint indexs[];
+};
+
+layout(std430,binding = 2) buffer lineBuffer
+{
+	Point lines[];
+};
+
+layout(std430, binding = 3) buffer DrawArrayIndirectBuffer
+{
+    DrawArrayIndirect drawCommand;
+};
+
+uniform vec4 u_plane; // xyz=normal, w=d
+uniform int u_triNum;
+
+float PlaneDistance(vec4 plane, vec3 p)
+{
+    return dot(plane.xyz, p) + plane.w;
+}
+
+bool IntersectEdge(vec3 a, vec3 b, float da, float db, out vec3 p)
+{
+    if ((da > 0.0 && db > 0.0) ||
+        (da < 0.0 && db < 0.0))
+    {
+        return false;
+    }
+
+    float denom = da - db;
+
+    if (abs(denom) < 1e-6)
+        return false;
+
+    float t = da / denom;
+
+    p = mix(a, b, t);
+
+    return true;
+}
+
+
+
+void main()
+{
+	uint triIdx = gl_GlobalInvocationID.x;
+	if(triIdx >= u_triNum) {return;}
+	
+	
+	Point p_0 = position[indexs[3 * triIdx + 0]];
+	Point p_1 = position[indexs[3 * triIdx + 1]];
+	Point p_2 = position[indexs[3 * triIdx + 2]];
+
+	vec3 p0 = vec3(p_0.x,p_0.y,p_0.z);
+	vec3 p1 = vec3(p_1.x,p_1.y,p_1.z);
+	vec3 p2 = vec3(p_2.x,p_2.y,p_2.z);
+	vec3 edge0 = p1 - p0;
+	vec3 edge1 = p2 - p1;
+	vec3 edge2 = p0 - p2;
+	
+	float dist0 = PlaneDistance(u_plane,p0);
+	float dist1 = PlaneDistance(u_plane,p1);
+	float dist2 = PlaneDistance(u_plane,p2);
+
+	if((dist0 > 0.0 && dist1 > 0.0 && dist2 > 0.0) ||
+       (dist0 < 0.0 && dist1 < 0.0 && dist2 < 0.0))
+	{
+		return;
+	}
+	
+	vec3 points[3];
+	uint pointCount = 0;
+	vec3 p;
+	if(IntersectEdge(p0,p1,dist0,dist1,p))
+		points[pointCount++] = p;
+
+	if(IntersectEdge(p1,p2,dist1,dist2,p))
+		points[pointCount++] = p;
+
+	if(IntersectEdge(p2,p0,dist2,dist0,p))
+		points[pointCount++] = p;
+
+	if (pointCount != 2) {
+        return;
+	}
+
+    if (length(points[0] - points[1]) < 1e-6) {
+	    return;
+	}
+    uint lineIndex = atomicAdd(drawCommand.count, 2);
+    lines[lineIndex].x = points[0].x;
+    lines[lineIndex].y = points[0].y;
+    lines[lineIndex].z = points[0].z;
+    lines[lineIndex + 1].x = points[1].x;
+    lines[lineIndex + 1].y = points[1].y;
+    lines[lineIndex + 1].z = points[1].z;
+} 

@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "SimpleShader.h"
 #include "DelaunayGenerator.h"
+#include "Primitives.h"
 namespace KI
 {
 DebugNode::DebugNode(const String& name)
@@ -662,6 +663,60 @@ void MeshNode::ShowUI(UIContext& ui)
 {
 	ImGui::Checkbox("VisibleVertex", &m_ui.visibleVertex);
 	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleTriangle);
+}
+
+
+
+BDBNode::BDBNode(const String& name, const BDB& bdb)
+	: DebugNode(name)
+	, m_bdb(bdb)
+{
+	SetBoundBox(BDB(m_bdb));
+}
+
+void BDBNode::BuildGLBuffer()
+{
+	if (!m_pPosition) {
+		m_pPosition = std::make_unique<GLBuffer>();
+		m_pPosition->Create(DATA_FLOAT, 6 * 4, sizeof(Vector3), m_bdb.CreateLine().data());
+	}
+}
+
+void BDBNode::DrawNode(const DrawContext& context)
+{
+	BuildGLBuffer();
+	const auto& pResource = context.pResource;
+	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+	pSimpleShader->Use();
+	pSimpleShader->SetPosition(m_pPosition.get());
+	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
+	pSimpleShader->SetModel(GetMatrix());
+	pSimpleShader->SetColor(Vector3(1, 0, 0));
+	pSimpleShader->DrawArray(GL_LINES, 24);
+}
+
+void BDBNode::ShowUI(UIContext& ui)
+{
+	ImGui::Checkbox("VisibleX", &m_ui.xPlane.visible);
+	if (m_ui.xPlane.visible) {
+		if (ImGui::SliderFloat("XPlane", &m_ui.xPlane.position, GetBoundBox().Min().x, GetBoundBox().Max().x, "%lf", 1.0f)) {
+			m_ui.xPlane.matrix = PlanePrimitive::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.xPlane.position, PlanePrimitive::X);
+		}
+	}
+
+	ImGui::Checkbox("VisibleY", &m_ui.yPlane.visible);
+	if (m_ui.yPlane.visible) {
+		if (ImGui::SliderFloat("YPlane", &m_ui.yPlane.position, GetBoundBox().Min().y, GetBoundBox().Max().y, "%lf", 1.0f)) {
+			m_ui.yPlane.matrix = PlanePrimitive::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.yPlane.position, PlanePrimitive::Y);
+		}
+	}
+
+	ImGui::Checkbox("VisibleZ", &m_ui.zPlane.visible);
+	if (m_ui.zPlane.visible) {
+		if (ImGui::SliderFloat("ZPlane", &m_ui.zPlane.position, GetBoundBox().Min().z, GetBoundBox().Max().z, "%lf", 1.0f)) {
+			m_ui.zPlane.matrix = PlanePrimitive::CreateMatrix(GetBoundBox().Min(), GetBoundBox().Max(), m_ui.zPlane.position, PlanePrimitive::Z);
+		}
+	}
 }
 
 }

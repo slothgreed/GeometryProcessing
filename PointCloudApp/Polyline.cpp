@@ -188,9 +188,11 @@ Mesh Polyline::CreateMesh() const
     delaunay.SetTarget(&m_points);
     return Mesh(delaunay.Execute2D_CGAL(), Mesh::DrawType::Triangles);
 }
+
 Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, const Vector3& axis)
 {
     if (target.m_points.size() == 0) { return Mesh(); }
+
     Mesh mesh;
     {
         DelaunayGenerator delaunay;

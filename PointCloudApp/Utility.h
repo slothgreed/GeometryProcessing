@@ -152,6 +152,7 @@ public:
 	~Assert();
 
 	static void Failed();
+	static void GLFailed();
 	static void Failed(const String& str);
 private:
 

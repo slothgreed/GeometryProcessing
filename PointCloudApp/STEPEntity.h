@@ -54,8 +54,6 @@ static const Vector<String> g_ignoreEqualEntity = {
 	"PRECISION_QUALIFIER",
 	"PRESENTATION_STYLE_ASSIGNMENT",
 	"QUALIFIED_REPRESENTATION_ITEM",
-	"REPRESENTATION",
-	"REPRESENTATION_ITEM",
 	"REVOLVED_PROFILE",
 	"ROUND_HOLE",
 	"SHAPE_ASPECT",
@@ -63,8 +61,6 @@ static const Vector<String> g_ignoreEqualEntity = {
 	"SHAPE_DEFINING_RELATIONSHIP",
 	"SHAPE_DEFINITION_REPRESENTATION",
 	"SHAPE_DIMENSION_REPRESENTATION",
-	"SHAPE_REPRESENTATION_RELATIONSHIP",
-	"SHAPE_REPRESENTATION_WITH_PARAMETERS",
 	"SQUARE_U_PROFILE",
 	"STANDARD_UNCERTAINTY",
 	"STYLED_ITEM",
@@ -140,23 +136,33 @@ struct DebugOption
 
 struct STEPShape
 {
+	STEPShape(int i) : id(i) {};
+	int id;
 	Vector<std::pair<int, Mesh>> meshs;
 	Vector<PolylineList> polylineList;
+	BDB bdb;
+	const Vector<std::pair<int, Mesh>>& GetMeshs() const { return meshs; };
+	const Vector<PolylineList>& GetPolylineList() const { return polylineList; };
+	const BDB& GetBDB() const { return bdb; }
+
+	void Clear(){
+		meshs.clear();
+		polylineList.clear();
+		bdb = BDB();
+	}
 	void AddMesh(int key, Mesh&& value)
 	{
-		if (value.TriangleNum() != 0) meshs.push_back(std::pair<int, Mesh>(key, std::move(value)));
+		if (value.TriangleNum() == 0) return;
+		bdb.Add(BDB(value.GetPoints()));
+		meshs.push_back(std::pair<int, Mesh>(key, std::move(value)));
 	}
 	void AddPolyline(PolylineList&& value)
 	{
-		if (value.Num() != 0) polylineList.push_back(std::move(value));
+		if (value.Num() == 0) return;
+		bdb.Add(value.CreateBDB());
+		polylineList.push_back(std::move(value));
 	}
-	BDB CreateBDB() const
-	{
-		BDB bdb;
-		for (size_t i = 0; i < meshs.size(); i++) { bdb.Add(BDB(meshs[i].second.GetPoints())); }
-		for (size_t i = 0; i < polylineList.size(); i++) { bdb.Add(polylineList[i].CreateBDB()); }
-		return bdb;
-	}
+
 };
 
 
@@ -223,6 +229,12 @@ struct STEPStruct
 	std::unordered_map<int, STEPBSplineCurve*> bSplineCurve;
 	std::unordered_map<int, STEPBSplineSurfaceWithKnots*> bSplineSurfaceWithKnots;
 	std::unordered_map<int, STEPBSplineSurface*> bSplineSurface;
+	std::unordered_map<int, STEPProductDefinition*> productDefinition;
+	std::unordered_map<int, STEPProductDefinitionShape*> productDefinitionShape;
+	std::unordered_map<int, STEPShapeRepresentation*> shapeRepresentation;
+	std::unordered_map<int, STEPShapeRepresentationRelationShip*> shapeRepresentationRelationShip;
+	std::unordered_map<int, STEPManifoldSolidBrep*> manifoldSolidBrep;
+	std::unordered_map<int, STEPAdvancedBrepShapeRepresentation*> advancedBrepShapeRepresentation;
 
 	~STEPStruct();
 };
@@ -342,6 +354,36 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 	};
 	Data data;
 
+	Matrix4x4 CreateMatrix() const
+	{
+		if (data.direction1 == nullptr &&
+			data.direction2 == nullptr) {
+			if (data.point0) {
+				Matrix4x4 mat(1.0f);
+				mat[3] = Vector4(data.point, 1.0f);
+				return mat;
+			} else {
+				return Matrix4x4(1.0f);
+			}
+		}
+		// Zé≤
+		Vector3 Z = glm::normalize(data.dir1);
+
+		// Xé≤ÅiZÇ…íºåâªÅj
+		Vector3 X = glm::normalize(Vector3(
+			data.dir2.x - glm::dot(data.dir2, Z) * Z.x,
+			data.dir2.y - glm::dot(data.dir2, Z) * Z.y,
+			data.dir2.z - glm::dot(data.dir2, Z) * Z.z));
+		Vector3 Y = glm::cross(Z, X);
+
+		
+		Matrix4x4 mat;
+		mat[0] = Vector4(X, 0.0f);
+		mat[1] = Vector4(Y, 0.0f);
+		mat[2] = Vector4(Z, 0.0f);
+		mat[3] = Vector4(data.point, 1.0f);
+		return mat;
+	}
 	static void Fetch(STEPStruct& step, const STEPString& stepStr);
 	void FetchData(const STEPStruct& step);
 	String Dump(const DebugOption& option);
@@ -889,6 +931,81 @@ struct STEPBSplineSurface : public STEPBSplineSurfaceBase
 	void FetchKnot(const String& str);
 	void FetchRational(const String& str);
 };
-}
 
+
+//struct STEPProductDefinition : public STEPEntityBase
+//{
+//	virtual ~STEPProductDefinition() = default;
+//	STEP_DEFINE_HPP(STEPProductDefinition, "PRODUCT_DEFINITION");
+//
+//	static void Fetch(STEPStruct& step, const STEPString& stepStr){}
+//	void FetchData(const STEPStruct& step){}
+//	String Dump(const DebugOption& option){return String();}
+//	void ShowUI(STEPUIContext& ui){}
+//
+//};
+//
+//struct STEPProductDefinitionShape : public STEPEntityBase
+//{
+//	virtual ~STEPProductDefinitionShape() = default;
+//	STEP_DEFINE_HPP(STEPProductDefinitionShape, "PRODUCT_DEFINITION_SHAPE");
+//	static void Fetch(STEPStruct& step, const STEPString& stepStr){}
+//	void FetchData(const STEPStruct& step){}
+//	String Dump(const DebugOption& option){return String();}
+//	void ShowUI(STEPUIContext& ui){}
+//};
+
+
+struct STEPShapeRepresentation : public	STEPEntityBase
+{
+	virtual ~STEPShapeRepresentation() = default;
+	STEP_DEFINE_HPP(STEPShapeRepresentation, "SHAPE_REPRESENTATION");
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+	String name;
+	Vector<std::pair<int,STEPAxis2Placement3D*>> axis2Placement3D;
+};
+
+struct STEPShapeRepresentationRelationShip : public STEPEntityBase
+{
+	virtual ~STEPShapeRepresentationRelationShip() = default;
+	STEP_DEFINE_HPP(STEPShapeRepresentationRelationShip, "SHAPE_REPRESENTATION_RELATIONSHIP");
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+
+	int ref0 = -1;
+	int ref1 = -1;
+
+	STEPShapeRepresentation* shapeRepresentation = nullptr;
+	STEPAdvancedBrepShapeRepresentation* advancedBrepShapeRepresentation = nullptr;
+};
+
+struct STEPManifoldSolidBrep : public STEPEntityBase
+{
+	virtual ~STEPManifoldSolidBrep() = default;
+	STEP_DEFINE_HPP(STEPManifoldSolidBrep, "MANIFOLD_SOLID_BREP");
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+
+	std::pair<int, STEPShell*> shell;
+};
+
+struct STEPAdvancedBrepShapeRepresentation : public STEPEntityBase
+{
+	virtual ~STEPAdvancedBrepShapeRepresentation() = default;
+	STEP_DEFINE_HPP(STEPAdvancedBrepShapeRepresentation, "ADVANCED_BREP_SHAPE_REPRESENTATION");
+	static void Fetch(STEPStruct& step, const STEPString& stepStr);
+	void FetchData(const STEPStruct& step);
+	String Dump(const DebugOption& option);
+	void ShowUI(STEPUIContext& ui);
+	Vector<std::pair<int, STEPManifoldSolidBrep*>> manifoldSolidBrep;
+
+};
+}
 #endif KI_STEP_ENTITY_H

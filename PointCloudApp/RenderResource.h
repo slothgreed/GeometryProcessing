@@ -61,6 +61,8 @@ public:
 	void DisableDepth();
 	void EnableCullFace();
 	void DisableCullFace();
+	void EnableBlend();
+	void DisableBlend();
 	void EnablePolygonWire();
 	void EnablePolygonFill();
 	void EnableScissor(const Viewport& scissor);
@@ -159,6 +161,7 @@ public:
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
 	const GLBuffer* GetComputeColorTarget() const { return m_pComputeColorTarget; }
 	const GLBuffer* GetComputeDepthTarget() const { return m_pComputeDepthTarget; }
+	const GLBuffer* GetComputeAccumTarget() const { return m_pComputeAccumTarget; }
 	RenderTarget* GetTmpComputeTarget() { return m_pTmpComputeTarget; }
 	RenderTarget* GetTmpPostEffectTarget() { return m_pTmpPostEffectTarget; }
 	void UpdateLight();
@@ -184,6 +187,7 @@ private:
 	GLBuffer* m_pLightGpu;
 	GLBuffer* m_pComputeColorTarget;
 	GLBuffer* m_pComputeDepthTarget;
+	GLBuffer* m_pComputeAccumTarget;
 	RenderTarget* m_pRenderTarget;
 	RenderTarget* m_pPostEffectTarget;
 	ShaderTable m_pShaderTable;

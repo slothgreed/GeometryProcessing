@@ -25,10 +25,10 @@ public:
 
 		Vector3 MinBox() const { return Vector3(minBox.x, minBox.y, minBox.z); }
 		Vector3 MaxBox() const { return Vector3(maxBox.x, maxBox.y, maxBox.z); }
-		int Left() const { return minBox.w; }
-		int Right() const { return maxBox.w; }
-		int Parent() const { return mix.x; }
-		int Triangle() const { return mix.z; }
+		int Left() const { return (int)minBox.w; }
+		int Right() const { return (int)maxBox.w; }
+		int Parent() const { return (int)mix.x; }
+		int Triangle() const { return (int)mix.z; }
 		void SetLeft(int value) { minBox.w = (float)value; }
 		void SetRight(int value) { maxBox.w = (float)value; }
 		void SetMorton(unsigned int value) { mix.y = value; }

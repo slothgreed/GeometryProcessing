@@ -109,8 +109,7 @@ public:
 	void DrawArray(GLuint primitiveType, int count);
 	void DrawArray(GLuint primitiveType, int offset, int count);
 
-	void DrawIndirectBuffer(const GLBuffer* pBuffer);
-	void DrawArrayIndirect(GLuint primitiveType, int offset);
+	void DrawArrayIndirectBuffer(GLuint primitiveType, int offset, const GLBuffer* pBuffer);
 	void DrawElementsBaseVertex(const DrawArgs& args);
 	void DrawElementsBaseVertex(GLuint primitiveType, uint count, GLuint type, void* offset, uint baseVertex);
 private:
@@ -138,6 +137,7 @@ public:
 	static void BarrierImage();
 	static void BarrierSSBO();
 	static void BarrierSSBOAndCommand();
+	static void BarrierAll();
 
 private:
 

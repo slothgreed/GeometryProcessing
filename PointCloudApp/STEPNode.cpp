@@ -90,6 +90,10 @@ STEPStruct* STEPLoader::Load(const String& name, bool saveOriginal)
 		else if (StringUtility::Equal(stepStr.entity.name, STEPQuasiUniformCurve::EntityName)) { STEPQuasiUniformCurve::Fetch(*pStep, stepStr); }
 		else if (StringUtility::Equal(stepStr.entity.name, STEPBSplineSurfaceWithKnots::EntityName)) { STEPBSplineSurfaceWithKnots::Fetch(*pStep, stepStr); }
 		else if (StringUtility::Equal(stepStr.entity.name, STEPPolyLine::EntityName)) { STEPPolyLine::Fetch(*pStep, stepStr); } 
+		else if (StringUtility::Equal(stepStr.entity.name, STEPManifoldSolidBrep::EntityName)) { STEPManifoldSolidBrep::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPAdvancedBrepShapeRepresentation::EntityName)) { STEPAdvancedBrepShapeRepresentation::Fetch(*pStep, stepStr); }
+		else if (StringUtility::Equal(stepStr.entity.name, STEPShapeRepresentation::EntityName)) { STEPShapeRepresentation::Fetch(*pStep, stepStr); } 
+		else if (StringUtility::Equal(stepStr.entity.name, STEPShapeRepresentationRelationShip::EntityName)) { STEPShapeRepresentationRelationShip::Fetch(*pStep, stepStr); }
 		else { STEPEntityBase::NotDefineEntity(content); writeEntity = false; }
 
 		if (writeEntity && saveOriginal) {
@@ -120,45 +124,56 @@ void STEPRenderNode::RenderBatch::Allocate(GLuint type)
 void STEPRenderNode::BuildShape()
 {
 	if (!m_step) { return; }
-	BDB bdb;
 	Vector<STEPShape> shapes;
+	for (const auto& shapeRepresentation : m_step->shapeRepresentationRelationShip) {
+		shapeRepresentation.second->FetchData(*m_step);
+	}
 	for (const auto& shell : m_step->closedShell) {
-		auto shape = shell.second->CreateMesh(*m_step);
-		bdb.Add(shape.CreateBDB());
-		shapes.push_back(std::move(shape));
+		if (m_step->shapeRepresentationRelationShip.size() == 0) {
+			shell.second->FetchData(*m_step);
+		}
+		shapes.push_back(shell.second->CreateMesh(*m_step));
 	}
 
 	for (const auto& shell : m_step->openShell) {
-		auto shape = shell.second->CreateMesh(*m_step);
-		bdb.Add(shape.CreateBDB());
-		shapes.push_back(std::move(shape));
+		if (m_step->shapeRepresentationRelationShip.size() == 0) {
+			shell.second->FetchData(*m_step);
+		}
+		shapes.push_back(shell.second->CreateMesh(*m_step));
 	}
 
 	m_shape = std::move(shapes);
-	SetBoundBox(bdb);
-
+	BuildGLResource();
 }
+
 void STEPRenderNode::BuildGLResource()
 {
+	BuildGPUResource();
+	BuildNode();
+}
+
+void STEPRenderNode::BuildGPUResource()
+{
 	if (m_shape.size() == 0) { return; }
-	if (m_gpu.IsActive()) { return; }
+	if (m_gpu.size() != 0) { return; }
 
-	auto cube = Cube::CreateLine(GetBoundBox().Min(), GetBoundBox().Max());
-	m_gpu.bdb.drawType = GL_LINES;
-	m_gpu.bdb.pPosition = std::make_unique<GLBuffer>();
-	m_gpu.bdb.pIndex = std::make_unique<GLBuffer>();
+	for (size_t i = 0; i < m_shape.size(); i++) {
+		const auto& shape = m_shape[i];
+		GPUShell gpu;
+		auto cube = Cube::CreateLine(shape.GetBDB().Min(), shape.GetBDB().Max());
+		gpu.bdb.drawType = GL_LINES;
+		gpu.bdb.pPosition = std::make_unique<GLBuffer>();
+		gpu.bdb.pIndex = std::make_unique<GLBuffer>();
+		gpu.bdb.pPosition->Create(cube.Position());
+		gpu.bdb.pIndex->Create(cube.Index());
 
-	m_gpu.bdb.pPosition->Create(cube.Position());
-	m_gpu.bdb.pIndex->Create(cube.Index());
-
-	for (const auto& shape : m_shape) {
 		for (const auto& m : shape.meshs) {
 			const auto& mesh = m.second;
 			if (mesh.GetIndexs().size() != 0) {
-				m_gpu.triangleIndex.pointNum += mesh.GetPoints().size();
-				m_gpu.triangleIndex.indexNum += mesh.GetIndexs().size();
+				gpu.triangleIndex.pointNum += mesh.GetPoints().size();
+				gpu.triangleIndex.indexNum += mesh.GetIndexs().size();
 			} else {
-				m_gpu.triangle.pointNum += mesh.GetPoints().size();
+				gpu.triangle.pointNum += mesh.GetPoints().size();
 			}
 		}
 
@@ -168,61 +183,66 @@ void STEPRenderNode::BuildGLResource()
 				if (polyline.GetPoints().size() == 0) { continue; }
 				if (polyline.GetDrawType() == GL_LINES) {
 					if (polyline.GetIndexs().size() != 0) {
-						m_gpu.lineIndex.pointNum += polyline.GetPoints().size();
-						m_gpu.lineIndex.indexNum += polyline.GetIndexs().size();
+						gpu.lineIndex.pointNum += polyline.GetPoints().size();
+						gpu.lineIndex.indexNum += polyline.GetIndexs().size();
 					} else {
-						m_gpu.line.pointNum += polyline.GetPoints().size();
+						gpu.line.pointNum += polyline.GetPoints().size();
 					}
 				} else 	if (polyline.GetDrawType() == GL_LINE_STRIP) {
 					if (polyline.GetIndexs().size() != 0) {
-						m_gpu.lineStripIndex.pointNum += polyline.GetPoints().size();
-						m_gpu.lineStripIndex.indexNum += polyline.GetIndexs().size();
+						gpu.lineStripIndex.pointNum += polyline.GetPoints().size();
+						gpu.lineStripIndex.indexNum += polyline.GetIndexs().size();
 					} else {
-						m_gpu.lineStrip.pointNum += polyline.GetPoints().size();
+						gpu.lineStrip.pointNum += polyline.GetPoints().size();
 					}
 				} else 	if (polyline.GetDrawType() == GL_LINE_LOOP) {
 					if (polyline.GetIndexs().size() != 0) {
-						m_gpu.lineLoopIndex.pointNum += polyline.GetPoints().size();
-						m_gpu.lineLoopIndex.indexNum += polyline.GetIndexs().size();
+						gpu.lineLoopIndex.pointNum += polyline.GetPoints().size();
+						gpu.lineLoopIndex.indexNum += polyline.GetIndexs().size();
 					} else {
-						m_gpu.lineLoop.pointNum += polyline.GetPoints().size();
+						gpu.lineLoop.pointNum += polyline.GetPoints().size();
 					}
 				}
 			}
 		}
+
+		gpu.triangle.Allocate(GL_TRIANGLES);	gpu.triangleIndex.Allocate(GL_TRIANGLES);
+		gpu.line.Allocate(GL_LINES);	gpu.lineIndex.Allocate(GL_LINES);
+		gpu.lineStrip.Allocate(GL_LINE_STRIP); gpu.lineStripIndex.Allocate(GL_LINE_STRIP);
+		gpu.lineLoop.Allocate(GL_LINE_LOOP); gpu.lineLoop.Allocate(GL_LINE_LOOP);
+		gpu.pShape = &m_shape[i];
+		m_gpu[m_shape[i].id] = std::move(gpu);
 	}
 
-	m_gpu.triangle.Allocate(GL_TRIANGLES);	m_gpu.triangleIndex.Allocate(GL_TRIANGLES);
-	m_gpu.line.Allocate(GL_LINES);	m_gpu.lineIndex.Allocate(GL_LINES);
-	m_gpu.lineStrip.Allocate(GL_LINE_STRIP); m_gpu.lineStripIndex.Allocate(GL_LINE_STRIP);
-	m_gpu.lineLoop.Allocate(GL_LINE_LOOP); m_gpu.lineLoop.Allocate(GL_LINE_LOOP);
+	for (size_t i = 0; i < m_gpu.size(); i++) {
+		size_t trianglePointOffset = 0;
+		size_t triangleIndexPointOffset = 0;
+		size_t triangleIndexOffset = 0;
+		size_t linePointOffset = 0;
+		size_t lineIndexPointOffset = 0;
+		size_t lineIndexOffset = 0;
+		size_t lineStripPointOffset = 0;
+		size_t lineStripIndexPointOffset = 0;
+		size_t lineStripIndexOffset = 0;
+		size_t lineLoopPointOffset = 0;
+		size_t lineLoopIndexPointOffset = 0;
+		size_t lineLoopIndexOffset = 0;
 
-	size_t trianglePointOffset = 0;
-	size_t triangleIndexPointOffset = 0;
-	size_t triangleIndexOffset = 0;
-	size_t linePointOffset = 0;
-	size_t lineIndexPointOffset = 0;
-	size_t lineIndexOffset = 0;
-	size_t lineStripPointOffset = 0;
-	size_t lineStripIndexPointOffset = 0;
-	size_t lineStripIndexOffset = 0;
-	size_t lineLoopPointOffset = 0;
-	size_t lineLoopIndexPointOffset = 0;
-	size_t lineLoopIndexOffset = 0;
-	for (const auto& shape : m_shape) {
+		auto& gpu = m_gpu[m_shape[i].id];
+		auto& shape = *gpu.pShape;
 		for (const auto& m : shape.meshs) {
 			const auto& mesh = m.second;
 			if (mesh.GetPoints().size() == 0) { continue; }
 			if (mesh.GetIndexs().size()) {
-				m_gpu.triangleIndex.pPosition->BufferSubData(triangleIndexPointOffset, mesh.GetPoints());
+				gpu.triangleIndex.pPosition->BufferSubData(triangleIndexPointOffset, mesh.GetPoints());
 				triangleIndexPointOffset += mesh.GetPoints().size();
 
-				m_gpu.triangleIndex.AddEntity(m.first, triangleIndexOffset, mesh.GetIndexs().size());
-				m_gpu.triangleIndex.pIndex->BufferSubData(triangleIndexOffset, mesh.GetIndexs());
+				gpu.triangleIndex.AddEntity(m.first, triangleIndexOffset, mesh.GetIndexs().size());
+				gpu.triangleIndex.pIndex->BufferSubData(triangleIndexOffset, mesh.GetIndexs());
 				triangleIndexOffset += mesh.GetIndexs().size();
 			} else {
-				m_gpu.triangle.AddEntity(m.first, trianglePointOffset, mesh.GetPoints().size());
-				m_gpu.triangle.pPosition->BufferSubData(trianglePointOffset, mesh.GetPoints());
+				gpu.triangle.AddEntity(m.first, trianglePointOffset, mesh.GetPoints().size());
+				gpu.triangle.pPosition->BufferSubData(trianglePointOffset, mesh.GetPoints());
 				trianglePointOffset += mesh.GetPoints().size();
 			}
 		}
@@ -233,47 +253,90 @@ void STEPRenderNode::BuildGLResource()
 				if (polyline.GetPoints().size() == 0) { continue; }
 				if (polyline.GetDrawType() == GL_LINES) {
 					if (polyline.GetIndexs().size()) {
-						m_gpu.lineIndex.pPosition->BufferSubData(lineIndexPointOffset, polyline.GetPoints());
+						gpu.lineIndex.pPosition->BufferSubData(lineIndexPointOffset, polyline.GetPoints());
 						lineIndexPointOffset += polyline.GetPoints().size();
 
-						m_gpu.lineIndex.AddEntity(p.first, lineIndexOffset, polyline.GetIndexs().size());
-						m_gpu.lineIndex.pIndex->BufferSubData(lineIndexOffset, polyline.GetIndexs());
+						gpu.lineIndex.AddEntity(p.first, lineIndexOffset, polyline.GetIndexs().size());
+						gpu.lineIndex.pIndex->BufferSubData(lineIndexOffset, polyline.GetIndexs());
 						lineIndexOffset += polyline.GetIndexs().size();
 					} else {
-						m_gpu.line.AddEntity(p.first, linePointOffset, polyline.GetPoints().size());
-						m_gpu.line.pPosition->BufferSubData(linePointOffset, polyline.GetPoints());
+						gpu.line.AddEntity(p.first, linePointOffset, polyline.GetPoints().size());
+						gpu.line.pPosition->BufferSubData(linePointOffset, polyline.GetPoints());
 						linePointOffset += polyline.GetPoints().size();
 					}
 				} else if (polyline.GetDrawType() == GL_LINE_STRIP) {
 					if (polyline.GetIndexs().size()) {
-						m_gpu.lineStripIndex.pPosition->BufferSubData(lineStripIndexPointOffset, polyline.GetPoints());
+						gpu.lineStripIndex.pPosition->BufferSubData(lineStripIndexPointOffset, polyline.GetPoints());
 						lineStripIndexPointOffset += polyline.GetPoints().size();
 
-						m_gpu.lineStripIndex.AddEntity(p.first, lineStripIndexOffset, polyline.GetIndexs().size());
-						m_gpu.lineStripIndex.pIndex->BufferSubData(lineStripIndexOffset, polyline.GetIndexs());
+						gpu.lineStripIndex.AddEntity(p.first, lineStripIndexOffset, polyline.GetIndexs().size());
+						gpu.lineStripIndex.pIndex->BufferSubData(lineStripIndexOffset, polyline.GetIndexs());
 						lineStripIndexOffset += polyline.GetIndexs().size();
 					} else {
-						m_gpu.lineStrip.AddEntity(p.first, lineStripPointOffset, polyline.GetPoints().size());
-						m_gpu.lineStrip.pPosition->BufferSubData(lineStripPointOffset, polyline.GetPoints());
+						gpu.lineStrip.AddEntity(p.first, lineStripPointOffset, polyline.GetPoints().size());
+						gpu.lineStrip.pPosition->BufferSubData(lineStripPointOffset, polyline.GetPoints());
 						lineStripPointOffset += polyline.GetPoints().size();
 					}
 				} else if (polyline.GetDrawType() == GL_LINE_LOOP) {
 					if (polyline.GetIndexs().size()) {
-						m_gpu.lineLoopIndex.pPosition->BufferSubData(lineLoopIndexPointOffset, polyline.GetPoints());
+						gpu.lineLoopIndex.pPosition->BufferSubData(lineLoopIndexPointOffset, polyline.GetPoints());
 						lineLoopIndexPointOffset += polyline.GetPoints().size();
 
-						m_gpu.lineLoopIndex.AddEntity(p.first, lineLoopIndexOffset, polyline.GetIndexs().size());
-						m_gpu.lineLoopIndex.pIndex->BufferSubData(lineLoopIndexOffset, polyline.GetIndexs());
+						gpu.lineLoopIndex.AddEntity(p.first, lineLoopIndexOffset, polyline.GetIndexs().size());
+						gpu.lineLoopIndex.pIndex->BufferSubData(lineLoopIndexOffset, polyline.GetIndexs());
 						lineLoopIndexOffset += polyline.GetIndexs().size();
 					} else {
-						m_gpu.lineLoop.AddEntity(p.first, lineLoopPointOffset, polyline.GetPoints().size());
-						m_gpu.lineLoop.pPosition->BufferSubData(lineLoopPointOffset, polyline.GetPoints());
+						gpu.lineLoop.AddEntity(p.first, lineLoopPointOffset, polyline.GetPoints().size());
+						gpu.lineLoop.pPosition->BufferSubData(lineLoopPointOffset, polyline.GetPoints());
 						lineLoopPointOffset += polyline.GetPoints().size();
 					}
 				}
 			}
 		}
 	}
+}
+
+void STEPRenderNode::BuildNode()
+{
+	if (m_root.child.size() != 0) { return; }
+	Vector<Node> nodes;
+	BDB bdb;
+	if (m_step->shapeRepresentationRelationShip.size() == 0) {
+		Node node;
+		for (const auto& shell : m_step->closedShell) {
+			auto pShell = &m_gpu[shell.first];
+			node.gpuShell.push_back(pShell);
+			bdb.Add(pShell->pShape->GetBDB());
+		}
+
+		for (const auto& shell : m_step->openShell) {
+			auto pShell = &m_gpu[shell.first];
+			node.gpuShell.push_back(pShell);
+			bdb.Add(pShell->pShape->GetBDB());
+		}
+		nodes.push_back(std::move(node));
+	} else {
+		for (const auto& relationShip : m_step->shapeRepresentationRelationShip) {
+			Node node;
+			const auto& representation = relationShip.second->shapeRepresentation;
+			if (representation) {
+				node.world = representation->axis2Placement3D.front().second->CreateMatrix();
+			}
+			const auto& advanced = relationShip.second->advancedBrepShapeRepresentation;
+			if (advanced) {
+				for (const auto& solid : advanced->manifoldSolidBrep) {
+					if (solid.second) {
+						auto pShell = &m_gpu[solid.second->shell.first];
+						node.gpuShell.push_back(pShell);
+						bdb.Add(pShell->pShape->GetBDB().CreateRotate(node.world));
+					}
+				}
+			}
+			nodes.push_back(std::move(node));
+		}
+	}
+	m_root.child = std::move(nodes);
+	SetBoundBox(bdb);
 }
 void STEPRenderNode::AddDebugNode(STEPUIContext& context, const STEPEntityBase* pBase)
 {
@@ -303,108 +366,117 @@ void STEPRenderNode::AddDebugNode(STEPUIContext& context, const STEPEntityBase* 
 void STEPRenderNode::DrawNode(const DrawContext& context)
 {
 	BuildGLResource();
-	if (!m_gpu.IsActive()) { return; }
-	Vector3 selectColor = Vector3(1.0f, 1.0f, 1.0f);
+	if (m_gpu.size() == 0) { return; }
 	auto pResource = context.pResource;
-	auto matrix = GetTranslateMatrix() * GetScaleMatrix() * m_rotateMatrix;
-	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
+	m_root.world = GetTranslateMatrix() * GetScaleMatrix() * m_rotateMatrix;
+	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader().get();
 	pSimpleShader->Use();
-	pSimpleShader->SetModel(matrix);
 	pSimpleShader->SetCamera(context.pResource->GetCameraBuffer());
+	for (const auto& node : m_root.child) {
+		pSimpleShader->SetModel(m_root.world * node.world);
+		for (const auto& shell : node.gpuShell) {
+			DrawShell(context, pSimpleShader, *shell);
+		}
+	}
+}
+
+void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimpleShader, const GPUShell& shell)
+{
+	Vector3 selectColor = Vector3(1.0f, 1.0f, 1.0f);
 	if (m_ui.visibleBDB) {
 		pSimpleShader->SetColor(Vector3(0, 0, 1));
-		pSimpleShader->SetPosition(m_gpu.bdb.pPosition.get());
-		pSimpleShader->DrawElement(m_gpu.bdb.drawType, m_gpu.bdb.pIndex.get());
+		pSimpleShader->SetPosition(shell.bdb.pPosition.get());
+		pSimpleShader->DrawElement(shell.bdb.drawType, shell.bdb.pIndex.get());
 	}
 
-	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
-	pSimpleShader->SetModel(matrix);
-	if (m_gpu.line.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.line.pPosition.get());
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawArray(m_gpu.line.drawType, m_gpu.line.pPosition.get());
-		auto entity = m_gpu.line.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.line.drawType, entity.first, entity.num);
+	if (m_ui.visibleWire) {
+		if (shell.line.pPosition) {
+			pSimpleShader->SetPosition(shell.line.pPosition.get());
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawArray(shell.line.drawType, shell.line.pPosition.get());
+			auto entity = shell.line.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(shell.line.drawType, entity.first, entity.num);
+			}
 		}
-	}
 
-	if (m_gpu.lineStrip.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.lineStrip.pPosition.get());
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawArray(m_gpu.lineStrip.drawType, m_gpu.lineStrip.pPosition.get());
-		auto entity = m_gpu.lineStrip.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.lineStrip.drawType, entity.first, entity.num);
+		if (shell.lineStrip.pPosition) {
+			pSimpleShader->SetPosition(shell.lineStrip.pPosition.get());
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawArray(shell.lineStrip.drawType, shell.lineStrip.pPosition.get());
+			auto entity = shell.lineStrip.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(shell.lineStrip.drawType, entity.first, entity.num);
+			}
 		}
-	}
 
-	if (m_gpu.lineLoop.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.lineLoop.pPosition.get());
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawArray(m_gpu.lineLoop.drawType, m_gpu.lineLoop.pPosition.get());
-		auto entity = m_gpu.lineLoop.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.lineLoop.drawType, entity.first, entity.num);
+		if (shell.lineLoop.pPosition) {
+			pSimpleShader->SetPosition(shell.lineLoop.pPosition.get());
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawArray(shell.lineLoop.drawType, shell.lineLoop.pPosition.get());
+			auto entity = shell.lineLoop.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(shell.lineLoop.drawType, entity.first, entity.num);
+			}
 		}
-	}
 
-	if (m_gpu.lineIndex.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.lineIndex.pPosition.get());
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawElement(m_gpu.lineIndex.drawType, m_gpu.lineIndex.pIndex.get());
-		auto entity = m_gpu.lineIndex.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.lineIndex.drawType, entity.first, entity.num);
+		if (shell.lineIndex.pPosition) {
+			pSimpleShader->SetPosition(shell.lineIndex.pPosition.get());
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawElement(shell.lineIndex.drawType, shell.lineIndex.pIndex.get());
+			auto entity = shell.lineIndex.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(shell.lineIndex.drawType, entity.first, entity.num);
+			}
 		}
-	}
 
-	if (m_gpu.lineStripIndex.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.lineStripIndex.pPosition.get());
-		pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
-		pSimpleShader->DrawElement(m_gpu.lineStripIndex.drawType, m_gpu.lineStripIndex.pIndex.get());
-		auto entity = m_gpu.lineStripIndex.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.lineStripIndex.drawType, entity.first, entity.num);
+		if (shell.lineStripIndex.pPosition) {
+			pSimpleShader->SetPosition(shell.lineStripIndex.pPosition.get());
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			pSimpleShader->DrawElement(shell.lineStripIndex.drawType, shell.lineStripIndex.pIndex.get());
+			auto entity = shell.lineStripIndex.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(shell.lineStripIndex.drawType, entity.first, entity.num);
+			}
 		}
-	}
 
-	if (m_gpu.lineLoopIndex.pPosition) {
-		pSimpleShader->SetPosition(m_gpu.lineLoopIndex.pPosition.get());
-		pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
-		pSimpleShader->DrawElement(m_gpu.lineLoopIndex.drawType, m_gpu.lineLoopIndex.pIndex.get());
-		auto entity = m_gpu.lineLoopIndex.FindEntity(uiContext.GetSelectId());
-		if (entity.IsActive()) {
-			pSimpleShader->SetColor(selectColor);
-			pSimpleShader->DrawArray(m_gpu.lineLoopIndex.drawType, entity.first, entity.num);
+		if (shell.lineLoopIndex.pPosition) {
+			pSimpleShader->SetPosition(shell.lineLoopIndex.pPosition.get());
+			pSimpleShader->SetColor(Vector3(1.0f, 1.0f, 1.0f));
+			pSimpleShader->DrawElement(shell.lineLoopIndex.drawType, shell.lineLoopIndex.pIndex.get());
+			auto entity = shell.lineLoopIndex.FindEntity(uiContext.GetSelectId());
+			if (entity.IsActive()) {
+				pSimpleShader->SetColor(selectColor);
+				pSimpleShader->DrawArray(shell.lineLoopIndex.drawType, entity.first, entity.num);
+			}
 		}
 	}
 
 	if (m_ui.visibleMesh) {
-		if (m_gpu.triangle.pPosition) {
-			pSimpleShader->SetPosition(m_gpu.triangle.pPosition.get());
+		if (shell.triangle.pPosition) {
+			pSimpleShader->SetPosition(shell.triangle.pPosition.get());
 			pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
-			pSimpleShader->DrawArray(m_gpu.triangle.drawType, m_gpu.triangle.pPosition.get());
-			auto entity = m_gpu.triangle.FindEntity(uiContext.GetSelectId());
+			pSimpleShader->DrawArray(shell.triangle.drawType, shell.triangle.pPosition.get());
+			auto entity = shell.triangle.FindEntity(uiContext.GetSelectId());
 			if (entity.IsActive()) {
 				pSimpleShader->SetColor(selectColor);
-				pSimpleShader->DrawArray(m_gpu.triangle.drawType, entity.first, entity.num);
+				pSimpleShader->DrawArray(shell.triangle.drawType, entity.first, entity.num);
 			}
 		}
 
-		if (m_gpu.triangleIndex.pPosition) {
-			pSimpleShader->SetPosition(m_gpu.triangleIndex.pPosition.get());
+		if (shell.triangleIndex.pPosition) {
+			pSimpleShader->SetPosition(shell.triangleIndex.pPosition.get());
 			pSimpleShader->SetColor(Vector3(0.0f, 1.0f, 0.0f));
-			pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get());
-			auto entity = m_gpu.triangleIndex.FindEntity(uiContext.GetSelectId());
+			pSimpleShader->DrawElement(shell.triangleIndex.drawType, shell.triangleIndex.pIndex.get());
+			auto entity = shell.triangleIndex.FindEntity(uiContext.GetSelectId());
 			if (entity.IsActive()) {
 				pSimpleShader->SetColor(selectColor);
-				pSimpleShader->DrawElement(m_gpu.triangleIndex.drawType, m_gpu.triangleIndex.pIndex.get(), entity.num, entity.first);
+				pSimpleShader->DrawElement(shell.triangleIndex.drawType, shell.triangleIndex.pIndex.get(), entity.num, entity.first);
 			}
 		}
 	}
@@ -415,8 +487,10 @@ void STEPRenderNode::ShowUI(UIContext& ui)
 	uiContext.pNode = this;
 	uiContext.filePath = GetName();
 	ImGui::Checkbox("VisibleBDB",&m_ui.visibleBDB);
+	ImGui::Checkbox("VisibleWire", &m_ui.visibleWire);
 	ImGui::Checkbox("VisibleMesh", &m_ui.visibleMesh);
 	if (ImGui::TreeNode("Root")) {
+		for (auto& node : m_step->shapeRepresentationRelationShip) { node.second->ShowUI(uiContext); }
 		for (auto& shell : m_step->closedShell) { shell.second->ShowUI(uiContext); }
 		for (auto& shell : m_step->openShell) { shell.second->ShowUI(uiContext); }
 		ImGui::TreePop();

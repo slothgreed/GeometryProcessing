@@ -1,0 +1,23 @@
+uniform uint u_num;
+uniform uint u_bitShift;
+layout(std430, binding = 0) readonly buffer InputBuffer {
+    uint data[]; 
+};
+
+layout(std430, binding = 1) writeonly buffer OutputBuffer
+{
+	uint outData[];
+};
+
+layout(std430, binding = 2) buffer OffsetBuffer {
+    uint offset[]; 
+};
+
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	if(index >= u_num){return;}
+	uint value = (data[index] >> u_bitShift) & 0xFFu;
+	uint before = atomicAdd(offset[value],1u);
+	outData[before] = data[index];
+} 

@@ -8,7 +8,6 @@ class Texture;
 class TextureLoader
 {
 public:
-
 	
 	TextureLoader();
 	~TextureLoader();

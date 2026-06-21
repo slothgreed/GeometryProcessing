@@ -195,6 +195,7 @@ public:
 	static Vector3 GetPoint(float radius, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end, float parameter);
 	static Polyline CreateLine(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center);
 	static Polyline CreateArc(float radius, int pointNum, const Vector3& u, const Vector3& v, const Vector3& center, const Vector3& begin, const Vector3& end);
+	static Polyline CreateArc(float radius, int pointNum, const Vector3& center, float beginAngle, float endAngle);
 
 private:
 	void Build(float radius, int pointNum, const Vector3& center);

@@ -11,6 +11,7 @@
 #include "PrimitiveNode.h"
 #include "HalfEdgeController.h"
 #include "ShapeMatching.h"
+#include "DebugNode.h"
 namespace KI
 {
 
@@ -163,6 +164,7 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	if (!m_ui.visibleMesh) {
 		context.pResource->GL()->ColorMask(false);
 	}
+
 	pFaceShader->Use();
 	pFaceShader->SetCamera(pResource->GetCameraBuffer());
 	pFaceShader->SetLight(context.pResource->GetLightBuffer());
@@ -177,6 +179,17 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		context.pResource->GL()->ColorMask(true);
 	}
 
+	if (m_ui.visibleCrossSection) {
+		if (m_pBDBNode) {
+			if (m_ui.crossSectionAxis == 0) {
+				m_crossSection->Draw(this, m_pBDBNode->GetXPlane(), context);
+			}else if (m_ui.crossSectionAxis == 1) {
+				m_crossSection->Draw(this, m_pBDBNode->GetYPlane(), context);
+			} else if (m_ui.crossSectionAxis == 2) {
+				m_crossSection->Draw(this, m_pBDBNode->GetZPlane(), context);
+			}
+		}
+	}
 	if (m_ui.doShapeMatching) {
 		auto& pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
 		pSimpleShader->Use();
@@ -409,6 +422,31 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 	if (ImGui::Checkbox("ShowEdge", &m_ui.visibleEdge)) {
 		if (m_ui.visibleEdge) {
 			BuildEdge();
+		}
+	}
+
+	if (ImGui::Checkbox("ShowBDB", &m_ui.visibleBDB)) {
+		if(m_ui.visibleBDB) {
+			m_pBDBNode = std::make_shared<BDBNode>("HalfEdgeBDB", GetBoundBox());
+			m_pBDBNode->SetMatrix(GetMatrix());
+			AddNode(m_pBDBNode);
+		} else {
+			RemoveNode("HalfEdgeBDB");
+			m_pBDBNode = nullptr;
+		}
+	}
+
+	if (m_ui.visibleBDB) {
+		if(ImGui::Checkbox("ShowCrossSection", &m_ui.visibleCrossSection)) {
+			if (m_ui.visibleCrossSection) {
+				m_crossSection = std::make_unique<CrossSectionLine>();
+			} else {
+				m_crossSection = nullptr;
+			}
+		}
+
+		if(m_ui.visibleCrossSection) {
+			ImGui::Combo("CrossSectionAxis", &m_ui.crossSectionAxis, "X\0Y\0Z\0");
 		}
 	}
 

@@ -1,9 +1,9 @@
 #ifndef IALGORITHM_H
 #define IALGORITHM_H
-#include "RenderNode.h"
 namespace KI
 {
-
+struct UIContext;
+class RenderNode;
 enum ALGORITHM_TYPE
 {
 	ALGORITHM_KDTREE,
@@ -16,6 +16,7 @@ enum ALGORITHM_TYPE
 	ALGORITHM_VOXELIZER,
 	ALGORITHM_MINIMUM_SPANNING_TREE,
 	ALGORITHM_BVH,
+	ALGORITHM_CROSS_SECTION_LINE,
 };
 class IAlgorithm
 {

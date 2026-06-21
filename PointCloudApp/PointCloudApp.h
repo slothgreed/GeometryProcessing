@@ -38,7 +38,8 @@ private:
 		,visibleTexture(false)
 		,visibleTextureIndex(0)
 		,mipmap(0)
-		,stepSelected(0){}
+		,stepSelected(0)
+		,dxfSelected(0){}
 		~UI() {}
 		bool pickMode;
 		bool visibleSkyBox;
@@ -47,6 +48,7 @@ private:
 		int mipmap;
 		bool animation;
 		int stepSelected;
+		int dxfSelected;
 		Vector<String> stepFiles;
 	};
 	void AddUITexture(const String& name, const Texture* pTexture);
@@ -56,11 +58,13 @@ private:
 	UIContext m_uiContext;
 	Shared<RenderNode> CreateSpaceTest();
 	Shared<RenderNode> CreateGLTFAnimationTest();
+	Vector<Shared<RenderNode>> CreateDXFTest();
 	Shared<RenderNode> CreateGLTFNodeTest();
 	Shared<RenderNode> CreateCSFNodeTest();
 	Shared<RenderNode> CreatePBRTest();
 	Shared<RenderNode> CreateVolumeTest();
 	Shared<RenderNode> CreateTerrain();
+	Shared<RenderNode> CreateGaussianSplatting();
 	Shared<RenderNode> CreateLargePointCloudNodeTest();
 	Shared<RenderNode> CreatePolylineTest();
 	Vector<Shared<RenderNode>> CreateSTEPNodeTest();
@@ -76,7 +80,7 @@ private:
 	GPUProfiler* m_gpuProfiler;
 	Unique<RenderNode> m_pRoot;
 	Unique<RenderNode> m_pDebugRoot;
-
+	Vector<String> m_dxfFiles;
 	RenderNode* m_pSelect;
 	Vector<Shared<Texture>> m_pgmTexture;
 	Vector<std::pair<String, const Texture*>> m_uiTextureList;

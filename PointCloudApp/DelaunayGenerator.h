@@ -1,6 +1,7 @@
 #ifndef DELAUNAY_GENERATOR
 #define DELAUNAY_GENERATOR
 #include "IAlgorithm.h"
+#include "BDB.h"
 namespace KI
 {
 

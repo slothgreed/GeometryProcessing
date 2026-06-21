@@ -51,6 +51,9 @@ Geometry Processing は、グラフィックスAPIや幾何学処理の学習を
 ![Voxelizer](ReadMeResource/Voxelizer.gif)
 
 
+#### GPUベース断面線の構築
+![GPUベース断面線の構築](ReadMeResource/CrossSectionLine.gif)
+
 #### Shape Diameter Function
 ![ShapeDiameterFunction](ReadMeResource/ShapeDiameterFunction.png)
 
@@ -77,3 +80,4 @@ Geometry Processing は、グラフィックスAPIや幾何学処理の学習を
 
 #### Terrainビューイング
 ![Terrain](ReadMeResource/Terrain.gif)
+

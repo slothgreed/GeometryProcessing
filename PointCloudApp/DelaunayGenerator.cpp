@@ -56,7 +56,9 @@ mark_component(CDT& cdt, CDT::Face_handle start, int level, std::list<CDT::Edge>
 		for (int i = 0; i < 3; ++i) {
 			CDT::Edge e(fh, i);
 			CDT::Face_handle n = fh->neighbor(i);
-
+			if (n == NULL) {
+				Assert::Failed(); continue;
+			}
 			if (n->info().nesting_level == -1) {
 				if (cdt.is_constrained(e))
 					border.push_back(e);
@@ -104,6 +106,7 @@ static void insert_closed_polyline(CDT& cdt, const Vector<Vector3>& poly)
 			Point((double)a.x, (double)a.y),
 			Point((double)b.x, (double)b.y));
 	}
+
 	return;
 	
 

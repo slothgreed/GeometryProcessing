@@ -130,6 +130,16 @@ void GLContext::EnablePolygonFill()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 }
+
+void GLContext::EnableBlend()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+void GLContext::DisableBlend()
+{
+	glDisable(GL_BLEND);
+}
 void GLContext::DisableCullFace()
 {
 	glDisable(GL_CULL_FACE);
@@ -180,6 +190,7 @@ void RenderResource::Build()
 	m_pPBR = new PBRResource();
 	m_pComputeColorTarget = new GLBuffer();
 	m_pComputeDepthTarget = new GLBuffer();
+	m_pComputeAccumTarget = new GLBuffer();
 	m_pDebugTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
 	m_pPostEffectTarget = RenderTarget::CreatePostEffectTarget(Vector2i(1, 1));
 	m_pTmpComputeTarget = RenderTarget::CreateForwardTarget(Vector2i(1, 1));
@@ -278,6 +289,7 @@ void RenderResource::Finalize()
 	RELEASE_INSTANCE(m_pLightGpu);
 	RELEASE_INSTANCE(m_pComputeColorTarget);
 	RELEASE_INSTANCE(m_pComputeDepthTarget);
+	RELEASE_INSTANCE(m_pComputeAccumTarget);
 	RELEASE_INSTANCE(m_pDebugTarget);
 	RELEASE_INSTANCE(m_pTmpComputeTarget);
 	RELEASE_INSTANCE(m_pPostEffectTarget);
@@ -330,7 +342,13 @@ void RenderResource::InitRenderTarget(const Vector2& size)
 
 	if (m_pComputeColorTarget) {
 		m_pComputeColorTarget->Resize(size.x * size.y, sizeof(unsigned int));
+		// floatMax
 		m_pComputeColorTarget->SetData(0x7F7FFFFF);
+	}
+
+	if (m_pComputeAccumTarget) {
+		m_pComputeAccumTarget->Resize(size.x * size.y, sizeof(unsigned int) * 4);
+		m_pComputeAccumTarget->SetData(0);
 	}
 	if (m_pComputeDepthTarget) {
 		m_pComputeDepthTarget->Resize(size.x * size.y, sizeof(unsigned int));

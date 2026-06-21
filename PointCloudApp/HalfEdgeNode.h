@@ -6,9 +6,11 @@
 #include "BVH.h"
 #include "MeshletGenerator.h"
 #include "GeometryUtility.h"
+#include "CrossSectionLine.h"
 namespace KI
 {
 class BVH;
+class BDBNode;
 class Voxelizer;
 class ShapeDiameterFunction;
 class ShapeMatching;
@@ -102,7 +104,7 @@ private:
 		int begin;
 		int num;
 
-		bool Inner(int id)
+		bool Inner(int id) const
 		{
 			return begin <= id && id < begin + num;
 		}
@@ -234,6 +236,9 @@ private:
 			, normalLength(1.0f)
 			, vertexValue(0)
 			, vertexDirection(0)
+			, visibleBDB(false)
+			, visibleCrossSection(false)
+			, crossSectionAxis(false)
 			, doShapeMatching(false)
 		{
 		}
@@ -242,10 +247,13 @@ private:
 		bool visibleMorton;
 		bool visibleSignedDistanceField;
 		bool visibleMesh;
+		bool visibleBDB;
 		bool visibleEdge;
 		bool visibleVertex;
 		bool visibleNormal;
 		bool editVertex;
+		bool visibleCrossSection;
+		int crossSectionAxis;
 		bool doShapeMatching;
 		float normalLength;
 		int vertexValue;
@@ -256,7 +264,9 @@ private:
 		HeatMethod heatMethod;
 		Poisson poisson;
 	};
+	Unique<CrossSectionLine> m_crossSection = nullptr;
 	Shared<HalfEdgeParts> m_pEditVertex;
+	Shared<BDBNode> m_pBDBNode;
 	HalfEdgeController* m_pController;
 	Unique<MeshletProfiler> m_meshletProfiler;
 	Parameter m_vertexParameter;

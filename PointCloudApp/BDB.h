@@ -23,6 +23,10 @@ public:
 	float ZLength() const { return m_max.z - m_min.z; }
 	Vector3 Center() const;
 
+	bool operator==(const BDB& other) const { return 
+		(m_min == other.m_min) &&
+		(m_max == other.m_max); }
+	bool operator!=(const BDB& other) const { return !(*this == other); }
 
 	struct Triangle
 	{

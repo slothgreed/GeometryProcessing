@@ -184,10 +184,13 @@
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
+    <ClCompile Include="CrossSectionLine.cpp" />
     <ClCompile Include="CSFNode.cpp" />
     <ClCompile Include="DebugNode.cpp" />
     <ClCompile Include="DelaunayGenerator.cpp" />
+    <ClCompile Include="DXFNode.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
+    <ClCompile Include="GaussianSplattingNode.cpp" />
     <ClCompile Include="GeometryBuffer.cpp" />
     <ClCompile Include="GeometryUtility.cpp" />
     <ClCompile Include="GLAPIExt.cpp" />
@@ -270,10 +273,13 @@
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
+    <ClInclude Include="CrossSectionLine.h" />
     <ClInclude Include="CSFNode.h" />
     <ClInclude Include="DebugNode.h" />
     <ClInclude Include="DelaunayGenerator.h" />
+    <ClInclude Include="DXFNode.h" />
     <ClInclude Include="FrameBuffer.h" />
+    <ClInclude Include="GaussianSplattingNode.h" />
     <ClInclude Include="GeometryBuffer.h" />
     <ClInclude Include="GeometryUtility.h" />
     <ClInclude Include="GLAPIExt.h" />

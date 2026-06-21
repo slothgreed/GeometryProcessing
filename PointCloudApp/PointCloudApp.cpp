@@ -22,7 +22,9 @@
 #include "TextureLoader.h"
 #include "PostEffect.h"
 #include "GLTFLoader.h"
+#include "DXFNode.h"
 #include "VolumeNode.h"
+#include "GaussianSplattingNode.h"
 #include "HalfEdgeLoader.h"
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
@@ -53,6 +55,8 @@ void PointCloudApp::ResizeEvent(int width, int height)
 }
 void PointCloudApp::ProcessMouseEvent(const MouseInput& input)
 {
+	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)) { return; }
+
 	m_pMouse->ApplyMouseInput(input);
 
 	EditContext context(m_pMouse.get(), m_pCamera.get());
@@ -139,6 +143,7 @@ void PointCloudApp::Execute()
 	for (int i = 0; i < pgmFiles.size(); i++) {
 		m_pgmTexture.push_back(std::shared_ptr<Texture>(TextureLoader::LoadPGM(pgmFiles[i], false)));
 	}
+
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	m_pRoot = std::make_unique<RenderNode>("Root");
@@ -162,16 +167,21 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateLargePointCloudNodeTest());
 	}
 
-	// STEP
-	{
-		//Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-		//m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-		auto pSTEPNode = CreateSTEPNodeTest();
-		for (const auto& pNode : pSTEPNode) {
-			m_pRoot->AddNode(pNode);
-		}
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
-	}
+	//{
+	//	Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	//	m_pRoot->AddNode(CreateGaussianSplatting());
+	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+	//}
+
+
+	//// STEP
+	//{
+	//	Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+	//	m_pRoot->AddNode(CreateSTEPNodeTest());
+	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
+	//}
 
 	// Simulation
 	{
@@ -206,12 +216,13 @@ void PointCloudApp::Execute()
 
 	// Test
 	{
-		//m_pRoot->AddNode(CreateBunnyNodeTest());
+		m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateDelaunayTest());
 		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
 		//m_pRoot->AddNode(CreateImageTest());
 		//m_pRoot->AddNode(CreatePolylineTest());
+		//m_pRoot->AddNode(CreateDXFTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
 	
@@ -427,6 +438,19 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		ImGui::End();
 	}
 
+	if (m_dxfFiles.size() != 0) {
+		ImGui::BeginChild("DXFFile", ImVec2(0, 100), true);
+		for (int i = 0; i < m_dxfFiles.size(); i++) {
+			if (ImGui::Selectable(m_dxfFiles[i].c_str(), m_ui.dxfSelected == i)) {
+				m_ui.dxfSelected = i;
+				m_pRoot->RemoveNodeNameContain(".dxf");
+				auto dxfs = CreateDXFTest();
+				m_pCameraController->FitToBDB(dxfs[0]->GetBoundBox());
+				m_pRoot->AddNode(std::move(dxfs));
+			}
+		}
+		ImGui::EndChild();
+	}
 
 	ImGui::Checkbox("PickMode", &m_ui.pickMode);
 	if (m_ui.pickMode) {
@@ -549,6 +573,22 @@ Shared<RenderNode> PointCloudApp::CreateGLTFAnimationTest()
 	pNode->SetTranslate(Vector3(500, 0, 0));
 	return pNode;
 }
+
+Vector<Shared<RenderNode>> PointCloudApp::CreateDXFTest()
+{
+	if (m_dxfFiles.size() == 0) {
+		m_dxfFiles = FileUtility::CollectFile("E:\\cgModel\\dxf", ".dxf");
+	}
+	Vector<Shared<RenderNode>> nodes;
+	if (m_ui.dxfSelected == -1) {
+		for (size_t i = 0; i < m_dxfFiles.size(); i++) {
+			nodes.push_back(std::make_shared<DXFNode>(m_dxfFiles[i], std::shared_ptr<DXFStruct>(DXFLoader::Load(m_dxfFiles[i]))));
+		}
+	} else {
+		nodes.push_back(std::make_shared<DXFNode>(m_dxfFiles[m_ui.dxfSelected], std::shared_ptr<DXFStruct>(DXFLoader::Load(m_dxfFiles[m_ui.dxfSelected]))));
+	}
+	return nodes;
+}
 Shared<RenderNode> PointCloudApp::CreateGLTFNodeTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf"));
@@ -593,6 +633,12 @@ Shared<RenderNode> PointCloudApp::CreateTerrain()
 	auto pNode = std::make_shared<TerrainNode>();
 	pNode->SetScale(100);
 	return pNode;
+}
+
+Shared<RenderNode> PointCloudApp::CreateGaussianSplatting()
+{
+	auto pData = std::shared_ptr<GaussianSplattingData>(GaussianSplattingLoader::Load("E:\\cgModel\\gaussianSplatting\\samples\\hornedlizard.ply"));
+	return std::make_shared<GaussianSplattingNode>("GaussianSplatting", pData);
 }
 
 Shared<RenderNode> PointCloudApp::CreateVolumeTest()
@@ -653,13 +699,14 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 		ap214,
 		ap209,
 		ap203e2,
-		ap203
+		ap203,
+		finish,
+		other
 	};
 
-	STEP_FOLDER folder = ap203e2;
+	STEP_FOLDER folder = finish;
 	{
-		if(folder == largeData)
-		{
+		if (folder == largeData) {
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Ai-14R.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\Cruise_Assembly.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\largeData\\NissanGT-R.STEP");
@@ -684,16 +731,16 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap209\\blower.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap209\\mshaft.stp");
 		} else if(folder == ap203e2) {
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Color.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Dimension.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Short_Note.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_cylindricity.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_diamsize.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_flatness.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_limitsandfits.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_linearsize.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_perp.stp");
-			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_surfacetex.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Color.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Dimension.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\123Block_Short_Note.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_cylindricity.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_diamsize.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_flatness.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_limitsandfits.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_linearsize.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_perp.stp");
+			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203e2\\boxy_with_surfacetex.stp");
 		} else if(folder == ap203) {
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\1797609in.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\2827056.stp");
@@ -749,48 +796,44 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\valve.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\vs_training.stp");
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\weldment_asm_solid.stp");
+		} else if (folder == other) {
+
+			//実施中
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\turbine.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
+
+			// 高難度データ
+
+			//
+
+			//// B-Spline
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
+			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");
+		} else if (folder == finish) {
+			// 完成データ
+			{
+				//// CYLINDRICAL_SURFACE
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
+				//
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp"); // Alignment
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp"); // B-Spline
+				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy.step"); // B-Spline
+
+			}
 		}
-
-		//実施中
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\turbine.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE419_orig.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE1170_orig.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE144_orig.step");
-
-		//toroidal
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE940_orig.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709_FACE1089_orig.step");
-
-		// 高難度データ
-
-		//// Alignment
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp");
-
-		//// B-Spline
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet3D.step");
 	}
 
 	
-	////// 完成データ
-	//{
-	//	// CYLINDRICAL_SURFACE
-	//	{
-	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
-	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-	//		m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
-	//	}
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
-		//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-	    // m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
-	//}
+
 		
 	pNodes.push_back(std::make_shared<GridNode>("Grid", Vector3(0, 0, 0), Vector3(scale * gridSize.x, scale * gridSize.y, 0.0f), scale));
 	for (int i = 0; i < m_ui.stepFiles.size(); i++) {

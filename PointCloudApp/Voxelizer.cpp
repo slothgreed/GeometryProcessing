@@ -234,8 +234,7 @@ std::vector<unsigned int> Voxelizer::ComputeShader::Execute(const BDB& bdb, int 
 	BindShaderStorage(1, indexBuffer->Handle());
 	BindShaderStorage(2, m_pVoxelBuffer->Handle());
 	Dispatch(GetDispatchNum1D(triangleNum));
-
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	BarrierSSBO();
 	UnUse();
 	glFinish();
 	OUTPUT_GLERROR;

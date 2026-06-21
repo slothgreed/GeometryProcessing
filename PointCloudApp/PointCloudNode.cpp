@@ -230,7 +230,7 @@ void PointCloudNode::Shader::Execute(const DrawContext& context, const PointClou
 	BindUniform(m_uImageSize, context.pResource->GL()->GetWindowSize());
 	BindUniform(m_uVP, vp * node.GetMatrix());
 	BindUniform(m_uPositionNum, (int)node.GetData()->Position().size());
-	Dispatch(Vector3(node.GetData()->Position().size() / 256, 1, 1));
+	Dispatch(GetDispatchNum1D(node.GetData()->Position().size()));
 	BarrierSSBO();
 	UnUse();
 }

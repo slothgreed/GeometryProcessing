@@ -93,9 +93,17 @@ Vector<String> FileUtility::CollectFile(const String& directory, const String& e
 	Vector<String> result;
 
 	try {
-		for (const auto& entry : fs::directory_iterator(directory)) {
+		auto toLower = [](String s)
+		{
+			std::transform(s.begin(), s.end(), s.begin(), 
+				[](unsigned char c) { return std::tolower(c); });
+			return s;
+		};
+
+		auto extLow = toLower(ext);
+		for (const auto& entry : fs::recursive_directory_iterator(directory)) {
 			if (fs::is_regular_file(entry.status())) {
-				if (entry.path().extension() == ext) {
+				if (toLower(entry.path().extension().string()) == extLow) {
 					result.push_back(entry.path().string());
 				}
 			}
@@ -311,6 +319,16 @@ bool FileWriter::Open(const String& filePath, bool binary)
 	return true;
 }
 
+void FileWriter::Write(const Vector<float>& contents, bool endl)
+{
+	assert(m_fileStream.is_open());
+	for (const auto& value : contents) {
+		m_fileStream << value;
+		if (endl) {
+			m_fileStream << std::endl;
+		}
+	}
+}
 void FileWriter::Write(const String& contents, bool endl)
 {
 	assert(m_fileStream.is_open());

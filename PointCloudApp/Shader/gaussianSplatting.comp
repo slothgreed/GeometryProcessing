@@ -1,0 +1,156 @@
+
+struct Vertex
+{
+	vec4 position;
+	vec4 normal;
+	vec4 shCoeff0;
+	vec4 shCoeff1;
+	vec4 shCoeff2;
+	vec4 shCoeff3;
+	vec4 shCoeff4;
+	vec4 shCoeff5;
+	vec4 shCoeff6;
+	vec4 shCoeff7;
+	vec4 shCoeff8;
+	vec4 shCoeff9;
+	vec4 shCoeff10;
+	vec4 shCoeff11;
+	vec4 shCoeff12;
+	vec4 shCoeff13;
+	vec4 shCoeff14;
+	vec4 shCoeff15;
+	vec4 rotate;
+	vec3 scale;
+	float opacity;
+};
+
+layout(std430, binding = 0) buffer colorImageBuffer
+{
+	uint colorImage[];
+};
+
+layout(std430, binding = 1) buffer depthImageBuffer
+{
+	uint depthImage[];
+};
+
+layout(std430, binding = 2) buffer accumImageBuffer
+{
+	uint accumImage[];
+};
+
+layout(std430, binding = 3) buffer vertexBuffer
+{
+	Vertex vertexs[];
+};
+
+layout(std430, binding = 4) buffer CameraBuffer
+{
+	Camera camera;
+};
+
+uniform mat4 u_VP;
+uniform int u_vertexNum;
+uniform ivec2 u_imageSize;
+uniform float u_scale;
+
+float getRadius(Vertex vertex)
+{
+	vec3 scale = exp(vertex.scale);
+	return (scale.x + scale.y + scale.z) / 3.0;
+}
+float getAlpha(float opacity)
+{
+	return 1.0 / (1.0 + exp(-opacity)); // sigmoid
+}
+
+vec3 getColor3(Vertex vertex)
+{
+	const float SH_C0 = 0.28209479177387814f;
+	vec3 rgb = 0.5f + SH_C0 * vertex.shCoeff0.xyz;
+    return clamp(rgb, 0.0, 1.0);
+}
+
+
+void drawAccum(uint index, vec4 color)
+{
+    uint base = index * 4;
+	atomicAdd(accumImage[base + 0],uint(color.x * color.a * u_scale));
+	atomicAdd(accumImage[base + 1],uint(color.y * color.a * u_scale));
+	atomicAdd(accumImage[base + 2],uint(color.z * color.a * u_scale));
+	atomicAdd(accumImage[base + 3],uint(color.a * u_scale));
+}
+void drawByAccum(ivec2 pixel, vec4 color, float depth)
+{
+	uint index = uint(pixel.y * u_imageSize.x + pixel.x);
+	atomicMin(depthImage[index],floatBitsToUint(depth));
+	drawAccum(index,color);
+}
+void drawByAccum(uint index)
+{
+	uint base = index * 4;
+	float a = float(accumImage[base + 3]);
+	if(a <= 0.0){return;}
+	vec3 rgb = vec3(float(accumImage[base]),float(accumImage[base + 1]),float(accumImage[base + 2])) / a;
+	float alpha = clamp(a, 0.0,1.0) * 100;
+	vec4 accumColor = vec4(rgb,alpha);
+	colorImage[index] = packColor(accumColor * 255);
+}
+void draw(ivec2 pixel, vec4 color, float depth)
+{
+	uint index = uint(pixel.y * u_imageSize.x + pixel.x);
+#ifdef WRITE_PHASE
+	atomicMin(depthImage[index],floatBitsToUint(depth));
+#else
+	if(floatBitsToUint(depth) == depthImage[index]) {
+	  colorImage[index] = packColor(color);
+	}
+#endif	
+}
+
+void main()
+{
+	uint workGroupSize = 
+		gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+	uint globalID = 
+		gl_WorkGroupID.x * workGroupSize + 
+		gl_WorkGroupID.y * gl_NumWorkGroups.x * workGroupSize + 
+		gl_LocalInvocationIndex;
+#if defined(DRAW_BY_ACCUM) && !defined(WRITE_PHASE)
+	if(globalID >= u_imageSize.x * u_imageSize.y) {return;}
+	drawByAccum(globalID);return;
+#else
+	if(globalID >= u_vertexNum) {return;}
+#endif
+	Vertex vertex = vertexs[globalID];
+	vec4 modelPos = vertex.position;
+	vec4 clip = u_VP * vec4(modelPos.xyz,1.0);
+	
+	ScreenPos screen = toScreen(u_VP,u_imageSize,modelPos.xyz);
+	if(!screen.inner){return;}
+	
+	//float focal = camera.proj[1][1] * 0.5 * u_imageSize.y;
+	float focal = 1.0;
+	Ellipse ellipse = getEllipse(u_VP, u_imageSize, exp(vertex.scale), vertex.rotate, vertex.position.xyz);
+	float radiusF = 3.0 * max(length(ellipse.axisX), length(ellipse.axisY));
+	int radius = clamp(int(ceil(radiusF)), 0, 64);
+	float alpha = getAlpha(vertex.opacity);
+	for(int i = -radius; i <= radius; i++){
+	for(int j = -radius; j <= radius; j++){
+		ivec2 coord = ivec2(screen.pixel.x + i, screen.pixel.y + j);
+		if(!inScreen(coord,u_imageSize)) continue;
+		float r2 = getEllipseR2(ivec2(i, j),ellipse);
+		if(r2 > 9.0) continue;
+
+		vec4 color = vec4(getColor3(vertex),alpha*exp(-0.5 * r2));
+		
+#ifdef DRAW_BY_ACCUM
+		drawByAccum(coord,color,screen.depth);
+#else
+		color *= 255;
+		color.a = 255;
+		draw(coord,color,screen.depth);
+#endif
+	}}
+	
+} 

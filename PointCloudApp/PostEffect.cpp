@@ -75,6 +75,7 @@ void ComputeTextureCombiner::Execute(const DrawContext& context)
 	auto pTarget = context.pResource->GetRenderTarget();
 	auto pTmp = context.pResource->GetTmpComputeTarget();
 	pTmp->Copy(*pTarget);
+	context.pResource->GL()->EnableBlend();
 	Use();
 	BindUniform(m_uImageSize, context.pResource->GL()->GetWindowSize());
 	BindTexture(m_uColorForward, 0, *pTmp->GetColor(0));
@@ -82,6 +83,7 @@ void ComputeTextureCombiner::Execute(const DrawContext& context)
 	BindShaderStorage(2, context.pResource->GetComputeColorTarget()->Handle());
 	BindShaderStorage(3, context.pResource->GetComputeDepthTarget()->Handle());
 	Draw(*context.pResource->GetTexturePlane());
+	context.pResource->GL()->DisableBlend();
 }
 
 ShaderPath EdgeDetector::GetShaderPath()

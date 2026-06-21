@@ -36,6 +36,7 @@ public:
 		Vector3 pos2;
 	};
 
+	bool IsActive() const { return m_points.size() > 0; }
 	int TriangleNum() const;
 	Triangle GetTriangle(int index) const;
 	void SetPoints(Vector<Vector3>&& points) { m_points = std::move(points); }	

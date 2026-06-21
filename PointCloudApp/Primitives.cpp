@@ -959,6 +959,20 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 	points.push_back(end);
 	return Polyline(std::move(points), Polyline::DrawType::LineStrip).ConvertLines();
 }
+
+Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& center, float beginAngle, float endAngle)
+{
+	Vector<Vector3> points;
+	float delta = MathHelper::NormalizePI(endAngle - beginAngle);
+	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
+	for (int i = 0; i <= pointNum; i++) {
+		float t = i / (float)pointNum;
+		float angle = beginAngle + t * delta;
+		Vector3 p = center + radius * (std::cos(angle) + std::sin(angle));
+		points.push_back(p);
+	}
+	return Polyline(std::move(points), Polyline::DrawType::LineStrip).ConvertLines();
+}
 void Circle::Build(float radius, int pointNum, const Vector3& center)
 {
 	for (int i = 0; i < pointNum; i++) {

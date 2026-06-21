@@ -112,13 +112,15 @@ public:
 	void SetBoundBox(const BDB& bdb) { m_bdb = bdb; }
 	void ClearNode() { m_child.clear(); }
 	void RemoveNode(const String& name) { m_child.erase(name); }
+	void RemoveNodeNameContain(const String& name);
 	void AddNode(const Shared<RenderNode>& pNode) { m_child[pNode->m_name] = pNode; }
+	void AddNode(const Vector<Shared<RenderNode>>& pNode) { for (const auto& node : pNode) { m_child[node->m_name] = node; } }
 	Matrix4x4 GetTranslateMatrix() const;
 	Matrix4x4 GetScaleMatrix() const;
 
 	const Vector3& GetRotate() const { return m_rotate; }
 	Vector3 GetRotateAngle() const;
-	float GetScale() { return m_scale; }
+	float GetScale() const { return m_scale; }
 	const Vector3& GetTranslate() const { return m_translate; }
 	const String& GetName() { return m_name; }
 	virtual BDB GetCameraFitBox() const;

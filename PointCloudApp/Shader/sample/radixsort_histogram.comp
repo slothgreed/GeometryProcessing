@@ -1,0 +1,21 @@
+uniform uint u_num;
+uniform uint u_bitShift;
+uniform uint u_binNum;
+layout(std430, binding = 0) buffer InputBuffer {
+    uint data[]; 
+};
+
+layout(std430, binding = 1) buffer OutputBuffer
+{
+	uint histogram[];
+};
+
+
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+	if(index >= u_num){return;}
+	uint value = data[index] >> u_bitShift & 0xFFu;
+	if(value >= u_binNum){ return;}
+	atomicAdd(histogram[value],1u);
+} 

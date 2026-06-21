@@ -95,10 +95,10 @@ void GLBuffer::BufferSubData(int offset, const Vector<Vector3>& value)
 	OUTPUT_GLERROR;
 }
 
-void GLBuffer::BufferSubData(int offset, int size, const void* data)
+void GLBuffer::BufferSubData(int offset, int sizeofData, const void* data)
 {
 	assert(m_handle != 0);
-	glNamedBufferSubData(m_handle, offset, size, data);
+	glNamedBufferSubData(m_handle, offset, sizeofData, data);
 	OUTPUT_GLERROR;
 }
 

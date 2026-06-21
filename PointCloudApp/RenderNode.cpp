@@ -177,6 +177,16 @@ void UIContext::ClearDebugNode()
 	m_pDebugNode->ClearNode();
 }
 
+void RenderNode::RemoveNodeNameContain(const String& name)
+{
+	for (auto it = m_child.begin(); it != m_child.end(); ) {
+		if (it->first.find(name) != String::npos) {
+			it = m_child.erase(it); // erase‚ÍŽŸ‚Ìiterator‚ð•Ô‚·
+		} else {
+			++it;
+		}
+	}
+}
 Matrix4x4 RenderNode::GetTranslateMatrix() const
 {
 	return glmUtil::CreateTranslate(m_translate);

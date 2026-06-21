@@ -57,6 +57,12 @@
     <Filter Include="ソース ファイル\Utility\STEP">
       <UniqueIdentifier>{a93760bc-bb9d-4596-86b6-dcd8fc3a0a0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Utility\DXF">
+      <UniqueIdentifier>{25d81fba-6a5d-44e8-831b-19175971f7e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Utility\GaussianSplatting">
+      <UniqueIdentifier>{4f53f30e-977d-4530-af99-310b74a1e320}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -316,6 +322,15 @@
     </ClCompile>
     <ClCompile Include="SoftwareRasterizer.cpp">
       <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
+    <ClCompile Include="DXFNode.cpp">
+      <Filter>ソース ファイル\Utility\DXF</Filter>
+    </ClCompile>
+    <ClCompile Include="GaussianSplattingNode.cpp">
+      <Filter>ソース ファイル\Utility\GaussianSplatting</Filter>
+    </ClCompile>
+    <ClCompile Include="CrossSectionLine.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -597,6 +612,15 @@
     </ClInclude>
     <ClInclude Include="SIMDAPI.h">
       <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="DXFNode.h">
+      <Filter>ソース ファイル\Utility\DXF</Filter>
+    </ClInclude>
+    <ClInclude Include="GaussianSplattingNode.h">
+      <Filter>ソース ファイル\Utility\GaussianSplatting</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossSectionLine.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

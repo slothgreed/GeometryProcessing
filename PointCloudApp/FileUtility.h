@@ -70,6 +70,7 @@ public:
 
 	bool Open(const String& filePath, bool binary = false);
 	void Write(const String& contents, bool endl = false);
+	void Write(const Vector<float>& contents, bool endl = false);
 	void WriteBinary(void* contents, Format format, bool endl = false);
 	void Close();
 private:

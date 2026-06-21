@@ -239,7 +239,12 @@ STEPStruct::~STEPStruct()
 	for (auto& v : bSplineCurve) { delete v.second; }
 	for (auto& v : bSplineSurfaceWithKnots) { delete v.second; }
 	for (auto& v : bSplineSurface) { delete v.second; }
-
+	for (auto& v : productDefinition) { delete v.second; }
+	for (auto& v : productDefinitionShape) { delete v.second; }
+	for (auto& v : shapeRepresentation) { delete v.second; }
+	for (auto& v : shapeRepresentationRelationShip) { delete v.second; }
+	for (auto& v : manifoldSolidBrep) { delete v.second; }
+	for (auto& v : advancedBrepShapeRepresentation) { delete v.second; }
 }
 
 void STEPEntityBase::NotDefineEntity(const String& str)
@@ -462,7 +467,6 @@ void STEPAxis2Placement3D::FetchData(const STEPStruct& step)
 
 	data.direction1 = FindSetData2(step, step.directions, raw.dirRef1);
 	if (data.direction1) data.dir1 = data.direction1->direction;
-
 
 	data.direction2 = FindSetData2(step, step.directions, raw.dirRef2);
 	if (data.direction2) data.dir2 = data.direction2->direction;
@@ -1677,10 +1681,9 @@ void STEPClosedShell::FetchData(const STEPStruct& step)
 
 STEPShape STEPClosedShell::CreateMesh(const STEPStruct& step)
 {
-	FetchData(step);
-	STEPShape mesh;
-	STEPShell::CreateMesh(*this, mesh);
-	return mesh;
+	STEPShape shape(id);
+	STEPShell::CreateMesh(*this, shape);
+	return shape;
 }
 
 void STEPOpenShell::Fetch(STEPStruct& step, const STEPString& stepStr)
@@ -1698,7 +1701,7 @@ void STEPOpenShell::FetchData(const STEPStruct& step)
 STEPShape STEPOpenShell::CreateMesh(const STEPStruct& step)
 {
 	FetchData(step);
-	STEPShape shape;
+	STEPShape shape(id);
 	STEPShell::CreateMesh(*this, shape);
 	return shape;
 }
@@ -2115,4 +2118,157 @@ void STEPBSplineSurface::FetchRational(const String& str)
 	}
 }
 
+
+void STEPShapeRepresentation::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPShapeRepresentation();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.entity.value);
+	
+	auto split = STEPString::SplitValue(values[1]);
+	data->axis2Placement3D.resize(split.size());
+	for(size_t i = 0; i < split.size(); i++) {
+		if (!STEPString::ValueToRef(split[i], data->axis2Placement3D[i].first)) { Assert::Failed(); return; }
+	}
+	step.shapeRepresentation[data->id] = data;
+
+}
+void STEPShapeRepresentation::FetchData(const STEPStruct& step)
+{
+	for (size_t i = 0; i < axis2Placement3D.size(); i++) {
+		axis2Placement3D[i].second = FindSetData2(step, step.axis2Placement3D, axis2Placement3D[i].first);
+	}
+}
+String STEPShapeRepresentation::Dump(const DebugOption& option)
+{
+	auto str = ToString();
+	for (size_t i = 0; i < axis2Placement3D.size(); i++) {
+		if (axis2Placement3D[i].second) { str += axis2Placement3D[i].second->Dump(option); }
+	}
+
+	return str;
+}
+void STEPShapeRepresentation::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		for (size_t i = 0; i < axis2Placement3D.size(); i++) {
+			if (axis2Placement3D[i].second) { axis2Placement3D[i].second->ShowUI(ui); }
+		}
+		ImGui::TreePop();
+	}
+}
+
+
+
+void STEPShapeRepresentationRelationShip::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPShapeRepresentationRelationShip();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.entity.value);
+
+	if (!STEPString::ValueToRef(values[2], data->ref0)) { Assert::Failed(); return; }
+	if (!STEPString::ValueToRef(values[3], data->ref1)) { Assert::Failed(); return; }
+
+	step.shapeRepresentationRelationShip[data->id] = data;
+}
+void STEPShapeRepresentationRelationShip::FetchData(const STEPStruct& step)
+{
+	// ref0, ref1 ‚Í—¼•û shapeRepresentation ‚©A—¼•û advancedBrepShapeRepresentation ‚Ì‚Ç‚¿‚ç‚©‚É‚È‚é‚Í‚¸
+	shapeRepresentation = FindSetData2(step, step.shapeRepresentation, ref0);
+	if (shapeRepresentation == nullptr) {
+		shapeRepresentation = FindSetData2(step, step.shapeRepresentation, ref1);
+		advancedBrepShapeRepresentation = FindSetData2(step, step.advancedBrepShapeRepresentation, ref0);
+	} else {
+		advancedBrepShapeRepresentation = FindSetData2(step, step.advancedBrepShapeRepresentation, ref1);
+	}
+
+}
+String STEPShapeRepresentationRelationShip::Dump(const DebugOption& option)
+{
+	auto str = ToString();
+	if (shapeRepresentation) { str += shapeRepresentation->Dump(option); }
+	if (advancedBrepShapeRepresentation) { str += advancedBrepShapeRepresentation->Dump(option); }
+
+	return str;
+}
+void STEPShapeRepresentationRelationShip::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		if (shapeRepresentation) { shapeRepresentation->ShowUI(ui); }
+		if (advancedBrepShapeRepresentation) { advancedBrepShapeRepresentation->ShowUI(ui); }
+		ImGui::TreePop();
+	}
+}
+
+void STEPManifoldSolidBrep::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPManifoldSolidBrep();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.entity.value);
+	if (!STEPString::ValueToRef(values[1], data->shell.first)) { Assert::Failed(); return; }
+	step.manifoldSolidBrep[data->id] = data;
+}
+void STEPManifoldSolidBrep::FetchData(const STEPStruct& step)
+{
+	shell.second = FindSetData2(step, step.closedShell, shell.first);
+	if (!shell.second) {
+		shell.second = FindSetData2(step, step.openShell, shell.first);
+	}
+}
+String STEPManifoldSolidBrep::Dump(const DebugOption& option)
+{
+	auto str = ToString();
+	if (shell.second) { str += shell.second->Dump(option); }
+	return str;
+}
+void STEPManifoldSolidBrep::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		if (shell.second) { shell.second->ShowUI(ui); }
+		ImGui::TreePop();
+	}
+}
+
+
+void STEPAdvancedBrepShapeRepresentation::Fetch(STEPStruct& step, const STEPString& stepStr)
+{
+	auto data = new STEPAdvancedBrepShapeRepresentation();
+	STEPEntityBase::Fetch(data, stepStr);
+	auto values = STEPString::SplitValue(stepStr.entity.value);
+	{
+		auto split = STEPString::SplitValue(values[1]);
+		data->manifoldSolidBrep.resize(split.size());
+		for (size_t i = 0; i < split.size(); i++) {
+			if (!STEPString::ValueToRef(split[i], data->manifoldSolidBrep[i].first)) { Assert::Failed(); return; }
+		}
+	}
+	step.advancedBrepShapeRepresentation[data->id] = data;
+}
+void STEPAdvancedBrepShapeRepresentation::FetchData(const STEPStruct& step)
+{
+	for (size_t i = 0; i < manifoldSolidBrep.size(); i++) {
+		manifoldSolidBrep[i].second = FindSetData2(step, step.manifoldSolidBrep, manifoldSolidBrep[i].first);
+	}
+}
+String STEPAdvancedBrepShapeRepresentation::Dump(const DebugOption& option)
+{
+	auto str = ToString();
+	for (size_t i = 0; i < manifoldSolidBrep.size(); i++) {
+		if (manifoldSolidBrep[i].second) {
+			str += manifoldSolidBrep[i].second->Dump(option);
+		}
+	}
+
+	return str;
+}
+
+void STEPAdvancedBrepShapeRepresentation::ShowUI(STEPUIContext& ui)
+{
+	if (ShowBranch(ui, ui.IsSelect(id))) {
+		for (size_t i = 0; i < manifoldSolidBrep.size(); i++) {
+			if (manifoldSolidBrep[i].second) { manifoldSolidBrep[i].second->ShowUI(ui); }
+		}
+		ImGui::TreePop();
+	}
+}
 }

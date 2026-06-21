@@ -164,7 +164,7 @@ Matrix4x4 MathHelper::CreateRotateMatrix(const Vector3& source, const Vector3& t
 
 bool MathHelper::IsSame(float v1, float v2)
 {
-	return fabs(v1 - v2) < 1e-6f;
+	return fabs(v1 - v2) < EPS;
 }
 bool MathHelper::IsSameDir(const Vector3& v1, const Vector3& v2)
 {
@@ -559,6 +559,16 @@ bool MathHelper::IsLoop(const Vector<Vector3>& polyline)
 	// ÅŒã‚ª“¯‚¶‚©‚Ç‚¤‚©‚¾‚¯‚Å”»’f GL_LINE_STRIP‚Åƒ‹[ƒv•`‰æ‚Å‚«‚é‚æ‚¤‚È\¬‚©‚ğ\’z
 	if (polyline.size() == 0) return false;
 	return polyline[0] == polyline[polyline.size() - 1];
+}
+
+Vector4 Plane::ToFormula(const Matrix4x4& matrix)
+{
+	glm::vec3 point = glm::vec3(matrix[3]);
+
+	glm::vec3 normal = glm::normalize(glm::mat3(matrix) * glm::vec3(0, 1, 0));
+	float d = -glm::dot(normal, point);
+
+	return glm::vec4(normal, d);
 }
 
 }

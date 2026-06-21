@@ -102,6 +102,7 @@ public:
 	~Plane() {};
 	const Vector3& GetPoint() const { return m_point; }
 	const Vector3& GetNormal() const { return m_normal; }
+	static Vector4 ToFormula(const Matrix4x4& matrix);
 private:
 	Vector3 m_point;
 	Vector3 m_normal;

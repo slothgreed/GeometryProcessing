@@ -34,6 +34,12 @@ struct STEPQuasiUniformCurve;
 struct STEPBSplineCurve;
 struct STEPBSplineSurface;
 struct STEPBSplineSurfaceWithKnots;
+struct STEPProductDefinition;
+struct STEPProductDefinitionShape;
+struct STEPShapeRepresentation;
+struct STEPAdvancedBrepShapeRepresentation;
+struct STEPManifoldSolidBrep;
+struct STEPShapeRepresentationRelationShip;
 enum ESTEPEntityType
 {
 	ESTEPNone,
@@ -65,7 +71,13 @@ enum ESTEPEntityType
 	ESTEPBSplineCurveWithNot,
 	ESTEPRationalBSplineCurve,
 	ESTEPBSplineSurface,
-	ESTEPBSplineSurfaceWithKnots
+	ESTEPBSplineSurfaceWithKnots,
+	ESTEPProductDefinition,
+	ESTEPProductDefinitionShape,
+	ESTEPShapeRepresentation,
+	ESTEPAdvancedBrepShapeRepresentation,
+	ESTEPManifoldSolidBrep,
+	ESTEPShapeRepresentationRelationShip
 };
 
 enum class STEPBSplineCurveFormType

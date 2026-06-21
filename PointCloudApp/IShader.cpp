@@ -57,6 +57,10 @@ void IShadingShader::SetVertexFormat(const VertexFormats& formats)
 
 void IShadingShader::SetVertexFormat(const VertexFormat& format)
 {
+	if(format.type == DATA_UNKNOWN) {
+		Assert::Failed();
+		return;
+	}
 	glEnableVertexAttribArray(format.location);
 	glVertexAttribFormat(format.location, format.componentSize, format.type, format.normalized, format.offset);
 	glVertexAttribBinding(format.location, format.binding);
@@ -248,13 +252,9 @@ void IShadingShader::BindIndexBuffer(const GLBuffer* pBuffer)
 	OUTPUT_GLERROR;
 }
 
-void IShadingShader::DrawIndirectBuffer(const GLBuffer* pBuffer)
+void IShadingShader::DrawArrayIndirectBuffer(GLuint primitiveType, int offset, const GLBuffer* pBuffer)
 {
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, pBuffer->Handle());
-	OUTPUT_GLERROR;
-}
-void IShadingShader::DrawArrayIndirect(GLuint primitiveType, int offset)
-{
 	glDrawArraysIndirect(primitiveType, (void*)offset);
 	OUTPUT_GLERROR;
 }
@@ -483,7 +483,13 @@ void IComputeShader::BarrierSSBOAndCommand()
 {
 	glMemoryBarrier(
 		GL_SHADER_STORAGE_BARRIER_BIT |
-		GL_COMMAND_BARRIER_BIT);
+		GL_COMMAND_BARRIER_BIT |
+		GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
+	OUTPUT_GLERROR;
+}
+void IComputeShader::BarrierAll()
+{
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	OUTPUT_GLERROR;
 }
 

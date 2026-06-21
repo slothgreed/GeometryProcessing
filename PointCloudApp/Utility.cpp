@@ -56,6 +56,7 @@ void DebugPrintf::Vec4(const String& name, const Vector4& value)
 void DebugPrintf::Mat4(const String& name, const Matrix4x4& mat)
 {
 #ifdef _DEBUG
+	printf((name + ":\n").data());
 	printf(
 		"%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf\n%.3lf,%.3lf,%.3lf,%.3lf",
 		mat[0][0], mat[0][1], mat[0][2], mat[0][3],
@@ -494,6 +495,11 @@ int GLUtil::GetFormatSize(int value)
 void Assert::Failed()
 {
 	//assert(0);
+}
+
+void Assert::GLFailed()
+{
+	assert(0);
 }
 void Assert::Failed(const String& str)
 {

@@ -28,6 +28,7 @@ private:
 		Shader():depthPhase(false) {};
 		~Shader() {};
 		void SetDepthPhase(bool depth) { depthPhase = depth; }
+		virtual Vector3i GetLocalThreadNum() const { return Vector3i(256, 1, 1); }
 		virtual ShaderPath GetShaderPath();
 		virtual void FetchUniformLocation();
 		virtual void Execute(const DrawContext& context, const PointCloudNode& node, int positionBuffer);

@@ -2,6 +2,7 @@
 #define KI_STEP_NODE_H
 #include "RenderNode.h"
 #include "Mesh.h"
+
 #include "Polyline.h"
 #include "STEPEntity.h"
 #include "STEPTypes.h"
@@ -47,13 +48,11 @@ public:
 
 	void SetShape(Vector<STEPShape>&& shape) { m_shape = std::move(shape); }
 private:
-	void BuildShape();
-	virtual void UpdateData(float diff);
-	void BuildGLResource();
 
 	struct UI
 	{
 		bool visibleBDB = false;
+		bool visibleWire = true;
 		bool visibleMesh = true;
 	};
 
@@ -82,9 +81,8 @@ private:
 		bool IsActive() const { return pPosition != nullptr; }
 	};
 
-	struct GPU
+	struct GPUShell
 	{
-		RenderBatch bdb;
 
 		bool IsActive() const
 		{
@@ -98,6 +96,8 @@ private:
 				lineLoop.IsActive() ||
 				lineLoopIndex.IsActive();
 		}
+		STEPShape* pShape = nullptr;
+		RenderBatch bdb;
 		RenderBatch triangle;
 		RenderBatch triangleIndex;
 		RenderBatch line;
@@ -108,11 +108,24 @@ private:
 		RenderBatch lineLoopIndex;
 	};
 
-	GPU m_gpu;
+	struct Node
+	{
+		Matrix4x4 world = Matrix4x4(1.0f);
+		Vector<GPUShell*> gpuShell; // 描画はこちらを参照する
+		Vector<Node> child;
+	};
 
+	void DrawShell(const DrawContext& context, SimpleShader* pSimpleShader, const GPUShell& shell);
+	void BuildShape();
+	virtual void UpdateData(float diff);
+	void BuildGLResource();
+	void BuildGPUResource();
+	void BuildNode();
 
+	Node m_root;
 	STEPUIContext uiContext;
 	UI m_ui;
+	std::unordered_map<int, GPUShell> m_gpu; // リソース
 	Vector<STEPShape> m_shape;
 	Matrix4x4 m_rotateMatrix;
 	Shared<STEPStruct> m_step;

@@ -16,6 +16,7 @@ in vec2 f_texcoord;
 uniform ivec2 u_ImageSize;
 layout(location = 0)out vec4 FragColor;
 
+
 void main()
 {
 	ivec2 pixel = ivec2(gl_FragCoord.xy);
@@ -26,6 +27,6 @@ void main()
 	if(depthForward < depthCompute){
 		FragColor = texture(u_colorForward,f_texcoord);
 	}else{
-		FragColor = unpackColor(uintBitsToFloat(u_colorCompute[index]));
+		FragColor = unpackColor4(u_colorCompute[index]);
 	}
 }

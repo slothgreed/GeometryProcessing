@@ -17,20 +17,7 @@ layout(std430, binding = 2) buffer posBuffer
 layout(location = 4) uniform mat4 u_VP;
 uniform int u_PositionNum;
 uniform ivec2 u_ImageSize;
-float packColor(vec3 color) {
-    return color.r + color.g * 256.0 + color.b * 256.0 * 256.0;
-}
 
-vec4 unpackColor(float f) {
-    float fi = round(f);
-    vec3 color;
-    color.r = floor(fi / 65536.0); // 256 * 256
-    fi -= color.r * 65536.0;
-    color.g = floor(fi / 256.0);
-    fi -= color.g * 256.0;
-    color.b = fi;
-    return vec4(color / 255.0, 1.0);
-}
 
 void main()
 {
@@ -58,7 +45,8 @@ void main()
 #else
 	uint imageDepth = depthImage[index];
 	if(depth == imageDepth) {
-		colorImage[index] = floatBitsToUint(modelPos.w);
+	    vec3 color = unpackColor3F(modelPos.w);
+		colorImage[index] = packColor(color);
 	}
 #endif
 } 

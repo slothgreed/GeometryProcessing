@@ -49,6 +49,7 @@ public:
 	Polyline CreateSmooth() const;
 	Vector<Vector3> CreateParametricColor() const;
 	Polyline& ConvertLines();
+
 private:
 	Vector<Vector3> m_points;
 	Vector<UInt> m_indexs;

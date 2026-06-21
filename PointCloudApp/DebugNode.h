@@ -128,6 +128,43 @@ private:
 	Mesh m_mesh;
 };
 
+class BDBNode : public DebugNode
+{
+public:
+	BDBNode(const String& name, const BDB& mesh);
+	~BDBNode() = default;
+
+	void BuildGLBuffer();
+	virtual void DrawNode(const DrawContext& context);
+	virtual void ShowUI(UIContext& ui);
+
+	Vector4 GetXPlane() const { return Vector4(1, 0, 0, -m_ui.xPlane.position); }
+	Vector4 GetYPlane() const { return Vector4(0, 1, 0, -m_ui.yPlane.position); }
+	Vector4 GetZPlane() const { return Vector4(0, 0, 1, -m_ui.zPlane.position); }
+private:
+	struct UI
+	{
+		struct Plane
+		{
+			Plane()
+				: visible(false)
+				, position(0.0f)
+			{
+			}
+			bool visible;
+			float position;
+			Matrix4x4 matrix;
+		};
+
+		Plane xPlane;
+		Plane yPlane;
+		Plane zPlane;
+	};
+	UI m_ui;
+	Unique<GLBuffer> m_pPosition;
+	Unique<GLBuffer> m_pIndex;
+	BDB m_bdb;
+};
 }
 
 #endif DEBUG_NODE_H

@@ -287,8 +287,7 @@ void TerrainNode::Draw(const DrawContext& context)
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetMatrix(m_pInstanceBuffer.get());
 	if (m_ui.lod) {
-		m_pShader->DrawIndirectBuffer(m_pDrawIndirectBuffer.get());
-		m_pShader->DrawArrayIndirect(GL_PATCHES, 0);
+		m_pShader->DrawArrayIndirectBuffer(GL_PATCHES, 0, m_pDrawIndirectBuffer.get());
 	} else {
 		m_pShader->DrawArrayInstaced(GL_PATCHES, m_patch.position.size(), m_pInstanceBuffer->Num());
 	}
@@ -296,8 +295,7 @@ void TerrainNode::Draw(const DrawContext& context)
 		context.pResource->GL()->EnablePolygonWire();
 		m_pShader->BindShowWire(true);
 		if (m_ui.lod) {
-			m_pShader->DrawIndirectBuffer(m_pDrawIndirectBuffer.get());
-			m_pShader->DrawArrayIndirect(GL_PATCHES, 0);
+			m_pShader->DrawArrayIndirectBuffer(GL_PATCHES, 0, m_pDrawIndirectBuffer.get());
 		} else {
 			m_pShader->DrawArrayInstaced(GL_PATCHES, m_patch.position.size(), m_pInstanceBuffer->Num());
 		}

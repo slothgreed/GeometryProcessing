@@ -6,12 +6,11 @@ namespace KI
 {
 struct HalfEdge
 {
-	int endPos;
-	int nextEdge;
-	int beforeEdge;
-	int oppositeEdge;
-	int face;
-
+	int endPos = -1;
+	int nextEdge = -1;
+	int beforeEdge = -1;
+	int oppositeEdge = -1;
+	int face = -1;
 };
 
 class HalfEdgeStruct
