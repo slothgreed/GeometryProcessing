@@ -76,10 +76,8 @@ void CrossSectionLine::Shader::Execute(const Args& args)
 	BindShaderStorage(2, args.lineBuffer->Handle());
 	BindShaderStorage(3, args.drawBuffer->Handle());
 	Dispatch(GetDispatchNum1D(args.triBuffer->Num()));
-	BarrierAll();
+	BarrierSSBOAndCommand();
 	UnUse();
-	Vector<Vector3> lineData(args.lineBuffer->Num());
-	args.lineBuffer->GetBufferData(lineData);
 
 }
 }
