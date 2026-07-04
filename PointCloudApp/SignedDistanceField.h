@@ -35,6 +35,7 @@ private:
 		enum UNIFORM
 		{
 			MINBOX,
+			MAXBOX,
 			PITCH,
 			POSITION,
 			AXIS,

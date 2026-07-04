@@ -26,6 +26,7 @@ layout(std430, binding = 4) buffer debugBuffer
 #endif
 
 uniform vec3 u_minBox;
+uniform vec3 u_maxBox;
 uniform vec3 u_pitch;
 uniform float u_position;
 uniform int u_axis; // 0 = X; 1 = Y; 2 = Z;
@@ -95,8 +96,7 @@ void GetTrianglePos(int triIndex, out vec3 p0, out vec3 p1, out vec3 p2)
 
 float PointToBox(vec3 P, vec3 bdbMin, vec3 bdbMax)
 {
-	// AABB 内部にいる場合は、表面までの最短距離を計算
-	vec3 C; // AABB の最近点
+	vec3 C;
 	C.x = max(bdbMin.x, min(P.x, bdbMax.x));
 	C.y = max(bdbMin.y, min(P.y, bdbMax.y));
 	C.z = max(bdbMin.z, min(P.z, bdbMax.z));
@@ -110,11 +110,32 @@ float PointToBox(vec3 P, vec3 bdbMin, vec3 bdbMax)
 	return length(P - C);
 }
 
-float CalcMinDistance(vec3 pixelPos)
+int CalcSigned(vec3 target, vec3 tri0, vec3 tri1, vec3 tri2)
+{
+    vec3 normal = normalize(cross(tri1 - tri0, tri2 - tri0));
+
+    float s = dot(target - tri0, normal);
+
+    return (s >= 0.0f) ? 1 : -1;
+}
+
+struct HitResult
+{
+	float dist;
+	vec3 target;
+	vec3 tri0;
+	vec3 tri1;
+	vec3 tri2;
+};
+
+HitResult CalcMinDistance(vec3 pixelPos)
 {
 	vec3 p0,p1,p2;
 	GetTrianglePos(0,p0,p1,p2);
-	float minDist = CalcDistance(pixelPos,p0,p1,p2);
+	HitResult minResult;
+	minResult.dist = CalcDistance(pixelPos,p0,p1,p2);
+	minResult.target = pixelPos;
+	minResult.tri0 = p0; minResult.tri1 = p1; minResult.tri2 = p2;
     int stack[64];
     int stackPtr = 0;
     stack[stackPtr++] = 100258-1;
@@ -124,19 +145,73 @@ float CalcMinDistance(vec3 pixelPos)
         BVH node = nodes[nodeIndex];
 
         float boxDist = PointToBox(pixelPos, getMinBox(node), getMaxBox(node));
-        if (boxDist > minDist) { continue; }
+        if (boxDist > minResult.dist) { continue; }
 
         if (getLeft(node) == -1 && getRight(node) == -1) {
 			GetTrianglePos(getTriangle(node),p0,p1,p2);
 			float dist = CalcDistance(pixelPos,p0,p1,p2);
-            minDist = min(minDist, dist);
+			if(dist < minResult.dist){
+				minResult.target = pixelPos;
+				minResult.dist = dist;
+				minResult.tri0 = p0;
+				minResult.tri1 = p1;
+				minResult.tri2 = p2;
+			}
         } else {
             if (getLeft(node) != -1)  stack[stackPtr++] = getLeft(node);
             if (getRight(node) != -1) stack[stackPtr++] = getRight(node);
         }
     }
 	
-	return minDist;
+	return minResult;
+}
+
+vec4 ColorizeSDF(float sdf, float maxLength, float frequency)
+{
+    float d = abs(sdf);
+
+    // normalized
+    float t = clamp(d / maxLength, 0.0, 1.0);
+
+    vec3 color;
+
+    if (sdf >= 0.0)
+    {
+        // Green -> Yellow -> Red
+        if (t < 0.5)
+            color = mix(vec3(0.0, 1.0, 0.0),
+                        vec3(1.0, 1.0, 0.0),
+                        t * 2.0);
+        else
+            color = mix(vec3(1.0, 1.0, 0.0),
+                        vec3(1.0, 0.0, 0.0),
+                        (t - 0.5) * 2.0);
+    }
+    else
+    {
+        // Green -> Cyan -> Blue
+        if (t < 0.5)
+            color = mix(vec3(0.0, 1.0, 0.0),
+                        vec3(0.0, 1.0, 1.0),
+                        t * 2.0);
+        else
+            color = mix(vec3(0.0, 1.0, 1.0),
+                        vec3(0.0, 0.0, 1.0),
+                        (t - 0.5) * 2.0);
+    }
+
+    // isoline
+    float stripe = abs(mod(d, frequency) - frequency * 0.5);
+    float line = stripe < frequency * 0.05 ? 1.0 : 0.0;
+
+    // 等高線は白
+    color = mix(color, vec3(1.0), line);
+
+    // 0面を強調
+    float surface = d < frequency * 0.03 ? 1.0 : 0.0;
+    color = mix(color, vec3(0.0, 1.0, 0.0), surface);
+
+    return vec4(color, 1.0);
 }
 
 void main()
@@ -158,14 +233,14 @@ void main()
 	int axisHeight = (u_axis + 2) % 3;
 	pixelPos[axisHeight] = u_minBox[axisHeight] + (height * u_pitch[axisHeight]) + halfPitch[axisHeight]; 
 	
-	float minDist = CalcMinDistance(pixelPos);
+	HitResult minResult = CalcMinDistance(pixelPos);
 #ifdef DEBUG
-	debugs[width * u_resolute + height] = minDist;
+	debugs[width * u_resolute + height] = minResult.dist;
 #endif
 	
-	float dist = abs(mod(minDist,u_frequency) - (u_frequency * 0.5));
-	if(dist < 0.1f){dist = 1;} else {dist = 0;}
+	float dist = minResult.dist * CalcSigned(minResult.target,minResult.tri0,minResult.tri1,minResult.tri2);
+	float diag = length(u_maxBox - u_minBox) * 0.1;
 	
-	vec4 color = vec4(dist,dist,dist,1);
+	vec4 color = ColorizeSDF(dist, diag, u_frequency);
 	imageStore(sdfImage, ivec2(height,width) ,color);
 }

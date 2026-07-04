@@ -218,6 +218,7 @@ ShaderPath SignedDistanceField::Shader::GetShaderPath()
 void SignedDistanceField::Shader::FetchUniformLocation()
 {
 	m_uniform[MINBOX] = GetUniformLocation("u_minBox");
+	m_uniform[MAXBOX] = GetUniformLocation("u_maxBox");
 	m_uniform[PITCH] = GetUniformLocation("u_pitch");
 	m_uniform[POSITION] = GetUniformLocation("u_position");
 	m_uniform[AXIS] = GetUniformLocation("u_axis");
@@ -235,6 +236,7 @@ void SignedDistanceField::Shader::Execute(HalfEdgeNode* pNode, int resolute, Axi
 	auto pitch = diag / (float)resolute;
 	Use();
 	BindUniform(m_uniform[MINBOX], bdb.Min());
+	BindUniform(m_uniform[MAXBOX], bdb.Max());
 	BindUniform(m_uniform[PITCH], pitch);
 	BindUniform(m_uniform[POSITION], position);
 	BindUniform(m_uniform[AXIS], (int)axis);
@@ -252,7 +254,6 @@ void SignedDistanceField::Shader::Execute(HalfEdgeNode* pNode, int resolute, Axi
 
 	Dispatch(GetDispatchNum2D(Vector2i(resolute,resolute)));
 	BarrierImage();
-	glFlush();
 	UnUse();
 }
 }
