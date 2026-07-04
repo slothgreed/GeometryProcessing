@@ -322,7 +322,11 @@ Vector<uint32_t> RadixSortTest::ExecuteGPU(const Vector<uint32_t>& in)
 		pHistogramShader->Execute(pInBuffer, pHistogramBuffer, shift, 256);
 		pPrefixSumShader->Execute(pHistogramBuffer, pPrefixSumBuffer);
 		pScatterShader->Execute(pInBuffer, pOutBuffer, pPrefixSumBuffer, shift);
+
+		Vector<uint32_t> result(in.size());
+		pOutBuffer->GetBufferData(result);
 		std::swap(pInBuffer, pOutBuffer);
+
 	}
 
 	Vector<uint32_t> result(in.size());
