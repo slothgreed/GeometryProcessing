@@ -2,14 +2,14 @@
 #include "KIMath.h"
 namespace KI
 {
-Voxel::Voxel(int resolute, const BDB& bdb)
+VoxelU16::VoxelU16(int resolute, const BDB& bdb)
 	: m_resolute(Vector3i(resolute, resolute, resolute))
 	, m_bdb(bdb)
 {
 	m_pitch = (m_bdb.Max() - m_bdb.Min()) / Vector3(m_resolute);
 }
 
-Voxel::Voxel(const Vector3i& size, const BDB& bdb, std::vector<unsigned short>&& data)
+VoxelU16::VoxelU16(const Vector3i& size, const BDB& bdb, std::vector<unsigned short>&& data)
 	: m_resolute(size)
 	, m_bdb(bdb)
 	, m_ushort(std::move(data))
@@ -17,50 +17,27 @@ Voxel::Voxel(const Vector3i& size, const BDB& bdb, std::vector<unsigned short>&&
 	m_pitch = (m_bdb.Max() - m_bdb.Min()) / Vector3(m_resolute);
 }
 
-int Voxel::GetIndex(int x, int y, int z) const
+int VoxelU16::GetIndex(int x, int y, int z) const
 {
 	return
 		x +
 		y * m_resolute.x +
 		z * m_resolute.x * m_resolute.y;
 }
-int Voxel::GetIndex(const Vector3i& data) const
+int VoxelU16::GetIndex(const Vector3i& data) const
 {
 	return GetIndex(data.x, data.y, data.z);
 }
-unsigned short Voxel::GetData(const Vector3i& data) const
+unsigned short VoxelU16::GetData(const Vector3i& data) const
 {
 	return m_ushort[GetIndex(data)];
 }
 
-Vector3 Voxel::GetPosition(const Vector3i& data) const
+Vector3 VoxelU16::GetPosition(const Vector3i& data) const
 {
 	return Vector3(data.x, data.y, data.z) * m_pitch;
 }
 
-std::vector<Vector4> Voxel::CreateGrayScale() const
-{
-	std::vector<Vector4> grayScale(m_resolute.x * m_resolute.y * m_resolute.z);
-	unsigned short maxValue = 0.0f;
-	for (int x = 0; x < m_resolute.x; x++)
-	for (int y = 0; y < m_resolute.y; y++)
-	for (int z = 0; z < m_resolute.z; z++) {
-		maxValue = std::max(maxValue, GetData(Vector3i(x, y, z)));
-	}
-
-	for (int x = 0; x < m_resolute.x; x++)
-	for (int y = 0; y < m_resolute.y; y++)
-	for (int z = 0; z < m_resolute.z; z++) {
-		int index = GetIndex(x, y, z);
-		float normalized = static_cast<float>(m_ushort[index]) / maxValue;
-		grayScale[index].x = normalized;
-		grayScale[index].y = normalized;
-		grayScale[index].z = normalized;
-		grayScale[index].w = 1.0f;
-	}
-
-	return grayScale;
-}
 
 
 int edgeTable[256] = {
@@ -380,7 +357,7 @@ Vector<int> MarchingCube::CreateFlattenTriangleTable() const
 	}
 	return flatten;
 }
-void MarchingCube::Build(const Voxel& voxel, float threshold)
+void MarchingCube::Build(const VoxelU16& voxel, float threshold)
 {
 	struct Grid
 	{

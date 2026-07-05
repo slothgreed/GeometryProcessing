@@ -201,9 +201,9 @@ private:
 			float timeStep;
 		};
 
-		struct Voxel
+		struct VoxelU16
 		{
-			Voxel() :visible(false), resolute(8) {}
+			VoxelU16() :visible(false), resolute(8) {}
 			bool visible;
 			int resolute;
 		};
@@ -260,7 +260,7 @@ private:
 		int vertexDirection;
 		MST mst;
 		Meshlet meshlet;
-		Voxel voxel;
+		VoxelU16 voxel;
 		HeatMethod heatMethod;
 		Poisson poisson;
 	};

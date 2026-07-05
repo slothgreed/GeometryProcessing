@@ -5,12 +5,12 @@
 namespace KI
 {
 
-class Voxel
+class VoxelU16
 {
 public:
-	Voxel(int resolute, const BDB& bdb);
-	Voxel(const Vector3i& size, const BDB& bdb, std::vector<unsigned short>&& data);
-	~Voxel() {};
+	VoxelU16(int resolute, const BDB& bdb);
+	VoxelU16(const Vector3i& size, const BDB& bdb, std::vector<unsigned short>&& data);
+	~VoxelU16() {};
 
 	Vector3 GetPosition(const Vector3i& data) const;
 	unsigned short GetData(const Vector3i& data) const;
@@ -18,7 +18,6 @@ public:
 	int GetIndex(int x, int y, int z) const;
 	const Vector3i& GetResolute() const { return m_resolute; }
 	const BDB& GetBDB() const { return m_bdb; }
-	Vector<Vector4> CreateGrayScale() const;
 	int GetSize() const { return m_resolute.x * m_resolute.y * m_resolute.z; }
 	const Vector3& GetPitch() const { return m_pitch; }
 	const std::vector<unsigned short>& GetData() const { return m_ushort; }
@@ -37,7 +36,7 @@ public:
 
 	const GLBuffer* GetPositionBuffer() const { return m_gpu.pPosition.get(); }
 	const GLBuffer* GetNormalBuffer() const { return m_gpu.pNormal.get(); }
-	void Build(const Voxel& voxel, float threshold);
+	void Build(const VoxelU16& voxel, float threshold);
 	Vector<int> CreateFlattenTriangleTable() const;
 private:
 	Vector3 VertexInterp(float isolevel, const Vector3& p1, const Vector3& p2, float valp1, float valp2);

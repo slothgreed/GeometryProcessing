@@ -14,7 +14,7 @@ public:
 
 	static Texture* Load(const String& name, bool useMipmap);
 	static PixelData* LoadData(const String& name, int comp);
-	static Voxel* LoadVolume(const String& name);
+	static VoxelU16* LoadVolume(const String& name);
 	static Texture* LoadPGM(const String& name, bool hasCPU);
 
 private:

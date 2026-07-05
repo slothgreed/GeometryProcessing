@@ -84,7 +84,7 @@ public:
 	};
 
 
-	VolumeNode(Unique<Voxel>&& pVoxel);
+	VolumeNode(Unique<VoxelU16>&& pVoxel);
 	~VolumeNode();
 
 	virtual void Draw(const DrawContext& context);
@@ -93,6 +93,7 @@ public:
 private:
 	void BuildResource();
 	void BuildVoxelResource(bool withData);
+	Vector<Vector4> CreateGrayScale(const VoxelU16& voxel) const;
 
 	struct UI
 	{
@@ -163,7 +164,7 @@ private:
 
 	Gpu m_gpu;
 	Unique<Texture3D> m_pTexture3D;
-	Unique<Voxel> m_pVoxel;
+	Unique<VoxelU16> m_pVoxel;
 	MarchingCube m_marching;
 	Unique<VolumeNode::VolumeRayCastShader> m_pRayCastShader;
 	Unique<VolumeNode::MarchingCubeShader> m_pMarchingShader;

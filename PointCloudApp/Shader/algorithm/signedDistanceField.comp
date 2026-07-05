@@ -24,6 +24,10 @@ layout(std430, binding = 4) buffer debugBuffer
 	float debugs[];
 };
 #endif
+layout(std430, binding = 5) buffer sdfBuffer
+{
+	float sdfBuffer[];
+};
 
 uniform vec3 u_minBox;
 uniform vec3 u_maxBox;
@@ -238,7 +242,7 @@ void main()
 	debugs[width * u_resolute + height] = minResult.dist;
 #endif
 	
-	float dist = minResult.dist * CalcSigned(minResult.target,minResult.tri0,minResult.tri1,minResult.tri2);
+	float dist = minResult.dist;
 	float diag = length(u_maxBox - u_minBox) * 0.1;
 	
 	vec4 color = ColorizeSDF(dist, diag, u_frequency);

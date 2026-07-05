@@ -643,7 +643,7 @@ Shared<RenderNode> PointCloudApp::CreateGaussianSplatting()
 
 Shared<RenderNode> PointCloudApp::CreateVolumeTest()
 {
-	auto pVoxel = std::unique_ptr<Voxel>(TextureLoader::LoadVolume("E:\\cgModel\\volume\\sample\\dataset-stagbeetle-416x416x247.dat"));
+	auto pVoxel = std::unique_ptr<VoxelU16>(TextureLoader::LoadVolume("E:\\cgModel\\volume\\sample\\dataset-stagbeetle-416x416x247.dat"));
 	auto pNode = std::make_shared<VolumeNode>(std::move(pVoxel));
 	pNode->SetScale(100);
 	//pNode->SetTranslate(Vector3(300, 500, 0));

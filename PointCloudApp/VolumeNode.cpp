@@ -170,7 +170,7 @@ void VolumeNode::MarchingCubeShader::SetTaskNum(unsigned int taskNum)
 	BindUniform(m_uTaskNum, taskNum);
 }
 
-VolumeNode::VolumeNode(Unique<Voxel>&& pVoxel)
+VolumeNode::VolumeNode(Unique<VoxelU16>&& pVoxel)
 	: RenderNode("Volume")
 	, m_pVolumeImageShader(nullptr)
 	, m_pVoxel(std::move(pVoxel))
@@ -193,7 +193,7 @@ void VolumeNode::BuildResource()
 
 
 	m_pTexture3D = std::make_unique<Texture3D>();
-	m_pTexture3D->Build(m_pVoxel->GetResolute(), m_pVoxel->CreateGrayScale().data());
+	m_pTexture3D->Build(m_pVoxel->GetResolute(), CreateGrayScale(*m_pVoxel).data());
 
 	auto cube = Cube::CreateLine(GetBoundBox().Min(), GetBoundBox().Max());
 	m_gpu.pBDBLine = std::make_unique<GLBuffer>();
@@ -387,5 +387,30 @@ void VolumeNode::BuildVoxelResource(bool withData)
 		}
 	}
 
+}
+
+
+std::vector<Vector4> VolumeNode::CreateGrayScale(const VoxelU16& voxel) const
+{
+	std::vector<Vector4> grayScale(voxel.GetResolute().x * voxel.GetResolute().y * voxel.GetResolute().z);
+	unsigned short maxValue = 0.0f;
+	for (int x = 0; x < voxel.GetResolute().x; x++)
+		for (int y = 0; y < voxel.GetResolute().y; y++)
+			for (int z = 0; z < voxel.GetResolute().z; z++) {
+				maxValue = std::max(maxValue, voxel.GetData(Vector3i(x, y, z)));
+			}
+
+	for (int x = 0; x < voxel.GetResolute().x; x++)
+		for (int y = 0; y < voxel.GetResolute().y; y++)
+			for (int z = 0; z < voxel.GetResolute().z; z++) {
+				int index = voxel.GetIndex(x, y, z);
+				float normalized = static_cast<float>(voxel.GetData(Vector3i(x, y, z))) / maxValue;
+				grayScale[index].x = normalized;
+				grayScale[index].y = normalized;
+				grayScale[index].z = normalized;
+				grayScale[index].w = 1.0f;
+			}
+
+	return grayScale;
 }
 }

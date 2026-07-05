@@ -51,7 +51,7 @@ PixelData* TextureLoader::LoadData(const String& name, int comp)
 	pixel->data = stbi_load(name.data(), &pixel->width, &pixel->height, &pixel->component, comp);
 	return pixel;
 }
-Voxel* TextureLoader::LoadVolume(const String& name)
+VoxelU16* TextureLoader::LoadVolume(const String& name)
 {
 	/*
 	{
@@ -74,7 +74,7 @@ Voxel* TextureLoader::LoadVolume(const String& name)
 				}
 			}
 		}
-		return new Voxel(Vector3(sizeX, sizeY, sizeZ), BDB(Vector3(0), Vector3(1)), std::move(volume));
+		return new VoxelU16(Vector3(sizeX, sizeY, sizeZ), BDB(Vector3(0), Vector3(1)), std::move(volume));
 	}
 	*/
 	
@@ -88,6 +88,6 @@ Voxel* TextureLoader::LoadVolume(const String& name)
 		}
 	}
 
-	return new Voxel(Vector3(size[0], size[1], size[2]), BDB(Vector3(0), Vector3(1)), std::move(volume));
+	return new VoxelU16(Vector3(size[0], size[1], size[2]), BDB(Vector3(0), Vector3(1)), std::move(volume));
 }
 }
