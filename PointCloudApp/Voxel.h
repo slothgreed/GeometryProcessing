@@ -14,23 +14,14 @@ public:
 
 	Vector3 GetPosition(const Vector3i& data) const;
 	unsigned short GetData(const Vector3i& data) const;
-	Vector<unsigned short> GetDatas() const { return m_ushort; }
 	int GetIndex(const Vector3i& data) const;
 	int GetIndex(int x, int y, int z) const;
 	const Vector3i& GetResolute() const { return m_resolute; }
 	const BDB& GetBDB() const { return m_bdb; }
 	Vector<Vector4> CreateGrayScale() const;
 	int GetSize() const { return m_resolute.x * m_resolute.y * m_resolute.z; }
-	struct Gpu
-	{
-		Vector4 pitch;
-		Vector4 bdbMin;
-		Vector4 bdbMax;
-		Vector4i resolute;
-	};
-
-	Gpu CreateGpuInfo() const;
-
+	const Vector3& GetPitch() const { return m_pitch; }
+	const std::vector<unsigned short>& GetData() const { return m_ushort; }
 private:
 	Vector3 m_pitch;
 	BDB m_bdb;

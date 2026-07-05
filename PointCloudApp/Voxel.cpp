@@ -38,15 +38,6 @@ Vector3 Voxel::GetPosition(const Vector3i& data) const
 	return Vector3(data.x, data.y, data.z) * m_pitch;
 }
 
-Voxel::Gpu Voxel::CreateGpuInfo() const
-{
-	Gpu gpu;
-	gpu.pitch = Vector4(m_pitch, 1.0);
-	gpu.bdbMin = Vector4(m_bdb.Min(), 1.0);
-	gpu.bdbMax = Vector4(m_bdb.Max(), 1.0);
-	gpu.resolute = Vector4(m_resolute, 1);
-	return gpu;
-}
 std::vector<Vector4> Voxel::CreateGrayScale() const
 {
 	std::vector<Vector4> grayScale(m_resolute.x * m_resolute.y * m_resolute.z);

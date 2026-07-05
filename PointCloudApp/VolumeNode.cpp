@@ -363,13 +363,27 @@ void VolumeNode::ShowUI(UIContext& ui)
 void VolumeNode::BuildVoxelResource(bool withData)
 {
 	if (!m_gpu.pVoxel) {
+		struct VoxelGpu
+		{
+			Vector4 pitch;
+			Vector4 bdbMin;
+			Vector4 bdbMax;
+			Vector4i resolute;
+		};
+
+		VoxelGpu gpu;
+		gpu.pitch = Vector4(m_pVoxel->GetPitch(), 1.0);
+		gpu.bdbMin = Vector4(m_pVoxel->GetBDB().Min(), 1.0);
+		gpu.bdbMax = Vector4(m_pVoxel->GetBDB().Max(), 1.0);
+		gpu.resolute = Vector4(m_pVoxel->GetResolute(), 1);
+
 		m_gpu.pVoxel = std::make_unique<GLBuffer>();
-		m_gpu.pVoxel->Create<Voxel::Gpu>(m_pVoxel->CreateGpuInfo());
+		m_gpu.pVoxel->Create<VoxelGpu>(gpu);
 	}
 	if (withData) {
 		if (!m_gpu.pVoxelData) {
 			m_gpu.pVoxelData = std::make_unique<GLBuffer>();
-			m_gpu.pVoxelData->Create(m_pVoxel->GetDatas());
+			m_gpu.pVoxelData->Create(m_pVoxel->GetData());
 		}
 	}
 

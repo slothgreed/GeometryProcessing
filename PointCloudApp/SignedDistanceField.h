@@ -15,6 +15,14 @@ public:
 	virtual ALGORITHM_TYPE GetType() override { return ALGORITHM_SIGNED_DISTANCE_FIELD; }
 	virtual void Execute();
 	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
+
+	struct SDFData
+	{
+		std::vector<std::vector<std::vector<float>>> m_value;
+	};
+
+	SDFData CreateSDFData(int resolute);
+
 private:
 
 	enum Axis
@@ -32,22 +40,17 @@ private:
 		virtual ShaderPath GetShaderPath();
 		virtual void FetchUniformLocation();
 		void Execute(HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer);
-		enum UNIFORM
-		{
-			MINBOX,
-			MAXBOX,
-			PITCH,
-			POSITION,
-			AXIS,
-			RESOLUTE,
-			MAXTRIANGLE,
-			FREQUENCY,
-			MODEL,
-			NUM
-		};
 
 	private:
-		GLuint m_uniform[UNIFORM::NUM];
+		GLuint m_minBox = -1;
+		GLuint m_maxBox = -1;
+		GLuint m_pitch = -1;
+		GLuint m_position = -1;
+		GLuint m_axis = -1;
+		GLuint m_resolute = -1;
+		GLuint m_maxTriangle = -1;
+		GLuint m_frequency = -1;
+		GLuint m_model;
 	};
 
 
@@ -71,7 +74,7 @@ private:
 		};
 		UI();
 		Shared<GLStatus> glStatus;
-		int resolute;
+		int resolute = 4;
 		Plane xPlane;
 		Plane yPlane;
 		Plane zPlane;

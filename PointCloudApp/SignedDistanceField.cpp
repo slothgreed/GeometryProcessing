@@ -217,15 +217,15 @@ ShaderPath SignedDistanceField::Shader::GetShaderPath()
 
 void SignedDistanceField::Shader::FetchUniformLocation()
 {
-	m_uniform[MINBOX] = GetUniformLocation("u_minBox");
-	m_uniform[MAXBOX] = GetUniformLocation("u_maxBox");
-	m_uniform[PITCH] = GetUniformLocation("u_pitch");
-	m_uniform[POSITION] = GetUniformLocation("u_position");
-	m_uniform[AXIS] = GetUniformLocation("u_axis");
-	m_uniform[RESOLUTE] = GetUniformLocation("u_resolute");
-	m_uniform[MAXTRIANGLE] = GetUniformLocation("u_maxTriangle");
-	m_uniform[FREQUENCY] = GetUniformLocation("u_frequency");
-	m_uniform[MODEL] = GetUniformLocation("u_Model");
+	m_minBox = GetUniformLocation("u_minBox");
+	m_maxBox = GetUniformLocation("u_maxBox");
+	m_pitch = GetUniformLocation("u_pitch");
+	m_position = GetUniformLocation("u_position");
+	m_axis = GetUniformLocation("u_axis");
+	m_resolute = GetUniformLocation("u_resolute");
+	m_maxTriangle = GetUniformLocation("u_maxTriangle");
+	m_frequency = GetUniformLocation("u_frequency");
+	m_model = GetUniformLocation("u_Model");
 
 }
 
@@ -235,15 +235,15 @@ void SignedDistanceField::Shader::Execute(HalfEdgeNode* pNode, int resolute, Axi
 	auto diag = bdb.Max() - bdb.Min();
 	auto pitch = diag / (float)resolute;
 	Use();
-	BindUniform(m_uniform[MINBOX], bdb.Min());
-	BindUniform(m_uniform[MAXBOX], bdb.Max());
-	BindUniform(m_uniform[PITCH], pitch);
-	BindUniform(m_uniform[POSITION], position);
-	BindUniform(m_uniform[AXIS], (int)axis);
-	BindUniform(m_uniform[RESOLUTE], resolute);
-	BindUniform(m_uniform[MAXTRIANGLE], (int)pNode->GetData()->GetFaceNum());
-	BindUniform(m_uniform[FREQUENCY], frequency);
-	BindUniform(m_uniform[MODEL], pNode->GetMatrix());
+	BindUniform(m_minBox, bdb.Min());
+	BindUniform(m_maxBox, bdb.Max());
+	BindUniform(m_pitch, pitch);
+	BindUniform(m_position, position);
+	BindUniform(m_axis, (int)axis);
+	BindUniform(m_resolute, resolute);
+	BindUniform(m_maxTriangle, (int)pNode->GetData()->GetFaceNum());
+	BindUniform(m_frequency, frequency);
+	BindUniform(m_model, pNode->GetMatrix());
 	BindShaderStorage(0, pNode->GetPositionGpu()->Handle());
 	BindShaderStorage(1, pNode->GetFaceIndexGpu()->Handle());
 	BindShaderStorage(2, pNode->GetBVHGpu()->Handle());
@@ -255,5 +255,18 @@ void SignedDistanceField::Shader::Execute(HalfEdgeNode* pNode, int resolute, Axi
 	Dispatch(GetDispatchNum2D(Vector2i(resolute,resolute)));
 	BarrierImage();
 	UnUse();
+}
+
+SignedDistanceField::SDFData SignedDistanceField::CreateSDFData(int resolute)
+{
+	SDFData data;
+	data.m_value.resize(resolute);
+	for (int i = 0; i < resolute; ++i) {
+		data.m_value[i].resize(resolute);
+		for (int j = 0; j < resolute; ++j) {
+			data.m_value[i][j].resize(resolute);
+		}
+	}
+	return data;
 }
 }
