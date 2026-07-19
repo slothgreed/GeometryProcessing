@@ -137,6 +137,12 @@ void APIENTRY MyGLDebugCallback(GLenum source, GLenum type, GLuint id,
 	//fprintf(stderr, "GL DEBUG: %s\n", message);
 }
 
+void PointCloudApp::Initialize()
+{
+	GLFWApp::Initialize();
+	FileUtility::CreateCacheDirectory();
+}
+
 void PointCloudApp::Execute()
 {
 	auto pgmFiles = FileUtility::CollectFile("E:\\cgModel\\2dimages", ".pgm");

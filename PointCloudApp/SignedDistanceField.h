@@ -3,6 +3,7 @@
 #include "IAlgorithm.h"
 #include "RenderResource.h"
 #include "BVH.h"
+#include "Voxel.h"
 namespace KI
 {
 class HalfEdgeNode;
@@ -16,13 +17,8 @@ public:
 	virtual void Execute();
 	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 
-	struct SDFData
-	{
-		std::vector<std::vector<std::vector<float>>> m_value;
-	};
-
-	SDFData CreateSDFData(int resolute);
-
+	VoxelF CreateSDFData(int resolute);
+	void UpdateInnerOuter(VoxelF& voxel);
 private:
 
 	enum Axis
@@ -33,13 +29,22 @@ private:
 	class Shader : public IComputeShader
 	{
 	public:
-		Shader() {};
+
+		enum Type
+		{
+			FETCH,
+			TO_IMAGE
+		};
+
+
+		Shader(Type type) : m_type(type) {};
 		virtual ~Shader() {};
 
-		virtual Vector3i GetLocalThreadNum() const { return Vector3i(32, 32, 1); }
+		virtual Vector3i GetLocalThreadNum() const;
 		virtual ShaderPath GetShaderPath();
 		virtual void FetchUniformLocation();
 		void Execute(HalfEdgeNode* pNode, int resolute, Axis axis, float position, Texture2D* pTexture, float frequency, GLBuffer* pDebugBuffer);
+		void Execute(HalfEdgeNode* pNode, int resolute, GLBuffer* pBuffer);
 
 	private:
 		GLuint m_minBox = -1;
@@ -50,7 +55,8 @@ private:
 		GLuint m_resolute = -1;
 		GLuint m_maxTriangle = -1;
 		GLuint m_frequency = -1;
-		GLuint m_model;
+		GLuint m_model = -1;
+		Type m_type = Type::FETCH;
 	};
 
 
@@ -58,8 +64,7 @@ private:
 
 	float CalcMinDistance(const Vector3& pos) const;
 	void CreateTexure(int resolute);
-	void CreateSDFTexture(int resolute, Axis axis, float position, Texture2D* pTexture);
-
+	bool DebugSDFCPUGPU(int resolute);
 	struct UI
 	{
 		struct Plane
@@ -82,7 +87,6 @@ private:
 
 	struct Gpu
 	{
-		Unique<GLBuffer> pDebugBuffer;
 		Shared<Texture2D> xTexture;
 		Shared<Texture2D> yTexture;
 		Shared<Texture2D> zTexture;

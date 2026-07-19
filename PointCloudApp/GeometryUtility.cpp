@@ -57,11 +57,11 @@ Vector<Vector3> MeshAlgorithm::CreatePoissonSampleVolume(HalfEdgeNode& halfEdge)
     const auto& bdb = halfEdge.GetBoundBox();
     voxelizer.Execute(1 << 6); // TODO : “KØ‚È’l 
     Vector<Vector3> poisson;
+    auto voxelLabel = voxelizer.CreateLabel();
     for (int i = 0; i < voxelizer.GetResolution(); i++)
     for (int j = 0; j < voxelizer.GetResolution(); j++)
     for (int k = 0; k < voxelizer.GetResolution(); k++) {
-        auto label = voxelizer.GetLabel(Vector3(i, j, k));
-        if (label == Voxelizer::INNER) {
+        if (voxelLabel[i][j][k] == VOXEL_LABEL_INNER) {
             auto cell = voxelizer.GetCellBDB(Vector3(i, j, k));
             auto x = Random::Float(cell.Min().x, cell.Max().x);
             auto y = Random::Float(cell.Min().y, cell.Max().y);

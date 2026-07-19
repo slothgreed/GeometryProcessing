@@ -18,20 +18,16 @@ layout(std430,binding = 2) buffer bvhBuffer
 
 layout(rgba8, binding = 3) uniform image2D sdfImage;
 
-#ifdef DEBUG
-layout(std430, binding = 4) buffer debugBuffer
+#ifdef FETCH_SDF
+layout(std430, binding = 4) buffer sdfBuffer
 {
-	float debugs[];
+	float sdfValue[];
 };
 #endif
-layout(std430, binding = 5) buffer sdfBuffer
-{
-	float sdfBuffer[];
-};
 
 uniform vec3 u_minBox;
 uniform vec3 u_maxBox;
-uniform vec3 u_pitch;
+uniform float u_pitch;
 uniform float u_position;
 uniform int u_axis; // 0 = X; 1 = Y; 2 = Z;
 uniform int u_resolute;
@@ -207,44 +203,62 @@ vec4 ColorizeSDF(float sdf, float maxLength, float frequency)
     // isoline
     float stripe = abs(mod(d, frequency) - frequency * 0.5);
     float line = stripe < frequency * 0.05 ? 1.0 : 0.0;
-
-    // 等高線は白
     color = mix(color, vec3(1.0), line);
 
-    // 0面を強調
+    // highlight
     float surface = d < frequency * 0.03 ? 1.0 : 0.0;
     color = mix(color, vec3(0.0, 1.0, 0.0), surface);
 
     return vec4(color, 1.0);
 }
 
-void main()
+vec3 getPixelPosFrom2D(ivec2 pixel)
 {
 	vec3 pixelPos = vec3(0);
 	pixelPos[u_axis] = u_position;
-	vec3 halfPitch = 0.5 * u_pitch;
+	float halfPitch = 0.5 * u_pitch;
 	
-    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-    if (pixel.x >= u_resolute || pixel.y >= u_resolute) return;
-	int width = pixel.x;
-	int height = pixel.y;
-
 	// width;
 	int axisWidth = (u_axis + 1) % 3;
-	pixelPos[axisWidth] = u_minBox[axisWidth] + (width * u_pitch[axisWidth]) + halfPitch[axisWidth]; 
+	pixelPos[axisWidth] = u_minBox[axisWidth] + (pixel.x * u_pitch) + halfPitch; 
 	
 	// height;
 	int axisHeight = (u_axis + 2) % 3;
-	pixelPos[axisHeight] = u_minBox[axisHeight] + (height * u_pitch[axisHeight]) + halfPitch[axisHeight]; 
+	pixelPos[axisHeight] = u_minBox[axisHeight] + (pixel.y * u_pitch) + halfPitch; 
 	
+	return pixelPos;
+}
+
+ivec3 GetVoxelCoord(uint index)
+{
+    return ivec3(
+        int(index % uint(u_resolute)),
+        int((index / uint(u_resolute)) % uint(u_resolute)),
+        int(index / uint(u_resolute * u_resolute))
+    );
+}
+
+vec3 GetVoxelPosition(uint index)
+{
+    ivec3 coord = GetVoxelCoord(index);
+    return u_minBox + (vec3(coord) * u_pitch) + vec3(0.5);
+}
+
+void main()
+{
+#ifdef FETCH_SDF
+    uint index = gl_GlobalInvocationID.x;
+    if (index.x >= uint(u_resolute * u_resolute * u_resolute)) return;
+	vec3 voxelPos = GetVoxelPosition(index);
+	HitResult minResult = CalcMinDistance(voxelPos);
+	sdfValue[index] = minResult.dist;
+#else
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    if (pixel.x >= u_resolute || pixel.y >= u_resolute) return;
+	vec3 pixelPos = getPixelPosFrom2D(pixel);
 	HitResult minResult = CalcMinDistance(pixelPos);
-#ifdef DEBUG
-	debugs[width * u_resolute + height] = minResult.dist;
-#endif
-	
-	float dist = minResult.dist;
 	float diag = length(u_maxBox - u_minBox) * 0.1;
-	
-	vec4 color = ColorizeSDF(dist, diag, u_frequency);
-	imageStore(sdfImage, ivec2(height,width) ,color);
+	vec4 color = ColorizeSDF( minResult.dist, diag, u_frequency);
+	imageStore(sdfImage, ivec2(pixel.y,pixel.x) ,color);
+#endif
 }

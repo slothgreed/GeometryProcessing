@@ -252,7 +252,7 @@ void VolumeNode::Draw(const DrawContext& context)
 				m_pMarchingShader->Draw(0, m_pVoxel->GetSize());
 			}
 		} else {
-			if (m_marching.GetPositionBuffer()) {
+			if (m_gpu.pMarchingPosition) {
 				auto pFace = context.pResource->GetShaderTable()->GetFaceShader();
 				pFace->Use();
 				pFace->SetCamera(context.pResource->GetCameraBuffer());
@@ -260,9 +260,9 @@ void VolumeNode::Draw(const DrawContext& context)
 				pFace->SetPBRResource(context.pResource->GetPBR());
 				pFace->SetModel(GetMatrix());
 				pFace->SetColor(Vector3(0, 0, 1));
-				pFace->SetPosition(m_marching.GetPositionBuffer());
-				pFace->SetNormal(m_marching.GetNormalBuffer());
-				pFace->DrawArray(GL_TRIANGLES, m_marching.GetPositionBuffer());
+				pFace->SetPosition(m_gpu.pMarchingPosition.get());
+				pFace->SetNormal(m_gpu.pMarchingNormal.get());
+				pFace->DrawArray(GL_TRIANGLES, m_gpu.pMarchingPosition.get());
 			}
 		}
 	}
@@ -351,7 +351,11 @@ void VolumeNode::ShowUI(UIContext& ui)
 		}
 		if (ImGui::SliderFloat("MarchingThreshold", &m_ui.marching.isolate, 0, 2000)) {
 			if (!m_ui.marching.useMeshShader) {
-				m_marching.Build(*m_pVoxel, m_ui.marching.isolate);
+				auto mesh = m_marching.CreateMesh(*m_pVoxel, m_ui.marching.isolate);
+				m_gpu.pMarchingPosition = std::make_unique<GLBuffer>();
+				m_gpu.pMarchingNormal = std::make_unique<GLBuffer>();
+				m_gpu.pMarchingPosition->Create(mesh.GetPoints());
+				m_gpu.pMarchingNormal->Create(mesh.GetNormals());
 			}
 		}
 	}

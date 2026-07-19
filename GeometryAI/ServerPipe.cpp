@@ -68,7 +68,13 @@ bool ServerPipe::ProcessLoop()
     if (std::string_view(buffer) == "--exit") {
         return false;
     }
-
+    for(auto& receiver : m_receiver) {
+        if (receiver.second->Execute(std::string(buffer))) {
+            std::cout << "Command processed by: " << receiver.first << std::endl;
+            break;
+        }
+	}
+    
     std::string response = "OK";
     DWORD bytesWritten = 0;
     WriteFile(

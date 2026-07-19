@@ -5,26 +5,15 @@
 #include "SoftwareRasterizer.h"
 #include <random>
 #include "Profiler.h"
-#include "ClientPipe.h"
 #include "ProcessExecutor.h"
 
 
-void sendClose()
-{
-
-}
 
 int main()
 {
 	std::cout << std::fixed << std::setprecision(2); // •‚“®¬”“_2Œ…‚Ü‚Å
     
-	KI::ProcessExecutor executor("GeometryAI.exe");
-	executor.ExecuteASync("--named");
-	KI::ClientPipe clientPipe;
-	clientPipe.Open();
-    clientPipe.SendCommand("C:\\test\\sample.stl");
-    clientPipe.Close();
-    executor.FinalizeASync();
+	KI::AIProcessor::Instance().ExecuteASync("--named");
 	//KI::RadixSortTest app;
 	//KI::PrefixSumTest app;
 	//KI::HistogramTest app;
@@ -38,7 +27,6 @@ int main()
 	app.Finalize();
 
 
-
-
+	KI::AIProcessor::Instance().FinalizeASync();
 	return 0;
 }

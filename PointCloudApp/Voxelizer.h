@@ -4,43 +4,51 @@
 #include "IShader.h"
 #include "BDB.h"
 #include "Utility.h"
-
+#include "Voxel.h"
 namespace KI
 {
 class HalfEdgeNode;
 class Voxelizer : public IAlgorithm
 {
-public:
-
-	enum Label
+private:
+	struct CompactVoxel
 	{
-		UNKNOWN = 0,
-		INNER = 1,
-		BOUNDARY = 2,
-		OUTER = 3,
-		NUM
+		CompactVoxel() {};
+		CompactVoxel(int resolution, std::vector<unsigned int>&& data)
+			: m_resolution(resolution)
+			, m_data(std::move(data))
+		{
+		}
+		static int Calc1DArraySize(int resolution) { return UIntBool::Size(resolution) * resolution * resolution; }
+		Vector3i GetIndex(uint location, int bitIndex) const;
+		bool IsBoundary(const Vector3i& index) const;
+		void SetBoundary(const Vector3i& index);
+		const std::vector<unsigned int>& GetData() const { return m_data; }
+	private:
+		std::vector<unsigned int> m_data;
+		int m_resolution = 0;
 	};
 
+public:
 
 	static const char* const* GetLabelString();
+	typedef std::vector<std::vector<std::vector<char>>> VoxelLabel;
 
 	Voxelizer(HalfEdgeNode* pNode);
 	virtual ~Voxelizer();
 
 	virtual ALGORITHM_TYPE GetType() override { return ALGORITHM_VOXELIZER; }
 	void Execute(int resolute);
-
+	CompactVoxel ExecuteCPU(int resolute);
 	void Draw(GLBuffer* pointBuffer, GLBuffer* indexBuffer, int camera);
 	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 
-	void CreateLabelPoint(Vector<Vector3>& position, Vector<Vector3>& color, Voxelizer::Label type);
+	void CreateLabelPoint(Vector<Vector3>& position, Vector<Vector3>& color, VOXEL_LABEL type);
 	
 	int GetResolution() const { return m_resolution; }
-	Voxelizer::Label GetLabel(const ivec3& index);
 	BDB GetCellBDB(const ivec3& index) const;
-private:
-	typedef std::vector<std::vector<std::vector<char>>> VoxelLabel;
 	VoxelLabel CreateLabel() const;
+private:
 	float GetPitch() const;
 	Vector3 GetCenter(const ivec3& index) const;
 	bool InVoxel(const ivec3& index) const;
@@ -54,6 +62,10 @@ private:
 		bool visibleInOut;
 		int label;
 	};
+
+
+
+
 	struct MeshShader : IMeshShader
 	{
 		enum UNIFORM
@@ -103,6 +115,7 @@ private:
 	int m_resolution;
 	UI m_ui;
 	VoxelLabel m_labels;
+	CompactVoxel m_compactVoxel;
 };
 
 }

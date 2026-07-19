@@ -27,6 +27,12 @@ public:
 		, m_drawType(drawType)
 	{
 	}
+	Mesh(Vector<Vector3>&& points, Vector<Vector3>&& normal, Mesh::DrawType drawType)
+		: m_points(std::move(points))
+		, m_normals(std::move(normal))
+		, m_drawType(drawType)
+	{
+	}
 	~Mesh() {};
 
 	struct Triangle
@@ -40,7 +46,9 @@ public:
 	int TriangleNum() const;
 	Triangle GetTriangle(int index) const;
 	void SetPoints(Vector<Vector3>&& points) { m_points = std::move(points); }	
+	void SetNormals(Vector<Vector3>&& points) { m_normals = std::move(points); }
 	const Vector<Vector3>& GetPoints() const { return m_points; }
+	const Vector<Vector3>& GetNormals() const { return m_normals; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
 
@@ -49,6 +57,7 @@ public:
 	Mesh& Reverse();
 private:
 	Vector<Vector3> m_points;
+	Vector<Vector3> m_normals;
 	Vector<UInt> m_indexs;
 	DrawType m_drawType = DrawType::Triangles;
 };

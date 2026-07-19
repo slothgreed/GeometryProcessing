@@ -182,21 +182,21 @@ void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const String& name)
 	writer.Open(name, true);
 
 	int num = pPointCloud->m_position.size();
-	writer.WriteBinary((void*)&num, KI::Format::INT);
+	writer.WriteBinary(num);
 
 	int norm = pPointCloud->m_normal.size() != 0 ? 1 : 0;
-	writer.WriteBinary((void*)&norm, KI::Format::INT);
+	writer.WriteBinary(norm);
 
 	int col = pPointCloud->m_color.size() != 0 ? 1 : 0;
-	writer.WriteBinary((void*)&col, KI::Format::INT);
+	writer.WriteBinary(col);
 
 	for (int i = 0; i < pPointCloud->m_position.size(); i++) {
-		writer.WriteBinary((void*)&pPointCloud->m_position[i], KI::Format::VEC3);
+		writer.WriteBinary(pPointCloud->m_position[i]);
 		if (pPointCloud->m_normal.size() > 0) {
-			writer.WriteBinary((void*)&pPointCloud->m_normal[i], KI::Format::VEC3);
+			writer.WriteBinary(pPointCloud->m_normal[i]);
 		}
 		if (pPointCloud->m_color.size() > 0) {
-			writer.WriteBinary((void*)&pPointCloud->m_color[i], KI::Format::VEC3);
+			writer.WriteBinary(pPointCloud->m_color[i]);
 		}
 	}
 

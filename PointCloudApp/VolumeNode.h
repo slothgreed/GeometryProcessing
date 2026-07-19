@@ -155,6 +155,8 @@ private:
 		Unique<GLBuffer> pPlaneTex;
 		Unique<GLBuffer> pPlaneIndex;
 
+		Unique<GLBuffer> pMarchingPosition;
+		Unique<GLBuffer> pMarchingNormal;
 		Unique<GLBuffer> pTriTable;
 		Unique<GLBuffer> pVoxel;
 		Unique<GLBuffer> pVoxelData;

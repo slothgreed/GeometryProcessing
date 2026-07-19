@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <string_view>
 #include "ServerPipe.h"
+#include "SDFAI.h"
 void standalone()
 {
     auto x = torch::rand({ 4, 1 });
@@ -37,73 +38,6 @@ void standalone()
 }
 
 
-struct NeuralSDFImpl : torch::nn::Module
-{
-    torch::nn::Sequential net;
-    NeuralSDFImpl()
-    {
-        net = torch::nn::Sequential(
-            torch::nn::Linear(3, 64),
-            torch::nn::ReLU(),
-            torch::nn::Linear(64, 64),
-            torch::nn::ReLU(),
-            torch::nn::Linear(64, 64),
-            torch::nn::ReLU(),
-            torch::nn::Linear(64, 1)
-        );
-        register_module("net", net);
-	}
-
-    torch::Tensor forward(torch::Tensor x)
-    {
-        return net->forward(x);
-	}
-};
-
-torch::Tensor ToTensor(const std::vector<float>& data, int dimension)
-{
-    // 修正: 行数は data.size() / dimension でなければならない
-    int64_t rows = static_cast<int64_t>(data.size()) / dimension;
-    int64_t cols = static_cast<int64_t>(dimension);
-    return torch::from_blob(
-        const_cast<float*>(data.data()),
-        { rows, cols },
-        torch::TensorOptions().dtype(torch::kFloat32)
-    ).clone();
-}
-
-std::vector<float> ToFloatVector(torch::Tensor tensor)
-{
-    // GPU Tensor の可能性があるので CPU へ移す
-    tensor = tensor.detach().cpu().contiguous().to(torch::kFloat32);
-
-    // 要素数を取得
-    size_t size = tensor.numel();
-
-    std::vector<float> result(size);
-    // Tensorの中身をvectorへコピー
-	std::memcpy(result.data(), tensor.data_ptr<float>(), size * sizeof(float));
-
-    return result;
-}
-
-void NeuralSDFTest(const std::vector<float>& position, const std::vector<float>& sdf)
-{
-	auto positionTensor = ToTensor(position, 3);
-	auto sdfTensor = ToTensor(sdf, 1);
-    NeuralSDFImpl model;
-    torch::optim::Adam optimizer(model.parameters(), 0.001);
-    for (int epoch = 0; epoch < 100; ++epoch) {
-        auto outputs = model.forward(positionTensor);
-        auto loss = torch::mse_loss(outputs, sdfTensor);
-        optimizer.zero_grad();
-        loss.backward();
-        optimizer.step();
-        if (epoch % 10 == 0)
-            std::cout << "Epoch [" << epoch << "/100], Loss: " << loss.item<float>() << std::endl;
-    }
-}
-
 struct Options
 {
     bool named = false;
@@ -115,7 +49,7 @@ Options parseArgs(int argc, char* argv[])
 
     for (int i = 1; i < argc; ++i) {
         std::string_view arg(argv[i]);
-
+		std::cout << "arg: " << arg << std::endl;
         if (arg == "--named") {
             opt.named = true;
         }
@@ -131,6 +65,7 @@ int main(int argc, char* argv[])
 	auto args = parseArgs(argc, argv);
     if (args.named) {
 		KI::ServerPipe server;
+        server.SetReceiveCommand(std::make_shared<KI::SDFAI>());
         server.Connect();
     } else {
         standalone();

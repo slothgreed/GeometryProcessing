@@ -2,6 +2,7 @@
 #include "Utility.h"
 
 #include <filesystem>
+#include "Windows.h"
 namespace KI
 {
 namespace fs = std::filesystem;
@@ -149,6 +150,32 @@ Vector<String> FileUtility::Split(const String& str, char del)
 {
 	return StringUtility::Split(str, del);
 }
+
+String FileUtility::GetExecutableDirectory()
+{
+	wchar_t path[MAX_PATH];
+	DWORD length = GetModuleFileNameW(nullptr, path, MAX_PATH);
+	if (length == 0)
+		return std::filesystem::current_path().string();
+
+	return std::filesystem::path(path).parent_path().string();
+}
+
+String FileUtility::GetCacheDirectory()
+{
+	return GetExecutableDirectory() + "\\cache";
+}
+
+String FileUtility::CreateCacheDirectory()
+{
+	auto cacheDir = GetCacheDirectory();
+	if (!std::filesystem::exists(cacheDir)) {
+		std::filesystem::create_directories(cacheDir);
+	}
+
+	return cacheDir;
+}
+
 
 Vector<String> StringUtility::Split(const String& str, char del)
 {
@@ -336,6 +363,23 @@ void FileWriter::Write(const String& contents, bool endl)
 	if (endl) {
 		m_fileStream << std::endl;
 	}
+}
+
+void FileWriter::WriteBinary(int contents)
+{
+	assert(m_fileStream.is_open());
+	m_fileStream.write((char*)&contents, sizeof(int));
+}
+void FileWriter::WriteBinary(const Vector3& contents)
+{
+	assert(m_fileStream.is_open());
+	m_fileStream.write((char*)&contents, sizeof(Vector3));
+}
+
+void FileWriter::WriteBinary(const Vector<float>& contents)
+{
+	assert(m_fileStream.is_open());
+	m_fileStream.write((char*)contents.data(), sizeof(float) * contents.size());
 }
 
 void FileWriter::WriteBinary(void* contents, Format format, bool endl)

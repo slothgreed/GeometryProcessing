@@ -187,7 +187,6 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="BDB.cpp" />
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="CameraController.cpp" />
-    <ClCompile Include="ClientPipe.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
     <ClCompile Include="CrossSectionLine.cpp" />
     <ClCompile Include="CSFNode.cpp" />
@@ -278,7 +277,6 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="..\extlibs\implot\implot_internal.h" />
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="BVH.h" />
-    <ClInclude Include="ClientPipe.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
     <ClInclude Include="CrossSectionLine.h" />
     <ClInclude Include="CSFNode.h" />

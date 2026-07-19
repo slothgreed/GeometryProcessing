@@ -29,6 +29,9 @@ public:
 	static Vector<String> Split(const String& str, char del);
 	static int FileNum(const String& directory);
 	static Vector<String> CollectFile(const String& directory, const String& ext);
+	static String GetExecutableDirectory();
+	static String GetCacheDirectory();
+	static String CreateCacheDirectory();
 private:
 
 };
@@ -72,6 +75,9 @@ public:
 	void Write(const String& contents, bool endl = false);
 	void Write(const Vector<float>& contents, bool endl = false);
 	void WriteBinary(void* contents, Format format, bool endl = false);
+	void WriteBinary(int contents);
+	void WriteBinary(const Vector3& contents);
+	void WriteBinary(const Vector<float>& contents);
 	void Close();
 private:
 	std::ofstream m_fileStream;

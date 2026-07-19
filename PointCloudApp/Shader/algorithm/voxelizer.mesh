@@ -1,5 +1,3 @@
-layout(local_size_x=1) in;
-layout(max_vertices=256, max_primitives=384) out;
 layout(triangles) out;
 
 

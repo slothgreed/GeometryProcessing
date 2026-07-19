@@ -335,9 +335,6 @@
     <ClCompile Include="ProcessExecutor.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="ClientPipe.cpp">
-      <Filter>ソース ファイル\Utility</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
@@ -629,9 +626,6 @@
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="ProcessExecutor.h">
-      <Filter>ソース ファイル\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientPipe.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
   </ItemGroup>

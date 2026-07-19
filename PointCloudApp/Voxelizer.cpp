@@ -7,14 +7,7 @@
 namespace KI
 {
 
-Vector3i ToResolute3i(int resolution)
-{
-	return Vector3i(UIntBool::Size(resolution), resolution, resolution);
-}
-int To1ArraySize(int resolution)
-{
-	return UIntBool::Size(resolution) * resolution * resolution;
-}
+
 Voxelizer::Voxelizer(HalfEdgeNode* pNode)
 	: m_pNode(pNode)
 	, m_resolution(32)
@@ -30,39 +23,42 @@ Voxelizer::~Voxelizer()
 	delete m_pCpuVoxel;
 }
 
-ivec3 getVoxel(uint location, int bitIndex)
+Vector3i Voxelizer::CompactVoxel::GetIndex(uint location, int bitIndex) const
 {
 	int index = int(location) * 32 + bitIndex;
 	int z = index / (32 * 32);
 	int y = (index / 32) % 32;
 	int x = index % 32;
-	return ivec3(x, y, z);
+	return Vector3i(x, y, z);
 }
 
-bool IsBoundary(const std::vector<unsigned int>& voxel, int resolution, const ivec3& index)
+bool Voxelizer::CompactVoxel::IsBoundary(const Vector3i& index) const
 {
-	uint location = index.x + index.y * resolution + index.z * resolution * resolution;
+	uint location = index.x + index.y * m_resolution + index.z * m_resolution * m_resolution;
 	uint location2 = location / 32;
 	uint bit = location % 32;
 	uint mask = 1u << bit;
-	return voxel[location2] & mask;
+	return m_data[location2] & mask;
 }
 
-void SetBoundary(std::vector<unsigned int>& voxel, int resolution, const ivec3& index)
+void Voxelizer::CompactVoxel::SetBoundary(const Vector3i& index)
 {
-	uint location = index.x + index.y * resolution + index.z * resolution * resolution;
+	uint location = index.x + index.y * m_resolution + index.z * m_resolution * m_resolution;
 	uint location2 = location / 32;
 	uint bit = location % 32;
 	uint mask = 1u << bit;
-	voxel[location2] |= mask;
+	m_data[location2] |= mask;
 }
 
-std::vector<unsigned int> Create1DArray(int resolution)
+Voxelizer::CompactVoxel Voxelizer::ExecuteCPU(int resolute)
 {
-	return std::vector<unsigned int>(To1ArraySize(resolution));
+	auto indexs = m_pNode->GetData()->CreateIndexBufferData();
+	auto resultCPU = std::vector<unsigned int>(Voxelizer::CompactVoxel::Calc1DArraySize(resolute));
+	for (int i = 0; i < m_pNode->GetData()->GetFaceNum(); i++) {
+		ExecuteCPU(m_pNode->GetBoundBox(), i, m_pNode->GetData()->GetVertex(), indexs, resultCPU);
+	}
+	return Voxelizer::CompactVoxel(resolute, std::move(resultCPU));
 }
-
-
 void Voxelizer::Execute(int resolute)
 {
 	m_resolution = resolute;
@@ -79,13 +75,7 @@ void Voxelizer::Execute(int resolute)
 #ifdef DEBUG_VOXEL
 	// CPU Debug
 	{
-		auto indexs = m_pNode->GetData()->CreateIndexBufferData();
-		auto resultCPU = Create1DArray(m_resolution);
-		for (int i = 0; i < m_pNode->GetData()->GetFaceNum(); i++) {
-			ExecuteCPU(m_pNode->GetBoundBox(), i, m_pNode->GetData()->GetVertex(), indexs, resultCPU);
-		}
-
-		m_pCpuVoxel->Create(resultCPU);
+		m_pCpuVoxel->Create(ExecuteCPU(m_resolution).GetData());
 	}
 #else
 	auto resultGPU = m_gpuVoxelizer.Execute(m_pNode->GetBoundBox(), m_resolution, m_pVec4PointBuffer, m_pNode->GetFaceIndexGpu(), m_pNode->GetData()->GetFaceNum());
@@ -169,7 +159,7 @@ void Voxelizer::ExecuteCPU(const BDB& bdb, int triIdx, const std::vector<Vector3
 		if (dot(zxEdge[0], zxP) + zxDiff[0] < 0.0f) { continue; }
 		if (dot(zxEdge[1], zxP) + zxDiff[1] < 0.0f) { continue; }
 		if (dot(zxEdge[2], zxP) + zxDiff[2] < 0.0f) { continue; }
-		SetBoundary(result, m_resolution, ivec3(i, j, k));
+		m_compactVoxel.SetBoundary(ivec3(i, j, k));
 
 	}}}
 }
@@ -195,7 +185,7 @@ void Voxelizer::ShowUI(RenderNode* pNode, UIContext& ui)
 			createLabelPoint = true;
 		}
 	}
-	if (ImGui::Combo("CreateLabel", &m_ui.label, Voxelizer::GetLabelString(), static_cast<int>(Voxelizer::Label::NUM))) {
+	if (ImGui::Combo("CreateLabel", &m_ui.label, Voxelizer::GetLabelString(), static_cast<int>(VOXEL_LABEL_NUM))) {
 		createLabelPoint = true;
 	}
 	if (createLabelPoint) {
@@ -203,7 +193,7 @@ void Voxelizer::ShowUI(RenderNode* pNode, UIContext& ui)
 		std::shared_ptr<Primitive> pLabel = std::make_shared<Primitive>();
 		Vector<Vector3> position;
 		Vector<Vector3> color;
-		CreateLabelPoint(position, color,(Voxelizer::Label)m_ui.label);
+		CreateLabelPoint(position, color,(VOXEL_LABEL)m_ui.label);
 		pLabel->SetPosition(std::move(position));
 		pLabel->SetColor(std::move(color));
 		auto pPrimitive = std::make_shared<PrimitiveNode>("Voxelizer::Label", pLabel);
@@ -223,7 +213,7 @@ void Voxelizer::ComputeShader::FetchUniformLocation()
 
 std::vector<unsigned int> Voxelizer::ComputeShader::Execute(const BDB& bdb, int resolution, GLBuffer* pointBuffer, GLBuffer* indexBuffer, int triangleNum)
 {
-	m_pVoxelBuffer->Create(To1ArraySize(resolution), sizeof(unsigned int));
+	m_pVoxelBuffer->Create(Voxelizer::CompactVoxel::Calc1DArraySize(resolution), sizeof(unsigned int));
 	m_pVoxelBuffer->SetData(0);
 	Use();
 	BindUniform(m_uniform[UNIFORM::MIN], bdb.Min());
@@ -236,7 +226,6 @@ std::vector<unsigned int> Voxelizer::ComputeShader::Execute(const BDB& bdb, int 
 	Dispatch(GetDispatchNum1D(triangleNum));
 	BarrierSSBO();
 	UnUse();
-	glFinish();
 	OUTPUT_GLERROR;
 #ifdef DEBUG_VOXEL
 	std::vector<unsigned int> result(m_pVoxelBuffer->Num());
@@ -271,18 +260,10 @@ std::vector<glm::ivec3> Create26Neighbor()
 	return offsets;
 }
 
-Voxelizer::Label Voxelizer::GetLabel(const ivec3& index)
-{
-	if (m_labels.size() == 0) m_labels = CreateLabel();
-
-	return (Voxelizer::Label)m_labels[index.x][index.y][index.z];
-}
-
 BDB Voxelizer::GetCellBDB(const ivec3& index) const
 {
 	auto pitch = GetPitch();
 	Vector3 min = Vector3(pitch * index.x, pitch * index.y, pitch * index.z) + m_pNode->GetBoundBox().Min();
-	
 	Vector3 max = Vector3(pitch * index.x, pitch * index.y, pitch * index.z) + m_pNode->GetBoundBox().Min() + pitch;
 
 	return BDB(min, max);
@@ -309,7 +290,7 @@ bool Voxelizer::InVoxel(const ivec3& index) const
 		index.z >= 0 && index.z < m_resolution;
 }
 
-void Voxelizer::CreateLabelPoint(Vector<Vector3>& position, Vector<Vector3>& color, Voxelizer::Label type)
+void Voxelizer::CreateLabelPoint(Vector<Vector3>& position, Vector<Vector3>& color, VOXEL_LABEL type)
 {
 	auto labels = CreateLabel();
 	for (int i = 0; i < m_resolution; i++)
@@ -324,21 +305,22 @@ void Voxelizer::CreateLabelPoint(Vector<Vector3>& position, Vector<Vector3>& col
 }
 Voxelizer::VoxelLabel Voxelizer::CreateLabel() const
 {
-	auto voxelArray = Create1DArray(m_resolution);
+	auto voxelArray = std::vector<unsigned int>(Voxelizer::CompactVoxel::Calc1DArraySize(m_resolution));
 #ifdef DEBUG_VOXEL
 	m_pCpuVoxel->GetBufferData(voxelArray.data(), voxelArray.size() * sizeof(unsigned int));
 #else
 	m_gpuVoxelizer.m_pVoxelBuffer->GetBufferData(voxelArray.data(), voxelArray.size() * sizeof(unsigned int));
 #endif // DEBUG_VOXEL
 
+	auto compactVoxel = CompactVoxel(m_resolution, std::move(voxelArray));
 	VoxelLabel label(m_resolution);
 	for (int i = 0; i < m_resolution; i++) {
 		label[i].resize(m_resolution);
 		for (int j = 0; j < m_resolution; j++) {
-			label[i][j].resize(m_resolution, Label::UNKNOWN);
+			label[i][j].resize(m_resolution, VOXEL_LABEL_UNKNOWN);
 			for (int k = 0; k < m_resolution; k++) {
-				if (IsBoundary(voxelArray, m_resolution, ivec3(i, j, k))) {
-					label[i][j][k] = Label::BOUNDARY;
+				if (compactVoxel.IsBoundary(ivec3(i, j, k))) {
+					label[i][j][k] = VOXEL_LABEL_BOUNDARY;
 				}
 			}
 		}
@@ -349,7 +331,7 @@ Voxelizer::VoxelLabel Voxelizer::CreateLabel() const
 	for(int i = 0; i < m_resolution; i++)
 	for(int j = 0; j < m_resolution; j++)
 	for(int k = 0; k < m_resolution; k++) {
-		if (label[i][j][k] != Label::UNKNOWN) { continue; }
+		if (label[i][j][k] != VOXEL_LABEL_UNKNOWN) { continue; }
 		if (!(i == 0 || j == 0 || k == 0 || i == m_resolution - 1 || j == m_resolution - 1 || k == m_resolution - 1)) { continue; }
 		std::queue<ivec3> q;
 		q.push(ivec3(i, j, k));
@@ -358,8 +340,8 @@ Voxelizer::VoxelLabel Voxelizer::CreateLabel() const
 			for (const auto& offset : offsets) {
 				glm::ivec3 index = current + offset;
 				if (InVoxel(index) &&
-					label[index.x][index.y][index.z] == Label::UNKNOWN) {
-					label[index.x][index.y][index.z] = Label::OUTER;
+					label[index.x][index.y][index.z] == VOXEL_LABEL_UNKNOWN) {
+					label[index.x][index.y][index.z] = VOXEL_LABEL_OUTER;
 					q.push(index); 
 				}
 			}
@@ -369,8 +351,8 @@ Voxelizer::VoxelLabel Voxelizer::CreateLabel() const
 	for (int i = 0; i < m_resolution; i++) 
 	for (int j = 0; j < m_resolution; j++) 
 	for (int k = 0; k < m_resolution; k++)
-		if (label[i][j][k] == Label::UNKNOWN) {
-			label[i][j][k] = Label::INNER;
+		if (label[i][j][k] == VOXEL_LABEL_UNKNOWN) {
+			label[i][j][k] = VOXEL_LABEL_INNER;
 		}
 
 	return label;

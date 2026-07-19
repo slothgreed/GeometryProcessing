@@ -21,7 +21,7 @@ public:
 	{
 	};
 	~PointCloudApp() {};
-
+	void Initialize();
 	void Execute();
 	void Finalize();
 

@@ -2,43 +2,6 @@
 #include "KIMath.h"
 namespace KI
 {
-VoxelU16::VoxelU16(int resolute, const BDB& bdb)
-	: m_resolute(Vector3i(resolute, resolute, resolute))
-	, m_bdb(bdb)
-{
-	m_pitch = (m_bdb.Max() - m_bdb.Min()) / Vector3(m_resolute);
-}
-
-VoxelU16::VoxelU16(const Vector3i& size, const BDB& bdb, std::vector<unsigned short>&& data)
-	: m_resolute(size)
-	, m_bdb(bdb)
-	, m_ushort(std::move(data))
-{
-	m_pitch = (m_bdb.Max() - m_bdb.Min()) / Vector3(m_resolute);
-}
-
-int VoxelU16::GetIndex(int x, int y, int z) const
-{
-	return
-		x +
-		y * m_resolute.x +
-		z * m_resolute.x * m_resolute.y;
-}
-int VoxelU16::GetIndex(const Vector3i& data) const
-{
-	return GetIndex(data.x, data.y, data.z);
-}
-unsigned short VoxelU16::GetData(const Vector3i& data) const
-{
-	return m_ushort[GetIndex(data)];
-}
-
-Vector3 VoxelU16::GetPosition(const Vector3i& data) const
-{
-	return Vector3(data.x, data.y, data.z) * m_pitch;
-}
-
-
 
 int edgeTable[256] = {
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
@@ -357,7 +320,7 @@ Vector<int> MarchingCube::CreateFlattenTriangleTable() const
 	}
 	return flatten;
 }
-void MarchingCube::Build(const VoxelU16& voxel, float threshold)
+Mesh MarchingCube::CreateMesh(const VoxelU16& voxel, float threshold)
 {
 	struct Grid
 	{
@@ -425,10 +388,247 @@ void MarchingCube::Build(const VoxelU16& voxel, float threshold)
 			normals.push_back(normal);
 		}
 	}
-	m_gpu.pPosition = std::make_unique<GLBuffer>();
-	m_gpu.pPosition->Create(triangles);
-	m_gpu.pNormal = std::make_unique<GLBuffer>();
-	m_gpu.pNormal->Create(normals);
+
+	return Mesh(std::move(triangles),std::move(normals),Mesh::DrawType::Triangles);
 }
 
+
+DualContouring::CellNeighbor8 DualContouring::GetCellNeighbor8(const VoxelF& voxel, const Vector3i& cellIndex) const
+{
+	DualContouring::CellNeighbor8 result;
+
+	for (int i = 0; i < 8; i++) {
+		Vector3i cornerIndex = cellIndex + m_cornerOffset[i];
+		result.distances[i] = voxel.GetData(cornerIndex);
+		result.positions[i] = voxel.GetPosition(cornerIndex);
+	}
+
+	return result;
+}
+
+Vector3 DualContouring::CalcIntersection(const Vector3& p0, const Vector3& p1, float sdf0, float sdf1) const
+{
+	float denom = sdf1 - sdf0;
+	if(std::abs(denom) < 1e-6f) {
+		return (p0 + p1) * 0.5f; // If the values are too close, return the midpoint
+	}
+	float t = -sdf0 / denom;
+	t = std::clamp(t, 0.0f, 1.0f); // Clamp t to the range [0, 1]
+	return p0 + (p1 - p0) * t;
+}
+
+float DualContouring::GetSDF(const VoxelF& voxel, const Vector3& target) const
+{
+	Vector3 resolute = voxel.GetResolute();
+	Vector3 gridPosition = (target - voxel.GetBDB().Min()) / resolute;
+
+	const int x0 = static_cast<int>(std::floor(gridPosition.x));
+	const int y0 = static_cast<int>(std::floor(gridPosition.y));
+	const int z0 = static_cast<int>(std::floor(gridPosition.z));
+	auto index = Vector3i(x0, y0, z0);
+	auto position = voxel.GetPosition(index);
+	
+	auto diffX = position.x - index.x;
+	auto diffY = position.y - index.y;
+	auto diffZ = position.z - index.z;
+	if (index.x < 0 || index.y < 0 || index.z < 0) { return 0.0f; }
+	float c000 = voxel.GetData(index);
+	float c001 = voxel.GetData(index + Vector3i(0, 0, 1));
+	float c010 = voxel.GetData(index + Vector3i(0, 1, 0));
+	float c011 = voxel.GetData(index + Vector3i(0, 1, 1));
+	float c100 = voxel.GetData(index + Vector3i(1, 0, 0));
+	float c101 = voxel.GetData(index + Vector3i(1, 0, 1));
+	float c110 = voxel.GetData(index + Vector3i(1, 1, 0));
+	float c111 = voxel.GetData(index + Vector3i(1, 1, 1));
+
+	float c00 = std::lerp(c000, c100, diffX);
+	float c10 = std::lerp(c010, c110, diffX);
+	float c01 = std::lerp(c001, c101, diffX);
+	float c11 = std::lerp(c011, c111, diffX);
+
+	float c0 = std::lerp(c00, c10, diffY);
+	float c1 = std::lerp(c01, c11, diffY);
+
+	return std::lerp(c0, c1, diffZ);
+}
+
+DualContouring::CellEdgeHermite DualContouring::CreateCellEdgeHermite(const VoxelF& voxel, const Vector3i& index) const
+{
+	CellEdgeHermite hermite;
+	auto cell = GetCellNeighbor8(voxel, index);
+	if (!cell.HasBoundary()) { return hermite; }
+	
+	for (int edgeIndex = 0; edgeIndex < m_cellEdges.size(); edgeIndex++) {
+		auto interSection = CalcIntersection(
+			cell.positions[m_cellEdges[edgeIndex].first],
+			cell.positions[m_cellEdges[edgeIndex].second],
+			cell.distances[m_cellEdges[edgeIndex].first],
+			cell.distances[m_cellEdges[edgeIndex].second]);
+		
+		Vector3 normal;
+		if (!CalcNormal(voxel, interSection, normal)){
+			hermite.data[edgeIndex].edgeIndex = -1;
+			continue;
+		}
+
+		hermite.data[edgeIndex].position = interSection;
+		hermite.data[edgeIndex].normal = normal;
+		hermite.data[edgeIndex].edgeIndex = edgeIndex;
+	}
+
+	return hermite;
+}
+
+Vector3 DualContouring::CalcGradient(const VoxelF& voxel, const Vector3& position) const
+{
+	const float h = voxel.GetPitch().x * 0.5f;
+
+	const float dx =
+		GetSDF(voxel, position + Vector3{ h, 0, 0 }) -
+		GetSDF(voxel, position - Vector3{ h, 0, 0 });
+	const float dy =
+		GetSDF(voxel, position + Vector3{ 0, h, 0 }) -
+		GetSDF(voxel, position - Vector3{ 0, h, 0 });
+	const float dz =
+		GetSDF(voxel, position + Vector3{ 0, 0, h }) -
+		GetSDF(voxel, position - Vector3{ 0, 0, h });
+
+	return Vector3{ dx, dy, dz } / (2.0f * h);
+}
+
+bool DualContouring::CalcNormal(const VoxelF& voxel, const Vector3& position, Vector3& result) const
+{
+	const Vector3 gradient = CalcGradient(voxel, position);
+	const float lengthSquared = glm::dot(gradient, gradient);
+	if (lengthSquared < 1.0e-12f) {
+		return false;
+	}
+
+	result = gradient / std::sqrt(lengthSquared);
+	return true;
+}
+
+Vector3 DualContouring::CellEdgeHermite::CalcPosition() const
+{
+	Vector3 pos = Vector3(0, 0, 0);
+	int count = 0;
+	for (size_t i = 0; i < data.size(); i++) {
+		if (data[i].IsValidate()) {
+			pos += data[i].position;
+			count++;
+		}
+	}
+
+	return pos / (float)count;
+}
+Vector3 DualContouring::CellEdgeHermite::CalcNormal() const
+{
+	Vector3 normal = Vector3(0, 0, 0);
+
+	int count = 0;
+	int firstIndex = -1;
+	for (size_t i = 0; i < data.size(); i++) {
+		if (data[i].IsValidate()) {
+			if (firstIndex == -1) { firstIndex = i; }
+			normal += data[i].normal;
+			count++;
+		}
+	}
+
+	const float lengthSquared = glm::dot(normal, normal);
+
+	if (lengthSquared < 1.0e-12f) {
+		return data[firstIndex].normal;
+	}
+
+	return normal / std::sqrt(lengthSquared);
+}
+
+void AddQuad(Vector<UInt>& indices, int vertex0, int vertex1, int vertex2, int vertex3, bool reverse)
+{
+	if (vertex0 < 0 || vertex1 < 0 || vertex2 < 0 || vertex3 < 0) {	return;	}
+
+	if (!reverse) {
+		indices.push_back(vertex0);
+		indices.push_back(vertex1);
+		indices.push_back(vertex2);
+		indices.push_back(vertex0);
+		indices.push_back(vertex2);
+		indices.push_back(vertex3);
+	} else {
+		indices.push_back(vertex0);
+		indices.push_back(vertex3);
+		indices.push_back(vertex2);
+		indices.push_back(vertex0);
+		indices.push_back(vertex2);
+		indices.push_back(vertex1);
+	}
+}
+
+DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
+{
+	struct Vertex
+	{
+		Vector3 position;
+		Vector3 normal;
+		int indices;
+	};
+	Vector<int> indices;
+	Voxel<Vertex> voxelVertex = Voxel<Vertex>(voxel.GetResolute());
+	voxelVertex.Allocate();
+	Mesh mesh;
+
+	int vertexNum = 0;
+	for (int x = 0; x < voxel.GetResolute().x - 1; ++x)
+	for (int y = 0; y < voxel.GetResolute().y - 1; ++y)
+	for (int z = 0; z < voxel.GetResolute().z - 1; ++z) {
+		auto hermite = CreateCellEdgeHermite(voxel, Vector3i(x, y, z));
+		if (!hermite.IsValid()) { continue; }
+		Vertex vertex;
+		vertex.position = hermite.CalcPosition();
+		vertex.normal = hermite.CalcNormal();
+		vertex.indices = vertexNum++;
+		voxelVertex.SetData(Vector3(x, y, z), vertex);
+		mesh.position.push_back(vertex.position);
+		mesh.normal.push_back(vertex.normal);
+	}
+
+	for (int x = 0; x < voxel.GetResolute().x - 1; ++x)
+	for (int y = 0; y < voxel.GetResolute().y - 1; ++y)
+	for (int z = 0; z < voxel.GetResolute().z - 1; ++z) {
+
+		const float sdf = GetSDF(voxel, Vector3i(x, y, z));
+		const float sdfX = GetSDF(voxel, Vector3i(x + 1, y, z));
+		const float sdfY = GetSDF(voxel, Vector3i(x, y + 1, z));
+		const float sdfZ = GetSDF(voxel, Vector3i(x, y, z + 1));
+		// X •ûŒü
+		if (y > 0 && z > 0 && IsBoundary(sdf, sdfX)) {
+			const Vertex& c0 = voxelVertex.GetData(x, y - 1, z - 1);
+			const Vertex& c1 = voxelVertex.GetData(x, y, z - 1);
+			const Vertex& c2 = voxelVertex.GetData(x, y, z);
+			const Vertex& c3 = voxelVertex.GetData(x, y - 1, z);
+			AddQuad(mesh.indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
+		}
+
+		// Y •ûŒü
+		if (x > 0 && z > 0 && IsBoundary(sdf, sdfY)) {
+			const Vertex& c0 = voxelVertex.GetData(x - 1, y, z - 1);
+			const Vertex& c1 = voxelVertex.GetData(x - 1, y, z);
+			const Vertex& c2 = voxelVertex.GetData(x, y, z);
+			const Vertex& c3 = voxelVertex.GetData(x, y, z - 1);
+			AddQuad(mesh.indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
+		}
+
+		// Z •ûŒü
+		if (x > 0 && y > 0 && IsBoundary(sdf, sdfZ)) {
+			const Vertex& c0 = voxelVertex.GetData(x - 1, y - 1, z);
+			const Vertex& c1 = voxelVertex.GetData(x, y - 1, z);
+			const Vertex& c2 = voxelVertex.GetData(x, y, z);
+			const Vertex& c3 = voxelVertex.GetData(x - 1, y, z);
+			AddQuad(mesh.indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
+		}
+	}
+
+	return mesh;
+}
 }

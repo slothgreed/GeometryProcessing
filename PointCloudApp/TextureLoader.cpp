@@ -53,31 +53,6 @@ PixelData* TextureLoader::LoadData(const String& name, int comp)
 }
 VoxelU16* TextureLoader::LoadVolume(const String& name)
 {
-	/*
-	{
-		const int sizeX = 5;
-		const int sizeY = 5;
-		const int sizeZ = 5;
-		std::vector<unsigned short> volume(sizeX * sizeY * sizeZ);
-
-		Vector3 center(sizeX / 2.0f, sizeY / 2.0f, sizeZ / 2.0f);
-		float radius = 1.5f;
-
-		for (int z = 0; z < sizeZ; ++z) {
-			for (int y = 0; y < sizeY; ++y) {
-				for (int x = 0; x < sizeX; ++x) {
-					Vector3 pos((float)x, (float)y, (float)z);
-					float dist = glm::length(pos - center);
-
-					unsigned short value = (dist <= radius) ? 65535 : 0;
-					volume[x + y * sizeX + z * sizeX * sizeY] = value;
-				}
-			}
-		}
-		return new VoxelU16(Vector3(sizeX, sizeY, sizeZ), BDB(Vector3(0), Vector3(1)), std::move(volume));
-	}
-	*/
-	
 	FileReader reader;
 	reader.Open(name, true);
 	auto size =  reader.ReadVector<unsigned short>(3);
