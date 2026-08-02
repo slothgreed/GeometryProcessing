@@ -183,6 +183,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="..\extlibs\implot\implot.cpp" />
     <ClCompile Include="..\extlibs\implot\implot_demo.cpp" />
     <ClCompile Include="..\extlibs\implot\implot_items.cpp" />
+    <ClCompile Include="AIDataGenerator.cpp" />
+    <ClCompile Include="AlgorithmShader.cpp" />
     <ClCompile Include="AlphaShape.cpp" />
     <ClCompile Include="BDB.cpp" />
     <ClCompile Include="BVH.cpp" />
@@ -215,6 +217,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
+    <ClCompile Include="GeometryLoader.cpp" />
+    <ClCompile Include="ModelClassification.cpp" />
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="PBR.cpp" />
     <ClCompile Include="Polyline.cpp" />
@@ -275,6 +279,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="..\extlibs\imgui\imstb_truetype.h" />
     <ClInclude Include="..\extlibs\implot\implot.h" />
     <ClInclude Include="..\extlibs\implot\implot_internal.h" />
+    <ClInclude Include="AIDataGenerator.h" />
+    <ClInclude Include="AlgorithmShader.h" />
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
@@ -306,7 +312,9 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
+    <ClInclude Include="ModelClassification.h" />
     <ClInclude Include="MouseController.h" />
+    <ClInclude Include="GeometryLoader.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="PBR.h" />
     <ClInclude Include="Polyline.h" />

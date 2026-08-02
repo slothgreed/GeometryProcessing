@@ -3,7 +3,7 @@
 
 
 #include <iostream>
-
+#include "GeometryLoader.h"
 #include "TerrainNode.h"
 #include "Mouse.h"
 #include "MouseInput.h"
@@ -231,14 +231,6 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateDXFTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
-	
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);	// GLenum mode
-
 
 	// 初期化時に一度だけ設定
 	glEnable(GL_DEBUG_OUTPUT);

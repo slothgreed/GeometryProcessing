@@ -1,5 +1,5 @@
-#ifndef POIINT_CLOUD_APP_H
-#define	POIINT_CLOUD_APP_H
+#ifndef POINT_CLOUD_APP_H
+#define	POINT_CLOUD_APP_H
 
 #include "RenderResource.h"
 #include "RenderNode.h"
@@ -90,4 +90,4 @@ private:
 };
 }
 
-#endif // POIINT_CLOUD_APP_H
+#endif // POINT_CLOUD_APP_H

@@ -12,7 +12,7 @@ layout(std430, binding  = 1) buffer voxelBuffer
 
 layout(std430, binding  = 2) buffer volumeBuffer
 {
-	unsigned short data[];
+	DataType data[];
 };
 
 layout(std430, binding = 3) buffer triTableBuffer
@@ -28,7 +28,7 @@ layout(std430, binding = 5) buffer taskNumBuffer{
 	uint taskNum[];
 };
 
-unsigned short getData(Voxel voxel, vec3 index)
+DataType getData(Voxel voxel, vec3 index)
 {
 	return data[getIndex(voxel, int(index.x),int(index.y),int(index.z))];
 }
@@ -56,8 +56,11 @@ void main()
 	if (edgeTable[cubeIndex] == 0) { gl_PrimitiveCountNV = 0; return; }
 	vec3 coord = getCoordinate(voxel,id);
 	float x = coord.x; float y = coord.y; float z = coord.z;
-
-	unsigned short value[8];
+	if (coord.x >= voxel.resolute.x - 1 ||
+        coord.y >= voxel.resolute.y - 1 ||
+        coord.z >= voxel.resolute.z - 1)
+    {gl_PrimitiveCountNV = 0; return;}
+	DataType value[8];
 	vec3 position[8];
 	vec3 index;
 	index = vec3(x,y,z); 			 value[0] = getData(voxel,index); position[0] = getPosition(voxel,index);
@@ -89,9 +92,9 @@ void main()
 	int base = cubeIndex * 16;
 	for (int i = 0; triTable[base + i] != -1; i += 3)
 	{
-		gl_MeshVerticesNV[i].gl_Position = camera.VP * u_Model * vec4(vertlist[triTable[base + i]],1.0);
-		gl_MeshVerticesNV[i + 1].gl_Position = camera.VP * u_Model * vec4(vertlist[triTable[base + i + 1]],1.0);
-		gl_MeshVerticesNV[i + 2].gl_Position = camera.VP * u_Model * vec4(vertlist[triTable[base + i +2]],1.0);
+		gl_MeshVerticesNV[i].gl_Position = camera.VP * u_Model * vec4(voxel.bdbMin.xyz + vertlist[triTable[base + i]],1.0);
+		gl_MeshVerticesNV[i + 1].gl_Position = camera.VP * u_Model * vec4(voxel.bdbMin.xyz + vertlist[triTable[base + i + 1]],1.0);
+		gl_MeshVerticesNV[i + 2].gl_Position = camera.VP * u_Model * vec4(voxel.bdbMin.xyz + vertlist[triTable[base + i +2]],1.0);
 		gl_PrimitiveIndicesNV[i] = i;
 		gl_PrimitiveIndicesNV[i + 1] = i + 1;
 		gl_PrimitiveIndicesNV[i + 2] = i + 2;

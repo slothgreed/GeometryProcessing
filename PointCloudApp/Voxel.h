@@ -104,6 +104,23 @@ private:
 	Vector<T> m_data;
 };
 
+struct VoxelGpu
+{
+	Vector4 pitch;
+	Vector4 bdbMin;
+	Vector4 bdbMax;
+	Vector4i resolute;
+	template<typename T>
+	VoxelGpu(const Voxel<T>& voxel)
+	{
+		pitch = Vector4(voxel.GetPitch(), 1.0);
+		bdbMin = Vector4(voxel.GetBDB().Min(), 1.0);
+		bdbMax = Vector4(voxel.GetBDB().Max(), 1.0);
+		resolute = Vector4(voxel.GetResolute(), 1);
+
+	}
+};
+
 using VoxelByte = Voxel<char>;
 using VoxelU16 = Voxel<unsigned short>;
 using VoxelF = Voxel<float>;
@@ -112,25 +129,22 @@ class MarchingCube
 public:
 	MarchingCube() {};
 	~MarchingCube() {};
-	Mesh CreateMesh(const VoxelU16& voxel, float threshold);
+	template<typename T>
+	Mesh CreateMesh(const Voxel<T>& voxel, float threshold);
 	Vector<int> CreateFlattenTriangleTable() const;
 private:
 	Vector3 VertexInterp(float isolevel, const Vector3& p1, const Vector3& p2, float valp1, float valp2);
 
 };
+template Mesh MarchingCube::CreateMesh<char>(const Voxel<char>&, float);
+template Mesh MarchingCube::CreateMesh<unsigned short>(const Voxel<unsigned short>&, float);
+template Mesh MarchingCube::CreateMesh<float>(const Voxel<float>&, float);
 
 class DualContouring
 {
 public:
 	DualContouring() {};
 	~DualContouring() {};
-
-	struct Mesh
-	{
-		Vector<Vector3> position;
-		Vector<Vector3> normal;
-		Vector<UInt> indices;
-	};
 
 	Mesh CreateMesh(const VoxelF& voxel);
 

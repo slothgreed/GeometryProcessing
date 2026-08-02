@@ -22,14 +22,12 @@ std::vector<float> SDFAI::VoxelData::CreatePosition() const
     const float halfY = pitchY * 0.5f;
     const float halfZ = pitchZ * 0.5f;
 
+    for (int x = 0; x < resolution[0]; ++x)
+    for (int y = 0; y < resolution[1]; ++y)
     for (int z = 0; z < resolution[2]; ++z) {
-        for (int y = 0; y < resolution[1]; ++y) {
-            for (int x = 0; x < resolution[0]; ++x) {
-                position.push_back(min[0] + x * pitchX + halfX);
-                position.push_back(min[1] + y * pitchY + halfY);
-                position.push_back(min[2] + z * pitchZ + halfZ);
-            }
-        }
+		position.push_back(min[0] + x * pitchX + halfX);
+		position.push_back(min[1] + y * pitchY + halfY);
+		position.push_back(min[2] + z * pitchZ + halfZ);
     }
 
     return position;

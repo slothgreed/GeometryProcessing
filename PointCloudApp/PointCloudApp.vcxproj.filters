@@ -63,6 +63,9 @@
     <Filter Include="ソース ファイル\Utility\GaussianSplatting">
       <UniqueIdentifier>{4f53f30e-977d-4530-af99-310b74a1e320}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Utility\AI">
+      <UniqueIdentifier>{e45d7cf2-ca9a-40a8-a7ad-8b3bb6021760}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -334,6 +337,18 @@
     </ClCompile>
     <ClCompile Include="ProcessExecutor.cpp">
       <Filter>ソース ファイル\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="AlgorithmShader.cpp">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryLoader.cpp">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="AIDataGenerator.cpp">
+      <Filter>ソース ファイル\Utility\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelClassification.cpp">
+      <Filter>ソース ファイル\App</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -627,6 +642,18 @@
     </ClInclude>
     <ClInclude Include="ProcessExecutor.h">
       <Filter>ソース ファイル\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="AlgorithmShader.h">
+      <Filter>ソース ファイル\GL\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryLoader.h">
+      <Filter>ソース ファイル\Utility\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="AIDataGenerator.h">
+      <Filter>ソース ファイル\Utility\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelClassification.h">
+      <Filter>ソース ファイル\App</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

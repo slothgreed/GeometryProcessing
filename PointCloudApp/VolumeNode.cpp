@@ -105,70 +105,7 @@ void VolumeNode::VolumeRayCastShader::SetVoxel(const GLBuffer* pBuffer)
 	BindShaderStorage(1, pBuffer->Handle());
 }
 
-ShaderPath VolumeNode::MarchingCubeShader::GetShaderPath()
-{
-	ShaderPath path;
-	path.version = "version.h";
-	path.header.push_back("common.h");
-	path.header.push_back("volume\\voxel.h");
-	
-	path.header.push_back("volume\\marchingCube.h");
-	if (m_withTask) {
-		path.shader[SHADER_PROGRAM_TASK] = "volume\\marchingCube.task";
-		path.shader[SHADER_PROGRAM_MESH] = "volume\\marchingCubeWithTask.mesh";
-	} else {
-		path.shader[SHADER_PROGRAM_MESH] = "volume\\marchingCube.mesh";
-	}
-	path.shader[SHADER_PROGRAM_FRAG] = "volume\\marchingCube.frag";
-	return path;
-}
 
-void VolumeNode::MarchingCubeShader::FetchUniformLocation()
-{
-	m_uModel = GetUniformLocation("u_Model");
-	m_uThreshold = GetUniformLocation("u_threshold");
-	m_uTaskNum = GetUniformLocation("u_taskNum");
-}
-
-void VolumeNode::MarchingCubeShader::SetCamera(const GLBuffer* pBuffer)
-{
-	BindShaderStorage(0, pBuffer->Handle());
-}
-void VolumeNode::MarchingCubeShader::SetVoxel(const GLBuffer* pBuffer)
-{
-	BindShaderStorage(1, pBuffer->Handle());
-}
-void VolumeNode::MarchingCubeShader::SetVoxelData(const GLBuffer* pBuffer)
-{
-	BindShaderStorage(2, pBuffer->Handle());
-}
-void VolumeNode::MarchingCubeShader::SetTriTable(const GLBuffer* pBuffer)
-{
-	BindShaderStorage(3, pBuffer->Handle());
-}
-
-void VolumeNode::MarchingCubeShader::SetCubeIndex(const GLBuffer* pBuffer)
-{
-	BindShaderStorage(4, pBuffer->Handle());
-}
-void VolumeNode::MarchingCubeShader::SetTaskNums(const GLBuffer* pBuffer)
-{
-	BindShaderStorage(5, pBuffer->Handle());
-}
-
-void VolumeNode::MarchingCubeShader::SetModel(const Matrix4x4& value)
-{
-	BindUniform(m_uModel, value);
-}
-void VolumeNode::MarchingCubeShader::SetThreshold(float threshold)
-{
-	BindUniform(m_uThreshold, threshold);
-}
-
-void VolumeNode::MarchingCubeShader::SetTaskNum(unsigned int taskNum)
-{
-	BindUniform(m_uTaskNum, taskNum);
-}
 
 VolumeNode::VolumeNode(Unique<VoxelU16>&& pVoxel)
 	: RenderNode("Volume")
@@ -238,17 +175,13 @@ void VolumeNode::Draw(const DrawContext& context)
 			m_pMarchingShader->SetModel(GetMatrix());
 			m_pMarchingShader->SetVoxel(m_gpu.pVoxel.get());
 			m_pMarchingShader->SetVoxelData(m_gpu.pVoxelData.get());
-			m_pMarchingShader->SetTriTable(m_gpu.pTriTable.get());
 			m_pMarchingShader->SetThreshold(m_ui.marching.isolate);
 			if (m_pMarchingShader->WithTask()) {
-				m_gpu.pTaskNum->SetData(0);
-				m_gpu.pCubeIndexs->SetData(0);
-				m_pMarchingShader->SetTaskNums(m_gpu.pTaskNum.get());
-				m_pMarchingShader->SetTaskNum(m_pMarchingShader->GetTaskThreadNum());
-				m_pMarchingShader->SetCubeIndex(m_gpu.pCubeIndexs.get());
+				m_pMarchingShader->PreDraw();
 				m_pMarchingShader->DrawWithAutoTask(0, m_pVoxel->GetSize());
 				m_pMarchingShader->BarrierSSBO();
 			} else {
+				m_pMarchingShader->PreDraw();
 				m_pMarchingShader->Draw(0, m_pVoxel->GetSize());
 			}
 		} else {
@@ -336,22 +269,15 @@ void VolumeNode::ShowUI(UIContext& ui)
 		if (ImGui::Checkbox("MeshShader", &m_ui.marching.useMeshShader)) {
 			if (m_ui.marching.useMeshShader) {
 				if (m_pMarchingShader == nullptr) {
-					m_pMarchingShader = std::make_unique<MarchingCubeShader>(true); m_pMarchingShader->Build();
+					m_pMarchingShader = std::make_unique<MarchingCubeShader>(m_pVoxel->GetSize(), true); m_pMarchingShader->Build();
 					BuildVoxelResource(true);
-					m_gpu.pTriTable = std::make_unique<GLBuffer>();
-					m_gpu.pTriTable->Create(m_marching.CreateFlattenTriangleTable());
-					Vector<Vector2> value(m_pVoxel->GetSize(), Vector2(0));
-					m_gpu.pCubeIndexs = std::make_unique<GLBuffer>();
-					m_gpu.pCubeIndexs->Create(value);
-					Vector<unsigned int> taskNum(CeilDiv(m_pVoxel->GetSize(), m_pMarchingShader->GetTaskThreadNum()), 0);
-					m_gpu.pTaskNum = std::make_unique<GLBuffer>();
-					m_gpu.pTaskNum->Create(taskNum);
 				}
 			}
 		}
 		if (ImGui::SliderFloat("MarchingThreshold", &m_ui.marching.isolate, 0, 2000)) {
 			if (!m_ui.marching.useMeshShader) {
-				auto mesh = m_marching.CreateMesh(*m_pVoxel, m_ui.marching.isolate);
+				MarchingCube marching;
+				auto mesh = marching.CreateMesh(*m_pVoxel, m_ui.marching.isolate);
 				m_gpu.pMarchingPosition = std::make_unique<GLBuffer>();
 				m_gpu.pMarchingNormal = std::make_unique<GLBuffer>();
 				m_gpu.pMarchingPosition->Create(mesh.GetPoints());
@@ -367,22 +293,8 @@ void VolumeNode::ShowUI(UIContext& ui)
 void VolumeNode::BuildVoxelResource(bool withData)
 {
 	if (!m_gpu.pVoxel) {
-		struct VoxelGpu
-		{
-			Vector4 pitch;
-			Vector4 bdbMin;
-			Vector4 bdbMax;
-			Vector4i resolute;
-		};
-
-		VoxelGpu gpu;
-		gpu.pitch = Vector4(m_pVoxel->GetPitch(), 1.0);
-		gpu.bdbMin = Vector4(m_pVoxel->GetBDB().Min(), 1.0);
-		gpu.bdbMax = Vector4(m_pVoxel->GetBDB().Max(), 1.0);
-		gpu.resolute = Vector4(m_pVoxel->GetResolute(), 1);
-
 		m_gpu.pVoxel = std::make_unique<GLBuffer>();
-		m_gpu.pVoxel->Create<VoxelGpu>(gpu);
+		m_gpu.pVoxel->Create<VoxelGpu>(VoxelGpu(*m_pVoxel));
 	}
 	if (withData) {
 		if (!m_gpu.pVoxelData) {
@@ -417,4 +329,124 @@ std::vector<Vector4> VolumeNode::CreateGrayScale(const VoxelU16& voxel) const
 
 	return grayScale;
 }
+
+
+
+
+
+
+
+
+
+
+VoxelNode::VoxelNode(const String& name, Unique<VoxelF>&& pVoxel)
+	: RenderNode(name)
+	, m_pVoxel(std::move(pVoxel))
+{
+	m_maxValue = m_pVoxel->GetData()[0];
+	m_minValue = m_pVoxel->GetData()[0];
+	for (size_t i = 0; i < m_pVoxel->GetData().size(); i++) {
+		m_maxValue = std::max(m_maxValue, m_pVoxel->GetData()[i]);
+		m_minValue = std::min(m_minValue, m_pVoxel->GetData()[i]);
+	}
+}
+VoxelNode::~VoxelNode()
+{
+
+}
+void VoxelNode::BuildResource()
+{
+	if (!m_gpu.pPosition) {
+		m_gpu.pPosition = std::make_unique<GLBuffer>();
+		m_gpu.pColor = std::make_unique<GLBuffer>();
+	}
+	
+	if (m_cache.maxValue == m_ui.maxValue && m_cache.minValue == m_ui.minValue) { return; }
+
+	Vector<Vector3> position;
+	Vector<Vector3> color;
+	for (size_t i = 0; i < m_pVoxel->GetResolute().x; i++)
+	for (size_t j = 0; j < m_pVoxel->GetResolute().y; j++)
+	for (size_t k = 0; k < m_pVoxel->GetResolute().z; k++) {
+		auto data = m_pVoxel->GetData(Vector3i(i, j, k));
+		if (data < m_ui.minValue || data > m_ui.maxValue) { continue; }
+		position.push_back(m_pVoxel->GetCenter(Vector3i(i, j, k)));
+		color.push_back(ColorUtility::CreatePseudo(m_pVoxel->GetData(Vector3i(i, j, k)), m_minValue, m_maxValue));
+	}
+
+	m_cache.maxValue = m_ui.maxValue;
+	m_cache.minValue = m_ui.minValue;
+
+	if (position.size() == 0) {
+		m_gpu.pPosition->Delete();
+		m_gpu.pColor->Delete();
+		return;
+	}
+	m_gpu.pPosition->Create(position);
+	m_gpu.pColor->Create(color);
+}
+
+
+void VoxelNode::Draw(const DrawContext& context)
+{
+	if (m_ui.visiblePoints) {
+		BuildResource();
+		if (m_gpu.pPosition->Num() != 0) {
+			auto pVertexColorShader = context.pResource->GetShaderTable()->GetVertexColorShader();
+			pVertexColorShader->Use();
+			pVertexColorShader->SetCamera(context.pResource->GetCameraBuffer());
+			pVertexColorShader->SetModel(GetMatrix());
+			pVertexColorShader->SetPosition(m_gpu.pPosition.get());
+			pVertexColorShader->SetColor(m_gpu.pColor.get());
+			pVertexColorShader->DrawArray(GL_POINTS, m_gpu.pPosition->Num());
+		}
+	}
+	if (m_ui.marching.visible) {
+		BuildResource();
+		m_pMarchingShader->Use();
+		m_pMarchingShader->SetCamera(context.pResource->GetCameraBuffer());
+		m_pMarchingShader->SetModel(GetMatrix());
+		m_pMarchingShader->SetVoxel(m_gpu.pVoxel.get());
+		m_pMarchingShader->SetVoxelData(m_gpu.pVoxelData.get());
+		m_pMarchingShader->SetThreshold(m_ui.marching.isolate);
+		if (m_pMarchingShader->WithTask()) {
+			m_pMarchingShader->PreDraw();
+			m_pMarchingShader->DrawWithAutoTask(0, m_pVoxel->GetSize());
+			m_pMarchingShader->BarrierSSBO();
+		} else {
+			m_pMarchingShader->PreDraw();
+			m_pMarchingShader->Draw(0, m_pVoxel->GetSize());
+		}
+	}
+}
+void VoxelNode::ShowUI(UIContext& ui)
+{
+	ImGui::Checkbox("VisiblePoints", &m_ui.visiblePoints);
+	if (m_ui.visiblePoints) {
+		ImGui::SliderFloat("Min", &m_ui.minValue, m_minValue, m_ui.maxValue);
+		ImGui::SliderFloat("Max", &m_ui.maxValue, m_ui.minValue, m_maxValue);
+	}
+	ImGui::Checkbox("VisibleMarchingCube", &m_ui.marching.visible);
+	if (m_ui.marching.visible) {
+		if (m_pMarchingShader == nullptr) {
+			m_pMarchingShader = std::make_unique<MarchingCubeShader>(m_pVoxel->GetSize(), false, DATA_TYPE::DATA_FLOAT); m_pMarchingShader->Build();
+			BuildVoxelResource();
+		}
+
+		ImGui::SliderFloat("MarchingThreshold", &m_ui.marching.isolate, m_minValue, m_maxValue);
+	}
+}
+
+void VoxelNode::BuildVoxelResource()
+{
+	if (!m_gpu.pVoxel) {
+		m_gpu.pVoxel = std::make_unique<GLBuffer>();
+		m_gpu.pVoxel->Create<VoxelGpu>(VoxelGpu(*m_pVoxel));
+	}
+	if (!m_gpu.pVoxelData) {
+		m_gpu.pVoxelData = std::make_unique<GLBuffer>();
+		m_gpu.pVoxelData->Create(m_pVoxel->GetData());
+	}
+}
+
 }

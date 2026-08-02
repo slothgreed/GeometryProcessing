@@ -47,3 +47,9 @@ vec3 VertexInterp(float isolevel, vec3 p1, vec3 p2, float valp1, float valp2)
 
 	return p;
 }
+
+#ifdef VOXEL_DATA_TYPE_FLOAT
+    #define DataType float
+#else
+    #define DataType unsigned short
+#endif

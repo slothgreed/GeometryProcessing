@@ -6,7 +6,7 @@
 #include <random>
 #include "Profiler.h"
 #include "ProcessExecutor.h"
-
+#include "ModelClassification.h"
 
 
 int main()
@@ -22,6 +22,7 @@ int main()
 	KI::PointCloudApp app;
 	//KI::SoftwareRasterizer app;
 	//KI::MeshShaderTest app;
+	//KI::ModelClassification app;
 	app.Initialize();
 	app.Execute();
 	app.Finalize();

@@ -6,7 +6,9 @@
 #include "Utility.h"
 #include "FileUtility.h"
 #include "Voxelizer.h"	
+#include "DebugNode.h"
 #include "ProcessExecutor.h"
+#include "VolumeNode.h"
 #define GPU_DEBUG
 namespace KI
 {
@@ -65,6 +67,8 @@ bool SignedDistanceField::DebugSDFCPUGPU(int resolute)
 			return false;
 		}
 	}
+
+	return true;
 }
 
 void SignedDistanceField::CreateTexure(int resolute)
@@ -152,10 +156,10 @@ void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 		AIProcessor::Instance().SendCommand("SDFAI --train " + trainPath);
 
 		std::vector<float> predictData;
-		for(int i = 0; i < voxelF.GetResolute().x; i++)
-		for(int j = 0; j < voxelF.GetResolute().y; j++) 
-		for(int k = 0; k < voxelF.GetResolute().z; k++) {
-			auto value = voxelF.GetCenter(Vector3i(k, j, i));
+		for(int x = 0; x < voxelF.GetResolute().x; x++)
+		for(int y = 0; y < voxelF.GetResolute().y; y++) 
+		for(int z = 0; z < voxelF.GetResolute().z; z++) {
+			auto value = voxelF.GetCenter(Vector3i(x, y, z));
 			predictData.push_back(value.x);
 			predictData.push_back(value.y);
 			predictData.push_back(value.z);
@@ -174,47 +178,11 @@ void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 		auto outputData = reader.ReadVector<float>((int)predictData.size());
 		reader.Close();
 
-		float _max = outputData[0];
-		float _min = outputData[0];
-		for(size_t i = 1; i < outputData.size(); i++) {
-			_max = std::max(_max, outputData[i]);
-			_min = std::min(_min, outputData[i]);
-		}
-		Vector<Vector3> position;
-		Vector<Vector3> color;
-		for(size_t i = 0; i < voxelF.GetResolute().x; i++) 
-		for(size_t j = 0; j < voxelF.GetResolute().y; j++) 
-		for(size_t k = 0; k < voxelF.GetResolute().z; k++) {
-			position.push_back(voxelF.GetCenter(Vector3i(k, j, i)));
-			auto sdf = outputData[i * voxelF.GetResolute().x * voxelF.GetResolute().y + j * voxelF.GetResolute().x + k];
-			color.push_back(ColorUtility::CreatePseudo(sdf, _min, _max));
-			
-			//if(voxelF.GetData(Vector3i(k, j, i)) < 0.0f) {
-			//	position.push_back(voxelF.GetCenter(Vector3i(k, j, i)));
-			//	color.push_back(voxelF.GetData(Vector3i(k, j, i)) < 0.0f ? ColorUtility::CreatePrimary(1) : ColorUtility::CreatePrimary(2));
-			//}
-		}
-		
 		{
-			auto pPrimitive = std::make_shared<Primitive>();
-			pPrimitive->SetPosition(std::move(position));
-			pPrimitive->SetColor(std::move(color));
-			pPrimitive->SetType(GL_POINTS);
-			auto pNode = std::make_shared<PrimitiveNode>("SDFAI", pPrimitive);
-			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
-			m_pHalfEdge->AddNode(pNode);
-		}
-
-		{
-			auto sdfVoxel = VoxelF(voxelF.GetResolute(), voxelF.GetBDB(), std::move(outputData));
-			DualContouring dual;
-			auto mesh = dual.CreateMesh(sdfVoxel);
-			auto pPrimitive = std::make_shared<Primitive>();
-			pPrimitive->SetPosition(std::move(mesh.position));
-			pPrimitive->SetNormal(std::move(mesh.normal));
-			pPrimitive->SetIndex(std::move(mesh.indices));
-			pPrimitive->SetType(GL_TRIANGLES);
-			auto pNode = std::make_shared<PrimitiveNode>("SDFAI_DualContouring", pPrimitive);
+			auto sdfVoxel = std::make_unique<VoxelF>(voxelF.GetResolute(), voxelF.GetBDB(), std::move(outputData));
+			//DualContouring dual;
+			//auto mesh2 = dual.CreateMesh(sdfVoxel);
+			auto pNode = std::make_shared<VoxelNode>("SDFAI_DualContouring", std::move(sdfVoxel));
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
 			m_pHalfEdge->AddNode(pNode);
 		}

@@ -44,6 +44,22 @@ Mesh::Triangle Mesh::GetTriangle(int index) const
 	}
 }
 
+void Mesh::BuildNormal()
+{
+	if (m_drawType == DrawType::Triangles) {
+		if (m_indexs.empty()) { Assert::Failed(); }
+		m_normals.resize(m_points.size());
+		for (UInt i = 0; i < m_indexs.size(); i += 3) {
+			auto p0 = m_points[m_indexs[i]];
+			auto p1 = m_points[m_indexs[i + 1]];
+			auto p2 = m_points[m_indexs[i + 2]];
+			auto faceNormal = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+			m_normals[m_indexs[i]] = faceNormal;
+			m_normals[m_indexs[i + 1]] = faceNormal;
+			m_normals[m_indexs[i + 2]] = faceNormal;
+		}
+	}
+}
 Mesh& Mesh::ConvertTriangles()
 {
 	if (m_drawType == DrawType::Triangles) {

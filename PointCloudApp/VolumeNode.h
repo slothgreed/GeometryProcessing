@@ -5,6 +5,7 @@
 #include "Texture.h"
 #include "Voxel.h"
 #include "Primitives.h"
+#include "AlgorithmShader.h"
 namespace KI
 {
 class VolumeNode : public RenderNode
@@ -54,34 +55,6 @@ public:
 	};
 
 
-	class MarchingCubeShader : public IMeshShader
-	{
-	public:
-		virtual int GetTaskThreadNum() const { return 32; }
-		MarchingCubeShader(bool withTask = false)
-			: m_withTask(withTask)
-			, m_uTaskNum(0) {};
-		~MarchingCubeShader() {};
-
-		virtual ShaderPath GetShaderPath();
-		virtual void FetchUniformLocation();
-
-		bool WithTask() const { return m_withTask; }
-		void SetCamera(const GLBuffer* pBuffer);
-		void SetVoxel(const GLBuffer* pBuffer);
-		void SetVoxelData(const GLBuffer* pBuffer);
-		void SetTriTable(const GLBuffer* pBuffer);
-		void SetCubeIndex(const GLBuffer* pBuffer);
-		void SetTaskNums(const GLBuffer* pBuffer);
-		void SetTaskNum(unsigned int value);
-		void SetModel(const Matrix4x4& value);
-		void SetThreshold(float value);
-	private:
-		bool m_withTask;
-		GLuint m_uModel;
-		GLuint m_uThreshold;
-		GLuint m_uTaskNum;
-	};
 
 
 	VolumeNode(Unique<VoxelU16>&& pVoxel);
@@ -157,20 +130,75 @@ private:
 
 		Unique<GLBuffer> pMarchingPosition;
 		Unique<GLBuffer> pMarchingNormal;
-		Unique<GLBuffer> pTriTable;
 		Unique<GLBuffer> pVoxel;
 		Unique<GLBuffer> pVoxelData;
-		Unique<GLBuffer> pCubeIndexs; // useTaskShader;
-		Unique<GLBuffer> pTaskNum; // useTaskShader;
 	};
 
 	Gpu m_gpu;
 	Unique<Texture3D> m_pTexture3D;
 	Unique<VoxelU16> m_pVoxel;
-	MarchingCube m_marching;
 	Unique<VolumeNode::VolumeRayCastShader> m_pRayCastShader;
-	Unique<VolumeNode::MarchingCubeShader> m_pMarchingShader;
+	Unique<MarchingCubeShader> m_pMarchingShader;
 	Unique<VolumeNode::VolumeImageShader> m_pVolumeImageShader;
+};
+
+
+class VoxelNode : public RenderNode
+{
+public:
+
+	VoxelNode(const String& name, Unique<VoxelF>&& pVoxel);
+	virtual ~VoxelNode();
+
+	virtual void Draw(const DrawContext& context);
+	virtual void ShowUI(UIContext& ui);
+
+private:
+	void BuildResource();
+	void BuildVoxelResource();
+
+	struct UI
+	{
+		struct MarchingCube
+		{
+			MarchingCube()
+				: visible(false)
+				, isolate(0.0f)
+			{
+			}
+			bool visible;
+			float isolate;
+		};
+
+		UI() {}
+		bool visiblePoints = false;
+		float minValue = 0.0f;
+		float maxValue = 1.0f;
+		MarchingCube marching;
+	};
+
+	UI m_ui;
+
+	struct Gpu
+	{
+		Unique<GLBuffer> pPosition;
+		Unique<GLBuffer> pColor;
+		Unique<GLBuffer> pVoxel;
+		Unique<GLBuffer> pVoxelData;
+	};
+
+	struct Cache
+	{
+		float maxValue = -1.0f;
+		float minValue = -1.0f;
+	};
+
+	Cache m_cache;
+	float m_maxValue = 0.0f;
+	float m_minValue = 0.0f;
+	Gpu m_gpu;
+	Unique<VoxelF> m_pVoxel;
+	Unique<MarchingCubeShader> m_pMarchingShader;
 };
 
 

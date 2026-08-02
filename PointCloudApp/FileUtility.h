@@ -1,7 +1,9 @@
 #ifndef FILE_UTILITY_H
 #define FILE_UTILITY_H
 #include <iostream>
+#include "Windows.h"
 #include <fstream>
+#include <span>
 namespace KI
 {
 enum class Format
@@ -123,6 +125,86 @@ public:
 	void Close();
 private:
 	std::ifstream m_fileStream;
+};
+
+class MemoryMappedFile
+{
+public:
+	MemoryMappedFile();
+	~MemoryMappedFile();
+
+	void Open(const String& path);
+	void Close();
+
+	const char* Data() const { return m_data; }
+	std::string_view Text() const { return std::string_view(m_data, m_size); }
+private:
+	HANDLE m_file = INVALID_HANDLE_VALUE;
+	HANDLE m_mapping = nullptr;
+
+	const char* m_data = nullptr;
+
+	size_t m_size = 0;
+};
+
+class LineReader
+{
+public:
+	class Iterator
+	{
+	public:
+		using value_type = std::string_view;
+		Iterator() :m_finished(true) {}
+		explicit Iterator(std::string_view text)
+			: m_text(text)
+		{
+			Next();
+		}
+		value_type operator*() const { return m_line; }
+		Iterator& operator++() { Next(); return *this; }
+		bool operator==(const Iterator& other) const
+		{
+			return m_finished == other.m_finished;
+		}
+
+		bool operator!=(const Iterator& other) const { return !(*this == other); }
+
+	private:
+
+		void Next()
+		{
+			if (m_text.empty()) {
+				m_finished = true;
+				m_line = {};
+				return;
+			}
+
+			size_t pos = m_text.find('\n');
+
+			if (pos == std::string_view::npos) {
+				m_line = m_text;
+				m_text = {};
+			} else {
+				m_line = m_text.substr(0, pos);
+				m_text.remove_prefix(pos + 1);
+			}
+
+			// Windows(CRLF)‘Î‰ž
+			if (!m_line.empty() && m_line.back() == '\r')
+				m_line.remove_suffix(1);
+		}
+
+		std::string_view m_text;
+		std::string_view m_line;
+		bool m_finished = false;
+	};
+
+	explicit LineReader(std::string_view text) : m_text(text) {}
+	Iterator begin() const { return Iterator(m_text); }
+	Iterator end() const { return Iterator(); }
+
+private:
+	std::string_view m_text;
 };
 }
 #endif FILE_UTILITY_H

@@ -320,7 +320,8 @@ Vector<int> MarchingCube::CreateFlattenTriangleTable() const
 	}
 	return flatten;
 }
-Mesh MarchingCube::CreateMesh(const VoxelU16& voxel, float threshold)
+template<typename T>
+Mesh MarchingCube::CreateMesh(const Voxel<T>& voxel, float threshold)
 {
 	struct Grid
 	{
@@ -565,7 +566,7 @@ void AddQuad(Vector<UInt>& indices, int vertex0, int vertex1, int vertex2, int v
 	}
 }
 
-DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
+Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 {
 	struct Vertex
 	{
@@ -573,11 +574,13 @@ DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 		Vector3 normal;
 		int indices;
 	};
-	Vector<int> indices;
 	Voxel<Vertex> voxelVertex = Voxel<Vertex>(voxel.GetResolute());
 	voxelVertex.Allocate();
 	Mesh mesh;
 
+	Vector<Vector3> position;
+	Vector<Vector3> normal;
+	Vector<UInt> indices;
 	int vertexNum = 0;
 	for (int x = 0; x < voxel.GetResolute().x - 1; ++x)
 	for (int y = 0; y < voxel.GetResolute().y - 1; ++y)
@@ -589,8 +592,8 @@ DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 		vertex.normal = hermite.CalcNormal();
 		vertex.indices = vertexNum++;
 		voxelVertex.SetData(Vector3(x, y, z), vertex);
-		mesh.position.push_back(vertex.position);
-		mesh.normal.push_back(vertex.normal);
+		position.push_back(vertex.position);
+		normal.push_back(vertex.normal);
 	}
 
 	for (int x = 0; x < voxel.GetResolute().x - 1; ++x)
@@ -607,7 +610,7 @@ DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 			const Vertex& c1 = voxelVertex.GetData(x, y, z - 1);
 			const Vertex& c2 = voxelVertex.GetData(x, y, z);
 			const Vertex& c3 = voxelVertex.GetData(x, y - 1, z);
-			AddQuad(mesh.indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
+			AddQuad(indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
 		}
 
 		// Y •ûŒü
@@ -616,7 +619,7 @@ DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 			const Vertex& c1 = voxelVertex.GetData(x - 1, y, z);
 			const Vertex& c2 = voxelVertex.GetData(x, y, z);
 			const Vertex& c3 = voxelVertex.GetData(x, y, z - 1);
-			AddQuad(mesh.indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
+			AddQuad(indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
 		}
 
 		// Z •ûŒü
@@ -625,10 +628,10 @@ DualContouring::Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 			const Vertex& c1 = voxelVertex.GetData(x, y - 1, z);
 			const Vertex& c2 = voxelVertex.GetData(x, y, z);
 			const Vertex& c3 = voxelVertex.GetData(x - 1, y, z);
-			AddQuad(mesh.indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
+			AddQuad(indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
 		}
 	}
 
-	return mesh;
+	return Mesh(std::move(position),std::move(normal),std::move(indices),Mesh::DrawType::Triangles);
 }
 }

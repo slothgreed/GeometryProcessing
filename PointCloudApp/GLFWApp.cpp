@@ -124,7 +124,12 @@ void GLFWApp::Initialize()
 	glfwSetScrollCallback(m_window, ScrollCallBack);
 	glfwSetWindowSizeCallback(m_window, WindowSizeCallBack);
 	glfwSwapInterval(0);
-
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);	// GLenum mode
 	m_pMouse = std::make_unique<Mouse>();
 	m_pCamera = std::make_shared<Camera>();
 	m_pCamera->SetPerspective(45, 1, 0.1, 1000000);

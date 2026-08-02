@@ -2,7 +2,6 @@
 #include "Utility.h"
 
 #include <filesystem>
-#include "Windows.h"
 namespace KI
 {
 namespace fs = std::filesystem;
@@ -513,5 +512,49 @@ void FileReader::Close()
 	if (m_fileStream.is_open()) {
 		m_fileStream.close();
 	}
+}
+
+
+MemoryMappedFile::MemoryMappedFile()
+{
+}
+
+MemoryMappedFile::~MemoryMappedFile()
+{
+	Close();
+}
+
+void MemoryMappedFile::Open(const String& path)
+{
+	m_file = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (m_file == INVALID_HANDLE_VALUE)
+		throw std::runtime_error("CreateFile failed");
+
+	LARGE_INTEGER size;
+	GetFileSizeEx(m_file, &size);
+	m_size = static_cast<size_t>(size.QuadPart);
+	m_mapping = CreateFileMappingA(m_file, nullptr, PAGE_READONLY, 0, 0, nullptr);
+
+	if (!m_mapping) {
+		CloseHandle(m_file);
+		throw std::runtime_error("CreateFileMapping failed");
+	}
+
+	m_data = static_cast<const char*>(MapViewOfFile(m_mapping, FILE_MAP_READ, 0, 0, 0));
+	if (!m_data) {
+		CloseHandle(m_mapping);
+		CloseHandle(m_file);
+		throw std::runtime_error("MapViewOfFile failed");
+	}
+}
+
+void MemoryMappedFile::Close()
+{
+	if (m_data)	UnmapViewOfFile(m_data);
+	if (m_mapping) CloseHandle(m_mapping);
+	if (m_file != INVALID_HANDLE_VALUE)	CloseHandle(m_file);
+	m_data = nullptr;
+	m_mapping = nullptr;
+	m_file = INVALID_HANDLE_VALUE;
 }
 }

@@ -77,6 +77,9 @@ void GLBuffer::Delete()
 	glDeleteBuffers(1, &m_handle);
 	OUTPUT_GLERROR;
 	m_handle = 0;
+	m_memorySize = 0;
+	m_sizeOfData = 0;
+	m_num = 0;
 }
 
 void GLBuffer::BufferSubData(int offset, const Vector<int>& value)

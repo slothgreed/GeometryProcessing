@@ -625,12 +625,14 @@ void MeshNode::BuildGLBuffer()
 		m_pPosition = std::make_unique<GLBuffer>();
 		m_pPosition->Create(m_mesh.GetPoints());
 	}
+	if (!m_pNormal && m_mesh.GetNormals().size()) {
+		m_pNormal = std::make_unique<GLBuffer>();
+		m_pNormal->Create(m_mesh.GetNormals());
+	}
 
-	if (!m_pIndex) {
-		if (m_mesh.GetIndexs().size()) {
-			m_pIndex = std::make_unique<GLBuffer>();
-			m_pIndex->Create(m_mesh.GetIndexs());
-		}
+	if (!m_pIndex && m_mesh.GetIndexs().size()) {
+		m_pIndex = std::make_unique<GLBuffer>();
+		m_pIndex->Create(m_mesh.GetIndexs());
 	}
 }
 
@@ -640,22 +642,42 @@ void MeshNode::DrawNode(const DrawContext& context)
 		!m_ui.visibleVertex) { return; }
 	BuildGLBuffer();
 	const auto& pResource = context.pResource;
-	auto pSimpleShader = pResource->GetShaderTable()->GetSimpleShader();
-	pSimpleShader->Use();
-	pSimpleShader->SetPosition(m_pPosition.get());
-	pSimpleShader->SetCamera(pResource->GetCameraBuffer());
-	pSimpleShader->SetModel(GetMatrix());
-	pSimpleShader->SetColor(Vector3(1, 0, 0));
-	if(m_ui.visibleTriangle)
-	if (m_pIndex) {
-		pSimpleShader->DrawElement(m_mesh.GetDrawType(), m_pIndex.get());
-	} else {
-		pSimpleShader->DrawArray(m_mesh.GetDrawType(), m_mesh.GetPoints().size());
+	if (m_ui.visibleTriangle) {
+		if (m_pNormal) {
+			auto pShader = pResource->GetShaderTable()->GetVertexColorShader();
+			pShader->Use();
+			pShader->SetPosition(m_pPosition.get());
+			pShader->SetCamera(pResource->GetCameraBuffer());
+			pShader->SetModel(GetMatrix());
+			pShader->SetColor(m_pNormal.get());
+			if (m_pIndex) {
+				pShader->DrawElement(m_mesh.GetDrawType(), m_pIndex.get());
+			} else {
+				pShader->DrawArray(m_mesh.GetDrawType(), m_mesh.GetPoints().size());
+			}
+		} else {
+			auto pShader = pResource->GetShaderTable()->GetSimpleShader();
+			pShader->Use();
+			pShader->SetPosition(m_pPosition.get());
+			pShader->SetCamera(pResource->GetCameraBuffer());
+			pShader->SetModel(GetMatrix());
+			pShader->SetColor(Vector3(1, 0, 0));
+			if (m_pIndex) {
+				pShader->DrawElement(m_mesh.GetDrawType(), m_pIndex.get());
+			} else {
+				pShader->DrawArray(m_mesh.GetDrawType(), m_mesh.GetPoints().size());
+			}
+		}
 	}
 
 	if (m_ui.visibleVertex) {
-		pSimpleShader->SetColor(Vector3(0, 1, 0));
-		pSimpleShader->DrawArray(GL_POINTS, m_mesh.GetPoints().size());
+		auto pShader = pResource->GetShaderTable()->GetSimpleShader();
+		pShader->Use();
+		pShader->SetPosition(m_pPosition.get());
+		pShader->SetCamera(pResource->GetCameraBuffer());
+		pShader->SetModel(GetMatrix());
+		pShader->SetColor(Vector3(0, 1, 0));
+		pShader->DrawArray(GL_POINTS, m_mesh.GetPoints().size());
 	}
 }
 
@@ -663,6 +685,8 @@ void MeshNode::ShowUI(UIContext& ui)
 {
 	ImGui::Checkbox("VisibleVertex", &m_ui.visibleVertex);
 	ImGui::Checkbox("VisibleTriangle", &m_ui.visibleTriangle);
+	ImGui::Text("VertexCount: %d", m_mesh.GetPoints().size());
+	ImGui::Text("TriangleCount: %d", m_mesh.TriangleNum());
 }
 
 

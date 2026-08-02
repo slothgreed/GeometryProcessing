@@ -11,7 +11,7 @@ layout(std430, binding  = 1) buffer voxelBuffer
 
 layout(std430, binding  = 2) buffer volumeBuffer
 {
-	unsigned short data[];
+	DataType data[];
 };
 
 
@@ -23,7 +23,7 @@ layout(std430, binding = 5) buffer taskNumBuffer{
 	uint taskNum[];
 };
 
-unsigned short getData(Voxel voxel, vec3 index)
+DataType getData(Voxel voxel, vec3 index)
 {
 	return data[getIndex(voxel, int(index.x),int(index.y),int(index.z))];
 }
@@ -43,9 +43,14 @@ void main()
 	int localOffset = int(gl_LocalInvocationID.x);
 	if(id > voxel.resolute.x * voxel.resolute.y * voxel.resolute.z){gl_TaskCountNV = 0; return;}
 	vec3 coord = getCoordinate(voxel,id);
+	if (coord.x >= voxel.resolute.x - 1 ||
+        coord.y >= voxel.resolute.y - 1 ||
+        coord.z >= voxel.resolute.z - 1)
+    {gl_PrimitiveCountNV = 0; return;}
+	
 	float x = coord.x; float y = coord.y; float z = coord.z;
 	vec3 index;
-	unsigned short value[8];
+	DataType value[8];
 	index = vec3(x,y,z); 			 value[0] = getData(voxel,index);
 	index = vec3(x + 1,y,z);		 value[1] = getData(voxel,index);
 	index = vec3(x + 1,y + 1,z);	 value[2] = getData(voxel,index);

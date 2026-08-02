@@ -159,7 +159,11 @@ void IShadingShader::Build()
 	auto shaderPath = GetShaderPath();
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
+	for (const auto& def : shaderPath.define) {
+		version += def + "\n";
+	}
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
+	
 	String vertexCode;
 	String fragCode;
 	String geomCode;
@@ -295,8 +299,10 @@ void IMeshShader::Build()
 	shaderPath.extension[SHADER_PROGRAM_MESH].push_back("#extension GL_NV_mesh_shader : require\n");
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
+	for (const auto& def : shaderPath.define) {
+		version += def + "\n";
+	}
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
-
 	auto meshEx = Join(shaderPath.extension[SHADER_PROGRAM_MESH]);
 	auto taskEx = Join(shaderPath.extension[SHADER_PROGRAM_TASK]);
 	auto fragEx = Join(shaderPath.extension[SHADER_PROGRAM_FRAG]);
@@ -411,6 +417,9 @@ void IComputeShader::Build()
 	String localPath = "E:\\MyProgram\\KIProject\\PointCloudApp\\PointCloudApp\\Shader\\";
 	auto shaderPath = GetShaderPath();
 	auto version = ShaderUtility::LoadFromFile(localPath + shaderPath.version);
+	for (const auto& def : shaderPath.define) {
+		version += def + "\n";
+	}
 	auto computeEx = Join(shaderPath.extension[SHADER_PROGRAM_COMPUTE]);
 	auto headerCode = LoadHeaderCode(localPath, shaderPath.header);
 	auto localSize = GetLocalThreadNum();

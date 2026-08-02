@@ -124,6 +124,7 @@ public:
 private:
 	UI m_ui;
 	Unique<GLBuffer> m_pPosition;
+	Unique<GLBuffer> m_pNormal;
 	Unique<GLBuffer> m_pIndex;
 	Mesh m_mesh;
 };
