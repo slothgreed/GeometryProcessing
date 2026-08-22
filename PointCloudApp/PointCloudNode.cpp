@@ -7,8 +7,12 @@
 #include "AlphaShape.h"
 #include "Camera.h"
 #include "DelaunayGenerator.h"
+#include "FileUtility.h"
+#include "PointCloudIO.h"
+#include "ProcessExecutor.h"
 #include <Eigen/SVD>
 #include <Eigen/Core>
+#include <filesystem>
 namespace KI
 {
 
@@ -23,6 +27,7 @@ PointCloudNode::PointCloudNode(const String& name, Shared<PointCloud>& pPrimitiv
 	m_normal = m_pPointCloud->Normal();
 	BuildGLBuffer();
 	SetBoundBox(m_pPointCloud->GetBDB());
+	m_color = Vector3(1, 0, 0);
 }
 
 PointCloudNode::~PointCloudNode()
@@ -61,6 +66,72 @@ void PointCloudNode::UpdateData()
 {
 	m_pPointCloud->Update();
 }
+
+void PointCloudNode::UpdateData(float time)
+{
+	if (m_diffusionEnabled) {
+		UpdateDiffusion();
+	}
+}
+
+void PointCloudNode::UpdateDiffusion()
+{
+	namespace fs = std::filesystem;
+	const fs::path inputPath(m_pPointCloud->GetFileName());
+	if (!fs::exists(inputPath) || !fs::is_regular_file(inputPath)) {
+		std::cerr << "Diffusion input file not found: "
+			<< inputPath << std::endl;
+		m_diffusionEnabled = false;
+		return;
+	}
+
+	fs::path modelPath(inputPath);
+	modelPath.replace_extension(".diffusion.pt");
+	const fs::path outputPath = fs::path(FileUtility::GetCacheDirectory()) /
+		"diffusionOutput.ki_bin";
+
+	AIProcessor::Instance().SendCommand("DiffusionAI --predict " + modelPath.string() + " " + outputPath.string());
+
+	if (!fs::exists(outputPath)) {
+		std::cerr << "Diffusion output file was not created: "
+			<< outputPath << std::endl;
+		return;
+	}
+
+	Shared<PointCloud> generated(PointCloudIO::Load(outputPath.string()));
+
+	const auto& sourcePositions = m_pPointCloud->Position();
+	if (!sourcePositions.empty()) {
+		Vector3 centroid(0.0f);
+		for (const auto& position : sourcePositions) {
+			centroid += position;
+		}
+		centroid /= static_cast<float>(sourcePositions.size());
+
+		float maxDistance = 0.0f;
+		for (const auto& position : sourcePositions) {
+			maxDistance = std::max(
+				maxDistance, glm::length(position - centroid));
+		}
+
+		if (maxDistance > 0.0f) {
+			auto generatedPositions = generated->Position();
+			for (auto& position : generatedPositions) {
+				position = position * maxDistance + centroid;
+			}
+			generated->SetPosition(std::move(generatedPositions));
+		}
+	}
+
+	const BDB generatedBDB(generated->Position());
+	auto generatedNode = std::make_shared<PointCloudNode>(
+		"DiffusionResult", generated);
+	generatedNode->SetBoundBox(generatedBDB);
+	generatedNode->SetMatrix(GetMatrix());
+	generatedNode->SetColor(Vector3(0, 1, 0));
+	AddNode(generatedNode);
+}
+
 void PointCloudNode::UpdateRenderData()
 {
 	BuildGLBuffer();
@@ -105,6 +176,10 @@ void PointCloudNode::ShowUI(UIContext& ui)
 		}
 
 		UpdateColor(normal);
+	}
+
+	if (ImGui::Checkbox("Diffusion", &m_diffusionEnabled)) {
+		AIProcessor::Instance().SendCommand("DiffusionAI --train " + m_pPointCloud->GetFileName());
 	}
 }
 void PointCloudNode::ComputeNormal()
@@ -188,7 +263,7 @@ void PointCloudNode::DrawNode(const DrawContext& context)
 		auto pShader = pResource->GetShaderTable()->GetSimpleShader();
 		pShader->Use();
 		pShader->SetPosition(m_pPositionBuffer.get());
-		pShader->SetColor(Vector3(1, 0, 0));
+		pShader->SetColor(m_color);
 		pShader->SetCamera(pResource->GetCameraBuffer());
 		pShader->SetModel(GetMatrix());
 		pShader->DrawArray(GL_POINTS, m_pPositionBuffer.get());

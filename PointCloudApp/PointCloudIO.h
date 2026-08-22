@@ -13,7 +13,7 @@ public:
 	static PointCloud* Create2D(int poositionNum, const glm::vec2& min, const glm::vec2& max);
 
 	static void OutputText(PointCloud* pPointCloud, const String& name);
-	static void OutputBinary(PointCloud* pPointCloud, const String& name);
+	static void OutputBinary(PointCloud* pPointCloud, const String& name, bool saveNormal = true, bool saveColor = true);
 
 private:
 	static void LoadBin(PointCloud* pPointCloud, const String& name);

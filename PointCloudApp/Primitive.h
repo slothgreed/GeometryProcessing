@@ -59,6 +59,7 @@ public:
 		}
 	}
 
+	void ClearColor() { m_color.clear(); }
 	void SetIndex(Vector<unsigned int>&& value) { m_index = std::move(value); }
 	void Multi(const Matrix4x4& matrix);
 	void Convert(StoreType type);

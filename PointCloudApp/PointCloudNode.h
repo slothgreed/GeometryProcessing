@@ -15,11 +15,12 @@ public:
 
 	const Shared<PointCloud>& GetData() const;
 	void UpdateData();
+	virtual void UpdateData(float time) override;
 	void DrawNode(const DrawContext& context);
 	virtual void ShowUI(UIContext& ui);
 	const Vector<Vector3>& GetNormal();
 	const Vector<int>& GetNeighbor(int index);
-
+	void SetColor(const Vector3& color) { m_color = color; }
 private:
 
 	class Shader : public IComputeShader
@@ -46,6 +47,7 @@ private:
 	void ComputeTangent();
 	void BuildGLBuffer();
 	void UpdateRenderData();
+	void UpdateDiffusion();
 	DelaunayGenerator m_delaunay;
 	Vector<Vector3> m_normal;
 	Vector<Vector3> m_tangentX;
@@ -59,6 +61,7 @@ private:
 	Unique<GLBuffer> m_pColorBuffer;
 	Shader m_shader;
 	Shader m_shaderWriteDepth;
+	bool m_diffusionEnabled = false;
 };
 
 }

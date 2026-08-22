@@ -4,6 +4,7 @@
 #include "FileUtility.h"
 #include "PrimitiveNode.h"
 #include "PointCloud.h"
+#include "PointCloudNode.h"
 #include "Profiler.h"
 #include "PointCloudIO.h"
 #include "HalfEdgeStruct.h"
@@ -12,7 +13,7 @@ namespace KI
 {
 
 MeshViewer::MeshViewer()
-	:m_loadType(LOAD_BUNNY)
+	:m_loadType(DIFFUSION_AI)
 {
 }
 
@@ -75,7 +76,7 @@ Shared<RenderNode> MeshViewer::LoadMeshsegData(const AIDataFolder& folder, int f
 
 
 
-Shared<RenderNode> MeshViewer::LoadBunny()
+Shared<RenderNode> MeshViewer::LoadMeshCNNBunny()
 {
 	struct FaceSerializer
 	{
@@ -116,11 +117,23 @@ Shared<RenderNode> MeshViewer::LoadBunny()
 	pPrimitive->SetType(GL_POINTS);
 	return std::make_shared<PrimitiveNode>(path, pPrimitive);
 }
+
+Shared<RenderNode> MeshViewer::LoadMeshPointCloudBynny()
+{
+	const String path = "E:\\cgModel\\Diffusion\\bunny4000.xyz";
+	const String pathBin = "E:\\cgModel\\Diffusion\\bunny4000.xyz.ki_bin";
+	Shared<PointCloud> pPointCloud(PointCloudIO::Load(path));
+	pPointCloud->ClearColor();
+	PointCloudIO::OutputBinary(pPointCloud.get(), pathBin.c_str(), false, false);
+
+	return std::make_shared<PointCloudNode>("Diffusion Bunny", pPointCloud);
+}
+
 void MeshViewer::Execute()
 {
 	if (m_loadType == MODEL_CLASSIFICATION) {
 		m_folder = AIDataGenerator::LoadModelNetTrain("E:\\cgModel\\ModelNet40");
-	} else {
+	} else if (m_loadType == MESH_SEGMENTATION || m_loadType == LOAD_BUNNY) {
 		m_folder = AIDataGenerator::LoadMeshsegBenchmark("E:\\cgModel\\MeshsegBenchmark-1.0\\data");
 	}
 	UpdateMeshCategory();
@@ -153,6 +166,9 @@ void MeshViewer::Execute()
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		timer.Start();
+		if (m_pRenderNode) {
+			m_pRenderNode->Update(m_timerDiff);
+		}
 		if (m_ui.m_garallyMode) {
 			DrawGaralley(drawContext);
 		} else {
@@ -198,9 +214,13 @@ void MeshViewer::UpdateRenderData()
 	} else if(m_loadType == MESH_SEGMENTATION) {
 		m_pRenderNode = LoadMeshsegData(m_folder[m_ui.m_selectCategoryIndex], m_ui.m_selectFileIndex, m_ui.m_selectSegIndex);
 	} else if (m_loadType == LOAD_BUNNY) {
-		m_pRenderNode = LoadBunny();
+		m_pRenderNode = LoadMeshCNNBunny();
+	} else if (m_loadType == DIFFUSION_AI) {
+		m_pRenderNode = LoadMeshPointCloudBynny();
 	}
-	m_pCameraController->FitToBDB(m_pRenderNode->GetBoundBox());
+	if (m_pRenderNode) {
+		m_pCameraController->FitToBDB(m_pRenderNode->GetBoundBox());
+	}
 }
 bool MeshViewer::ShowSliderUI(const String& name, int minValue, int maxValue, int* ret)
 {

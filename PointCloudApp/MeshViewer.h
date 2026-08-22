@@ -27,7 +27,8 @@ private:
 	{
 		MODEL_CLASSIFICATION,
 		MESH_SEGMENTATION,
-		LOAD_BUNNY
+		LOAD_BUNNY,
+		DIFFUSION_AI
 	};
 	LoadType m_loadType = MODEL_CLASSIFICATION;
 
@@ -70,7 +71,8 @@ private:
 	
 	Shared<RenderNode> LoadModelNetData(const AIDataFolder& folder, int fileIndex);
 	Shared<RenderNode> LoadMeshsegData(const AIDataFolder& folder, int fileIndex, int segIndex);
-	Shared<RenderNode> LoadBunny();
+	Shared<RenderNode> LoadMeshCNNBunny();
+	Shared<RenderNode> LoadMeshPointCloudBynny();
 
 	float m_timerDiff = 0.0f;
 	Vector<AIDataFolder> m_folder;

@@ -86,7 +86,7 @@ private:
 			auto index = neighbors.reshape({ -1 });
 			auto neighborFeature = x.index_select(0, index);
 
-			neighborFeature = neighborFeature.reshape({ faceNum,					3,					featureNum });
+			neighborFeature = neighborFeature.reshape({ faceNum, 3, featureNum });
 
 			return neighborFeature.mean(1);
 		}

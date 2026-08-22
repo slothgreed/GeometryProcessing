@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DiffusionAI.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -60,6 +63,9 @@
       <Filter>ソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="MeshSegmentationAI.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DiffusionAI.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>

@@ -131,6 +131,7 @@ c10.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DiffusionAI.cpp" />
     <ClCompile Include="ICommandReceiver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeshSegmentationAI.cpp" />
@@ -141,6 +142,7 @@ c10.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DiffusionAI.h" />
     <ClInclude Include="ICommandReceiver.h" />
     <ClInclude Include="MeshSegmentationAI.h" />
     <ClInclude Include="ModelClassificationAI.h" />

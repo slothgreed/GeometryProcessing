@@ -7,10 +7,11 @@ bool ProcessExecutor::ExecuteSync(const String& commandArgs)
 {
 	std::cout << "Executing process: " << processName << std::endl;
     STARTUPINFO si{};
+    si.cb = sizeof(si);
     auto args = processName + " " + commandArgs;
     BOOL result = CreateProcess(
-        nullptr,        // ŽÀsƒtƒ@ƒCƒ‹
-        args.data(),    // ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“
+        nullptr,        // å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«
+        args.data(),    // ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³
 		nullptr, nullptr,
 		FALSE,
 		0,
@@ -25,7 +26,7 @@ bool ProcessExecutor::ExecuteSync(const String& commandArgs)
 
     std::cout << "AI Process Started" << std::endl;
 
-    // AII—¹‘Ò‚¿
+    // AIçµ‚äº†å¾…ã¡
     WaitForSingleObject(m_processInfo.hProcess, INFINITE);
 
     CloseHandle(m_processInfo.hThread);
@@ -37,10 +38,11 @@ bool ProcessExecutor::ExecuteASync(const String& commandArgs)
 {
     std::cout << "Executing process: " << processName << std::endl;
     STARTUPINFO si{};
+    si.cb = sizeof(si);
     auto args = processName + " " + commandArgs;
     BOOL result = CreateProcess(
-        nullptr,        // ŽÀsƒtƒ@ƒCƒ‹
-        args.data(),    // ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“
+        nullptr,        // å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«
+        args.data(),    // ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³
         nullptr, nullptr,
         FALSE,
         0,
@@ -56,7 +58,16 @@ bool ProcessExecutor::ExecuteASync(const String& commandArgs)
     m_async = true;
     std::cout << "AI Process Started" << std::endl;
 
-    m_pipe.Open();
+    if (!m_pipe.Open()) {
+        std::cerr << "GeometryAI pipe connection timed out." << std::endl;
+        TerminateProcess(m_processInfo.hProcess, 1);
+        WaitForSingleObject(m_processInfo.hProcess, INFINITE);
+        CloseHandle(m_processInfo.hThread);
+        CloseHandle(m_processInfo.hProcess);
+        m_processInfo = {};
+        m_async = false;
+        return false;
+    }
 
     return true;
 }
@@ -65,7 +76,7 @@ bool ProcessExecutor::FinalizeASync()
 {
     m_pipe.Close();
 	if (m_async == false) return true;
-    // AII—¹‘Ò‚¿
+    // AIçµ‚äº†å¾…ã¡
     WaitForSingleObject(m_processInfo.hProcess, INFINITE);
 
     CloseHandle(m_processInfo.hThread);
@@ -77,7 +88,15 @@ bool ProcessExecutor::FinalizeASync()
 
 bool ClientPipe::Open()
 {
-    for (int i = 0; i < 10; i++) {
+    if (m_hPipe != INVALID_HANDLE_VALUE) {
+        return true;
+    }
+
+    constexpr ULONGLONG timeoutMilliseconds = 30000;
+    const ULONGLONG startTime = GetTickCount64();
+    DWORD lastError = ERROR_SUCCESS;
+
+    while (GetTickCount64() - startTime < timeoutMilliseconds) {
         m_hPipe = CreateFileW(
             LR"(\\.\pipe\GeometryAIPipe)",
             GENERIC_READ | GENERIC_WRITE,
@@ -87,38 +106,55 @@ bool ClientPipe::Open()
             0,
             nullptr);
         if (m_hPipe != INVALID_HANDLE_VALUE) {
-            break;
+            std::cout << "GeometryAI pipe connected." << std::endl;
+            return true;
         }
-        Sleep(100);
+
+        lastError = GetLastError();
+        if (lastError == ERROR_PIPE_BUSY) {
+            WaitNamedPipeW(LR"(\\.\pipe\GeometryAIPipe)", 100);
+        } else {
+            Sleep(100);
+        }
     }
 
-    return m_hPipe != INVALID_HANDLE_VALUE;
+    std::cerr << "GeometryAI pipe open failed : " << lastError << std::endl;
+    return false;
 }
 
 void ClientPipe::SendCommand(const std::string& message)
 {
-    if (m_hPipe == INVALID_HANDLE_VALUE) {
-        Assert::Failed();
+    if (m_hPipe == INVALID_HANDLE_VALUE && !Open()) {
         std::cerr << "Pipe is not open." << std::endl;
         return;
     }
     DWORD bytesWritten = 0;
-    WriteFile(
+    if (!WriteFile(
         m_hPipe,
         message.data(),
         static_cast<DWORD>(message.size()),
         &bytesWritten,
-        nullptr);
+        nullptr)) {
+        std::cerr << "Pipe write failed : " << GetLastError() << std::endl;
+        CloseHandle(m_hPipe);
+        m_hPipe = INVALID_HANDLE_VALUE;
+        return;
+    }
 
     char buffer[256];
     DWORD bytesRead = 0;
 
-    ReadFile(
+    if (!ReadFile(
         m_hPipe,
         buffer,
         sizeof(buffer) - 1,
         &bytesRead,
-        nullptr);
+        nullptr)) {
+        std::cerr << "Pipe read failed : " << GetLastError() << std::endl;
+        CloseHandle(m_hPipe);
+        m_hPipe = INVALID_HANDLE_VALUE;
+        return;
+    }
 
     buffer[bytesRead] = '\0';
 
@@ -127,8 +163,14 @@ void ClientPipe::SendCommand(const std::string& message)
 
 void ClientPipe::Close()
 {
+    if (m_hPipe == INVALID_HANDLE_VALUE) {
+        return;
+    }
+
     SendCommand("--exit");
-    CloseHandle(m_hPipe);
+    if (m_hPipe != INVALID_HANDLE_VALUE) {
+        CloseHandle(m_hPipe);
+    }
     m_hPipe = INVALID_HANDLE_VALUE;
 }
 }

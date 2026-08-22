@@ -7,6 +7,7 @@
 #include "ModelClassificationAI.h"
 #include "SDFAI.h"
 #include "MeshSegmentationAI.h"
+#include "DiffusionAI.h"
 void standalone()
 {
     auto x = torch::rand({ 4, 1 });
@@ -68,6 +69,7 @@ int main(int argc, char* argv[])
     if (args.named) {
 		KI::ServerPipe server;
         server.SetReceiveCommand(std::make_shared<KI::SDFAI>());
+		server.SetReceiveCommand(std::make_shared<KI::DiffusionAI>());
 		server.SetReceiveCommand(std::make_shared<KI::ModelClassificationAI>());
         server.Connect();
     } else {

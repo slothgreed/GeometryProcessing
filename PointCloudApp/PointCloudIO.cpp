@@ -62,10 +62,10 @@ void PointCloudIO::LoadXYZ(PointCloud* pPointCloud, const String& name)
 
 	while (reader.ReadLine(contents)) {
 		auto line = KI::FileUtility::Split(contents, ' ');
-		assert(line.size() == 7);
+		//assert(line.size() == 7);
 
 		pPointCloud->m_position.push_back(Vector3(std::stof(line[0]), std::stof(line[1]), std::stof(line[2])));
-		pPointCloud->m_color.push_back(Vector4(std::stof(line[4]) / 255.0, std::stof(line[5]) / 255.0, std::stof(line[6]) / 255.0, 1.0));
+		pPointCloud->m_color.push_back(Vector4(std::stof(line[3]) / 255.0, std::stof(line[4]) / 255.0, std::stof(line[5]) / 255.0, 1.0));
 		pPointCloud->m_bdb.Add(pPointCloud->m_position[pPointCloud->m_position.size() - 1]);
 	}
 }
@@ -177,7 +177,7 @@ void PointCloudIO::OutputText(PointCloud* pPointCloud, const String& name)
 // Format 
 // Position Num, norm, color, etc.
 // Position Num, 3, -1 etc. if not exist = 0 else other.
-void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const String& name)
+void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const String& name, bool saveNormal, bool saveColor)
 {
 	KI::FileWriter writer;
 	writer.Open(name, true);
@@ -193,10 +193,10 @@ void PointCloudIO::OutputBinary(PointCloud* pPointCloud, const String& name)
 
 	for (int i = 0; i < pPointCloud->m_position.size(); i++) {
 		writer.WriteBinary(pPointCloud->m_position[i]);
-		if (pPointCloud->m_normal.size() > 0) {
+		if (pPointCloud->m_normal.size() > 0 && saveNormal) {
 			writer.WriteBinary(pPointCloud->m_normal[i]);
 		}
-		if (pPointCloud->m_color.size() > 0) {
+		if (pPointCloud->m_color.size() > 0 && saveColor) {
 			writer.WriteBinary(pPointCloud->m_color[i]);
 		}
 	}
