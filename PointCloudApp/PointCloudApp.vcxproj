@@ -218,7 +218,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="MeshletGenerator.cpp" />
     <ClCompile Include="MeshShaderTest.cpp" />
     <ClCompile Include="GeometryLoader.cpp" />
-    <ClCompile Include="ModelClassification.cpp" />
+    <ClCompile Include="MeshViewer.cpp" />
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="PBR.cpp" />
     <ClCompile Include="Polyline.cpp" />
@@ -312,7 +312,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshletGenerator.h" />
     <ClInclude Include="MeshShaderTest.h" />
-    <ClInclude Include="ModelClassification.h" />
+    <ClInclude Include="MeshViewer.h" />
     <ClInclude Include="MouseController.h" />
     <ClInclude Include="GeometryLoader.h" />
     <ClInclude Include="Parameter.h" />

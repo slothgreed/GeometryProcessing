@@ -130,6 +130,12 @@ Vector3 Random::Vec3(const Vector3& min, const Vector3& max)
 	value.b = Gaccho::rnd(min[2], max[2]);
 	return value;
 }
+
+std::mt19937& Random::GetEngine()
+{
+	static std::mt19937 engine(std::random_device{}());
+	return engine;
+}
 Vector3 ColorUtility::CreateRandom()
 {
 	Vector3 color;

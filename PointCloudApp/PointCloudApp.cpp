@@ -39,6 +39,8 @@
 #include "ImageNode.h"
 #include "STEPNode.h"
 #include <Eigen/Core>
+#include "AIDataGenerator.h"
+
 namespace KI
 {
 void PointCloudApp::ResizeEvent(int width, int height)
@@ -670,6 +672,7 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 	if (m_pBunny == nullptr) {
 		m_pBunny = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
 	}
+
 	auto node = std::make_shared<HalfEdgeNode>(path + glmUtil::ToString(pos), m_pBunny);
 	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)) * glmUtil::CreateTranslate(pos));
 	return node;

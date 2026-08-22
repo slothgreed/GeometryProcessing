@@ -3,6 +3,7 @@
 #include "HalfEdgeNode.h"
 #include "HalfEdgeStruct.h"
 #include "Utility.h"
+#include <random>
 #include "Voxelizer.h"
 namespace KI
 {
@@ -165,6 +166,54 @@ Vector<Vector3> MeshAlgorithm::CreateKruskulMST(const HalfEdgeStruct& halfEdge, 
 
     return pos;
 }
+
+Vector<Vector3> MeshAlgorithm::CreateSampleOnFace(const Mesh& mesh, int sampleNum)
+{
+	if (mesh.GetPoints().size() == sampleNum) { return mesh.GetPoints(); } 
+    if(mesh.GetPoints().size() > sampleNum) {
+        auto samples = mesh.GetPoints();
+		std::shuffle(samples.begin(), samples.end(), Random::GetEngine());
+        samples.resize(static_cast<std::size_t>(sampleNum));
+        return samples;
+	}
+    // 数が足りない場合。
+    std::vector<float> areas(mesh.TriangleNum());
+    std::vector<float> cdf(mesh.TriangleNum()); // 累積分布関数
+    float sumArea = 0.0f;
+    for (int i = 0; i < mesh.TriangleNum(); i++) {
+        auto triangle = mesh.GetTriangle(i);
+        areas[i] = GeometryUtility::CalcArea(triangle.pos0, triangle.pos1, triangle.pos2);
+        sumArea += areas[i];
+        cdf[i] = sumArea;
+    }
+    Vector<Vector3> samples = mesh.GetPoints();
+    while (samples.size() < static_cast<size_t>(sampleNum)) {
+        const float randomArea = Random::Float(0.0f, 1.0f) * sumArea;
+		auto itr = std::lower_bound(cdf.begin(), cdf.end(), randomArea);
+        int index =  static_cast<int>(std::distance(cdf.begin(), itr));
+        // 浮動小数点誤差への保険。
+        index = std::min(index, mesh.TriangleNum() - 1);
+
+        const auto face = mesh.GetTriangle(index);
+
+        float u = Random::Float(0.0f, 1.0f);
+        float v = Random::Float(0.0f, 1.0f);
+
+        if (u + v > 1.0f) {
+            u = 1.0f - u;
+            v = 1.0f - v;
+        }
+
+        const Vector3 randomPoint =
+            face.pos0 +
+            u * (face.pos1 - face.pos0) +
+            v * (face.pos2 - face.pos0);
+
+        samples.push_back(randomPoint);
+    }
+
+    return samples;
+}
 Vector<Vector3> MeshAlgorithm::CreatePoissonSampleOnFace(const HalfEdgeStruct& halfEdge)
 {
     std::vector<float> areas(halfEdge.GetFaceNum());
@@ -243,5 +292,9 @@ bool GeometryUtility::IsCCW(const Vector2& screen0, const Vector2& screen1, cons
 float GeometryUtility::CalcArea(const Vector2& screen0, const Vector2& screen1, const Vector2& screen2)
 {
     return glmUtil::Cross(screen1 - screen0, screen2 - screen0);
+}
+float GeometryUtility::CalcArea(const Vector3& pos0, const Vector3& pos1, const Vector3& pos2)
+{
+    return 0.5f * glm::length(glm::cross((pos1 - pos0), (pos2 - pos0)));
 }
 }

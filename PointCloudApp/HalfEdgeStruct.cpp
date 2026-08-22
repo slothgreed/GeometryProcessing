@@ -2,6 +2,7 @@
 #include "BDB.h"
 #include "Utility.h"
 #include "GeometryUtility.h"
+#include "Mesh.h"
 namespace KI
 {
 
@@ -81,12 +82,7 @@ Vector3 HalfEdgeStruct::CalcGravity(int faceIndex) const
 float HalfEdgeStruct::CalcFaceArea(int faceIndex) const
 {
 	auto face = m_face[faceIndex];
-	auto v0 = m_position[face.position[0]];
-	auto v1 = m_position[face.position[1]];
-	auto v2 = m_position[face.position[2]];
-
-	return 0.5f * glm::length(glm::cross((v1 - v0), (v2 - v0)));
-
+	return GeometryUtility::CalcArea(m_position[face.position[0]], m_position[face.position[1]], m_position[face.position[2]]);
 }
 Vector3 HalfEdgeStruct::CalcGravity(const IndexedFace& face) const
 {
@@ -109,9 +105,9 @@ Vector3 HalfEdgeStruct::CalcFaceNormal(int faceIndex) const
 	return glm::normalize(glm::cross(v1, v2));
 }
 
-Vector<unsigned int> HalfEdgeStruct::GetAroundFace(const IndexedFace& face) const
+Vector<UInt> HalfEdgeStruct::GetAroundFace(const IndexedFace& face) const
 {
-	Vector<unsigned int> aroundFace(3);
+	Vector<UInt> aroundFace(3);
 
 	aroundFace[0] = m_halfEdge[m_halfEdge[face.edge[0]].oppositeEdge].face;
 	aroundFace[1] = m_halfEdge[m_halfEdge[face.edge[1]].oppositeEdge].face;
@@ -156,9 +152,9 @@ Vector<int> HalfEdgeStruct::GetAroundFaceFromPosition(int posIndex) const
 
 	return aroundFace;
 }
-Vector<unsigned int> HalfEdgeStruct::CreateIndexBufferData() const
+Vector<UInt> HalfEdgeStruct::CreateIndexBufferData() const
 {
-	Vector<unsigned int> indexBuffer;
+	Vector<UInt> indexBuffer;
 	indexBuffer.resize(m_face.size() * 3);
 	int counter = 0;
 	for (const auto& face : m_face) {
@@ -170,9 +166,9 @@ Vector<unsigned int> HalfEdgeStruct::CreateIndexBufferData() const
 	return indexBuffer;
 }
 
-Vector<unsigned int> HalfEdgeStruct::CreateEdgeIndexBufferData()
+Vector<UInt> HalfEdgeStruct::CreateEdgeIndexBufferData()
 {
-	Vector<unsigned int> indexBuffer;
+	Vector<UInt> indexBuffer;
 	indexBuffer.resize(m_halfEdge.size() * 2);
 	for (size_t i = 0; i < m_halfEdge.size(); i++) {
 		auto edge = GetIndexedEdge(i);
@@ -228,6 +224,11 @@ Vector3 HalfEdgeStruct::GetNormal(int index)
 	return m_parameter.vertexNormal[index];
 }
 
+float HalfEdgeStruct::CalcEdgeLength(int edgeIndex) const
+{
+	auto edge = GetEdge(edgeIndex);
+	return glm::length(edge.begin - edge.end);
+}
 float HalfEdgeStruct::CalcDihedralAngle(int edgeIndex) const
 {
 	auto normal1 = CalcFaceNormal(m_halfEdge[edgeIndex].face);
@@ -479,5 +480,112 @@ void HalfEdgeStruct::AddVertexOnEdge(int edgeIndex)
 const Vector3& HalfEdgeStruct::GetNextPos(int edgeIndex) const
 {
 	return m_position[m_halfEdge[m_halfEdge[edgeIndex].nextEdge].endPos];
+}
+
+int HalfEdgeStruct::GetOppositeFace(int edgeIndex) const
+{
+	return m_halfEdge[m_halfEdge[edgeIndex].oppositeEdge].face;
+}
+
+HalfEdgeStruct HalfEdgeStruct::Create(const Mesh& mesh)
+{
+	Mesh indexedMesh;
+	const Mesh* pMesh = &mesh;
+	if (pMesh->GetIndexs().size() == 0) {
+		indexedMesh = mesh.CreateIndexedTriangle();
+		pMesh = &indexedMesh;
+	}
+
+	const auto& points = pMesh->GetPoints();
+	const auto& indexs = pMesh->GetIndexs();
+
+	if (indexs.size() % 3 != 0) {
+		Assert::Failed();
+		return HalfEdgeStruct();
+	}
+
+	HalfEdgeStruct result;
+
+	result.m_position = points;
+	result.m_halfEdge.resize(indexs.size());
+	result.m_positionToEdge.resize(points.size(), -1);
+	result.m_faceToEdge.resize(indexs.size() / 3, -1);
+	struct EdgeKey
+	{
+		UInt start;
+		UInt end;
+		bool operator==(const EdgeKey& rhs) const { return start == rhs.start && end == rhs.end; }
+	};
+
+	struct EdgeKeyHash
+	{
+		size_t operator()(const EdgeKey& key) const
+		{
+			size_t h = std::hash<UInt>{}(key.start);
+			h ^= std::hash<UInt>{}(key.end) + 0x9e3779b9 + (h << 6) + (h >> 2);
+			return h;
+		}
+	};
+
+	std::unordered_map<EdgeKey, int, EdgeKeyHash> edgeMap;
+	edgeMap.reserve(indexs.size());
+
+	auto registerEdge = [&](UInt start, UInt end, int edgeIndex)
+	{
+		auto it = edgeMap.find(EdgeKey{ end, start });
+		if (it != edgeMap.end()) {
+			const int opposite = it->second;
+			result.m_halfEdge[edgeIndex].oppositeEdge = opposite;
+			result.m_halfEdge[opposite].oppositeEdge = edgeIndex;
+		}
+
+		edgeMap.emplace(EdgeKey{ start, end }, edgeIndex);
+	};
+
+	const int faceNum = static_cast<int>(indexs.size() / 3);
+
+	for (int face = 0; face < faceNum; ++face) {
+		const int i = face * 3;
+
+		const UInt v0 = indexs[i + 0];
+		const UInt v1 = indexs[i + 1];
+		const UInt v2 = indexs[i + 2];
+
+		const int e0 = i + 0;
+		const int e1 = i + 1;
+		const int e2 = i + 2;
+
+		auto& h0 = result.m_halfEdge[e0];
+		auto& h1 = result.m_halfEdge[e1];
+		auto& h2 = result.m_halfEdge[e2];
+
+		h0.endPos = static_cast<int>(v1);
+		h1.endPos = static_cast<int>(v2);
+		h2.endPos = static_cast<int>(v0);
+
+		h0.nextEdge = e1;
+		h1.nextEdge = e2;
+		h2.nextEdge = e0;
+
+		h0.beforeEdge = e2;
+		h1.beforeEdge = e0;
+		h2.beforeEdge = e1;
+
+		h0.face = face;
+		h1.face = face;
+		h2.face = face;
+
+		result.m_faceToEdge[face] = e0;
+		if (result.m_positionToEdge[v0] == -1) { result.m_positionToEdge[v0] = e0; }
+		if (result.m_positionToEdge[v1] == -1) { result.m_positionToEdge[v1] = e1; }
+		if (result.m_positionToEdge[v2] == -1) { result.m_positionToEdge[v2] = e2; }
+
+		registerEdge(v0, v1, e0);
+		registerEdge(v1, v2, e1);
+		registerEdge(v2, v0, e2);
+	}
+
+	result.CreateFace();
+	return result;
 }
 }

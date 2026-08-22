@@ -30,6 +30,7 @@ PrimitiveNode::PrimitiveNode(const String& name, Shared<Primitive> pPrimitive)
 	, m_pickTarget(false)
 {
 	m_pPrimitive = pPrimitive;
+	SetBoundBox(m_pPrimitive->GetBDB());
 	BuildGLBuffer();
 }
 

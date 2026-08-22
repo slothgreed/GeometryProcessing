@@ -4,9 +4,10 @@
 #include <iostream>
 #include <string>
 #include "PointCloud.h"
-
 namespace KI
 {
+const String PointCloudIO::binExt = ".ki_bin";
+
 void PointCloudIO::LoadPCD(PointCloud* pPointCloud, const String& name)
 {
 	KI::FileReader reader;
@@ -76,13 +77,13 @@ PointCloud* PointCloudIO::Load(const String& name)
 	pInstance->m_filePath = name;
 	auto binPath = name + ".ki_bin";
 	bool loadBin = false;
-	if (ext == "ki_bin") {
+	if (ext == ".ki_bin") {
 		LoadBin(pInstance, name);
 		loadBin = true;
 	} else if (KI::FileUtility::IsExist(binPath)) {
 		LoadBin(pInstance, binPath);
 		loadBin = true;
-	} else if (ext == "pcd") {
+	} else if (ext == ".pcd") {
 		LoadPCD(pInstance, name);
 	} else {
 		LoadXYZ(pInstance, name);

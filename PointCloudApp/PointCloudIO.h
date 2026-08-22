@@ -8,7 +8,7 @@ class PointCloudIO
 public:
 	PointCloudIO() {};
 	~PointCloudIO() {};
-
+	static const String binExt;
 	static PointCloud* Load(const String& name);
 	static PointCloud* Create2D(int poositionNum, const glm::vec2& min, const glm::vec2& max);
 

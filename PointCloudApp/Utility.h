@@ -1,5 +1,6 @@
 #ifndef UTILITY_H
 #define UTILITY_H
+#include <random>
 namespace KI
 {
 class Random
@@ -13,6 +14,7 @@ public:
 	static Vector2 Vec2(const Vector2& min, const Vector2& max);
 	static Vector3 Vec3(float min, float max);
 	static Vector3 Vec3(const Vector3& min, const Vector3& max);
+	static std::mt19937& GetEngine();
 private:
 
 };

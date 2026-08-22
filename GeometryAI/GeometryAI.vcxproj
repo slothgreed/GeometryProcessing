@@ -131,16 +131,23 @@ c10.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ICommandReceiver.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MeshSegmentationAI.cpp" />
+    <ClCompile Include="ModelClassificationAI.cpp" />
     <ClCompile Include="SDFAI.cpp" />
     <ClCompile Include="ServerPipe.cpp" />
     <ClCompile Include="TorchUtility.cpp" />
+    <ClCompile Include="Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ICommandReceiver.h" />
+    <ClInclude Include="MeshSegmentationAI.h" />
+    <ClInclude Include="ModelClassificationAI.h" />
     <ClInclude Include="SDFAI.h" />
     <ClInclude Include="ServerPipe.h" />
     <ClInclude Include="TorchUtility.h" />
+    <ClInclude Include="Utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

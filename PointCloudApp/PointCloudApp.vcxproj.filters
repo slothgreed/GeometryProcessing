@@ -347,7 +347,7 @@
     <ClCompile Include="AIDataGenerator.cpp">
       <Filter>ソース ファイル\Utility\AI</Filter>
     </ClCompile>
-    <ClCompile Include="ModelClassification.cpp">
+    <ClCompile Include="MeshViewer.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
   </ItemGroup>
@@ -652,7 +652,7 @@
     <ClInclude Include="AIDataGenerator.h">
       <Filter>ソース ファイル\Utility\AI</Filter>
     </ClInclude>
-    <ClInclude Include="ModelClassification.h">
+    <ClInclude Include="MeshViewer.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
   </ItemGroup>

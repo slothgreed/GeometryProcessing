@@ -12,7 +12,7 @@ struct HalfEdge
 	int oppositeEdge = -1;
 	int face = -1;
 };
-
+class Mesh;
 class HalfEdgeStruct
 {
 public:
@@ -97,14 +97,14 @@ public:
 	const IndexedFace& GetIndexedFace(int faceIndex) const;
 	Face GetFace(int faceIndex) const;
 	BDB CreateBDB() const;
-	Vector<unsigned int> CreateIndexBufferData() const;
-	Vector<unsigned int> CreateEdgeIndexBufferData();
+	Vector<UInt> CreateIndexBufferData() const;
+	Vector<UInt> CreateEdgeIndexBufferData();
 	Vector3 CalcGravity(const IndexedFace& triangle) const;
 	Vector3 CalcGravity(int faceIndex) const;
 	Vector3 CalcFaceNormal(int faceIndex) const;
 	float CalcFaceArea(int faceIndex) const;
 	Vector<int> GetAroundEdge(int positionIndex) const;
-	Vector<unsigned int> GetAroundFace(const IndexedFace& triangle) const;
+	Vector<UInt> GetAroundFace(const IndexedFace& triangle) const;
 	Vector<int> GetAroundFaceFromPosition(int index) const;
 	const Vector<HalfEdge>& GetHalfEdges() const { return m_halfEdge; }
 	const HalfEdge& GetHalfEdge(int edgeIndex) const { return m_halfEdge[edgeIndex]; }
@@ -113,6 +113,7 @@ public:
 	float CalcCotangent(int edgeIndex) const;
 	Vector<Vector3> ConvertVertexColorToFaceColor(const Vector<Vector3>& color) const;
 
+	float CalcEdgeLength(int edgeIndex) const;
 	float CalcDihedralAngle(int edgeIndex) const;
 	void CreateVertexArea();
 	float CalcVertexArea(int position) const;
@@ -130,7 +131,9 @@ public:
 	void AddVertexOnFace(int faceIndex);
 	void AddVertexOnEdge(int edgeIndex);
 	const Vector3& GetNextPos(int edgeIndex) const;
+	int GetOppositeFace(int edgeIndex) const;
 
+	static HalfEdgeStruct Create(const Mesh& mesh);
 private:
 	void CreateFaceNormal();
 	void CreateNormal();

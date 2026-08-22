@@ -60,6 +60,11 @@ public:
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
 
 	void BuildNormal();
+	void RemoveUnusedVertex();
+	void RemoveArea0Trianlge();
+	void Normalize();
+	Mesh CreateIndexedTriangle() const;
+	void ConvertIndexedTriangles();
 	Mesh& ConvertTriangles();
 	Mesh& Reverse();
 private:

@@ -42,4 +42,18 @@ std::vector<float> TorchUtility::ToFloatVector(torch::Tensor tensor)
 	std::memcpy(result.data(), tensor.data_ptr<float>(), size * sizeof(float));
     return result;
 }
+
+std::vector<int> TorchUtility::ToIntVector(torch::Tensor tensor)
+{
+    // GPU Tensor の可能性があるので CPU へ移す
+    tensor = tensor.detach().cpu().contiguous().to(torch::kInt32);
+
+    // 要素数を取得
+    size_t size = tensor.numel();
+
+    std::vector<int> result(size);
+    // Tensorの中身をvectorへコピー
+    std::memcpy(result.data(), tensor.data_ptr<int>(), size * sizeof(int));
+    return result;
+}
 }

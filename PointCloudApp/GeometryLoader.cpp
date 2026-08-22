@@ -72,7 +72,11 @@ Mesh* GeometryLoader::LoadOff(const String& name)
 	mapped.Close();
 
 	auto pMesh = new Mesh(std::move(position),std::move(indices),Mesh::DrawType::Triangles);
+	pMesh->ConvertTriangles();
+	//pMesh->RemoveArea0Trianlge();
+	pMesh->RemoveUnusedVertex();
 	pMesh->BuildNormal();
+	
 	return pMesh;
 }
 }

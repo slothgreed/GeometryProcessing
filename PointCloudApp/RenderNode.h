@@ -128,7 +128,6 @@ public:
 	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
 	void ShowMatrixUI(UIContext& context);
 	virtual void ProcessMouseEvent(const PickContext& context) {};
-protected:
 	virtual void ShowUI(UIContext& ui) {};
 	virtual void PickNode(const PickContext& context) {};
 	virtual bool CollectPickedNode(PickResult& result) { return false; }

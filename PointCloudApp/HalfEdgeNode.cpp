@@ -213,7 +213,6 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		}
 
 		if (m_ui.visibleVertex) {
-
 			if ((HalfEdgeStruct::VertexValue)m_ui.vertexValue == HalfEdgeStruct::VertexValue::None) {
 				pSimpleShader->SetPosition(m_gpu.position.get());
 				pSimpleShader->SetCamera(pResource->GetCameraBuffer());

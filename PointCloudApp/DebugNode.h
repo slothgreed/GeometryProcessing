@@ -120,7 +120,8 @@ public:
 	void BuildGLBuffer();
 	virtual void DrawNode(const DrawContext& context);
 	virtual void ShowUI(UIContext& ui);
-
+	void SetVisibleTriangle(bool value) { m_ui.visibleTriangle = value; }
+	void SetVisibleVertex(bool value) { m_ui.visibleVertex = value; }
 private:
 	UI m_ui;
 	Unique<GLBuffer> m_pPosition;

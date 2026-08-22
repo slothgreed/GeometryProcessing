@@ -12,6 +12,8 @@ public:
 	static torch::Tensor ToTensor3D(const std::vector<float>& data, int resolution);
 	static torch::Tensor ToTensor1D(const std::vector<float>& data, int dimension);
 	static std::vector<float> ToFloatVector(torch::Tensor tensor);
+	static std::vector<int> ToIntVector(torch::Tensor tensor);
+
 
 private:
 

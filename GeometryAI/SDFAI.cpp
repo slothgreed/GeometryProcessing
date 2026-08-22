@@ -110,26 +110,9 @@ void SDFAI::Train(const std::string& path)
     torch::save(m_model, modelPath.string());
 }
 
-static std::vector<std::string> Parse(const std::string& command)
-{
-    std::vector<std::string> tokens;
-
-    std::stringstream ss(command);
-    std::string token;
-
-    while (ss >> token) {
-        tokens.push_back(std::move(token));
-    }
-
-    for(size_t i = 0; i < tokens.size(); ++i) {
-        std::cout << "Token[" << i << "]: " << tokens[i] << std::endl;
-	}
-    return tokens;
-}
-
 bool SDFAI::Execute(const std::string& command)
 {
-	auto parsed = Parse(command);
+	auto parsed = ICommandReceiver::Parse(command);
 	if (parsed.size() == 0) return false;
 
     if (parsed[0] != GetCommandName()) { return false; }
