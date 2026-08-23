@@ -3,6 +3,7 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 uniform mat4 u_Model;
 uniform vec3 u_Color;
+uniform vec4 u_ClipPlane;
 out vec4 f_position;
 out vec4 f_color;
 out vec3 f_normal;
@@ -17,4 +18,5 @@ void main()
 	f_color = vec4(u_Color,1.0);
 	f_normal = normalize(transpose(inverse(mat3(u_Model))) * normal);
     gl_Position = camera.VP * f_position;
+	gl_ClipDistance[0] = dot(vec4(position, 1.0), u_ClipPlane);
 }

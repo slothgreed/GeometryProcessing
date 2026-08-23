@@ -30,10 +30,10 @@ int main()
 	//KI::HistogramTest app;
 	//KI::ComputeShaderTest app;
 	//KI::ComputePointCloudApp app;
-	//KI::PointCloudApp app;
+	KI::PointCloudApp app;
 	//KI::SoftwareRasterizer app;
 	//KI::MeshShaderTest app;
-	KI::MeshViewer app;
+	//KI::MeshViewer app;
 	app.Initialize();
 	app.Execute();
 	app.Finalize();

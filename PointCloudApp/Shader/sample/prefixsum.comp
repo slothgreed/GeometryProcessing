@@ -54,5 +54,7 @@ void main() {
         barrier();
     }
 
-    outputData[tid + wID] = temp[tid];
+    if (tid + wID < u_num) {
+        outputData[tid + wID] = temp[tid];
+    }
 }

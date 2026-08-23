@@ -75,6 +75,12 @@ void FaceShader::FetchUniformLocation()
 	m_uPrefilter = GetUniformLocation("u_prefilter");
 	m_uIrradiance = GetUniformLocation("u_irradiance");
 	m_uBRDF = GetUniformLocation("u_brdf");
+	m_uClipPlane = GetUniformLocation("u_ClipPlane");
+}
+
+void FaceShader::SetClipPlane(const Vector4& value)
+{
+	BindUniform(m_uClipPlane, value);
 }
 
 void FaceShader::SetLight(const GLBuffer* pBuffer)
@@ -317,7 +323,7 @@ void PointPickShader::SetPickOffset(unsigned int offset)
 
 void PointPickShader::SetPickID(unsigned int pickID)
 {
-	// PickOffsetÇë„ë÷Ç∑ÇÈÅB
+	// PickOffset„Çí‰ª£Êõø„Åô„Çã„ÄÇ
 	BindUniform(m_uniform[UNIFORM::PICKOFFSET], pickID);
 }
 

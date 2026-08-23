@@ -29,6 +29,7 @@ private:
 			m_normal.resize(size, Vector3(0));
 			m_velocity.resize(size,Vector3(0));
 			m_weight.resize(size,0.0);
+			
 		}
 		size_t Size() const { return m_position.size(); }
 		Vector<Vector3> m_initPoint;

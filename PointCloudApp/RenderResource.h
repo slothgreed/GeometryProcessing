@@ -59,10 +59,21 @@ public:
 	void DisablePolygonOffset();
 	void EnableDepth();
 	void DisableDepth();
+	void DepthMask(bool value);
 	void EnableCullFace();
 	void DisableCullFace();
+	void SetCullFace(GLenum face);
 	void EnableBlend();
 	void DisableBlend();
+	void EnableStencil();
+	void DisableStencil();
+	void EnableClipDistance(int index);
+	void DisableClipDistance(int index);
+	void SetStencilFunc(GLenum func, int reference, GLuint mask);
+	void SetStencilOperation(GLenum stencilFail, GLenum depthFail, GLenum depthPass);
+	void SetStencilOperationSeparate(GLenum face, GLenum stencilFail, GLenum depthFail, GLenum depthPass);
+	void SetStencilMask(GLuint mask);
+	void SetClearStencil(int value);
 	void EnablePolygonWire();
 	void EnablePolygonFill();
 	void EnableScissor(const Viewport& scissor);
@@ -192,7 +203,7 @@ private:
 	RenderTarget* m_pPostEffectTarget;
 	ShaderTable m_pShaderTable;
 	TexturePlane* m_pTexturePlane;
-	RenderTarget* m_pTmpComputeTarget; // �R���s���[�g�V�F�[�_�̕`�挋�ʂ��}�[�W����Ƃ��Ɉꎞ�I�Ɏg���^�[�Q�b�g 
+	RenderTarget* m_pTmpComputeTarget; // コンピュートシェーダの描画結果をマージするときに一時的に使うターゲット 
 	RenderTarget* m_pTmpPostEffectTarget;
 	RenderTarget* m_pDebugTarget;
 };

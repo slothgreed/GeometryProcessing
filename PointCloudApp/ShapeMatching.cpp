@@ -71,9 +71,9 @@ Matrix4x4 ShapeMatching::ComputeApq(const Vector<VertexWeight>& cluster, const V
 		auto pi = m_particle.m_position[cluster[i].index] - cp;
 		auto qi = m_particle.m_initPoint[cluster[i].index] - cq;
 
-		A[0] += Vector4(cluster[i].weight * pi.x * qi, 0.0f);
-		A[1] += Vector4(cluster[i].weight * pi.y * qi, 0.0f);
-		A[2] += Vector4(cluster[i].weight * pi.z * qi, 0.0f);
+		A[0] += Vector4(cluster[i].weight * qi.x * pi, 0.0f);
+		A[1] += Vector4(cluster[i].weight * qi.y * pi, 0.0f);
+		A[2] += Vector4(cluster[i].weight * qi.z * pi, 0.0f);
 	}
 	return A;
 }
@@ -130,7 +130,6 @@ void ShapeMatching::Initialize()
 void ShapeMatching::Update(float dt)
 {
 	UpdateCpu(dt);
-	UpdateGpu();
 }
 void ShapeMatching::UpdateCpu(float dt)
 {

@@ -190,7 +190,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
-    <ClCompile Include="CrossSectionLine.cpp" />
+	<ClCompile Include="CrossSectionLine.cpp" />
+	<ClCompile Include="CrossSectionFill.cpp" />
     <ClCompile Include="CSFNode.cpp" />
     <ClCompile Include="DebugNode.cpp" />
     <ClCompile Include="DelaunayGenerator.cpp" />
@@ -284,7 +285,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
-    <ClInclude Include="CrossSectionLine.h" />
+	<ClInclude Include="CrossSectionLine.h" />
+	<ClInclude Include="CrossSectionFill.h" />
     <ClInclude Include="CSFNode.h" />
     <ClInclude Include="DebugNode.h" />
     <ClInclude Include="DelaunayGenerator.h" />

@@ -97,6 +97,7 @@ void GLFWApp::Initialize()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 	m_windowSize = Vector2i(1024, 768);
 	m_window = glfwCreateWindow(m_windowSize.x, m_windowSize.y, "PointCloudApp", NULL, NULL);
 	if (m_window == NULL) {
@@ -114,7 +115,7 @@ void GLFWApp::Initialize()
 		return;
 	}
 
-	// OpenGLÉoÅ[ÉWÉáÉìÇ∆GLSLÉoÅ[ÉWÉáÉìÇÃämîF
+	// OpenGL„Éê„Éº„Ç∏„Éß„É≥„Å®GLSL„Éê„Éº„Ç∏„Éß„É≥„ÅÆÁ¢∫Ë™ç
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	std::cout << "Driver version: " << glGetString(GL_RENDERER) << std::endl;

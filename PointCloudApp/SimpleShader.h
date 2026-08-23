@@ -5,7 +5,7 @@
 namespace KI
 {
 
-// MEMO : FaceShader‚ªŒp³‚µ‚Ä‚¢‚éB
+// MEMO : FaceShaderãŒç¶™æ‰¿ã—ã¦ã„ã‚‹ã€‚
 class SimpleShader : public IShadingShader
 {
 public:
@@ -42,6 +42,7 @@ public:
 	void SetLight(const GLBuffer* pBuffer);
 	void SetPBRResource(const PBRResource* pBuffer);
 	void SetNormal(const GLBuffer* pBuffer);
+	void SetClipPlane(const Vector4& value);
 
 	virtual int GetDrawTargetNum() const { return 3; }
 	virtual ShaderPath GetShaderPath() override;
@@ -51,6 +52,7 @@ private:
 	GLuint m_uPrefilter;
 	GLuint m_uIrradiance;
 	GLuint m_uBRDF;
+	GLuint m_uClipPlane;
 };
 class VertexColorShader : public IShadingShader
 {

@@ -65,7 +65,10 @@ void RenderTarget::Build()
 
 	if (m_pDepth) {
 		m_pDepth->Bind();
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_pDepth->Handle(), 0);
+		const auto attachment = m_pDepth->GetFormat().format == GL_DEPTH_STENCIL
+			? GL_DEPTH_STENCIL_ATTACHMENT
+			: GL_DEPTH_ATTACHMENT;
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, m_pDepth->Handle(), 0);
 		OUTPUT_GLERROR;
 	}
 
@@ -165,12 +168,12 @@ Texture2D* RenderTarget::CreateDepthTexture(const Vector2i& size)
 	Texture::Format format;
 	format.target = GL_TEXTURE_2D;
 	format.level = 0;
-	format.internalformat = GL_DEPTH_COMPONENT24;
+	format.internalformat = GL_DEPTH24_STENCIL8;
 	format.width = size.x;
 	format.height = size.y;
 	format.border = 0;
-	format.format = GL_DEPTH_COMPONENT;
-	format.type = GL_FLOAT;
+	format.format = GL_DEPTH_STENCIL;
+	format.type = GL_UNSIGNED_INT_24_8;
 	pDepth->Set(format, nullptr);
 	return pDepth;
 }

@@ -7,6 +7,7 @@
 #include "MeshletGenerator.h"
 #include "GeometryUtility.h"
 #include "CrossSectionLine.h"
+#include "CrossSectionFill.h"
 namespace KI
 {
 class BVH;
@@ -146,7 +147,7 @@ private:
 		Unique<MeshletShader> shader;
 		Unique<GLBuffer> position;
 		Unique<GLBuffer> cluster;
-		Unique<GLBuffer> taskNum; // TaskShader“à‚ÅÀs‚·‚éMeshlet‚Ì”‚ğŠi”[‚µ,MeshShader‚Åˆ—‚·‚é”z—ñ
+		Unique<GLBuffer> taskNum; // TaskShaderå†…ã§å®Ÿè¡Œã™ã‚‹Meshletã®æ•°ã‚’æ ¼ç´ã—,MeshShaderã§å‡¦ç†ã™ã‚‹é…åˆ—
 		Unique<GLBuffer> index;
 	};
 
@@ -265,6 +266,7 @@ private:
 		Poisson poisson;
 	};
 	Unique<CrossSectionLine> m_crossSection = nullptr;
+	Unique<CrossSectionFill> m_crossSectionFill = nullptr;
 	Shared<HalfEdgeParts> m_pEditVertex;
 	Shared<BDBNode> m_pBDBNode;
 	HalfEdgeController* m_pController;

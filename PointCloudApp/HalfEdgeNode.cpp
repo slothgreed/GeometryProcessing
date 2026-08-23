@@ -158,6 +158,16 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	BuildGLBuffer();
 	if (!m_ui.visible) { return; }
 	auto pResource = context.pResource;
+	Vector4 crossSectionPlane(0.0f);
+	if (m_ui.visibleCrossSection && m_pBDBNode) {
+		if (m_ui.crossSectionAxis == 0) {
+			crossSectionPlane = m_pBDBNode->GetXPlane();
+		} else if (m_ui.crossSectionAxis == 1) {
+			crossSectionPlane = m_pBDBNode->GetYPlane();
+		} else if (m_ui.crossSectionAxis == 2) {
+			crossSectionPlane = m_pBDBNode->GetZPlane();
+		}
+	}
 	auto& pFaceShader = pResource->GetShaderTable()->GetFaceShader();
 	context.pResource->GetRenderTarget()->Bind();
 	context.pResource->GL()->PushRenderTarget(context.pResource->GetRenderTarget(), pFaceShader->GetDrawTargetNum());
@@ -173,7 +183,15 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 	pFaceShader->SetNormal(m_gpu.normal.get());
 	pFaceShader->SetColor(Vector3(0.7f, 0.7f, 1.0f));
 	pFaceShader->SetModel(GetMatrix());
+	pFaceShader->SetClipPlane(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+	if (m_ui.visibleCrossSection) {
+		pFaceShader->SetClipPlane(crossSectionPlane);
+		context.pResource->GL()->EnableClipDistance(0);
+	}
 	pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
+	if (m_ui.visibleCrossSection) {
+		context.pResource->GL()->DisableClipDistance(0);
+	}
 	context.pResource->GL()->PopRenderTarget();
 	if (!m_ui.visibleMesh) {
 		context.pResource->GL()->ColorMask(true);
@@ -181,13 +199,8 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 
 	if (m_ui.visibleCrossSection) {
 		if (m_pBDBNode) {
-			if (m_ui.crossSectionAxis == 0) {
-				m_crossSection->Draw(this, m_pBDBNode->GetXPlane(), context);
-			}else if (m_ui.crossSectionAxis == 1) {
-				m_crossSection->Draw(this, m_pBDBNode->GetYPlane(), context);
-			} else if (m_ui.crossSectionAxis == 2) {
-				m_crossSection->Draw(this, m_pBDBNode->GetZPlane(), context);
-			}
+			m_crossSectionFill->Draw(this, crossSectionPlane, context);
+			m_crossSection->Draw(this, crossSectionPlane, context);
 		}
 	}
 	if (m_ui.doShapeMatching) {
@@ -285,16 +298,6 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		{
 			m_meshletGpu.shader->DrawWithAutoTask(0, m_meshletGpu.cluster->Num());
 		}
-		/*
-		std::vector<unsigned int> taskNum(m_meshletGpu.taskNum->Num());
-		m_meshletGpu.taskNum->GetBufferData(taskNum);
-		auto totalSize = 0;
-		for (int i = 0; i < taskNum.size(); i++) {
-			totalSize+=taskNum[i];
-		}
-		printf("TaskNum : %d\n", totalSize);
-		*/
-
 		m_meshletGpu.shader->BarrierSSBO();
 		m_meshletProfiler->EndQuery();
 	}
@@ -439,8 +442,10 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		if(ImGui::Checkbox("ShowCrossSection", &m_ui.visibleCrossSection)) {
 			if (m_ui.visibleCrossSection) {
 				m_crossSection = std::make_unique<CrossSectionLine>();
+				m_crossSectionFill = std::make_unique<CrossSectionFill>();
 			} else {
 				m_crossSection = nullptr;
+				m_crossSectionFill = nullptr;
 			}
 		}
 

@@ -144,6 +144,10 @@ void GLContext::DisableCullFace()
 {
 	glDisable(GL_CULL_FACE);
 }
+void GLContext::SetCullFace(GLenum face)
+{
+	glCullFace(face);
+}
 void GLContext::EnableDepth()
 {
 	glEnable(GL_DEPTH_TEST);
@@ -151,6 +155,46 @@ void GLContext::EnableDepth()
 void GLContext::DisableDepth()
 {
 	glDisable(GL_DEPTH_TEST);
+}
+void GLContext::DepthMask(bool value)
+{
+	glDepthMask(value ? GL_TRUE : GL_FALSE);
+}
+void GLContext::EnableStencil()
+{
+	glEnable(GL_STENCIL_TEST);
+}
+void GLContext::DisableStencil()
+{
+	glDisable(GL_STENCIL_TEST);
+}
+void GLContext::EnableClipDistance(int index)
+{
+	glEnable(GL_CLIP_DISTANCE0 + index);
+}
+void GLContext::DisableClipDistance(int index)
+{
+	glDisable(GL_CLIP_DISTANCE0 + index);
+}
+void GLContext::SetStencilFunc(GLenum func, int reference, GLuint mask)
+{
+	glStencilFunc(func, reference, mask);
+}
+void GLContext::SetStencilOperation(GLenum stencilFail, GLenum depthFail, GLenum depthPass)
+{
+	glStencilOp(stencilFail, depthFail, depthPass);
+}
+void GLContext::SetStencilOperationSeparate(GLenum face, GLenum stencilFail, GLenum depthFail, GLenum depthPass)
+{
+	glStencilOpSeparate(face, stencilFail, depthFail, depthPass);
+}
+void GLContext::SetStencilMask(GLuint mask)
+{
+	glStencilMask(mask);
+}
+void GLContext::SetClearStencil(int value)
+{
+	glClearStencil(value);
 }
 void GLContext::DisablePolygonOffset()
 {
@@ -337,7 +381,7 @@ void RenderResource::InitRenderTarget(const Vector2& size)
 	if (m_pRenderTarget) {
 		m_pRenderTarget->Resize(size);
 		m_pRenderTarget->Bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
 	if (m_pComputeColorTarget) {
