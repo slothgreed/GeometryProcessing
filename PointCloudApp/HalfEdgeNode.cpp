@@ -451,6 +451,7 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 
 		if(m_ui.visibleCrossSection) {
 			ImGui::Combo("CrossSectionAxis", &m_ui.crossSectionAxis, "X\0Y\0Z\0");
+			m_crossSectionFill->ShowUI(this, ui);
 		}
 	}
 

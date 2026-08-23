@@ -9,15 +9,21 @@ layout(std430, binding = 1) writeonly buffer OutputBuffer
 	uint outData[];
 };
 
-layout(std430, binding = 2) buffer OffsetBuffer {
+layout(std430, binding = 2) readonly buffer OffsetBuffer {
     uint offset[]; 
 };
 
 void main()
 {
-	uint index = gl_GlobalInvocationID.x;
-	if(index >= u_num){return;}
-	uint value = (data[index] >> u_bitShift) & 0xFFu;
-	uint before = atomicAdd(offset[value],1u);
-	outData[before] = data[index];
+	uint bin = gl_GlobalInvocationID.x;
+	if(bin >= 256u){return;}
+
+	uint outputIndex = offset[bin];
+	for(uint index = 0u; index < u_num; ++index){
+		uint value = (data[index] >> u_bitShift) & 0xFFu;
+		if(value == bin){
+			outData[outputIndex] = data[index];
+			++outputIndex;
+		}
+	}
 } 

@@ -332,12 +332,12 @@
     <ClCompile Include="GaussianSplattingNode.cpp">
       <Filter>ソース ファイル\Utility\GaussianSplatting</Filter>
     </ClCompile>
-	<ClCompile Include="CrossSectionLine.cpp">
-	  <Filter>ソース ファイル\Algorithm</Filter>
-	</ClCompile>
-	<ClCompile Include="CrossSectionFill.cpp">
-	  <Filter>ソース ファイル\Algorithm</Filter>
-	</ClCompile>
+    <ClCompile Include="CrossSectionLine.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="CrossSectionFill.cpp">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClCompile>
     <ClCompile Include="ProcessExecutor.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
@@ -640,12 +640,9 @@
     <ClInclude Include="GaussianSplattingNode.h">
       <Filter>ソース ファイル\Utility\GaussianSplatting</Filter>
     </ClInclude>
-	<ClInclude Include="CrossSectionLine.h">
-	  <Filter>ソース ファイル\Algorithm</Filter>
-	</ClInclude>
-	<ClInclude Include="CrossSectionFill.h">
-	  <Filter>ソース ファイル\Algorithm</Filter>
-	</ClInclude>
+    <ClInclude Include="CrossSectionLine.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
     <ClInclude Include="ProcessExecutor.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
@@ -660,6 +657,9 @@
     </ClInclude>
     <ClInclude Include="MeshViewer.h">
       <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="CrossSectionFill.h">
+      <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

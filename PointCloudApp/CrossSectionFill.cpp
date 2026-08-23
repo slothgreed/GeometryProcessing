@@ -42,10 +42,15 @@ void CrossSectionFill::Draw(HalfEdgeNode* pNode, const Vector4& plane, const Dra
 	m_shader.Use();
 	m_shader.SetCamera(context.pResource->GetCameraBuffer());
 	m_shader.SetModel(pNode->GetMatrix());
-	m_shader.SetPlane(Vector4(0.0f));
+	m_shader.SetPlane(plane);
 	m_shader.SetColor(Vector3(1.0f, 0.15f, 0.1f));
+	const Vector3 size = pNode->GetBoundBox().Max() - pNode->GetBoundBox().Min();
+	const float maxSize = std::max(size.x, std::max(size.y, size.z));
+	const float hatchSpacing = maxSize / static_cast<float>(std::max(1, m_hatchLineCount));
+	m_shader.SetHatch(m_hatchEnabled, Vector3(0.2f, 0.02f, 0.01f), hatchSpacing, m_hatchLineWidth);
 	m_shader.SetPosition(m_planePosition.get());
 	m_shader.DrawElement(GL_TRIANGLES, m_planeIndex.get());
+
 
 	// Restore the state expected by the forward pass.
 	gl->DepthMask(true);
@@ -58,6 +63,11 @@ void CrossSectionFill::Draw(HalfEdgeNode* pNode, const Vector4& plane, const Dra
 
 void CrossSectionFill::ShowUI(HalfEdgeNode* pNode, UIContext& ui)
 {
+	ImGui::Checkbox("CrossSectionHatch", &m_hatchEnabled);
+	if (m_hatchEnabled) {
+		ImGui::SliderInt("HatchLineCount", &m_hatchLineCount, 4, 128);
+		ImGui::SliderFloat("HatchLineWidth", &m_hatchLineWidth, 0.01f, 0.24f, "%.2f");
+	}
 }
 
 void CrossSectionFill::UpdatePlane(const HalfEdgeNode* pNode, const Vector4& plane)
@@ -108,6 +118,10 @@ void CrossSectionFill::Shader::FetchUniformLocation()
 	m_model = GetUniformLocation("u_Model");
 	m_color = GetUniformLocation("u_Color");
 	m_plane = GetUniformLocation("u_Plane");
+	m_hatchEnabled = GetUniformLocation("u_HatchEnabled");
+	m_hatchColor = GetUniformLocation("u_HatchColor");
+	m_hatchSpacing = GetUniformLocation("u_HatchSpacing");
+	m_hatchLineWidth = GetUniformLocation("u_HatchLineWidth");
 }
 
 void CrossSectionFill::Shader::SetModel(const Matrix4x4& value)
@@ -134,6 +148,14 @@ void CrossSectionFill::Shader::SetColor(const Vector3& value)
 void CrossSectionFill::Shader::SetPlane(const Vector4& value)
 {
 	BindUniform(m_plane, value);
+}
+
+void CrossSectionFill::Shader::SetHatch(bool enabled, const Vector3& color, float spacing, float lineWidth)
+{
+	BindUniform(m_hatchEnabled, enabled ? 1 : 0);
+	BindUniform(m_hatchColor, color);
+	BindUniform(m_hatchSpacing, spacing);
+	BindUniform(m_hatchLineWidth, lineWidth);
 }
 
 }

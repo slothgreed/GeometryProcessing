@@ -23,10 +23,15 @@ private:
 		void SetPosition(const GLBuffer* pBuffer);
 		void SetColor(const Vector3& value);
 		void SetPlane(const Vector4& value);
+		void SetHatch(bool enabled, const Vector3& color, float spacing, float lineWidth);
 
 		GLuint m_model = -1;
 		GLuint m_color = -1;
 		GLuint m_plane = -1;
+		GLuint m_hatchEnabled = -1;
+		GLuint m_hatchColor = -1;
+		GLuint m_hatchSpacing = -1;
+		GLuint m_hatchLineWidth = -1;
 	};
 
 	void UpdatePlane(const HalfEdgeNode* pNode, const Vector4& plane);
@@ -35,6 +40,9 @@ private:
 	Shader m_shader;
 	Unique<GLBuffer> m_planePosition;
 	Unique<GLBuffer> m_planeIndex;
+	bool m_hatchEnabled = true;
+	int m_hatchLineCount = 24;
+	float m_hatchLineWidth = 0.08f;
 };
 
 }

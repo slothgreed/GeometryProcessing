@@ -266,14 +266,16 @@ void PrefixSumShaderPost::FetchUniformLocation()
 
 void RadixSortTest::Execute()
 {	
-	auto in = CreateData(1, 40);
-	auto outCPU = ExecuteCPU(in);
-	auto outGPU = ExecuteGPU(in);
+	for (int i = 0; i < 4; i++) {
+		auto in = CreateData(i + 1, 4000000);
+		auto outCPU = ExecuteCPU(in);
+		auto outGPU = ExecuteGPU(in);
 
-	if(Validate(in, outCPU) && Validate(in, outGPU)) {
-		std::cout << "Success" << std::endl;
-	} else {
-		std::cout << "Failed" << std::endl;
+		if (Validate(in, outCPU) && Validate(in, outGPU)) {
+			std::cout << "Success" << std::endl;
+		} else {
+			std::cout << "Failed" << std::endl;
+		}
 	}
 }
 
