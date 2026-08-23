@@ -10,6 +10,8 @@
 #include "FileUtility.h"
 #include "PointCloudIO.h"
 #include "ProcessExecutor.h"
+#include "Voxelizer.h"
+#include "VolumeNode.h"
 #include <Eigen/SVD>
 #include <Eigen/Core>
 #include <filesystem>
@@ -101,29 +103,39 @@ void PointCloudNode::UpdateDiffusion()
 	Shared<PointCloud> generated(PointCloudIO::Load(outputPath.string()));
 
 	const auto& sourcePositions = m_pPointCloud->Position();
+	Vector3 centroid(0.0f);
+	float maxDistance = 0.0f;
 	if (!sourcePositions.empty()) {
-		Vector3 centroid(0.0f);
 		for (const auto& position : sourcePositions) {
 			centroid += position;
 		}
 		centroid /= static_cast<float>(sourcePositions.size());
 
-		float maxDistance = 0.0f;
 		for (const auto& position : sourcePositions) {
 			maxDistance = std::max(
 				maxDistance, glm::length(position - centroid));
 		}
-
-		if (maxDistance > 0.0f) {
-			auto generatedPositions = generated->Position();
-			for (auto& position : generatedPositions) {
-				position = position * maxDistance + centroid;
-			}
-			generated->SetPosition(std::move(generatedPositions));
-		}
 	}
 
-	const BDB generatedBDB(generated->Position());
+	BDB generatedBDB;
+	auto generatedPositions = generated->Position();
+	for (auto& position : generatedPositions) {
+		if (maxDistance > 0.0f) {
+			position = position * maxDistance + centroid;
+		}
+		generatedBDB.Add(position);
+	}
+	generated->SetPosition(std::move(generatedPositions));
+
+	auto diffusionVoxel = std::make_unique<VoxelF>(
+		Voxelizer::ExecuteByPointCloud(
+			generatedBDB, generated->Position(), 256));
+	auto voxelNode = std::make_shared<VoxelNode>(
+		"DiffusionVolume", std::move(diffusionVoxel));
+	voxelNode->SetMatrix(GetMatrix());
+	voxelNode->SetVisibleMarchingCube(true);
+	AddNode(voxelNode);
+
 	auto generatedNode = std::make_shared<PointCloudNode>(
 		"DiffusionResult", generated);
 	generatedNode->SetBoundBox(generatedBDB);

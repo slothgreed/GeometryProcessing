@@ -40,6 +40,8 @@ public:
 	virtual ALGORITHM_TYPE GetType() override { return ALGORITHM_VOXELIZER; }
 	void Execute(int resolute);
 	CompactVoxel ExecuteCPU(int resolute);
+	static VoxelF ExecuteByPointCloud(const BDB& bdb,
+		const Vector<Vector3>& points, int resolute);
 	void Draw(GLBuffer* pointBuffer, GLBuffer* indexBuffer, int camera);
 	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
 

@@ -59,6 +59,63 @@ Voxelizer::CompactVoxel Voxelizer::ExecuteCPU(int resolute)
 	}
 	return Voxelizer::CompactVoxel(resolute, std::move(resultCPU));
 }
+
+VoxelF Voxelizer::ExecuteByPointCloud(const BDB& bdb,
+	const Vector<Vector3>& points, int resolute)
+{
+	if (resolute <= 0) {
+		throw std::invalid_argument("resolute must be greater than zero.");
+	}
+
+	const Vector3 size = bdb.Max() - bdb.Min();
+	if (!bdb.IsActive() || size.x <= 0.0f ||
+		size.y <= 0.0f || size.z <= 0.0f) {
+		throw std::invalid_argument("Point cloud BDB must have a positive size.");
+	}
+
+	const Vector3i resolution(resolute);
+	const Vector3 pitch = size / Vector3(resolution);
+	const float radius = std::max({ pitch.x, pitch.y, pitch.z }) * 4.0f;
+	const float outsideValue = -radius;
+	float maxValue = outsideValue;
+	Vector<float> values(
+		static_cast<size_t>(resolute) * resolute * resolute,
+		outsideValue);
+
+	auto getIndex = [resolute](int x, int y, int z) {
+		return static_cast<size_t>(x) +
+			static_cast<size_t>(y) * resolute +
+			static_cast<size_t>(z) * resolute * resolute;
+	};
+
+	for (const auto& point : points) {
+		const Vector3 voxelPosition = (point - bdb.Min()) / pitch;
+		const Vector3i center = glm::clamp(
+			Vector3i(voxelPosition), Vector3i(0), resolution - 1);
+		const Vector3i voxelRadius(
+			static_cast<int>(std::ceil(radius / pitch.x)),
+			static_cast<int>(std::ceil(radius / pitch.y)),
+			static_cast<int>(std::ceil(radius / pitch.z)));
+
+		const Vector3i minIndex = glm::max(center - voxelRadius, Vector3i(0));
+		const Vector3i maxIndex = glm::min(center + voxelRadius, resolution - 1);
+		for (int z = minIndex.z; z <= maxIndex.z; ++z)
+		for (int y = minIndex.y; y <= maxIndex.y; ++y)
+		for (int x = minIndex.x; x <= maxIndex.x; ++x) {
+			const Vector3 voxelCenter = bdb.Min() +
+				(Vector3(x, y, z) + Vector3(0.5f)) * pitch;
+			const float value = radius - glm::length(voxelCenter - point);
+			if (value > values[getIndex(x, y, z)]) {
+				values[getIndex(x, y, z)] = value;
+				maxValue = std::max(maxValue, value);
+			}
+		}
+	}
+
+	return VoxelF(resolution, bdb, std::move(values),
+		outsideValue, maxValue);
+}
+
 void Voxelizer::Execute(int resolute)
 {
 	m_resolution = resolute;
@@ -399,7 +456,6 @@ ShaderPath Voxelizer::MeshShader::GetShaderPath()
 
 void Voxelizer::MeshShader::Draw(int camera, const Matrix4x4& matrix, const BDB& bdb, int resolution, GLBuffer* voxelBuffer)
 {
-
 	Use();
 	BindUniform(m_uniform[UNIFORM::RESOLUTE], resolution);
 	BindUniform(m_uniform[UNIFORM::PITCH], bdb.MaxLength() / resolution);

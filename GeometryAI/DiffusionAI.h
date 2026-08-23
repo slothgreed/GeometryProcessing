@@ -41,8 +41,8 @@ public:
     bool Execute(const std::string& command) override;
 
 private:
-    static constexpr int64_t DiffusionSteps = 200;
-    static constexpr int64_t EpochCount = 500;
+    static constexpr int64_t DiffusionSteps = 1000;
+    static constexpr int64_t EpochCount = 50000;
 
     void Train(const std::string& path);
     void Predict(const std::string& modelPath, const std::string& outPath);

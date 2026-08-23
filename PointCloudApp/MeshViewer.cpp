@@ -118,13 +118,12 @@ Shared<RenderNode> MeshViewer::LoadMeshCNNBunny()
 	return std::make_shared<PrimitiveNode>(path, pPrimitive);
 }
 
-Shared<RenderNode> MeshViewer::LoadMeshPointCloudBynny()
+Shared<RenderNode> MeshViewer::LoadPointCloudBynny()
 {
-	const String path = "E:\\cgModel\\Diffusion\\bunny4000.xyz";
-	const String pathBin = "E:\\cgModel\\Diffusion\\bunny4000.xyz.ki_bin";
+	const String path = "E:\\cgModel\\Diffusion\\bunny4000.xyz.ki_bin";
 	Shared<PointCloud> pPointCloud(PointCloudIO::Load(path));
 	pPointCloud->ClearColor();
-	PointCloudIO::OutputBinary(pPointCloud.get(), pathBin.c_str(), false, false);
+	//PointCloudIO::OutputBinary(pPointCloud.get(), pathBin.c_str(), false, false);
 
 	return std::make_shared<PointCloudNode>("Diffusion Bunny", pPointCloud);
 }
@@ -216,7 +215,7 @@ void MeshViewer::UpdateRenderData()
 	} else if (m_loadType == LOAD_BUNNY) {
 		m_pRenderNode = LoadMeshCNNBunny();
 	} else if (m_loadType == DIFFUSION_AI) {
-		m_pRenderNode = LoadMeshPointCloudBynny();
+		m_pRenderNode = LoadPointCloudBynny();
 	}
 	if (m_pRenderNode) {
 		m_pCameraController->FitToBDB(m_pRenderNode->GetBoundBox());

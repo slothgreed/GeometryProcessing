@@ -230,31 +230,36 @@ void DiffusionAI::Predict(const std::string& /*modelPath*/, const std::string& o
         throw std::runtime_error("The model does not contain a valid point count.");
     }
 
+    for (size_t i = 0; i < 10; i++) {
+        if (m_predictStep < 0) {
+            return;
+        }
 
-    torch::NoGradGuard noGrad;
-    auto betas = torch::linspace(1.0e-4, 2.0e-2, DiffusionSteps,
-        torch::TensorOptions().dtype(torch::kFloat32).device(device));
-    auto alphas = 1.0f - betas;
-    auto alphaBars = torch::cumprod(alphas, 0);
+        torch::NoGradGuard noGrad;
+        auto betas = torch::linspace(1.0e-4, 2.0e-2, DiffusionSteps,
+            torch::TensorOptions().dtype(torch::kFloat32).device(device));
+        auto alphas = 1.0f - betas;
+        auto alphaBars = torch::cumprod(alphas, 0);
 
-    const int64_t step = m_predictStep;
-    auto timestep = torch::full({ 1 },
-        static_cast<float>(step) / static_cast<float>(DiffusionSteps - 1),
-        torch::TensorOptions().dtype(torch::kFloat32).device(device));
-    auto predictedNoise = m_model->forward(m_predictPoint, timestep);
-    auto beta = betas[step];
-    auto alpha = alphas[step];
-    auto alphaBar = alphaBars[step];
-    auto mean = (m_predictPoint - beta / (1.0f - alphaBar).sqrt() *
-        predictedNoise) / alpha.sqrt();
-    m_predictPoint = step > 0
-        ? mean + beta.sqrt() * torch::randn_like(m_predictPoint)
-        : mean;
-    --m_predictStep;
+        const int64_t step = m_predictStep;
+        auto timestep = torch::full({ 1 },
+            static_cast<float>(step) / static_cast<float>(DiffusionSteps - 1),
+            torch::TensorOptions().dtype(torch::kFloat32).device(device));
+        auto predictedNoise = m_model->forward(m_predictPoint, timestep);
+        auto beta = betas[step];
+        auto alpha = alphas[step];
+        auto alphaBar = alphaBars[step];
+        auto mean = (m_predictPoint - beta / (1.0f - alphaBar).sqrt() *
+            predictedNoise) / alpha.sqrt();
+        m_predictPoint = step > 0
+            ? mean + beta.sqrt() * torch::randn_like(m_predictPoint)
+            : mean;
+        --m_predictStep;
+    }
 
     SavePointCloud(outPath, m_predictPoint);
     std::cout << "Save Point Cloud: " << outPath
-		<< ", diffusion step: " << step << std::endl;
+		<< ", diffusion step: " << m_predictStep << std::endl;
 }
 
 }

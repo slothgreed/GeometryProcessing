@@ -181,7 +181,6 @@ void SignedDistanceField::ShowUI(RenderNode* pNode, UIContext& ui)
 		{
 			auto sdfVoxel = std::make_unique<VoxelF>(voxelF.GetResolute(), voxelF.GetBDB(), std::move(outputData));
 			//DualContouring dual;
-			//auto mesh2 = dual.CreateMesh(sdfVoxel);
 			auto pNode = std::make_shared<VoxelNode>("SDFAI_DualContouring", std::move(sdfVoxel));
 			pNode->SetMatrix(m_pHalfEdge->GetMatrix());
 			m_pHalfEdge->AddNode(pNode);

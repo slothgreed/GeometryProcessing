@@ -21,14 +21,24 @@ public:
 	Voxel(const Vector3i& resolute) { m_resolute = resolute; }
 	Voxel(int resolute, const BDB& bdb) { m_resolute = Vector3i(resolute, resolute, resolute); m_bdb = bdb; }
 	Voxel(const Vector3i& resolute, const BDB& bdb, std::vector<T>&& data) { m_resolute = resolute; m_bdb = bdb; m_data = std::move(data); }
+	Voxel(const Vector3i& resolute, const BDB& bdb, std::vector<T>&& data,
+		const T& minValue, const T& maxValue)
+		: m_bdb(bdb)
+		, m_resolute(resolute)
+		, m_data(std::move(data))
+		, m_minValue(minValue)
+		, m_maxValue(maxValue)
+		, m_hasValueRange(true)
+	{
+	}
 	~Voxel() {};
 
 
 
 	void Allocate() { m_data.resize(GetSize()); }
 	Vector3 GetPosition(const Vector3i& data) const { return Vector3(data.x, data.y, data.z) * GetPitch() + m_bdb.Min(); }
-	void SetData(const std::vector<T>&& data) { m_data = std::move(data); }
-	void SetData(const Vector3i& index, const T& data) { m_data[GetIndex(index)] = data; }
+	void SetData(std::vector<T>&& data) { m_data = std::move(data); m_hasValueRange = false; }
+	void SetData(const Vector3i& index, const T& data) { m_data[GetIndex(index)] = data; m_hasValueRange = false; }
 	T GetData(const Vector3i& data) const { return m_data[GetIndex(data)]; }
 	T GetData(int x, int y, int z) const { return m_data[GetIndex(x, y, z)]; }
 	int GetIndex(const Vector3i& data) const { return GetIndex(data.x, data.y, data.z); }
@@ -38,6 +48,9 @@ public:
 	int GetSize() const { return m_resolute.x * m_resolute.y * m_resolute.z; }
 	Vector3 GetPitch() const { return  (m_bdb.Max() - m_bdb.Min()) / Vector3(m_resolute); }
 	const std::vector<T>& GetData() const { return m_data; }
+	bool HasValueRange() const { return m_hasValueRange; }
+	const T& GetMinValue() const { return m_minValue; }
+	const T& GetMaxValue() const { return m_maxValue; }
 	bool In(const Vector3i& index)
 	{
 		return
@@ -102,6 +115,9 @@ private:
 	BDB m_bdb;
 	Vector3i m_resolute;
 	Vector<T> m_data;
+	T m_minValue{};
+	T m_maxValue{};
+	bool m_hasValueRange = false;
 };
 
 struct VoxelGpu
@@ -198,7 +214,7 @@ private:
 		}
 	};
 
-	// voxel�̃Z���̕ӂ̃C���f�b�N�X���`����z��
+	// voxelのセルの辺のインデックスを定義する配列
 	static constexpr std::array<std::pair<int,int>,12> m_cellEdges =
 	{
 		std::pair<int,int>(0,1),

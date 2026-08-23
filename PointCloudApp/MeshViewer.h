@@ -72,7 +72,7 @@ private:
 	Shared<RenderNode> LoadModelNetData(const AIDataFolder& folder, int fileIndex);
 	Shared<RenderNode> LoadMeshsegData(const AIDataFolder& folder, int fileIndex, int segIndex);
 	Shared<RenderNode> LoadMeshCNNBunny();
-	Shared<RenderNode> LoadMeshPointCloudBynny();
+	Shared<RenderNode> LoadPointCloudBynny();
 
 	float m_timerDiff = 0.0f;
 	Vector<AIDataFolder> m_folder;

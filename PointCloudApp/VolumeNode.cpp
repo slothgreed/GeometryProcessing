@@ -343,6 +343,12 @@ VoxelNode::VoxelNode(const String& name, Unique<VoxelF>&& pVoxel)
 	: RenderNode(name)
 	, m_pVoxel(std::move(pVoxel))
 {
+	if (m_pVoxel->HasValueRange()) {
+		m_minValue = m_pVoxel->GetMinValue();
+		m_maxValue = m_pVoxel->GetMaxValue();
+		return;
+	}
+
 	m_maxValue = m_pVoxel->GetData()[0];
 	m_minValue = m_pVoxel->GetData()[0];
 	for (size_t i = 0; i < m_pVoxel->GetData().size(); i++) {
@@ -402,7 +408,12 @@ void VoxelNode::Draw(const DrawContext& context)
 		}
 	}
 	if (m_ui.marching.visible) {
-		BuildResource();
+		if (m_pMarchingShader == nullptr) {
+			m_pMarchingShader = std::make_unique<MarchingCubeShader>(
+				m_pVoxel->GetSize(), false, DATA_TYPE::DATA_FLOAT);
+			m_pMarchingShader->Build();
+			BuildVoxelResource();
+		}
 		m_pMarchingShader->Use();
 		m_pMarchingShader->SetCamera(context.pResource->GetCameraBuffer());
 		m_pMarchingShader->SetModel(GetMatrix());

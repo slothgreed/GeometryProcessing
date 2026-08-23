@@ -152,6 +152,7 @@ public:
 
 	virtual void Draw(const DrawContext& context);
 	virtual void ShowUI(UIContext& ui);
+	void SetVisibleMarchingCube(bool visible) { m_ui.marching.visible = visible; }
 
 private:
 	void BuildResource();
