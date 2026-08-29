@@ -4,6 +4,7 @@
 namespace KI
 {
 class FaceShader;
+class DepthPrepassShader;
 class SimpleShader;
 class VertexColorShader;
 class TextureShader;
@@ -22,6 +23,7 @@ public:
 	void Build();
 
 	const Shared<FaceShader>& GetFaceShader() const { return m_pFaceShader; }
+	const Shared<DepthPrepassShader>& GetDepthPrepassShader() const { return m_pDepthPrepassShader; }
 	const Shared<SimpleShader>& GetSimpleShader() const { return m_pSimpleShader; }
 	const Shared<VertexVectorShader>& GetVertexVectorShader() const { return m_pVertexVectorShader; }
 	const Shared<VertexColorShader>& GetVertexColorShader() const { return m_pVertexColorShader; }
@@ -36,6 +38,7 @@ public:
 
 private:
 	Shared<FaceShader> m_pFaceShader;
+	Shared<DepthPrepassShader> m_pDepthPrepassShader;
 	Shared<VertexVectorShader> m_pVertexVectorShader;
 	Shared<PointPickShader> m_pPointPickByPrimitive;
 	Shared<PointPickShader> m_pPointPickByID;

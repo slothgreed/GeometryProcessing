@@ -31,6 +31,11 @@ public:
 	void SetSkin(Vector<GLTFSkin>&& value) { m_skins = std::move(value); }
 	void SetMesh(Vector<GLTFMesh>&& value) { m_meshes = std::move(value); }
 	void SetAnimation(Vector<GLTFAnimation>&& animation) { m_animation = std::move(animation); }
+	virtual RenderPassMask GetRenderPassMask() const override
+	{
+		return GetRenderPassBit(RenderPassType::DEFAULT_PASS) |
+			GetRenderPassBit(RenderPassType::DEPTH_PRE_PASS);
+	}
 	virtual void ShowUI(UIContext& ui);
 	virtual void DrawNode(const DrawContext& context);
 protected:

@@ -5,6 +5,38 @@ using namespace std;
 namespace KI
 {
 
+ShaderPath DepthPrepassShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+	path.shader[SHADER_PROGRAM_VERTEX] = "depthPrepass.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "depthPrepass.frag";
+	return path;
+}
+
+void DepthPrepassShader::FetchUniformLocation()
+{
+	m_uModel = GetUniformLocation("u_Model");
+}
+
+void DepthPrepassShader::SetCamera(const GLBuffer* pBuffer)
+{
+	BindShaderStorage(0, pBuffer->Handle());
+}
+
+void DepthPrepassShader::SetModel(const Matrix4x4& value)
+{
+	BindUniform(m_uModel, value);
+}
+
+void DepthPrepassShader::SetPosition(const GLBuffer* pBuffer)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pBuffer));
+	glBindVertexBuffer(ATTRIB_POSITION, pBuffer->Handle(), 0, pBuffer->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
 SimpleShader::SimpleShader()
 {
 }

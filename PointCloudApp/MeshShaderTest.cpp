@@ -39,9 +39,6 @@ void MeshShaderTest::Execute()
 	auto pShader = std::make_unique<MeshShaderTest::TriangleShader>();
 	pShader->Build();
 
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -52,7 +49,6 @@ void MeshShaderTest::Execute()
 		glfwWaitEvents();
 		OUTPUT_GLERROR;
 	}
-	glDeleteVertexArrays(1, &VertexArrayID);
 }
 
 void MeshShaderTest::Finalize()

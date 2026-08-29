@@ -10,7 +10,10 @@ namespace KI
 class GLFWApp : public TheApp
 {
 public:
-	GLFWApp() {};
+	GLFWApp()
+		: m_window(nullptr)
+		, m_vertexArrayId(0)
+	{};
 	~GLFWApp() {};
 
 	virtual void Initialize();
@@ -26,6 +29,7 @@ protected:
 	Unique<Mouse> m_pMouse;
 	Shared<Camera> m_pCamera;
 	Unique<CameraController> m_pCameraController;
+	GLuint m_vertexArrayId;
 };
 }
 

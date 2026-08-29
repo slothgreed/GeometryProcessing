@@ -29,6 +29,7 @@
 #include "HalfEdgeNode.h"
 #include "SkyBoxNode.h"
 #include "RenderTarget.h"
+#include "RenderPass.h"
 #include "CSFNode.h"
 #include "STEPNode.h"
 #include "DebugNode.h"
@@ -131,14 +132,6 @@ struct ScrollingBuffer
 	}
 };
 
-// コールバック関数を定義
-void APIENTRY MyGLDebugCallback(GLenum source, GLenum type, GLuint id,
-	GLenum severity, GLsizei length,
-	const GLchar* message, const void* userParam)
-{
-	//fprintf(stderr, "GL DEBUG: %s\n", message);
-}
-
 void PointCloudApp::Initialize()
 {
 	GLFWApp::Initialize();
@@ -159,16 +152,16 @@ void PointCloudApp::Execute()
 	m_uiContext.SetDebugNode(m_pDebugRoot.get());
 	BDB bdb;
 	// Default Scene Demo.
-	//{
-		//m_pRoot->AddNode(CreateSpaceTest());
-		//m_pRoot->AddNode(CreateCSFNodeTest());
-		//m_pRoot->AddNode(CreateGLTFAnimationTest());
-		//m_pRoot->AddNode(CreateGLTFNodeTest());
-		//m_pRoot->AddNode(CreateTerrain());
-		//m_pRoot->AddNode(CreateBunnyNodeTest());
-		//m_pRoot->AddNode(CreateVolumeTest());
-		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-	//}
+	{
+		m_pRoot->AddNode(CreateSpaceTest());
+		m_pRoot->AddNode(CreateCSFNodeTest());
+		m_pRoot->AddNode(CreateGLTFAnimationTest());
+		m_pRoot->AddNode(CreateGLTFNodeTest());
+		m_pRoot->AddNode(CreateTerrain());
+		m_pRoot->AddNode(CreateBunnyNodeTest());
+		m_pRoot->AddNode(CreateVolumeTest());
+		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+	}
 	
 	// PointCloud
 	{
@@ -234,12 +227,6 @@ void PointCloudApp::Execute()
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
 
-	// 初期化時に一度だけ設定
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-	glDebugMessageCallback(MyGLDebugCallback, nullptr);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
-
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	ImGui_ImplOpenGL3_Init("#version 400 core");
@@ -247,9 +234,6 @@ void PointCloudApp::Execute()
 	ImPlot::CreateContext();
 
 	m_gpuProfiler = new GPUProfiler("Render");
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
 	Timer timer;
 	float m_diff = 0;
 	auto pSkyBoxNode = std::make_unique<SkyBoxNode>(Vector3(30000, 30000, 30000)); pSkyBoxNode->BuildResource();
@@ -276,6 +260,8 @@ void PointCloudApp::Execute()
 	m_pCameraController->FitToBDB(bdb);
 
 	PostEffect postEffect;
+	DepthPrePass depthPrePass;
+	DefaultPass defaultPass;
 
 	m_pResource->GetPBR()->Initialize(*pSkyBoxNode->GetCubemapTexture());
 	m_pResource->UpdatePBR();
@@ -302,7 +288,8 @@ void PointCloudApp::Execute()
 		if (m_ui.visibleSkyBox) {
 			pSkyBoxNode->Draw(drawContext);
 		}
-		m_pRoot->Draw(drawContext);
+		depthPrePass.Execute(m_pRoot.get(), drawContext);
+		defaultPass.Execute(m_pRoot.get(), drawContext);
 		combiner.Execute(drawContext);
 
 		m_pResource->GL()->PushRenderTarget(m_pResource->GetPostEffectTarget());
@@ -394,10 +381,6 @@ void PointCloudApp::Execute()
 		OUTPUT_GLERROR;
 	}
 
-	RELEASE_INSTANCE(m_gpuProfiler);
-	glDeleteVertexArrays(1, &VertexArrayID);
-	ImPlot::DestroyContext();
-	ImGui::DestroyContext();
 }
 
 void PointCloudApp::ShowUI(UIContext& ui)
@@ -554,9 +537,24 @@ void PointCloudApp::ShowUI(UIContext& ui)
 
 void PointCloudApp::Finalize()
 {
+	RELEASE_INSTANCE(m_gpuProfiler);
+	ImPlot::DestroyContext();
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	m_uiContext.ClearDebugNode();
+	m_uiTextureList.clear();
+	m_pgmTexture.clear();
+	m_pGLTFAnimation.reset();
+	m_pSelect = nullptr;
 	m_pRoot.reset();
 	m_pDebugRoot.reset();
-	glfwTerminate();
+	if (m_pResource) {
+		m_pResource->Finalize();
+		m_pResource.reset();
+	}
+	GLFWApp::Finalize();
 }
 
 Shared<RenderNode> PointCloudApp::CreateSpaceTest()

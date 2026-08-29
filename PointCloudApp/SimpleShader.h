@@ -5,6 +5,22 @@
 namespace KI
 {
 
+class DepthPrepassShader : public IShadingShader
+{
+public:
+	DepthPrepassShader() {};
+	~DepthPrepassShader() {};
+
+	virtual ShaderPath GetShaderPath() override;
+	virtual void FetchUniformLocation() override;
+	virtual void SetModel(const Matrix4x4& value) override;
+	void SetCamera(const GLBuffer* pBuffer);
+	void SetPosition(const GLBuffer* pBuffer);
+
+private:
+	GLuint m_uModel = 0;
+};
+
 // MEMO : FaceShaderが継承している。
 class SimpleShader : public IShadingShader
 {

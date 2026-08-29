@@ -16,7 +16,9 @@ void RenderNode::ShowUIData(UIContext& ui)
 
 void RenderNode::Draw(const DrawContext& context)
 {
-	DrawNode(context);
+	if ((GetRenderPassMask() & GetRenderPassBit(context.GetRenderPass())) != 0) {
+		DrawNode(context);
+	}
 
 	for (auto& data : m_child) {
 		data.second->Draw(context);

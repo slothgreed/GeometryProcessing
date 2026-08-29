@@ -59,6 +59,7 @@ public:
 	void DisablePolygonOffset();
 	void EnableDepth();
 	void DisableDepth();
+	void SetDepthFunc(GLenum func);
 	void DepthMask(bool value);
 	void EnableCullFace();
 	void DisableCullFace();
@@ -137,6 +138,13 @@ namespace ShaderLayout
 		Vector4 direction;
 		float padding[56];
 	};
+
+	struct PointLight
+	{
+		Vector4 positionRadius;
+		Vector4 colorIntensity;
+	};
+	static_assert(sizeof(PointLight) == sizeof(float) * 8);
 }
 
 class RenderResource
@@ -148,6 +156,7 @@ public:
 		, m_pDebugCameraGpu(nullptr)
 		, m_p2DCameraGpu(nullptr)
 		, m_pLightGpu(nullptr)
+		, m_pPointLightGpu(nullptr)
 		, m_pComputeColorTarget(nullptr)
 		, m_pComputeDepthTarget(nullptr)
 		, m_pRenderTarget(nullptr)
@@ -167,6 +176,7 @@ public:
 	const GLBuffer* GetDebugCameraBuffer() const { return m_pDebugCameraGpu; }
 	const GLBuffer* Get2DCameraBuffer() const { return m_p2DCameraGpu; }
 	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
+	const GLBuffer* GetPointLightBuffer() const { return m_pPointLightGpu; }
 	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	RenderTarget* GetRenderTarget() { return m_pRenderTarget; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
@@ -176,6 +186,8 @@ public:
 	RenderTarget* GetTmpComputeTarget() { return m_pTmpComputeTarget; }
 	RenderTarget* GetTmpPostEffectTarget() { return m_pTmpPostEffectTarget; }
 	void UpdateLight();
+	void CreatePointLights(const BDB& bdb, int resolution);
+	void CreatePointLights(const BDB& bdb, const Vector3i& resolution);
 	void UpdateCamera();
 	void UpdatePBR();
 	void InitRenderTarget(const Vector2& size);
@@ -196,6 +208,7 @@ private:
 	GLBuffer* m_pCameraGpu;
 	GLBuffer* m_p2DCameraGpu;
 	GLBuffer* m_pLightGpu;
+	GLBuffer* m_pPointLightGpu;
 	GLBuffer* m_pComputeColorTarget;
 	GLBuffer* m_pComputeDepthTarget;
 	GLBuffer* m_pComputeAccumTarget;

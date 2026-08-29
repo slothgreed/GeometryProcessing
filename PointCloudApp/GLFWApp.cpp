@@ -7,6 +7,13 @@ namespace KI
 
 GLFWApp* g_instance;
 
+void APIENTRY OpenGLDebugCallback(GLenum source, GLenum type, GLuint id,
+	GLenum severity, GLsizei length,
+	const GLchar* message, const void* userParam)
+{
+	//fprintf(stderr, "GL DEBUG: %s\n", message);
+}
+
 GLFWApp* GLFWApp::Application()
 {
 	return g_instance;
@@ -115,6 +122,15 @@ void GLFWApp::Initialize()
 		return;
 	}
 
+	// OpenGLコンテキストごとに一度だけ設定する。
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(OpenGLDebugCallback, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+
+	glGenVertexArrays(1, &m_vertexArrayId);
+	glBindVertexArray(m_vertexArrayId);
+
 	// OpenGLバージョンとGLSLバージョンの確認
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
@@ -147,8 +163,16 @@ void GLFWApp::Execute()
 
 void GLFWApp::Finalize()
 {
+	if (m_vertexArrayId != 0) {
+		glDeleteVertexArrays(1, &m_vertexArrayId);
+		m_vertexArrayId = 0;
+	}
 	GLAPIExt::Finalize();
 	g_instance = NULL;
+	if (m_window != nullptr) {
+		glfwDestroyWindow(m_window);
+		m_window = nullptr;
+	}
 	glfwTerminate();
 }
 }

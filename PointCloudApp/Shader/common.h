@@ -18,6 +18,12 @@ struct Light
 	float padding[56];
 };
 
+struct PointLight
+{
+	vec4 positionRadius;
+	vec4 colorIntensity;
+};
+
 struct DrawElementsIndirect
 {
     uint count;

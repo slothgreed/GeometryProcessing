@@ -138,10 +138,6 @@ void MeshViewer::Execute()
 	UpdateMeshCategory();
 	UpdateRenderData();
 
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-	
 	m_pResource = std::make_unique<RenderResource>();
 	m_pResource->Build();
 	m_pResource->GL()->SetWindowSize(m_windowSize);
@@ -323,8 +319,17 @@ void MeshViewer::ResizeEvent(int width, int height)
 
 void MeshViewer::Finalize()
 {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	m_pGaralleyNode.clear();
 	m_pRenderNode.reset();
-	glfwTerminate();
+	if (m_pResource) {
+		m_pResource->Finalize();
+		m_pResource.reset();
+	}
+	GLFWApp::Finalize();
 }
 
 void MeshViewer::UpdateMeshCategory()

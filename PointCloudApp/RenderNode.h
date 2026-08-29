@@ -9,11 +9,29 @@ namespace KI
 {
 class GLBuffer;
 
+enum class RenderPassType : uint32_t
+{
+	DEFAULT_PASS = 1u << 0,
+	DEPTH_PRE_PASS = 1u << 1
+};
+
+using RenderPassMask = uint32_t;
+
+constexpr RenderPassMask GetRenderPassBit(RenderPassType pass)
+{
+	return static_cast<RenderPassMask>(pass);
+}
+
 struct DrawContext
 {
+	DrawContext() = default;
 	DrawContext(RenderResource* _pResource)
 		: pResource(_pResource){}
+	void SetRenderPass(RenderPassType pass) { renderPass = pass; }
+	RenderPassType GetRenderPass() const { return renderPass; }
+
 	RenderResource* pResource = nullptr;
+	RenderPassType renderPass = RenderPassType::DEFAULT_PASS;
 };
 
 class MouseController;
@@ -96,6 +114,7 @@ public:
 
 	virtual void ShowUIData(UIContext& ui);
 	virtual const BDB& GetBoundBox() const { return m_bdb; }
+	virtual RenderPassMask GetRenderPassMask() const { return GetRenderPassBit(RenderPassType::DEFAULT_PASS); }
 	virtual void Draw(const DrawContext& context);
 	virtual void DrawParts(const DrawContext& context, const RenderParts& parts);
 	virtual void Pick(const PickContext& context);

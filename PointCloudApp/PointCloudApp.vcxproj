@@ -260,7 +260,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="PointCloudNode.cpp" />
     <ClCompile Include="PrimitiveNode.cpp" />
     <ClCompile Include="Profiler.cpp" />
-    <ClCompile Include="RenderNode.cpp" />
+	<ClCompile Include="RenderNode.cpp" />
+	<ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="ShaderTable.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
@@ -363,7 +364,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="PrimitiveNode.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Random.h" />
-    <ClInclude Include="RenderNode.h" />
+	<ClInclude Include="RenderNode.h" />
+	<ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderResource.h" />
     <ClInclude Include="ShaderTable.h" />
     <ClInclude Include="Utility.h" />
