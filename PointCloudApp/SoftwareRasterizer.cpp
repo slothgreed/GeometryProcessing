@@ -290,9 +290,6 @@ void SoftwareRasterizer::Execute()
 	m_pDepthTexture->Allocate(Texture2D::CreateRF(m_windowSize.x, m_windowSize.y));
 	Rasterize();
 
-	ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-	ImGui_ImplOpenGL3_Init("#version 400 core");
 
 
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
@@ -350,9 +347,6 @@ void SoftwareRasterizer::Execute()
 		glfwPollEvents();
 		OUTPUT_GLERROR;
 	}
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
 	m_pResource->Finalize();
 }
 

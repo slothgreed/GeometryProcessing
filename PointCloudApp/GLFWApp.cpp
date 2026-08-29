@@ -131,6 +131,10 @@ void GLFWApp::Initialize()
 	glGenVertexArrays(1, &m_vertexArrayId);
 	glBindVertexArray(m_vertexArrayId);
 
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	ImGui_ImplOpenGL3_Init("#version 400 core");
+
 	// OpenGLバージョンとGLSLバージョンの確認
 	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
@@ -163,6 +167,10 @@ void GLFWApp::Execute()
 
 void GLFWApp::Finalize()
 {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	if (m_vertexArrayId != 0) {
 		glDeleteVertexArrays(1, &m_vertexArrayId);
 		m_vertexArrayId = 0;

@@ -44,12 +44,20 @@ private:
 class Timer
 {
 public:
-	Timer() :m_diff(0.0f) {}
+	Timer() : m_begin(std::chrono::steady_clock::now()), m_diff(0.0f) {}
 	~Timer() {}
 
 	void Start();
 	float Current();
 	float Stop();
+	void Reset() { m_begin = std::chrono::steady_clock::now(); }
+	float Tick()
+	{
+		auto current = std::chrono::steady_clock::now();
+		float elapsed = std::chrono::duration<float>(current - m_begin).count();
+		m_begin = current;
+		return elapsed;
+	}
 private:
 	std::chrono::steady_clock::time_point m_begin;
 	float m_diff;

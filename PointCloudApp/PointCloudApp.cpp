@@ -157,9 +157,9 @@ void PointCloudApp::Execute()
 		m_pRoot->AddNode(CreateCSFNodeTest());
 		m_pRoot->AddNode(CreateGLTFAnimationTest());
 		m_pRoot->AddNode(CreateGLTFNodeTest());
-		m_pRoot->AddNode(CreateTerrain());
+		//m_pRoot->AddNode(CreateTerrain());
 		m_pRoot->AddNode(CreateBunnyNodeTest());
-		m_pRoot->AddNode(CreateVolumeTest());
+		//m_pRoot->AddNode(CreateVolumeTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
 	
@@ -227,10 +227,6 @@ void PointCloudApp::Execute()
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
 
-	ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-	ImGui_ImplOpenGL3_Init("#version 400 core");
-
 	ImPlot::CreateContext();
 
 	m_gpuProfiler = new GPUProfiler("Render");
@@ -276,7 +272,12 @@ void PointCloudApp::Execute()
 		AddUITexture(FileUtility::GetFileName(pgmFiles[i]), m_pgmTexture[i].get());
 	}
 
+	timer.Reset();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
+		m_diff += timer.Tick();
+		m_pRoot->Update(m_diff);
+		if (m_diff > 100000.0f) { m_diff = 0.0f; }
+
 		m_pResource->UpdateCamera();
 		m_pResource->UpdateLight();
 		m_pResource->InitRenderTarget(m_windowSize);
@@ -284,7 +285,6 @@ void PointCloudApp::Execute()
 		m_pResource->GL()->SetupShading();
 		m_cpuProfiler.Start();
 		m_gpuProfiler->Start();
-		timer.Start();
 		if (m_ui.visibleSkyBox) {
 			pSkyBoxNode->Draw(drawContext);
 		}
@@ -354,9 +354,6 @@ void PointCloudApp::Execute()
 		}
 
 
-		m_diff += timer.Stop() * 10;
-		m_pRoot->Update(m_diff);
-		if (m_diff > 100000.0) { m_diff = 0.0f; }
 		glFlush();
 		m_gpuProfiler->Stop();
 
@@ -539,9 +536,6 @@ void PointCloudApp::Finalize()
 {
 	RELEASE_INSTANCE(m_gpuProfiler);
 	ImPlot::DestroyContext();
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
 
 	m_uiContext.ClearDebugNode();
 	m_uiTextureList.clear();

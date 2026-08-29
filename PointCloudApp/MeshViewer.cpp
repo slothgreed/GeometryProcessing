@@ -148,19 +148,16 @@ void MeshViewer::Execute()
 	DrawContext drawContext(m_pResource.get());
 	UIContext ui;
 	
-	ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-	ImGui_ImplOpenGL3_Init("#version 400 core");
-
-
-
 	Timer timer;
 	m_timerDiff = 0;
 
 
+	timer.Reset();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
+		m_timerDiff += timer.Tick();
+		if (m_timerDiff > 100000.0f) { m_timerDiff = 0.0f; }
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		timer.Start();
 		if (m_pRenderNode) {
 			m_pRenderNode->Update(m_timerDiff);
 		}
@@ -184,9 +181,6 @@ void MeshViewer::Execute()
 			m_pRenderNode->ShowUI(ui);
 		}
 
-
-		m_timerDiff += timer.Stop() * 10;
-		if (m_timerDiff > 100000.0) { m_timerDiff = 0.0f; }
 
 		ShowUI();
 		ImGui::Render();
@@ -319,10 +313,6 @@ void MeshViewer::ResizeEvent(int width, int height)
 
 void MeshViewer::Finalize()
 {
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
 	m_pGaralleyNode.clear();
 	m_pRenderNode.reset();
 	if (m_pResource) {
