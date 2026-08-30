@@ -12,6 +12,7 @@ class HalfEdgeStruct;
 class HalfEdgeNode;
 class PointCloudNode;
 class InstancedPrimitiveNode;
+class LightNode;
 class PointCloudApp : public GLFWApp
 {
 public:
@@ -56,7 +57,7 @@ private:
 	PickResult m_pick;
 	UI m_ui;
 	UIContext m_uiContext;
-	Shared<RenderNode> CreateSpaceTest();
+	Shared<RenderNode> CreateSponzaTest();
 	Shared<RenderNode> CreateGLTFAnimationTest();
 	Vector<Shared<RenderNode>> CreateDXFTest();
 	Shared<RenderNode> CreateGLTFNodeTest();

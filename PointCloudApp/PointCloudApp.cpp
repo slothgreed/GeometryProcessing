@@ -153,7 +153,8 @@ void PointCloudApp::Execute()
 	BDB bdb;
 	// Default Scene Demo.
 	{
-		m_pRoot->AddNode(CreateSpaceTest());
+		auto pSponza = CreateSponzaTest();
+		m_pRoot->AddNode(pSponza);
 		//m_pRoot->AddNode(CreateCSFNodeTest());
 		m_pRoot->AddNode(CreateGLTFAnimationTest());
 		m_pRoot->AddNode(CreateGLTFNodeTest());
@@ -161,6 +162,12 @@ void PointCloudApp::Execute()
 		m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateVolumeTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+
+		const BDB& lightBDB = pSponza->GetBoundBox();
+		m_pResource->CreatePointLights(lightBDB, Vector3i(16));
+		auto pLightNode = std::make_shared<LightNode>("PointLights");
+		pLightNode->SetBoundBox(lightBDB);
+		m_pRoot->AddNode(pLightNode);
 	}
 	
 	// PointCloud
@@ -249,6 +256,7 @@ void PointCloudApp::Execute()
 	m_pResource->GL()->SetPointSize(5.0f);
 	m_pResource->SetMainCamera(m_pCamera);
 	m_pResource->SetLight(pLight);
+
 	m_pResource->SetRenderTarget(pForwardTarget.get());
 	DrawContext drawContext(m_pResource.get());
 	ComputeTextureCombiner combiner;
@@ -551,7 +559,7 @@ void PointCloudApp::Finalize()
 	GLFWApp::Finalize();
 }
 
-Shared<RenderNode> PointCloudApp::CreateSpaceTest()
+Shared<RenderNode> PointCloudApp::CreateSponzaTest()
 {
 	auto pNode = std::shared_ptr<RenderNode>(GLTFLoader::Load("E:\\cgModel\\glTF-Sample-Models-master\\2.0\\Sponza\\glTF\\Sponza.gltf"));
 	pNode->SetScale(100);

@@ -5,6 +5,18 @@
 namespace KI
 {
 
+class PointLightShader : public IShadingShader
+{
+public:
+	PointLightShader() {};
+	~PointLightShader() {};
+
+	virtual ShaderPath GetShaderPath() override;
+	virtual void FetchUniformLocation() override {};
+	void SetCamera(const GLBuffer* pBuffer);
+	void SetPointLights(const GLBuffer* pBuffer);
+};
+
 class DepthPrepassShader : public IShadingShader
 {
 public:

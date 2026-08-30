@@ -5,6 +5,9 @@ namespace KI
 
 void ShaderTable::Build()
 {
+	m_pPointLightShader = std::make_shared<PointLightShader>();
+	m_pPointLightShader->Build();
+
 	m_pDepthPrepassShader = std::make_shared<DepthPrepassShader>();
 	m_pDepthPrepassShader->Build();
 

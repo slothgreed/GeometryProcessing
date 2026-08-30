@@ -131,12 +131,12 @@
     <ClCompile Include="..\extlibs\imgui\backends\imgui_impl_glfw.cpp">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClCompile>
-	<ClCompile Include="RenderNode.cpp">
-	  <Filter>ソース ファイル\Node</Filter>
-	</ClCompile>
-	<ClCompile Include="RenderPass.cpp">
-	  <Filter>ソース ファイル\GL</Filter>
-	</ClCompile>
+    <ClCompile Include="RenderNode.cpp">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClCompile>
     <ClCompile Include="PrimitiveNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
@@ -430,12 +430,12 @@
     <ClInclude Include="..\extlibs\imgui\backends\imgui_impl_glfw.h">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClInclude>
-	<ClInclude Include="RenderNode.h">
-	  <Filter>ソース ファイル\Node</Filter>
-	</ClInclude>
-	<ClInclude Include="RenderPass.h">
-	  <Filter>ソース ファイル\GL</Filter>
-	</ClInclude>
+    <ClInclude Include="RenderNode.h">
+      <Filter>ソース ファイル\Node</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClInclude>
     <ClInclude Include="PrimitiveNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>

@@ -68,6 +68,18 @@ void DebugNode::DrawNode(const DrawContext& context)
 	}
 }
 
+void LightNode::DrawNode(const DrawContext& context)
+{
+	const auto* pPointLights = context.pResource->GetPointLightBuffer();
+	if (!pPointLights || pPointLights->Num() == 0) { return; }
+
+	auto pShader = context.pResource->GetShaderTable()->GetPointLightShader();
+	pShader->Use();
+	pShader->SetCamera(context.pResource->GetCameraBuffer());
+	pShader->SetPointLights(pPointLights);
+	pShader->DrawArray(GL_POINTS, pPointLights->Num());
+}
+
 DelaunayDebugNode::DelaunayDebugNode(const String& name)
 	: DebugNode(name)
 {

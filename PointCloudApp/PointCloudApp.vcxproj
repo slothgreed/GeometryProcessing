@@ -190,8 +190,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="ComputePointCloudApp.cpp" />
-	<ClCompile Include="CrossSectionLine.cpp" />
-	<ClCompile Include="CrossSectionFill.cpp" />
+    <ClCompile Include="CrossSectionLine.cpp" />
+    <ClCompile Include="CrossSectionFill.cpp" />
     <ClCompile Include="CSFNode.cpp" />
     <ClCompile Include="DebugNode.cpp" />
     <ClCompile Include="DelaunayGenerator.cpp" />
@@ -260,8 +260,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="PointCloudNode.cpp" />
     <ClCompile Include="PrimitiveNode.cpp" />
     <ClCompile Include="Profiler.cpp" />
-	<ClCompile Include="RenderNode.cpp" />
-	<ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="RenderNode.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="ShaderTable.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
@@ -286,8 +286,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="AlphaShape.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="ComputePointCloudApp.h" />
-	<ClInclude Include="CrossSectionLine.h" />
-	<ClInclude Include="CrossSectionFill.h" />
+    <ClInclude Include="CrossSectionLine.h" />
+    <ClInclude Include="CrossSectionFill.h" />
     <ClInclude Include="CSFNode.h" />
     <ClInclude Include="DebugNode.h" />
     <ClInclude Include="DelaunayGenerator.h" />
@@ -364,8 +364,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="PrimitiveNode.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="Random.h" />
-	<ClInclude Include="RenderNode.h" />
-	<ClInclude Include="RenderPass.h" />
+    <ClInclude Include="RenderNode.h" />
+    <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderResource.h" />
     <ClInclude Include="ShaderTable.h" />
     <ClInclude Include="Utility.h" />

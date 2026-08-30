@@ -41,6 +41,15 @@ private:
 	std::vector<Shared<Primitive>> m_pPrimitive;
 };
 
+class LightNode : public RenderNode
+{
+public:
+	LightNode(const String& name) : RenderNode(name) {};
+	~LightNode() = default;
+
+	virtual void DrawNode(const DrawContext& context) override;
+};
+
 class DelaunayDebugNode : public DebugNode
 {
 public:

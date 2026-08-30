@@ -5,6 +5,26 @@ using namespace std;
 namespace KI
 {
 
+ShaderPath PointLightShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+	path.shader[SHADER_PROGRAM_VERTEX] = "pointLight.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "pointLight.frag";
+	return path;
+}
+
+void PointLightShader::SetCamera(const GLBuffer* pBuffer)
+{
+	BindShaderStorage(0, pBuffer->Handle());
+}
+
+void PointLightShader::SetPointLights(const GLBuffer* pBuffer)
+{
+	BindShaderStorage(1, pBuffer->Handle());
+}
+
 ShaderPath DepthPrepassShader::GetShaderPath()
 {
 	ShaderPath path;
