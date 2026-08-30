@@ -18,6 +18,18 @@ ShaderPath GLTFShader::GetShaderPath()
 	return path;
 }
 
+ShaderPath GLTFDepthShader::GetShaderPath()
+{
+	ShaderPath path;
+	path.version = "version.h";
+	path.header.push_back("common.h");
+	path.header.push_back("gltf\\gltf.h");
+	path.shader[SHADER_PROGRAM_VERTEX] = "gltf\\gltf.vert";
+	path.shader[SHADER_PROGRAM_FRAG] = "depthPrepass.frag";
+
+	return path;
+}
+
 void GLTFShader::BindBaseColor(const Texture& texture)
 {
 	assert(texture.Type() == TEXTURE_2D);

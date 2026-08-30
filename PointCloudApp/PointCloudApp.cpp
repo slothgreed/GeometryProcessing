@@ -154,7 +154,7 @@ void PointCloudApp::Execute()
 	// Default Scene Demo.
 	{
 		m_pRoot->AddNode(CreateSpaceTest());
-		m_pRoot->AddNode(CreateCSFNodeTest());
+		//m_pRoot->AddNode(CreateCSFNodeTest());
 		m_pRoot->AddNode(CreateGLTFAnimationTest());
 		m_pRoot->AddNode(CreateGLTFNodeTest());
 		//m_pRoot->AddNode(CreateTerrain());

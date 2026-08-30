@@ -4,6 +4,7 @@
 namespace KI
 {
 class GLTFShader;
+class GLTFDepthShader;
 class GLTFChannelUpdaterOnGpu;
 class GLTFSceneMatrixUpdaterOnGpu;
 class GLTFSkinUpdaterOnGpu;
@@ -14,6 +15,7 @@ public:
 		: RenderNode(name)
 		, m_debugView(0)
 		, m_pShader(nullptr)
+		, m_pDepthShader(nullptr)
 		, m_pChannelGpuUpdater(nullptr)
 		, m_pMatrixGpuUpdater(nullptr)
 		, m_pSkinGpuUpdater(nullptr)
@@ -52,6 +54,8 @@ private:
 
 	void CreateMaterialBuffer();
 	GLTFShader* m_pShader;
+	GLTFDepthShader* m_pDepthShader;
+	void DrawDepth(const DrawContext& context);
 	Vector<MeshBuffer> m_meshBuffer;
 
 	GLTFSkinUpdaterOnGpu* m_pSkinGpuUpdater;

@@ -8,6 +8,7 @@ namespace KI
 bool useGpu = false;
 GLTFScene::~GLTFScene()
 {
+	RELEASE_INSTANCE(m_pDepthShader);
 	RELEASE_INSTANCE(m_pChannelGpuUpdater);
 	RELEASE_INSTANCE(m_pMatrixGpuUpdater);
 	RELEASE_INSTANCE(m_gpu.nodeBuffer);
@@ -116,6 +117,10 @@ void GLTFScene::ShowUI(UIContext& ui)
 void GLTFScene::DrawNode(const DrawContext& context)
 {
 	if (!m_visible) { return; }
+	if (context.GetRenderPass() == RenderPassType::DEPTH_PRE_PASS) {
+		DrawDepth(context);
+		return;
+	}
 	
 	if (!m_pShader) {
 		m_pShader = new GLTFShader();
@@ -168,6 +173,35 @@ void GLTFScene::DrawNode(const DrawContext& context)
 			m_pShader->DrawElement(primitive, meshBuffer.pIndex->DataType());
 		}
 
+	}
+}
+
+void GLTFScene::DrawDepth(const DrawContext& context)
+{
+	if (!m_pDepthShader) {
+		m_pDepthShader = new GLTFDepthShader();
+		m_pDepthShader->Build();
+	}
+
+	m_pDepthShader->Use();
+	m_pDepthShader->SetCamera(context.pResource->GetCameraBuffer());
+	m_pDepthShader->SetModel(GetMatrix());
+	m_pDepthShader->SetNodeBuffer(m_gpu.nodeBuffer);
+	if (m_gpu.skinBuffer) {
+		m_pDepthShader->SetSkinBuffer(m_gpu.skinBuffer);
+	}
+
+	for (const auto& node : m_nodes) {
+		if (node.GetMeshId() == -1) { continue; }
+		const auto& mesh = m_meshes[node.GetMeshId()];
+		if (mesh.GetBufferIndex() == -1) { continue; }
+		const auto& meshBuffer = m_meshBuffer[mesh.GetBufferIndex()];
+		m_pDepthShader->SetVertexBuffer(meshBuffer.pVertex.get(), meshBuffer.format);
+		m_pDepthShader->SetIndexBuffer(meshBuffer.pIndex.get());
+		for (const auto& primitive : mesh.GetPrimitives()) {
+			m_pDepthShader->BindBufferIndex(node.GetIndex(), primitive.materialIndex);
+			m_pDepthShader->DrawElement(primitive, meshBuffer.pIndex->DataType());
+		}
 	}
 }
 

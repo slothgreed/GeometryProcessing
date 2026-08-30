@@ -64,6 +64,12 @@ private:
 
 };
 
+class GLTFDepthShader : public GLTFShader
+{
+public:
+	virtual ShaderPath GetShaderPath() override;
+};
+
 }
 
 #endif GLTF_SHADER_H
