@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EDIT_MODE_LABELS, ELEMENT_LABELS, getSelectionLabel } from '../lib/editorLabels';
 import type { EditMode, Selection, ViewState } from '../lib/editorTypes';
 import { parseHalfEdgeFile, type HalfEdgeMeshData } from '../lib/halfEdgeLoader';
 import SelectionController from '../lib/SelectionController';
@@ -310,7 +311,7 @@ export default function HalfEdgeViewport() {
                         aria-pressed={editMode === 'object'}
                         onClick={() => changeEditMode('object')}
                     >
-                        Object
+                        {EDIT_MODE_LABELS.object}
                     </button>
                     <button
                         type="button"
@@ -318,7 +319,7 @@ export default function HalfEdgeViewport() {
                         aria-pressed={editMode === 'vertex'}
                         onClick={() => changeEditMode('vertex')}
                     >
-                        Vertex
+                        {EDIT_MODE_LABELS.vertex}
                     </button>
                     <button
                         type="button"
@@ -326,7 +327,7 @@ export default function HalfEdgeViewport() {
                         aria-pressed={editMode === 'edge'}
                         onClick={() => changeEditMode('edge')}
                     >
-                        Edge
+                        {EDIT_MODE_LABELS.edge}
                     </button>
                     <button
                         type="button"
@@ -334,7 +335,7 @@ export default function HalfEdgeViewport() {
                         aria-pressed={editMode === 'face'}
                         onClick={() => changeEditMode('face')}
                     >
-                        Face
+                        {EDIT_MODE_LABELS.face}
                     </button>
                 </nav>
                 <div className="top-actions">
@@ -363,13 +364,11 @@ export default function HalfEdgeViewport() {
                     <section className="panel-section">
                         <h2 className="section-label">Topology</h2>
                         <dl className="stat-grid">
-                            <dt>Vertices</dt>
+                            <dt>{ELEMENT_LABELS.vertex}</dt>
                             <dd>{count(data?.vertexCount)}</dd>
-                            <dt>Half edges</dt>
-                            <dd>{count(data?.halfEdgeCount)}</dd>
-                            <dt>Faces</dt>
-                            <dd>{count(data?.faceCount)}</dd>
-                            <dt>Triangles</dt>
+                            <dt>{ELEMENT_LABELS.edge}</dt>
+                            <dd>{count(data?.edgeCount)}</dd>
+                            <dt>{ELEMENT_LABELS.face}</dt>
                             <dd>{count(data?.faceCount)}</dd>
                         </dl>
                         <p className="format-note">
@@ -411,25 +410,25 @@ export default function HalfEdgeViewport() {
                     <section className="panel-section">
                         <h2 className="section-label">Display</h2>
                         <div className="toggle-row">
-                            <span>Surface</span>
+                            <span>{ELEMENT_LABELS.face}</span>
                             <button
-                                aria-label="Surface表示"
+                                aria-label={`${ELEMENT_LABELS.face}表示`}
                                 className={`toggle ${view.mesh ? 'on' : ''}`}
                                 onClick={() => toggle('mesh')}
                             />
                         </div>
                         <div className="toggle-row">
-                            <span>Wireframe</span>
+                            <span>{ELEMENT_LABELS.edge}</span>
                             <button
-                                aria-label="Wireframe表示"
+                                aria-label={`${ELEMENT_LABELS.edge}表示`}
                                 className={`toggle ${view.wireframe ? 'on' : ''}`}
                                 onClick={() => toggle('wireframe')}
                             />
                         </div>
                         <div className="toggle-row">
-                            <span>Vertex</span>
+                            <span>{ELEMENT_LABELS.vertex}</span>
                             <button
-                                aria-label="Vertex表示"
+                                aria-label={`${ELEMENT_LABELS.vertex}表示`}
                                 className={`toggle ${view.vertices ? 'on' : ''}`}
                                 onClick={() => toggle('vertices')}
                             />
@@ -447,12 +446,12 @@ export default function HalfEdgeViewport() {
                     <section className="panel-section">
                         <h2 className="section-label">Material</h2>
                         <div className="toggle-row">
-                            <span>Surface color</span>
+                            <span>{ELEMENT_LABELS.face} color</span>
                             <span className="swatch" />
                         </div>
                         <div className="toggle-row">
                             <span>Shading</span>
-                            <span>Vertex normals</span>
+                            <span>{ELEMENT_LABELS.vertex} normals</span>
                         </div>
                         <div className="toggle-row">
                             <span>Side</span>
@@ -463,15 +462,7 @@ export default function HalfEdgeViewport() {
                     <section className="panel-section">
                         <h2 className="section-label">Selection</h2>
                         <div className="toggle-row" aria-live="polite">
-                            <span>
-                                {selection?.type === 'vertex'
-                                    ? 'Vertex'
-                                    : selection?.type === 'edge'
-                                        ? 'Half edge'
-                                        : selection?.type === 'face'
-                                            ? 'Face'
-                                            : 'Selection'}
-                            </span>
+                            <span>{getSelectionLabel(selection)}</span>
                             <span>
                                 {selection === null ? 'None' : `#${selection.index}`}
                             </span>
@@ -481,7 +472,7 @@ export default function HalfEdgeViewport() {
                     <section className="panel-section">
                         <h2 className="section-label">Next</h2>
                         <p className="format-note">
-                            Vertex / Edge / FaceをGPU ID pickingで
+                            {ELEMENT_LABELS.vertex} / {ELEMENT_LABELS.edge} / {ELEMENT_LABELS.face}をGPU ID pickingで
                             選択できます。
                         </p>
                     </section>
@@ -494,7 +485,7 @@ export default function HalfEdgeViewport() {
                 <span className="spacer" />
                 <span>
                     {data
-                        ? `${count(data.vertexCount)} vertices`
+                        ? `${count(data.vertexCount)} ${ELEMENT_LABELS.vertex}`
                         : 'Loading geometry…'}
                 </span>
             </footer>

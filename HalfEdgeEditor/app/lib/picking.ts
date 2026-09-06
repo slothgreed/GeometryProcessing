@@ -1,10 +1,5 @@
 import type { HalfEdgeMeshData } from './halfEdgeLoader';
 
-const HALF_EDGE_FIELDS = 5;
-const END_POSITION_FIELD = 0;
-const BEFORE_EDGE_FIELD = 2;
-const OPPOSITE_EDGE_FIELD = 3;
-
 export function createPickingIdColors(
     elementCount: number,
     verticesPerElement: number,
@@ -38,18 +33,18 @@ export function getHalfEdgeVertexIndices(data: HalfEdgeMeshData, halfEdgeIndex: 
         return null;
     }
 
-    const edgeOffset = halfEdgeIndex * HALF_EDGE_FIELDS;
-    const endVertexIndex = data.halfEdges[edgeOffset + END_POSITION_FIELD];
-    const oppositeEdgeIndex = data.halfEdges[edgeOffset + OPPOSITE_EDGE_FIELD];
+    const halfEdge = data.halfEdges[halfEdgeIndex];
+    const endVertexIndex = halfEdge.endPosition;
+    const oppositeEdgeIndex = halfEdge.oppositeEdge;
     let beginVertexIndex = -1;
 
     if (oppositeEdgeIndex >= 0 && oppositeEdgeIndex < data.halfEdgeCount) {
-        beginVertexIndex = data.halfEdges[oppositeEdgeIndex * HALF_EDGE_FIELDS + END_POSITION_FIELD];
+        beginVertexIndex = data.halfEdges[oppositeEdgeIndex].endPosition;
     } else {
-        const beforeEdgeIndex = data.halfEdges[edgeOffset + BEFORE_EDGE_FIELD];
+        const beforeEdgeIndex = halfEdge.beforeEdge;
 
         if (beforeEdgeIndex >= 0 && beforeEdgeIndex < data.halfEdgeCount) {
-            beginVertexIndex = data.halfEdges[beforeEdgeIndex * HALF_EDGE_FIELDS + END_POSITION_FIELD];
+            beginVertexIndex = data.halfEdges[beforeEdgeIndex].endPosition;
         }
     }
 
@@ -70,8 +65,7 @@ export function createEdgePickingData(data: HalfEdgeMeshData) {
     const halfEdgeIndices: number[] = [];
 
     for (let halfEdgeIndex = 0; halfEdgeIndex < data.halfEdgeCount; halfEdgeIndex += 1) {
-        const edgeOffset = halfEdgeIndex * HALF_EDGE_FIELDS;
-        const oppositeEdgeIndex = data.halfEdges[edgeOffset + OPPOSITE_EDGE_FIELD];
+        const oppositeEdgeIndex = data.halfEdges[halfEdgeIndex].oppositeEdge;
 
         if (oppositeEdgeIndex >= 0 && halfEdgeIndex > oppositeEdgeIndex) {
             continue;
