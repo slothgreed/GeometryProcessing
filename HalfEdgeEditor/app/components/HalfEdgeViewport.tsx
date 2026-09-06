@@ -3,28 +3,27 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import type { EditMode, Selection, ViewState } from '../lib/editorTypes';
 import { parseHalfEdgeFile, type HalfEdgeMeshData } from '../lib/halfEdgeLoader';
-
-type ViewState = {
-    mesh: boolean;
-    wireframe: boolean;
-    vertices: boolean;
-    grid: boolean;
-};
-
-type EditMode = 'object' | 'vertex' | 'edge' | 'face';
+import SelectionController from '../lib/SelectionController';
+import SelectionMarkers from '../lib/SelectionMarkers';
 
 export default function HalfEdgeViewport() {
     const viewportRef = useRef<HTMLDivElement>(null);
     const fitRef = useRef<(() => void) | null>(null);
+    const editModeRef = useRef<EditMode>('object');
     const meshRef = useRef<THREE.Mesh | null>(null);
     const wireframeRef = useRef<THREE.LineSegments | null>(null);
     const verticesRef = useRef<THREE.Points | null>(null);
+    const selectionControllerRef = useRef<SelectionController | null>(null);
+    const selectionMarkersRef = useRef<SelectionMarkers | null>(null);
     const gridRef = useRef<THREE.GridHelper | null>(null);
 
     const [data, setData] = useState<HalfEdgeMeshData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [editMode, setEditMode] = useState<EditMode>('object');
+    const [selection, setSelection] = useState<Selection | null>(null);
+    const [hoverSelection, setHoverSelection] = useState<Selection | null>(null);
     const [view, setView] = useState<ViewState>({
         mesh: true,
         wireframe: false,
@@ -132,6 +131,11 @@ export default function HalfEdgeViewport() {
         verticesRef.current = vertices;
         scene.add(vertices);
 
+        const selectionMarkers = new SelectionMarkers(scene, data, meshRadius);
+        selectionMarkersRef.current = selectionMarkers;
+
+        const drawingBufferSize = new THREE.Vector2();
+
         const grid = new THREE.GridHelper(10, 20, 0xaab4af, 0xd5dbd8);
         grid.material.transparent = true;
         grid.material.opacity = 0.52;
@@ -152,6 +156,22 @@ export default function HalfEdgeViewport() {
         controls.enableDamping = true;
         controls.dampingFactor = 0.07;
         controls.screenSpacePanning = true;
+
+        const selectionController = new SelectionController({
+            data,
+            renderer,
+            camera,
+            controls,
+            editMode: editModeRef.current,
+            surfaceGeometry: geometry,
+            meshRadius,
+            mesh,
+            wireframe,
+            vertices,
+            onSelectionChange: setSelection,
+            onHoverSelectionChange: setHoverSelection,
+        });
+        selectionControllerRef.current = selectionController;
 
         const fit = () => {
             const sphere = geometry.boundingSphere;
@@ -185,6 +205,8 @@ export default function HalfEdgeViewport() {
             const height = host.clientHeight;
 
             renderer.setSize(width, height, false);
+            renderer.getDrawingBufferSize(drawingBufferSize);
+            selectionController.setSize(drawingBufferSize.x, drawingBufferSize.y);
             camera.aspect = width / Math.max(height, 1);
             camera.updateProjectionMatrix();
         };
@@ -206,6 +228,8 @@ export default function HalfEdgeViewport() {
         return () => {
             cancelAnimationFrame(frame);
             observer.disconnect();
+            selectionController.dispose();
+            selectionMarkers.dispose();
             controls.dispose();
             geometry.dispose();
             material.dispose();
@@ -219,6 +243,8 @@ export default function HalfEdgeViewport() {
             meshRef.current = null;
             wireframeRef.current = null;
             verticesRef.current = null;
+            selectionControllerRef.current = null;
+            selectionMarkersRef.current = null;
             gridRef.current = null;
             fitRef.current = null;
         };
@@ -246,13 +272,25 @@ export default function HalfEdgeViewport() {
         if (verticesRef.current) {
             verticesRef.current.visible = view.vertices;
         }
-    }, [data, view]);
+
+        selectionMarkersRef.current?.update({
+            selection,
+            hoverSelection,
+            view,
+        });
+    }, [data, hoverSelection, selection, view]);
 
     const toggle = (key: keyof ViewState) => {
         setView((current) => ({
             ...current,
             [key]: !current[key],
         }));
+    };
+
+    const changeEditMode = (mode: EditMode) => {
+        editModeRef.current = mode;
+        selectionControllerRef.current?.setEditMode(mode);
+        setEditMode(mode);
     };
 
     const count = (value?: number) => value?.toLocaleString('ja-JP') ?? '—';
@@ -270,7 +308,7 @@ export default function HalfEdgeViewport() {
                         type="button"
                         className={`mode-tab ${editMode === 'object' ? 'active' : ''}`}
                         aria-pressed={editMode === 'object'}
-                        onClick={() => setEditMode('object')}
+                        onClick={() => changeEditMode('object')}
                     >
                         Object
                     </button>
@@ -278,7 +316,7 @@ export default function HalfEdgeViewport() {
                         type="button"
                         className={`mode-tab ${editMode === 'vertex' ? 'active' : ''}`}
                         aria-pressed={editMode === 'vertex'}
-                        onClick={() => setEditMode('vertex')}
+                        onClick={() => changeEditMode('vertex')}
                     >
                         Vertex
                     </button>
@@ -286,7 +324,7 @@ export default function HalfEdgeViewport() {
                         type="button"
                         className={`mode-tab ${editMode === 'edge' ? 'active' : ''}`}
                         aria-pressed={editMode === 'edge'}
-                        onClick={() => setEditMode('edge')}
+                        onClick={() => changeEditMode('edge')}
                     >
                         Edge
                     </button>
@@ -294,7 +332,7 @@ export default function HalfEdgeViewport() {
                         type="button"
                         className={`mode-tab ${editMode === 'face' ? 'active' : ''}`}
                         aria-pressed={editMode === 'face'}
-                        onClick={() => setEditMode('face')}
+                        onClick={() => changeEditMode('face')}
                     >
                         Face
                     </button>
@@ -389,13 +427,12 @@ export default function HalfEdgeViewport() {
                             />
                         </div>
                         <div className="toggle-row">
-                          <span>Vertex</span>
-                          <button
-                            aria-label="Vertex表示"
-                            className={`toggle ${view.vertices ? 'on' : ''}`}
-                            onClick={() => toggle('vertices')}
-                          />
-                        
+                            <span>Vertex</span>
+                            <button
+                                aria-label="Vertex表示"
+                                className={`toggle ${view.vertices ? 'on' : ''}`}
+                                onClick={() => toggle('vertices')}
+                            />
                         </div>
                         <div className="toggle-row">
                             <span>Ground grid</span>
@@ -424,10 +461,28 @@ export default function HalfEdgeViewport() {
                     </section>
 
                     <section className="panel-section">
+                        <h2 className="section-label">Selection</h2>
+                        <div className="toggle-row" aria-live="polite">
+                            <span>
+                                {selection?.type === 'vertex'
+                                    ? 'Vertex'
+                                    : selection?.type === 'edge'
+                                        ? 'Half edge'
+                                        : selection?.type === 'face'
+                                            ? 'Face'
+                                            : 'Selection'}
+                            </span>
+                            <span>
+                                {selection === null ? 'None' : `#${selection.index}`}
+                            </span>
+                        </div>
+                    </section>
+
+                    <section className="panel-section">
                         <h2 className="section-label">Next</h2>
                         <p className="format-note">
-                            Vertex / Edge / Face選択とTransformControlsを
-                            次の編集スライスとして追加できます。
+                            Vertex / Edge / FaceをGPU ID pickingで
+                            選択できます。
                         </p>
                     </section>
                 </aside>
