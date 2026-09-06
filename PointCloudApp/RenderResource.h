@@ -3,6 +3,7 @@
 #include "ShaderTable.h"
 #include "Texture.h"
 #include "RenderTarget.h"
+#include "TileLightCuller.h"
 #include "PBR.h"
 namespace KI
 {
@@ -83,8 +84,6 @@ public:
 
 	void SetWindowSize(const Vector2i& size);
 	
-	
-	
 	void Clear(GLuint clear);
 
 	Viewport CreateViewport(const Vector2i& ratioSize, Viewport::Anchor anghor) const;
@@ -143,8 +142,9 @@ namespace ShaderLayout
 	{
 		Vector4 positionRadius;
 		Vector4 colorIntensity;
+		Vector4 velocity;
 	};
-	static_assert(sizeof(PointLight) == sizeof(float) * 8);
+	static_assert(sizeof(PointLight) == sizeof(float) * 12);
 }
 
 class RenderResource
@@ -156,7 +156,6 @@ public:
 		, m_pDebugCameraGpu(nullptr)
 		, m_p2DCameraGpu(nullptr)
 		, m_pLightGpu(nullptr)
-		, m_pPointLightGpu(nullptr)
 		, m_pComputeColorTarget(nullptr)
 		, m_pComputeDepthTarget(nullptr)
 		, m_pRenderTarget(nullptr)
@@ -176,7 +175,6 @@ public:
 	const GLBuffer* GetDebugCameraBuffer() const { return m_pDebugCameraGpu; }
 	const GLBuffer* Get2DCameraBuffer() const { return m_p2DCameraGpu; }
 	const GLBuffer* GetLightBuffer() const { return m_pLightGpu; }
-	const GLBuffer* GetPointLightBuffer() const { return m_pPointLightGpu; }
 	void SetRenderTarget(RenderTarget* pRenderTarget) { m_pRenderTarget = pRenderTarget; }
 	RenderTarget* GetRenderTarget() { return m_pRenderTarget; }
 	const RenderTarget* GetRenderTarget() const { return m_pRenderTarget; }
@@ -185,22 +183,30 @@ public:
 	const GLBuffer* GetComputeAccumTarget() const { return m_pComputeAccumTarget; }
 	RenderTarget* GetTmpComputeTarget() { return m_pTmpComputeTarget; }
 	RenderTarget* GetTmpPostEffectTarget() { return m_pTmpPostEffectTarget; }
-	void UpdateLight();
-	void CreatePointLights(const BDB& bdb, int resolution);
-	void CreatePointLights(const BDB& bdb, const Vector3i& resolution);
+	void UpdateLight(const Vector2i& windowSize);
+	void BuildPointLights(const BDB& bdb, int resolution);
+	void BuildPointLights(const BDB& bdb, const Vector3i& resolution);
 	void UpdateCamera();
 	void UpdatePBR();
 	void InitRenderTarget(const Vector2& size);
 	const TexturePlane* GetTexturePlane() const { return m_pTexturePlane; }
 	RenderTarget* GetPostEffectTarget() { return m_pPostEffectTarget; }
 	RenderTarget* GetDebugTarget() { return m_pDebugTarget; }
-
 	PBRResource* GetPBR() { return m_pPBR; }
 	void UpdateCamera(const Camera& pCamera);
 	void UpdateCamera(const BDB& bdb);
 	void UpdateDebugCamera(const Camera& camera);
+	void SetTimeDelta(float value) { m_timeDelta = value; }
+	float GetTimeDelta() const { return m_timeDelta; }
+	TileLightResource& GetTileLightResource() { return m_pTileLightResource; }
+	const TileLightResource& GetTileLightResource() const { return m_pTileLightResource; }
+	const GLBuffer* GetTileLightBuffer() const { return m_pTileLightResource.GetTileLightBuffer(); }
+	const GLBuffer* GetPointLightBuffer() const { return m_pTileLightResource.GetPointLightBuffer(); }
+
 private:
+	float m_timeDelta = 0.0f;
 	PBRResource* m_pPBR;
+	TileLightResource m_pTileLightResource;
 	Unique<GLContext> m_pContext;
 	Shared<Camera> m_pCamera;
 	Shared<Light> m_pLight;
@@ -208,7 +214,6 @@ private:
 	GLBuffer* m_pCameraGpu;
 	GLBuffer* m_p2DCameraGpu;
 	GLBuffer* m_pLightGpu;
-	GLBuffer* m_pPointLightGpu;
 	GLBuffer* m_pComputeColorTarget;
 	GLBuffer* m_pComputeDepthTarget;
 	GLBuffer* m_pComputeAccumTarget;

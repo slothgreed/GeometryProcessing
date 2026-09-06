@@ -60,7 +60,7 @@ public:
 	static ProjectInfo CreateProjectInfo(const Vector<Vector3>& point);
 	static Vector<Vector3> Project(const Vector<Vector3>& point, ProjectInfo& info);
 	static Vector<Vector3> UnProject(const Vector<Vector3>& point, const ProjectInfo& info);
-
+	static int CeilDiv(int a, int b) { return (a + b - 1) / b; }
 private:
 
 };

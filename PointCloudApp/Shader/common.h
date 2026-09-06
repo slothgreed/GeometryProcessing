@@ -22,6 +22,16 @@ struct PointLight
 {
 	vec4 positionRadius;
 	vec4 colorIntensity;
+	vec4 velocity;
+};
+
+
+#define MAX_LIGHT_NUM 8
+struct TileLight
+{
+	int count;
+	float maxDepth; float minDepth; int pad2;
+	int indices[MAX_LIGHT_NUM];
 };
 
 struct DrawElementsIndirect
@@ -203,4 +213,28 @@ float getEllipseR2(vec2 d, Ellipse ellipse)
         ellipse.conic.x * d.x * d.x +
         2.0 * ellipse.conic.y * d.x * d.y +
         ellipse.conic.z * d.y * d.y;
+}
+
+float getViewDepth(Camera camera, ivec2 pixel, float depth, ivec2 windowSize)
+{
+    vec2 uv = (vec2(pixel) + vec2(0.5)) / vec2(windowSize);
+    vec2 ndcXY = uv * 2.0 - 1.0;
+    float ndcZ = depth * 2.0 - 1.0;
+    vec4 worldPosition = camera.invVP * vec4(ndcXY, ndcZ, 1.0);
+    worldPosition /= worldPosition.w;
+    vec4 viewPosition = camera.view * worldPosition;
+
+    return -viewPosition.z;
+}
+
+vec3 getViewRay(Camera camera, vec2 ndc)
+{
+    vec4 worldPosition = camera.invVP * vec4(ndc, -1.0, 1.0);
+
+    worldPosition /= worldPosition.w;
+
+    vec4 viewPosition = camera.view * worldPosition;
+
+    // View空間ではカメラ位置が原点
+    return normalize(viewPosition.xyz);
 }

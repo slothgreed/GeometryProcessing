@@ -1,7 +1,8 @@
 #include "PostEffect.h"
 #include "Primitives.h"
 #include "SimpleShader.h"
-
+#include "KIMath.h"
+#include "Camera.h"
 namespace KI
 {
 
@@ -21,6 +22,7 @@ void TextureDrawer::Execute(const DrawContext& context, const CubemapTexture* pT
 	pShader->BindTexture(*pTexture);
 	pShader->Draw(*context.pResource->GetTexturePlane());
 }
+
 TexturePlane::TexturePlane()
 {
 	BuildGLBuffer();

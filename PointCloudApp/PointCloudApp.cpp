@@ -52,6 +52,7 @@ void PointCloudApp::ResizeEvent(int width, int height)
 	}
 	if (m_pCamera) {
 		m_pCameraController->SetAspect(m_windowSize.x, m_windowSize.y);
+		m_pCamera->SetViewport(Vector4i(0, 0, m_windowSize.x, m_windowSize.y));
 	}
 
 
@@ -151,6 +152,7 @@ void PointCloudApp::Execute()
 	m_pDebugRoot = std::make_unique<RenderNode>("DebugOutput");
 	m_uiContext.SetDebugNode(m_pDebugRoot.get());
 	BDB bdb;
+	BDB lightCullBDB;
 	// Default Scene Demo.
 	{
 		auto pSponza = CreateSponzaTest();
@@ -162,11 +164,10 @@ void PointCloudApp::Execute()
 		m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateVolumeTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-
-		const BDB& lightBDB = pSponza->GetBoundBox();
-		m_pResource->CreatePointLights(lightBDB, Vector3i(16));
+		lightCullBDB = pSponza->CalcCameraFitBox();
+		m_pResource->BuildPointLights(bdb, Vector3i(16));
 		auto pLightNode = std::make_shared<LightNode>("PointLights");
-		pLightNode->SetBoundBox(lightBDB);
+		pLightNode->SetBoundBox(lightCullBDB);
 		m_pRoot->AddNode(pLightNode);
 	}
 	
@@ -280,14 +281,16 @@ void PointCloudApp::Execute()
 		AddUITexture(FileUtility::GetFileName(pgmFiles[i]), m_pgmTexture[i].get());
 	}
 
+	TileLightCuller tileLightCuller;
 	timer.Reset();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
-		m_diff += timer.Tick();
+		auto tick = timer.Tick();
+		m_diff += tick;
 		m_pRoot->Update(m_diff);
 		if (m_diff > 100000.0f) { m_diff = 0.0f; }
-
+		m_pResource->SetTimeDelta(tick);
 		m_pResource->UpdateCamera();
-		m_pResource->UpdateLight();
+		m_pResource->UpdateLight(m_windowSize);
 		m_pResource->InitRenderTarget(m_windowSize);
 		m_pResource->GL()->PushRenderTarget(pForwardTarget.get(), 1);
 		m_pResource->GL()->SetupShading();
@@ -297,12 +300,22 @@ void PointCloudApp::Execute()
 			pSkyBoxNode->Draw(drawContext);
 		}
 		depthPrePass.Execute(m_pRoot.get(), drawContext);
+		if (m_ui.tileLight) {
+			if (m_ui.tileLightAnimation) {
+				tileLightCuller.Update(drawContext, lightCullBDB);
+			}
+			tileLightCuller.Execute(drawContext);
+		}
 		defaultPass.Execute(m_pRoot.get(), drawContext);
 		combiner.Execute(drawContext);
 
 		m_pResource->GL()->PushRenderTarget(m_pResource->GetPostEffectTarget());
 		postEffect.Execute(drawContext);
 		m_pResource->GL()->PopRenderTarget();
+		
+		if (m_ui.tileLight && m_ui.tileLightDebug) {
+			tileLightCuller.DrawDebugView(drawContext);
+		}
 
 		m_pResource->GL()->PopRenderTarget();
 
@@ -484,6 +497,11 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		pLight->SetColor(color);
 	}
 
+	ImGui::Checkbox("TileLight", &m_ui.tileLight);
+	if (m_ui.tileLight) {
+		ImGui::Checkbox("DebugTileLight",&m_ui.tileLightDebug);
+		ImGui::Checkbox("AnimationTileLight", &m_ui.tileLightAnimation);
+	}
 	//ImGui::BeginChild("StringList", ImVec2(300, 200), true);
 	//for (int i = 0; i < (int)m_ui.stepFiles.size(); ++i) {
 	//	bool selected = (m_ui.stepSelected == i);

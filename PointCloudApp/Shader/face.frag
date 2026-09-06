@@ -35,7 +35,7 @@ void main()
 	vec4 ibl = vec4(getIBLColor(pbrInputs, pbrGlobal, u_brdf, u_irradiance, u_prefilter),1.0);
 	resultColor += ibl;
 	
-    FragColor = resultColor;
+    FragColor = resultColor*0.5;
 	PositionTexture = f_position;
 	NormalTexture = vec4((f_normal.xyz + 1) * 0.5f, 1.0f);
 } 

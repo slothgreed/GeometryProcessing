@@ -256,7 +256,7 @@ void SignedDistanceField::Shader::Execute(HalfEdgeNode* pNode, int resolute, Axi
 		BindShaderStorage(4, pSDFBuffer->Handle());
 		Dispatch(GetDispatchNum1D(resolute * resolute * resolute));
 	} else {
-		BindTexture(3, pTexture, GL_WRITE_ONLY);
+		BindImage(3, pTexture, GL_WRITE_ONLY);
 		Dispatch(GetDispatchNum2D(Vector2i(resolute, resolute)));
 	}
 

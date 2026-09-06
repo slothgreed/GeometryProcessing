@@ -129,7 +129,7 @@ void GLTFScene::DrawNode(const DrawContext& context)
 	}
 
 	m_pShader->Use();
-	m_pShader->SetPBRResource(context.pResource->GetPBR());
+	m_pShader->SetPBRResource(context);
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetLight(context.pResource->GetLightBuffer());
 	m_pShader->SetModel(GetMatrix());

@@ -1,0 +1,200 @@
+
+
+
+
+layout(std430, binding = 0) buffer CameraBuffer
+{
+    Camera camera;
+};
+
+layout(std430,binding = 1) buffer TileLightBuffer
+{
+   TileLight[] tileLights;
+};
+
+layout(std430,binding = 2) buffer PointLightBuffer
+{
+   PointLight[] pointLights;
+};
+
+uniform sampler2D u_depthTexture;
+uniform ivec2 u_windowSize;
+uniform int u_lightNum;
+
+shared uint minDepthBits;
+shared uint maxDepthBits;
+shared uint tileLightCount;
+shared uint tileLightIndices[8];
+shared uint hasValidDepth;
+
+void insertLightIndex(uint lightIndex)
+{
+    uint candidate = lightIndex;
+    for (uint i = 0; i < MAX_LIGHT_NUM; ++i)
+    {
+        uint previous = atomicMin(tileLightIndices[i], candidate);
+        if (previous == 0xffffffffu || previous == candidate)
+        {
+            return;
+        }
+        candidate = max(previous, candidate);
+    }
+}
+
+bool intersectsScreen(PointLight light, ivec2 tileIndex, uvec2 tileSize, float tileMinDepth, float tileMaxDepth)
+{
+    vec3 centerView = (camera.view * vec4(light.positionRadius.xyz, 1.0)).xyz;
+    float radius = light.positionRadius.w;
+    float lightDepth = -centerView.z;
+
+    if (radius <= 0.0 || lightDepth + radius <= 0.0)
+    {
+        return false;
+    }
+
+    // XY is tested in screen space below, while Z is tested using the linear
+    // view-space depth range collected from the pixels in this tile.
+    float lightMinDepth = max(lightDepth - radius, 0.0);
+    float lightMaxDepth = lightDepth + radius;
+    if (lightMaxDepth < tileMinDepth || lightMinDepth > tileMaxDepth)
+    {
+        return false;
+    }
+
+    vec2 tilePixelMin = vec2(tileIndex * ivec2(tileSize));
+    vec2 tilePixelMax = min(tilePixelMin + vec2(tileSize), vec2(u_windowSize));
+
+    // The sphere intersects the camera plane. Its projected extent is not finite,
+    // so keep it conservatively instead of accidentally dropping the light.
+    if (lightDepth <= radius)
+    {
+        return true;
+    }
+
+    vec4 centerClip = camera.proj * vec4(centerView, 1.0);
+    if (centerClip.w <= 0.0)
+    {
+        return false;
+    }
+
+    vec2 centerNdc = centerClip.xy / centerClip.w;
+    vec2 centerPixel = (centerNdc * 0.5 + 0.5) * vec2(u_windowSize);
+
+    // Perspective-projected radius. A small inflation keeps this conservative
+    // because the simple radius/depth expression slightly underestimates large,
+    // close spheres.
+    vec2 radiusPixel = vec2(
+        abs(camera.proj[0][0]) * float(u_windowSize.x),
+        abs(camera.proj[1][1]) * float(u_windowSize.y))
+        * (0.5 * radius / lightDepth);
+    radiusPixel *= 1.05;
+
+    vec2 nearestPixel = clamp(centerPixel, tilePixelMin, tilePixelMax);
+    vec2 normalizedDistance = (nearestPixel - centerPixel) / max(radiusPixel, vec2(1e-5));
+
+    return dot(normalizedDistance, normalizedDistance) <= 1.0;
+}
+bool intersectsTile(PointLight light, ivec2 tileIndex, uvec2 tileSize, float tileMinDepth, float tileMaxDepth)
+{
+    vec3 centerWorld = light.positionRadius.xyz;
+    float radius = light.positionRadius.w;
+    vec3 centerView = (camera.view * vec4(centerWorld, 1.0)).xyz;
+
+    float lightDepth = -centerView.z;
+
+    if (lightDepth + radius <= 0.0) { return false; }
+
+    float lightMinDepth = max(lightDepth - radius, 0.0);
+    float lightMaxDepth = lightDepth + radius;
+    if (lightMaxDepth < tileMinDepth || lightMinDepth > tileMaxDepth)
+    {
+        //return false;
+    }
+
+    vec2 tilePixelMin = vec2(tileIndex * float(tileSize.x));
+    vec2 tilePixelMax = min(tilePixelMin + vec2(float(tileSize.x),float(tileSize.y)), vec2(u_windowSize));
+
+    vec2 tileNdcMin = tilePixelMin / vec2(u_windowSize) * 2.0 - 1.0;
+    vec2 tileNdcMax = tilePixelMax / vec2(u_windowSize) * 2.0 - 1.0;
+    vec3 rayBottomLeft = getViewRay(camera, vec2(tileNdcMin.x, tileNdcMin.y));
+    vec3 rayBottomRight = getViewRay(camera, vec2(tileNdcMax.x, tileNdcMin.y));
+    vec3 rayTopLeft = getViewRay(camera, vec2(tileNdcMin.x, tileNdcMax.y));
+    vec3 rayTopRight = getViewRay(camera, vec2(tileNdcMax.x, tileNdcMax.y));
+
+    vec3 leftNormal = normalize(cross(rayBottomLeft, rayTopLeft));
+    vec3 rightNormal = normalize(cross(rayTopRight, rayBottomRight));
+    vec3 bottomNormal = normalize(cross(rayBottomRight,rayBottomLeft));
+    vec3 topNormal = normalize(cross(rayTopLeft,rayTopRight));
+
+    if (dot(leftNormal, centerView) < -radius) { return false; }
+    if (dot(rightNormal, centerView) < -radius) { return false; }
+    if (dot(bottomNormal, centerView) < -radius) { return false; }
+    if (dot(topNormal, centerView) < -radius) { return false; }
+
+    return true;
+}
+
+void main()
+{
+	const float MAX_DEPTH = 3.402823466e+38;
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 tileIndex  = ivec2(gl_WorkGroupID.xy);
+	uint localIndex  = gl_LocalInvocationIndex;
+	uvec2 tileSize = gl_WorkGroupSize.xy;
+	uint tileCountX = gl_NumWorkGroups.x;
+	uint tileLightIndex = uint(tileIndex.x) + uint(tileIndex.y) * uint(tileCountX);
+
+	if (localIndex == 0){
+		minDepthBits = floatBitsToUint(MAX_DEPTH);
+		maxDepthBits = floatBitsToUint(0.0);
+	    hasValidDepth = 0;
+		tileLightCount = 0;
+	}
+	if (localIndex < MAX_LIGHT_NUM){
+		tileLightIndices[localIndex] = 0xffffffffu;
+	}
+	
+	barrier();
+	
+	if (pixel.x < u_windowSize.x &&	pixel.y < u_windowSize.y)
+	{
+		float depth = texelFetch(u_depthTexture, pixel, 0).r;
+		if(depth < 1.0){
+			float viewDepth = getViewDepth(camera, pixel, depth, u_windowSize);
+			
+			atomicMin(minDepthBits, floatBitsToUint(viewDepth));
+			atomicMax(maxDepthBits, floatBitsToUint(viewDepth));
+			atomicAdd(hasValidDepth,1);
+		}
+	}
+
+	barrier();
+	float minDepth = uintBitsToFloat(minDepthBits);
+    float maxDepth = uintBitsToFloat(maxDepthBits);
+
+	if (hasValidDepth > 0u)
+	{
+	uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
+	for (uint lightIndex = localIndex; lightIndex < u_lightNum; lightIndex += threadCount)
+    {
+		if (intersectsScreen(pointLights[lightIndex], tileIndex, tileSize, minDepth, maxDepth))
+        {
+            atomicAdd(tileLightCount, 1);
+            insertLightIndex(lightIndex);
+        }
+    }
+	}
+    barrier();
+
+	tileLights[tileLightIndex].minDepth = minDepth;
+	tileLights[tileLightIndex].maxDepth = maxDepth;
+	
+    // save to ssbo
+    if (localIndex == 0) {
+        uint count = min(tileLightCount, MAX_LIGHT_NUM);
+        tileLights[tileLightIndex].count = int(count);
+        for (uint i = 0; i < count; ++i) {
+            tileLights[tileLightIndex].indices[i] = int(tileLightIndices[i]);
+        }
+    }
+} 

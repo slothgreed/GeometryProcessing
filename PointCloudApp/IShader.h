@@ -55,7 +55,7 @@ class IShader
 public:
 	IShader()
 		: m_programId(0) {};
-	~IShader();
+	virtual ~IShader();
 
 	virtual void Build() = 0;
 	virtual ShaderPath GetShaderPath() = 0;
@@ -133,8 +133,9 @@ public:
 	static void Dispatch1D(GLuint x);
 	static void Dispatch(GLuint x, GLuint y, GLuint z);
 	static void Dispatch(const Vector3i& value);
-	static void BindTexture(int location, const Texture* pTexture, GLuint access);
-	static void BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access);
+	static void BindImage(int location, const Texture* pTexture, GLuint access);
+	static void BindImage(int location, int mipmap, const Texture* pTexture, GLuint access);
+	static void BindTexture(int location, int uint, const Texture* pTexture);
 	static void BarrierImage();
 	static void BarrierSSBO();
 	static void BarrierSSBOAndCommand();

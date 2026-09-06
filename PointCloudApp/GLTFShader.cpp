@@ -108,9 +108,12 @@ void GLTFShader::SetSkinBuffer(const GLBuffer* pBuffer)
 	BindShaderStorage(5, pBuffer->Handle());
 }
 
-void GLTFShader::SetPBRResource(const PBRResource* pPBR)
+void GLTFShader::SetPBRResource(const DrawContext& drawContext)
 {
+	auto pPBR = drawContext.pResource->GetPBR();
 	BindShaderStorage(6, pPBR->GetGlobalParam()->Handle());
+	BindShaderStorage(7, drawContext.pResource->GetPointLightBuffer()->Handle());
+	BindShaderStorage(8, drawContext.pResource->GetTileLightBuffer()->Handle());
 	BindTexture(m_uBRDF, 5, *pPBR->GetBRDFLUT());
 	BindCubemap(m_uIrradiance, 6, *pPBR->GetIrradiance());
 	BindCubemap(m_uPrefilter, 7, *pPBR->GetPrefiltered());

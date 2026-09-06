@@ -1,5 +1,6 @@
 #include "AlgorithmShader.h"
 #include "Voxel.h"
+#include "KIMath.h"
 namespace KI
 {
 
@@ -14,7 +15,7 @@ void MarchingCubeShader::Build()
 		Vector<Vector2> value(m_voxelSize, Vector2(0));
 		pCubeIndexs = std::make_unique<GLBuffer>();
 		pCubeIndexs->Create(value);
-		Vector<UInt> taskNum(CeilDiv(m_voxelSize, GetTaskThreadNum()), 0);
+		Vector<UInt> taskNum(MathHelper::CeilDiv(m_voxelSize, GetTaskThreadNum()), 0);
 		pTaskNums = std::make_unique<GLBuffer>();
 		pTaskNums->Create(taskNum);
 	}

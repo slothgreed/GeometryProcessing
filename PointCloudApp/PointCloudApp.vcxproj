@@ -265,6 +265,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="ShaderTable.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
+    <ClCompile Include="TileLightCuller.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="VolumeNode.cpp" />
     <ClCompile Include="Voxel.cpp" />
@@ -368,6 +369,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderResource.h" />
     <ClInclude Include="ShaderTable.h" />
+    <ClInclude Include="TileLightCuller.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="SimpleShader.h" />

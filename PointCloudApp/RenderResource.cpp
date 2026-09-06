@@ -318,7 +318,7 @@ void RenderResource::UpdatePBR()
 	if (m_pPBR) { m_pPBR->Update(); }
 }
 
-void RenderResource::UpdateLight()
+void RenderResource::UpdateLight(const Vector2i& windowSize)
 {
 	if (!m_pLightGpu) {
 		m_pLightGpu = new GLBuffer();
@@ -329,53 +329,7 @@ void RenderResource::UpdateLight()
 	gpu.color = Vector4(m_pLight->GetColor(), 1.0f);
 	gpu.direction = Vector4(glm::normalize(m_pCamera->Direction()), 1.0f);
 	m_pLightGpu->BufferSubData(0, 1, sizeof(ShaderLayout::Light), &gpu);
-}
 
-void RenderResource::CreatePointLights(const BDB& bdb, int resolution)
-{
-	CreatePointLights(bdb, Vector3i(resolution));
-}
-
-void RenderResource::CreatePointLights(const BDB& bdb, const Vector3i& resolution)
-{
-	if (!bdb.IsActive()) {
-		throw std::invalid_argument("Point light BDB must be active.");
-	}
-	if (resolution.x <= 0 || resolution.y <= 0 || resolution.z <= 0) {
-		throw std::invalid_argument("Point light resolution must be positive.");
-	}
-
-	const size_t maxLightCount = static_cast<size_t>(std::numeric_limits<int>::max());
-	const size_t resolutionX = static_cast<size_t>(resolution.x);
-	const size_t resolutionY = static_cast<size_t>(resolution.y);
-	const size_t resolutionZ = static_cast<size_t>(resolution.z);
-	if (resolutionX > maxLightCount / resolutionY ||
-		resolutionX * resolutionY > maxLightCount / resolutionZ) {
-		throw std::overflow_error("Point light count exceeds GLBuffer capacity.");
-	}
-	const size_t lightCount = resolutionX * resolutionY * resolutionZ;
-
-	const Vector3 pitch = (bdb.Max() - bdb.Min()) / Vector3(resolution);
-	const float radius = glm::length(pitch);
-	Vector<ShaderLayout::PointLight> pointLights;
-	pointLights.reserve(lightCount);
-
-	for (int z = 0; z < resolution.z; ++z) {
-		for (int y = 0; y < resolution.y; ++y) {
-			for (int x = 0; x < resolution.x; ++x) {
-				const Vector3 gridPosition = Vector3(x, y, z) + Vector3(0.5f);
-				ShaderLayout::PointLight pointLight;
-				pointLight.positionRadius = Vector4(bdb.Min() + gridPosition * pitch, radius);
-				pointLight.colorIntensity = Vector4(1.0f);
-				pointLights.push_back(pointLight);
-			}
-		}
-	}
-
-	if (!m_pPointLightGpu) {
-		m_pPointLightGpu = new GLBuffer();
-	}
-	m_pPointLightGpu->Create(pointLights);
 }
 
 void RenderResource::Finalize()
@@ -383,7 +337,6 @@ void RenderResource::Finalize()
 	RELEASE_INSTANCE(m_pDebugCameraGpu);
 	RELEASE_INSTANCE(m_pCameraGpu);
 	RELEASE_INSTANCE(m_pLightGpu);
-	RELEASE_INSTANCE(m_pPointLightGpu);
 	RELEASE_INSTANCE(m_pComputeColorTarget);
 	RELEASE_INSTANCE(m_pComputeDepthTarget);
 	RELEASE_INSTANCE(m_pComputeAccumTarget);

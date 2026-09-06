@@ -10,7 +10,7 @@ Texture* PBRTextureGenerator::GenerateBRDFLUT(const Vector2i& resolute)
 	auto pShader = std::make_unique<BRDFLUTShader>();
 	pShader->Build();
 	pShader->Use();
-	pShader->BindTexture(0, pTexture, GL_WRITE_ONLY);
+	pShader->BindImage(0, pTexture, GL_WRITE_ONLY);
 	pShader->Dispatch(resolute.x, resolute.y, 1);
 	pShader->BarrierImage();
 
@@ -27,7 +27,7 @@ CubemapTexture* PBRTextureGenerator::GenerateIrradianceMap(const Vector2i& resol
 	pShader->Build();
 	pShader->Use();
 	pShader->BindEnvironment(*pCubemap);
-	pShader->BindTexture(1, pIrradianceMapArray.get(), GL_WRITE_ONLY);
+	pShader->BindImage(1, pIrradianceMapArray.get(), GL_WRITE_ONLY);
 	pShader->Dispatch(pShader->GetDispatchNum2D(resolute));
 	pShader->BarrierImage();
 
@@ -46,7 +46,7 @@ CubemapTexture* PBRTextureGenerator::GeneratePrefilteredMap(const Vector2i& reso
 	pShader->BindEnvironment(*pCubemap);
 	for (int mipmap = 0; mipmap < pPrefilteredArray->GetFormat().level; mipmap++) {
 		pShader->BindRoughness((float)mipmap / (pPrefilteredArray->GetFormat().level - 1));
-		pShader->BindTexture(1, mipmap, pPrefilteredArray.get(), GL_WRITE_ONLY);
+		pShader->BindImage(1, mipmap, pPrefilteredArray.get(), GL_WRITE_ONLY);
 		pShader->Dispatch(pShader->GetDispatchNum2D(Texture2D::CalcMipmapResolute(resolute, mipmap)));
 		pShader->BarrierImage();
 	}

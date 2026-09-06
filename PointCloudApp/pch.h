@@ -85,10 +85,7 @@ inline String IntToString(int value)
 	return std::to_string(value);
 }
 
-inline int CeilDiv(int a, int b)
-{
-	return (a + b - 1) / b;
-}
+
 
 
 

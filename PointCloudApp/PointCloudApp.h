@@ -48,6 +48,9 @@ private:
 		int visibleTextureIndex;
 		int mipmap;
 		bool animation;
+		bool tileLight = false;
+		bool tileLightDebug = false;
+		bool tileLightAnimation = false;
 		int stepSelected;
 		int dxfSelected;
 		Vector<String> stepFiles;

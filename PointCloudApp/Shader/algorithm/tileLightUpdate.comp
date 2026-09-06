@@ -1,0 +1,25 @@
+
+
+layout(std430,binding = 2) buffer PointLightBuffer
+{
+   PointLight[] pointLights;
+};
+
+uniform sampler2D u_depthTexture;
+uniform vec3 u_bdbMin;
+uniform vec3 u_bdbMax;
+uniform float u_timeDelta;
+
+void main()
+{
+	int index = int(gl_GlobalInvocationID.x);
+	PointLight light = pointLights[index];
+	vec3 velocity = light.velocity.xyz;
+	vec3 position = light.positionRadius.xyz + (light.velocity.xyz * u_timeDelta);
+	if(position.x < u_bdbMin.x || position.x > u_bdbMax.x){velocity.x *= -1.0; }
+	if(position.y < u_bdbMin.y || position.y > u_bdbMax.y){velocity.y *= -1.0; }
+	if(position.z < u_bdbMin.z || position.z > u_bdbMax.z){velocity.z *= -1.0; }
+	position = clamp(position,u_bdbMin,u_bdbMax);
+    pointLights[index].positionRadius.xyz = position;
+	pointLights[index].velocity.xyz = velocity.xyz;
+} 

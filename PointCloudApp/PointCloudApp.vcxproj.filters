@@ -66,6 +66,9 @@
     <Filter Include="ソース ファイル\Utility\AI">
       <UniqueIdentifier>{e45d7cf2-ca9a-40a8-a7ad-8b3bb6021760}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Render">
+      <UniqueIdentifier>{257b053d-8e23-4e7a-8f56-06f0200d47b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -284,9 +287,6 @@
     <ClCompile Include="PostEffect.cpp">
       <Filter>ソース ファイル\GL\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="PBR.cpp">
-      <Filter>ソース ファイル\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="VolumeNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
@@ -355,6 +355,12 @@
     </ClCompile>
     <ClCompile Include="MeshViewer.cpp">
       <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
+    <ClCompile Include="PBR.cpp">
+      <Filter>ソース ファイル\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="TileLightCuller.cpp">
+      <Filter>ソース ファイル\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -586,9 +592,6 @@
     <ClInclude Include="PostEffect.h">
       <Filter>ソース ファイル\GL\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="PBR.h">
-      <Filter>ソース ファイル\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="VolumeNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
@@ -666,6 +669,12 @@
     </ClInclude>
     <ClInclude Include="CrossSectionFill.h">
       <Filter>ソース ファイル\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="PBR.h">
+      <Filter>ソース ファイル\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="TileLightCuller.h">
+      <Filter>ソース ファイル\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

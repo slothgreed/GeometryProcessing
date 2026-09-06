@@ -458,7 +458,7 @@ Vector3i IComputeShader::GetDispatchNum1D(int value)
 	return Vector3i((value + localSize.x - 1) / localSize.x, 1, 1);
 }
 
-void IComputeShader::BindTexture(int location, int mipmap, const Texture* pTexture, GLuint access)
+void IComputeShader::BindImage(int location, int mipmap, const Texture* pTexture, GLuint access)
 {
 	if (!(access == GL_WRITE_ONLY ||
 		access == GL_READ_ONLY ||
@@ -477,11 +477,20 @@ void IComputeShader::BindTexture(int location, int mipmap, const Texture* pTextu
 	glBindImageTexture(location, pTexture->Handle(), mipmap, layerd, 0, access, pTexture->GetFormat().internalformat);
 	OUTPUT_GLERROR;
 }
-void IComputeShader::BindTexture(int location, const Texture* pTexture, GLuint access)
+void IComputeShader::BindImage(int location, const Texture* pTexture, GLuint access)
 {
-	BindTexture(location, 0, pTexture, access);
+	BindImage(location, 0, pTexture, access);
 }
 
+void IComputeShader::BindTexture(int location, int unit, const Texture* pTexture)
+{
+	glActiveTexture(GL_TEXTURE0 + unit);
+	OUTPUT_GLERROR;
+	glUniform1i(location, unit);
+	OUTPUT_GLERROR;
+	glBindTexture(pTexture->GetFormat().target, pTexture->Handle());
+	OUTPUT_GLERROR;
+}
 void IComputeShader::BarrierSSBO()
 {
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

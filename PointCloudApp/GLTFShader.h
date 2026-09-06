@@ -8,6 +8,7 @@ struct GLTFPrimitive;
 class Texture;
 class CubemapTexture;
 class PBRResource;
+struct DrawContext;
 class GLTFShader : public IShadingShader
 {
 public:
@@ -47,7 +48,7 @@ public:
 	void BindOcclusion(const Texture& texture);
 	void BindEmissive(const Texture& texture);
 
-	void SetPBRResource(const PBRResource* pPBR);
+	void SetPBRResource(const DrawContext& drawContext);
 private:
 	GLuint m_uModel;
 	GLuint m_uSSBOIndex;

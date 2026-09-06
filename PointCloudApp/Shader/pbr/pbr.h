@@ -117,11 +117,21 @@ vec3 getPBRColor(PBRInfo pbrInputs, vec3 lightColor, inout vec3 F, inout float G
 
 vec3 getPBRColor(PBRInfo pbrInputs, vec3 lightColor)
 {
-	vec3 F = vec3(0);
-	float G = 0.0;
-	float D = 0.0;
+	vec3 F = specularReflection(pbrInputs);
+	float G = geometricOcclusion(pbrInputs);
+	float D = microfacetDistribution(pbrInputs);
 	
-	return getPBRColor(pbrInputs,lightColor,F,G,D);
+	vec3 diffuseContrib = (1.0 - F) * getDiffuse(pbrInputs);
+	vec3 specContrib = F * G * D / (4.0 * pbrInputs.NdotL * pbrInputs.NdotV);
+	//return lightColor;
+	//return F;
+	//return vec3(G,G,G);
+	//return vec3(D,D,D);
+	//return diffuseContrib;
+	//return specContrib;
+	//return vec3(pbrInputs.NdotL,pbrInputs.NdotL,pbrInputs.NdotL);
+	return pbrInputs.NdotL * lightColor * (diffuseContrib + specContrib);
+	
 }
 
 void CalcPBRAngle(inout PBRInfo pbrInputs, vec3 eye, vec3 lightDir, vec3 normal, vec3 worldPos)
@@ -157,4 +167,32 @@ void CalcPBRMaterial(inout PBRInfo pbrInputs, vec3 color, float roughness, float
 	pbrInputs.alphaRoughness = roughness * roughness;
 	pbrInputs.diffuseColor = diffuseColor;
 	pbrInputs.specularColor = specularColor;
+}
+
+vec3 getPointLightPBRColor(
+	PBRInfo materialInputs,
+	PointLight pointLight,
+	vec3 eye,
+	vec3 worldPos)
+{
+	vec3 toLight = pointLight.positionRadius.xyz - worldPos;
+	float distanceSquared = dot(toLight, toLight);
+	float radius = pointLight.positionRadius.w;
+
+	if(radius <= 0.0 || distanceSquared >= radius * radius){
+		return vec3(0.0);
+	}
+
+	float distanceToLight = sqrt(max(distanceSquared, 1e-6));
+	vec3 lightDirection = toLight / distanceToLight;
+	float normalizedDistance = distanceToLight / radius;
+	float window = max(1.0 - pow(normalizedDistance, 4.0), 0.0);
+	window *= window;
+
+	PBRInfo lightInputs = materialInputs;
+	CalcPBRAngle(lightInputs, eye, lightDirection, lightInputs.normal, worldPos);
+
+	vec3 radiance = pointLight.colorIntensity.rgb * pointLight.colorIntensity.w;
+	radiance *= window;
+	return getPBRColor(lightInputs, radiance*0.2);
 }

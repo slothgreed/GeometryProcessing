@@ -16,11 +16,7 @@ uniform sampler2D u_brdf;
 uniform ivec2 u_ssboIndex; // (x,y,z,w) = (matrix,material,Hoge,Hoge);
 uniform int u_debugView;
 
-
-
-
-
-
+const ivec2 c_tileSize = ivec2(16);
 layout(std430, binding = 0) buffer CameraBuffer
 {
 	Camera camera;
@@ -34,6 +30,16 @@ layout(std430, binding = 1) buffer LightBuffer
 layout(std430, binding = 3) buffer Material
 {
 	GLTFMaterial materials[];
+};
+
+layout(std430, binding = 7) buffer PointLightBuffer
+{
+	PointLight pointLights[];
+};
+
+layout(std430, binding = 8) buffer TileLightBuffer
+{
+	TileLight tiles[];
 };
 
 layout(std430, binding = 6) buffer PBRGlobalBuffer
@@ -91,6 +97,25 @@ float getOcculusion(GLTFMaterial material)
 		return 0.0f;
 	}
 }
+
+vec3 getPointLightColor(PBRInfo materialInputs)
+{
+	ivec2 tileCount = (ivec2(camera.viewSize) + c_tileSize - ivec2(1)) / c_tileSize;
+	ivec2 tilePosition = clamp(ivec2(gl_FragCoord.xy) / c_tileSize, ivec2(0), tileCount - ivec2(1));
+	TileLight tile = tiles[tilePosition.x + tilePosition.y * tileCount.x];
+
+	vec3 color = vec3(0.0);
+	for(int i = 0; i < min(tile.count, MAX_LIGHT_NUM); ++i){
+		color += getPointLightPBRColor(
+			materialInputs,
+			pointLights[tile.indices[i]],
+			camera.eye.xyz,
+			f_worldPos);
+	}
+
+	return color;
+}
+
 void main()
 {
 	GLTFMaterial material = materials[u_ssboIndex.y];
@@ -124,9 +149,13 @@ void main()
 	float D = 0.0;
 	vec4 resultColor = vec4(getPBRColor(pbrInputs,light.color.rgb,F,G,D),1.0);
 	vec4 ibl = vec4(getIBLColor(pbrInputs, pbrGlobal, u_brdf, u_irradiance, u_prefilter),1.0);
+	vec3 pointLightColor = getPointLightColor(pbrInputs);
+	
+	
 	resultColor += ibl;
 	resultColor += getOcculusion(material) * resultColor;
 	resultColor += vec4(getEmissive(material),0.0);
+	resultColor.rgb += pointLightColor;
 	
 	if(u_debugView == 1){
 		resultColor = vec4(getBaseColor(material),1.0);
