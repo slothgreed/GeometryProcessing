@@ -33,25 +33,25 @@ Vector<uint32_t> ComputeShaderTest::CreateData(int pattern, int num)
 	std::vector<uint32_t> result;
 	result.reserve(num);
 
-	std::mt19937 rng(12345); // ƒeƒXƒgÄŒ»«‚Ì‚½‚ßŒÅ’èseed
+	std::mt19937 rng(12345); // ãƒ†ã‚¹ãƒˆå†ç¾æ€§ã®ãŸã‚å›ºå®šseed
 
 	uint32_t minValue = 0;
 	uint32_t maxValue = 0;
 
 	switch (pattern) {
-	case 1:		// 0 ` 7bit
+	case 1:		// 0 ï½ 7bit
 		maxValue = (1u << 8) - 1;
 		break;
 
-	case 2:		// 0 ` 15bit
+	case 2:		// 0 ï½ 15bit
 		maxValue = (1u << 16) - 1;
 		break;
 
-	case 3:		// 0 ` 23bit
+	case 3:		// 0 ï½ 23bit
 		maxValue = (1u << 24) - 1;
 		break;
 
-	case 4:		// 0 ` 31bit
+	case 4:		// 0 ï½ 31bit
 		maxValue = 0xFFFFFFFFu; //(1u << 32) - 1;
 		break;
 
@@ -373,7 +373,7 @@ void HistogramTest::Execute()
 	std::vector<uint32_t> input;
 	input.resize(100000);
 
-	std::mt19937 rng(12345); // ƒeƒXƒgÄŒ»«‚Ì‚½‚ßŒÅ’èseed
+	std::mt19937 rng(12345); // ãƒ†ã‚¹ãƒˆå†ç¾æ€§ã®ãŸã‚å›ºå®šseed
 
 	uint32_t minValue = 0;
 	uint32_t maxValue = (1u << 8) - 1;

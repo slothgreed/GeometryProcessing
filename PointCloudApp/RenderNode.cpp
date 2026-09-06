@@ -138,11 +138,11 @@ BDB RenderNode::CalcCameraFitBox(BDB bdb)
 
 void UIContext::Show(const Parameter& parameter)
 {
-	static int binCount = 50; // ƒrƒ“”i‰Šú’lj
+	static int binCount = 50; // ãƒ“ãƒ³æ•°ï¼ˆåˆæœŸå€¤ï¼‰
 	static bool logScale = false;
 
 
-	// “Œv—Ê‚ÌŒvZ
+	// çµ±è¨ˆé‡ã®è¨ˆç®—
 	float minArea = parameter.Min();
 	float maxArea = parameter.Max();
 	float sum = parameter.Sum();
@@ -160,7 +160,7 @@ void UIContext::Show(const Parameter& parameter)
 	ImGui::Checkbox("Log scale", &logScale);
 	ImGui::SliderInt("Bin count", &binCount, 10, 200);
 
-	// Å‘å’lic²ƒXƒP[ƒ‹jæ“¾
+	// æœ€å¤§å€¤ï¼ˆç¸¦è»¸ã‚¹ã‚±ãƒ¼ãƒ«ï¼‰å–å¾—
 	float maxY = *std::max_element(histogram.begin(), histogram.end());
 
 	ImGui::PlotHistogram("Area Histogram", histogram.data(), binCount, 0,
@@ -183,7 +183,7 @@ void RenderNode::RemoveNodeNameContain(const String& name)
 {
 	for (auto it = m_child.begin(); it != m_child.end(); ) {
 		if (it->first.find(name) != String::npos) {
-			it = m_child.erase(it); // erase‚ÍŸ‚Ìiterator‚ğ•Ô‚·
+			it = m_child.erase(it); // eraseã¯æ¬¡ã®iteratorã‚’è¿”ã™
 		} else {
 			++it;
 		}

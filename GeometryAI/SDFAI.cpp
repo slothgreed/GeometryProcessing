@@ -65,12 +65,12 @@ void SDFAI::Train(const std::string& path)
 {
     namespace fs = std::filesystem;
 
-    // ŠwKÏ‚İƒ‚ƒfƒ‹‚ÌƒpƒX
+    // å­¦ç¿’æ¸ˆã¿ãƒ¢ãƒ‡ãƒ«ã®ãƒ‘ã‚¹
     fs::path modelPath(path);
     modelPath.replace_extension(".pt");
 
     //---------------------------------------------------------------------
-    // ŠwKÏ‚İƒ‚ƒfƒ‹‚ª‘¶İ‚·‚é‚È‚ç“Ç‚İ‚ñ‚ÅI—¹
+    // å­¦ç¿’æ¸ˆã¿ãƒ¢ãƒ‡ãƒ«ãŒå­˜åœ¨ã™ã‚‹ãªã‚‰èª­ã¿è¾¼ã‚“ã§çµ‚äº†
     //---------------------------------------------------------------------
     if (fs::exists(modelPath)) {
         std::cout << "Load By File : " << modelPath << std::endl;
@@ -83,11 +83,11 @@ void SDFAI::Train(const std::string& path)
 	auto sdfTensor = TorchUtility::ToTensor1D(voxel.data, 1);
     torch::optim::Adam optimizer(m_model->parameters(), 0.001);
     for (int epoch = 0; epoch < 1000; ++epoch) {
-        auto outputs = m_model->forward(posTensor);          // „˜_
-        auto loss = torch::mse_loss(outputs, sdfTensor);    // Œë·ŒvZ
-		optimizer.zero_grad();                              // Œù”z‚Ì‰Šú‰»
-		loss.backward();                                    // Œë·‹t“`”d(Œù”zXV)
-		optimizer.step();                                   // ƒpƒ‰ƒ[ƒ^‚ğOptimizer‚Ì”®‚ÅXV
+        auto outputs = m_model->forward(posTensor);          // æ¨è«–
+        auto loss = torch::mse_loss(outputs, sdfTensor);    // èª¤å·®è¨ˆç®—
+		optimizer.zero_grad();                              // å‹¾é…ã®åˆæœŸåŒ–
+		loss.backward();                                    // èª¤å·®é€†ä¼æ’­(å‹¾é…æ›´æ–°)
+		optimizer.step();                                   // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’Optimizerã®æ•°å¼ã§æ›´æ–°
         if (epoch % 10 == 0) {
             std::cout
                 << "Epoch: " << epoch
@@ -104,7 +104,7 @@ void SDFAI::Train(const std::string& path)
         }
     }
     //---------------------------------------------------------------------
-    // •Û‘¶
+    // ä¿å­˜
     //---------------------------------------------------------------------
     std::cout << "Save File : " << modelPath << std::endl;
     torch::save(m_model, modelPath.string());

@@ -380,7 +380,7 @@ void HalfEdgeStruct::CreateHeatMethod(float timeStep, int position)
 void HalfEdgeStruct::CreateDirectionField()
 {
 	if (m_parameter.minCurvature.size() != 0) { return; }
-	// 1. –@üƒxƒNƒgƒ‹ n_v ‚ğg‚Á‚ÄAÚ•½–ÊŠî’ê (t1, t2) ‚ğ\’z
+	// 1. æ³•ç·šãƒ™ã‚¯ãƒˆãƒ« n_v ã‚’ä½¿ã£ã¦ã€æ¥å¹³é¢åŸºåº• (t1, t2) ã‚’æ§‹ç¯‰
 	Vector3 t1, t2;
 	m_parameter.minCurvature.resize(m_position.size());
 	m_parameter.maxCurvature.resize(m_position.size());
@@ -390,7 +390,7 @@ void HalfEdgeStruct::CreateDirectionField()
 		const auto& vi = m_position[i];
 		const auto& normal = m_parameter.vertexNormal[i];
 		GeometryUtility::CreateTangentBasis(normal, t1, t2);
-		// 2. Shape operator S (2x2 ‘ÎÌs—ñ) ‚ğ‰Šú‰»
+		// 2. Shape operator S (2x2 å¯¾ç§°è¡Œåˆ—) ã‚’åˆæœŸåŒ–
 		Eigen::Matrix2f S = Eigen::Matrix2f::Zero();
 		auto aroundEdge = GetAroundEdge(i);
 		float totalWeight = 0.0f;
@@ -419,24 +419,24 @@ void HalfEdgeStruct::CreateDirectionField()
 
 			totalWeight += weight_sum * (x * x + y * y);
 			/*
-			// 3-1. Edge•ûŒü‚ğÚ•½–Êã‚É“Š‰eipj_projj
+			// 3-1. Edgeæ–¹å‘ã‚’æ¥å¹³é¢ä¸Šã«æŠ•å½±ï¼ˆpj_projï¼‰
 			auto pj_proj = dir - glm::dot(dir, normal) * normal;
 
-			// 3-2. –@ü·iÚ•½–Êã‚Ö‚Ì•Ï‰»—¦j¨ dN
+			// 3-2. æ³•ç·šå·®ï¼ˆæ¥å¹³é¢ä¸Šã¸ã®å¤‰åŒ–ç‡ï¼‰â†’ dN
 			auto dN = normalJ - normal;
 
-			// 3-3. pj_proj ‚ğÚ•½–ÊŠî’ê‚Å•\Œ»i2Dj
+			// 3-3. pj_proj ã‚’æ¥å¹³é¢åŸºåº•ã§è¡¨ç¾ï¼ˆ2Dï¼‰
 			double u = dot(pj_proj, t1);
 			double v = dot(pj_proj, t2);
 
-			// 3-4. dN ‚ğÚ•½–ÊŠî’ê‚Å•\Œ»i2Dj
+			// 3-4. dN ã‚’æ¥å¹³é¢åŸºåº•ã§è¡¨ç¾ï¼ˆ2Dï¼‰
 			double dNu = dot(dN, t1);
 			double dNv = dot(dN, t2);
 
-			// 3-5. d‚İi—áF‹——£ƒx[ƒXAcotd‚İ‚È‚Çj‚ğŒvZ
+			// 3-5. é‡ã¿ï¼ˆä¾‹ï¼šè·é›¢ãƒ™ãƒ¼ã‚¹ã€coté‡ã¿ãªã©ï¼‰ã‚’è¨ˆç®—
 			double weight = 1.0 / (glm::length(pj_proj) + 0.0001); // avoid div0
 
-			// 3-6. Shape operatori‹ß—ƒ„ƒRƒrƒAƒ“j‚ğ‰ÁZ
+			// 3-6. Shape operatorï¼ˆè¿‘ä¼¼ãƒ¤ã‚³ãƒ“ã‚¢ãƒ³ï¼‰ã‚’åŠ ç®—
 			S(0, 0) += weight * dNu * u;
 			S(0, 1) += weight * dNu * v;
 			S(1, 0) += weight * dNv * u;
@@ -446,20 +446,20 @@ void HalfEdgeStruct::CreateDirectionField()
 			*/
 		}
 
-		// 4. ³‹K‰»
+		// 4. æ­£è¦åŒ–
 
 		S /= totalWeight;
 
-		// 5. ŒÅ—L’lEŒÅ—LƒxƒNƒgƒ‹‚ğ‹‚ß‚éiS‚Í‘ÎÌs—ñj
+		// 5. å›ºæœ‰å€¤ãƒ»å›ºæœ‰ãƒ™ã‚¯ãƒˆãƒ«ã‚’æ±‚ã‚ã‚‹ï¼ˆSã¯å¯¾ç§°è¡Œåˆ—ï¼‰
 		Eigen::SelfAdjointEigenSolver<Eigen::Matrix2f> solver(S);
 		if (solver.info() == Eigen::Success) {
-			Eigen::Vector2f eigenvalues = solver.eigenvalues();      // ¸‡
-			Eigen::Matrix2f eigenvectors = solver.eigenvectors();    // Še—ñ‚ªŒÅ—LƒxƒNƒgƒ‹
+			Eigen::Vector2f eigenvalues = solver.eigenvalues();      // æ˜‡é †
+			Eigen::Matrix2f eigenvectors = solver.eigenvectors();    // å„åˆ—ãŒå›ºæœ‰ãƒ™ã‚¯ãƒˆãƒ«
 
-			Eigen::Vector2f dir1 = eigenvectors.col(1); // k1 ‚É‘Î‰‚·‚éŒÅ—LƒxƒNƒgƒ‹
-			Eigen::Vector2f dir2 = eigenvectors.col(0); // k2 ‚É‘Î‰‚·‚éŒÅ—LƒxƒNƒgƒ‹
+			Eigen::Vector2f dir1 = eigenvectors.col(1); // k1 ã«å¯¾å¿œã™ã‚‹å›ºæœ‰ãƒ™ã‚¯ãƒˆãƒ«
+			Eigen::Vector2f dir2 = eigenvectors.col(0); // k2 ã«å¯¾å¿œã™ã‚‹å›ºæœ‰ãƒ™ã‚¯ãƒˆãƒ«
 
-			// 6. Ú•½–Êã‚Ì•ûŒüƒxƒNƒgƒ‹‚ğ3D‚É•ÏŠ·
+			// 6. æ¥å¹³é¢ä¸Šã®æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã‚’3Dã«å¤‰æ›
 			m_parameter.maxCurvature[i] = eigenvalues[1];
 			m_parameter.minCurvature[i] = eigenvalues[0];
 			m_parameter.minDirection[i] = glm::normalize(dir1.x() * t1 + dir1.y() * t2);

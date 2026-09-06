@@ -19,7 +19,7 @@ std::vector<float> GeometryUtility::NormalizePointCloud(const std::vector<float>
 
     const size_t pointCount = points.size() / 3;
 
-    // dSŒvZ
+    // é‡å¿ƒè¨ˆç®—
     float cx = 0.0f;
     float cy = 0.0f;
     float cz = 0.0f;
@@ -34,7 +34,7 @@ std::vector<float> GeometryUtility::NormalizePointCloud(const std::vector<float>
     cy /= static_cast<float>(pointCount);
     cz /= static_cast<float>(pointCount);
 
-    // Œ´“_‚©‚ç‚ÌÅ‘å‹——£‚ğ‹‚ß‚é
+    // åŸç‚¹ã‹ã‚‰ã®æœ€å¤§è·é›¢ã‚’æ±‚ã‚ã‚‹
     float maxDistance = 0.0f;
 
     for (size_t i = 0; i < pointCount; ++i) {
@@ -50,7 +50,7 @@ std::vector<float> GeometryUtility::NormalizePointCloud(const std::vector<float>
         return points;
     }
 
-    // ³‹K‰»
+    // æ­£è¦åŒ–
     std::vector<float> normalized(points.size());
 
     const float invScale = 1.0f / maxDistance;

@@ -39,12 +39,12 @@ bool ModelClassificationAI::Execute(const std::string& command)
 
 void ModelClassificationAI::Train(const std::string& path)
 {
-	// ŠwKÏ‚İƒ‚ƒfƒ‹‚ÌƒpƒX
-	// _“_”_epoch”
+	// å­¦ç¿’æ¸ˆã¿ãƒ¢ãƒ‡ãƒ«ã®ãƒ‘ã‚¹
+	// _ç‚¹æ•°_epochæ•°
 	namespace fs = std::filesystem;
 	fs::path modelPath(path + "/train_2048_30.pt");
 	//---------------------------------------------------------------------
-	// ŠwKÏ‚İƒ‚ƒfƒ‹‚ª‘¶İ‚·‚é‚È‚ç“Ç‚İ‚ñ‚ÅI—¹
+	// å­¦ç¿’æ¸ˆã¿ãƒ¢ãƒ‡ãƒ«ãŒå­˜åœ¨ã™ã‚‹ãªã‚‰èª­ã¿è¾¼ã‚“ã§çµ‚äº†
 	//---------------------------------------------------------------------
 	if (fs::exists(modelPath)) {
 		std::cout << "Load By File : " << modelPath << std::endl;
@@ -62,7 +62,7 @@ void ModelClassificationAI::Train(const std::string& path)
 
 	std::filesystem::path trainPath(path);
 	int fileNum = 0;
-	// airplaneAbathtub‚È‚Ç‚ÌƒJƒeƒSƒŠƒtƒHƒ‹ƒ_‚ğæ“¾
+	// airplaneã€bathtubãªã©ã®ã‚«ãƒ†ã‚´ãƒªãƒ•ã‚©ãƒ«ãƒ€ã‚’å–å¾—
 	for (const auto& entry : std::filesystem::directory_iterator(trainPath)) {
 		if (!entry.is_directory()) {continue; }
 
@@ -73,7 +73,7 @@ void ModelClassificationAI::Train(const std::string& path)
 		}
 	}
 
-	// ƒ‰ƒxƒ‹‚ªÀs‚²‚Æ‚É•Ï‚í‚ç‚È‚¢‚æ‚¤‚Éƒ\[ƒg
+	// ãƒ©ãƒ™ãƒ«ãŒå®Ÿè¡Œã”ã¨ã«å¤‰ã‚ã‚‰ãªã„ã‚ˆã†ã«ã‚½ãƒ¼ãƒˆ
 	std::sort(categoryDirectories.begin(), categoryDirectories.end());
 
 
@@ -160,7 +160,7 @@ void ModelClassificationAI::Train(const std::string& path)
 	}
 
 	//---------------------------------------------------------------------
-	// •Û‘¶
+	// ä¿å­˜
 	//---------------------------------------------------------------------
 	std::cout << "Save File : " << modelPath << std::endl;
 	torch::save(m_model, modelPath.string());
@@ -173,7 +173,7 @@ void ModelClassificationAI::Test()
 	fs::path modelNetPath(R"(E:\cgModel\ModelNet40)");
 
 	//---------------------------------------------------------------------
-	// ƒ‚ƒfƒ‹“Ç‚İ‚İ
+	// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
 	//---------------------------------------------------------------------
 	Train(modelNetPath.string());
 
@@ -181,7 +181,7 @@ void ModelClassificationAI::Test()
 	torch::NoGradGuard noGrad;
 
 	//---------------------------------------------------------------------
-	// ƒJƒeƒSƒŠƒtƒHƒ‹ƒ_æ“¾
+	// ã‚«ãƒ†ã‚´ãƒªãƒ•ã‚©ãƒ«ãƒ€å–å¾—
 	//---------------------------------------------------------------------
 	std::vector<fs::path> categoryDirectories;
 
@@ -194,7 +194,7 @@ void ModelClassificationAI::Test()
 		}
 	}
 
-	// Train‚Æ“¯‚¶ƒ‰ƒxƒ‹‡˜‚É‚·‚é
+	// Trainæ™‚ã¨åŒã˜ãƒ©ãƒ™ãƒ«é †åºã«ã™ã‚‹
 	std::sort(categoryDirectories.begin(), categoryDirectories.end());
 
 	const size_t classCount = categoryDirectories.size();
@@ -207,7 +207,7 @@ void ModelClassificationAI::Test()
 	}
 
 	//---------------------------------------------------------------------
-	// confusionMatrix[³‰ğƒ‰ƒxƒ‹][—\‘ªƒ‰ƒxƒ‹]
+	// confusionMatrix[æ­£è§£ãƒ©ãƒ™ãƒ«][äºˆæ¸¬ãƒ©ãƒ™ãƒ«]
 	//---------------------------------------------------------------------
 	std::vector<std::vector<int64_t>> confusionMatrix(
 		classCount, std::vector<int64_t>(classCount, 0));
@@ -216,7 +216,7 @@ void ModelClassificationAI::Test()
 	int64_t totalSampleCount = 0;
 
 	//---------------------------------------------------------------------
-	// ŠeƒJƒeƒSƒŠ‚ğƒeƒXƒg
+	// å„ã‚«ãƒ†ã‚´ãƒªã‚’ãƒ†ã‚¹ãƒˆ
 	//---------------------------------------------------------------------
 	for (size_t label = 0; label < classCount; ++label) {
 		const auto& categoryDirectory = categoryDirectories[label];
@@ -260,7 +260,7 @@ void ModelClassificationAI::Test()
 	}
 
 	//---------------------------------------------------------------------
-	// ‘S‘Ì¸“x
+	// å…¨ä½“ç²¾åº¦
 	//---------------------------------------------------------------------
 	const float totalAccuracy = totalSampleCount > 0
 		? static_cast<float>(totalCorrectCount) / totalSampleCount
@@ -271,7 +271,7 @@ void ModelClassificationAI::Test()
 		<< totalCorrectCount << " / " << totalSampleCount << ")" << std::endl;
 
 	//---------------------------------------------------------------------
-	// Œë•ª—ŞŒ‹‰Ê
+	// èª¤åˆ†é¡çµæœ
 	//---------------------------------------------------------------------
 	std::cout << std::endl;
 	std::cout << "========== Misclassification ==========" << std::endl;
@@ -308,7 +308,7 @@ void ModelClassificationAI::Test()
 //	fs::path modelNetPath(R"(E:\cgModel\ModelNet40)");
 //
 //	//---------------------------------------------------------------------
-//	// ƒ‚ƒfƒ‹“Ç‚İ‚İ
+//	// ãƒ¢ãƒ‡ãƒ«èª­ã¿è¾¼ã¿
 //	//---------------------------------------------------------------------
 //	Train(modelNetPath.string());
 //
@@ -316,7 +316,7 @@ void ModelClassificationAI::Test()
 //	torch::NoGradGuard noGrad;
 //
 //	//---------------------------------------------------------------------
-//	// ƒJƒeƒSƒŠƒtƒHƒ‹ƒ_æ“¾
+//	// ã‚«ãƒ†ã‚´ãƒªãƒ•ã‚©ãƒ«ãƒ€å–å¾—
 //	//---------------------------------------------------------------------
 //	std::vector<fs::path> categoryDirectories;
 //	for (const auto& entry : fs::directory_iterator(modelNetPath)) {
@@ -332,7 +332,7 @@ void ModelClassificationAI::Test()
 //	}
 //
 //	//---------------------------------------------------------------------
-//	// Train‚Æ“¯‚¶ƒ‰ƒxƒ‹‡˜‚É‚·‚é
+//	// Trainæ™‚ã¨åŒã˜ãƒ©ãƒ™ãƒ«é †åºã«ã™ã‚‹
 //	//---------------------------------------------------------------------
 //	std::sort(categoryDirectories.begin(), categoryDirectories.end());
 //
@@ -340,7 +340,7 @@ void ModelClassificationAI::Test()
 //	float totalSampleCount = 0;
 //
 //	//---------------------------------------------------------------------
-//	// ŠeƒJƒeƒSƒŠ‚ğƒeƒXƒg
+//	// å„ã‚«ãƒ†ã‚´ãƒªã‚’ãƒ†ã‚¹ãƒˆ
 //	//---------------------------------------------------------------------
 //	for (size_t label = 0; label < categoryDirectories.size(); ++label) {
 //
@@ -357,7 +357,7 @@ void ModelClassificationAI::Test()
 //			if (!entry.is_regular_file()) { continue; }
 //
 //			//-----------------------------------------------------------------
-//			// “_ŒQ“Ç‚İ‚İ
+//			// ç‚¹ç¾¤èª­ã¿è¾¼ã¿
 //			//-----------------------------------------------------------------
 //			auto pointData = GeometryUtility::LoadPointCloud(entry.path().string());
 //
@@ -366,20 +366,20 @@ void ModelClassificationAI::Test()
 //
 //			//-----------------------------------------------------------------
 //			// [2048, 3]
-//			//        «
+//			//        â†“
 //			// [1, 2048, 3]
 //			//-----------------------------------------------------------------
 //			torch::Tensor points = pointTensor.unsqueeze(0).to(m_device);
 //
 //			//-----------------------------------------------------------------
-//			// „˜_
+//			// æ¨è«–
 //			//-----------------------------------------------------------------
 //			torch::Tensor logits = m_model->forward(points);
 //
 //			const int64_t predictedLabel = logits.argmax(1).item<int64_t>();
 //
 //			//-----------------------------------------------------------------
-//			// ³‰ğ”»’è
+//			// æ­£è§£åˆ¤å®š
 //			//-----------------------------------------------------------------
 //			if (predictedLabel == static_cast<int64_t>(label)) {
 //				++categoryCorrectCount;
@@ -391,7 +391,7 @@ void ModelClassificationAI::Test()
 //		}
 //
 //		//---------------------------------------------------------------------
-//		// ƒJƒeƒSƒŠ‚²‚Æ‚Ì¸“x
+//		// ã‚«ãƒ†ã‚´ãƒªã”ã¨ã®ç²¾åº¦
 //		//---------------------------------------------------------------------
 //		const float accuracy = categorySampleCount > 0 ? categoryCorrectCount / categorySampleCount : 0.0f;
 //
@@ -403,7 +403,7 @@ void ModelClassificationAI::Test()
 //	}
 //
 //	//---------------------------------------------------------------------
-//	// ‘S‘Ì¸“x
+//	// å…¨ä½“ç²¾åº¦
 //	//---------------------------------------------------------------------
 //	const float totalAccuracy = totalSampleCount > 0 ? totalCorrectCount / totalSampleCount : 0.0f;
 //
@@ -437,10 +437,10 @@ int ModelClassificationAI::Predict(const std::vector<float>& position)
 
 	auto normalized = GeometryUtility::NormalizePointCloud(position);
 	auto input = TorchUtility::ToTensor1D(normalized, 3);
-	// [2048 * 3] ¨ [1, 2048, 3]
+	// [2048 * 3] â†’ [1, 2048, 3]
 	input = input.view({ 1, static_cast<int64_t>(pointCount), 3 }).to(m_device);
 
-	// output: [1, ƒNƒ‰ƒX”]
+	// output: [1, ã‚¯ãƒ©ã‚¹æ•°]
 	auto output = m_model->forward(input);
 	// predicted: [1]
 	return output.argmax(1).item<int>();

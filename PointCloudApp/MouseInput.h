@@ -25,7 +25,7 @@ private:
 	vec2 m_position;
 	vec2 m_delta;
 	MY_MOUSE_EVENT m_event;
-	unsigned int m_press;	//Å@KI_MOUSE_BUTTON
+	unsigned int m_press;	//„ÄÄKI_MOUSE_BUTTON
 	int m_wheel;
 };
 

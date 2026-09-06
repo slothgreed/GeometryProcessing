@@ -42,12 +42,12 @@ public:
 	MeshAlgorithm() {};
 	~MeshAlgorithm() {};
 
-	// Šù‘¶‚Ì“_ŒQ‚ğ•Û‚µ‚½‚¤‚¦‚ÅƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
-	// meshPoints == sampleNum: ‚»‚Ì‚Ü‚Üreturn
-	// meshPoints < sampleNum: ‘«‚è‚È‚¢•ª‚¾‚¯–Æó‚É”CˆÓ‚ÉƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
-	// meshPoints > sampleNum: Šù‘¶‚Ì“_‚ğƒ‰ƒ“ƒ_ƒ€‚ÉíŒ¸‚·‚éB(–{—ˆ‚Í“Á’¥—Ê‚É‰‚¶‚ÄíŒ¸‚·‚é‚×‚«)
+	// æ—¢å­˜ã®ç‚¹ç¾¤ã‚’ä¿æŒã—ãŸã†ãˆã§ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ã™ã‚‹ã€‚
+	// meshPoints == sampleNum: ãã®ã¾ã¾return
+	// meshPoints < sampleNum: è¶³ã‚Šãªã„åˆ†ã ã‘å…çŠ¶ã«ä»»æ„ã«ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ã™ã‚‹ã€‚
+	// meshPoints > sampleNum: æ—¢å­˜ã®ç‚¹ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã«å‰Šæ¸›ã™ã‚‹ã€‚(æœ¬æ¥ã¯ç‰¹å¾´é‡ã«å¿œã˜ã¦å‰Šæ¸›ã™ã‚‹ã¹ã)
 	static Vector<Vector3> CreateSampleOnFace(const Mesh& mesh, int sampleNum);
-	// Šù‘¶‚Ì“_ŒQ‚Í–³‹‚µ‚ÄƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
+	// æ—¢å­˜ã®ç‚¹ç¾¤ã¯ç„¡è¦–ã—ã¦ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ã™ã‚‹ã€‚
 	static Vector<Vector3> CreatePoissonSampleOnFace(const HalfEdgeStruct& halfEdge);
 	static Vector<Vector3> CreatePoissonSampleVolume(HalfEdgeNode& halfEdge);
 	static Vector<Vector3> CreateKruskulMST(const HalfEdgeStruct& halfEdge, Vector<Vector3>& seam, float weight);

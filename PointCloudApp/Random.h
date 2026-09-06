@@ -7,16 +7,16 @@ namespace Gaccho
 {
 class Rand {
 private:
-	//32ƒrƒbƒg”Åƒƒ‹ƒZƒ“ƒkEƒcƒCƒXƒ^
+	//32ãƒ“ãƒƒãƒˆç‰ˆãƒ¡ãƒ«ã‚»ãƒ³ãƒŒãƒ»ãƒ„ã‚¤ã‚¹ã‚¿
 	std::mt19937 mt;
-	//”ñŒˆ’è˜_“I‚È—”
+	//éæ±ºå®šè«–çš„ãªä¹±æ•°
 	std::random_device rd;
 
 public:
-	//ƒRƒ“ƒXƒgƒ‰ƒNƒ^(‰Šú‰»)
+	//ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿(åˆæœŸåŒ–)
 	Rand() { mt.seed(rd()); }
 
-	//‰Šú’l
+	//åˆæœŸå€¤
 	void seed() {
 		mt.seed(rd());
 	}
@@ -24,16 +24,16 @@ public:
 		mt.seed(seed_);
 	}
 
-	//’Êí‚Ì—”
+	//é€šå¸¸ã®ä¹±æ•°
 	std::uint_fast32_t operator()() {
 		return mt();
 	}
-	//0`Å‘å’l-1 (—]‚è‚Ì”ÍˆÍ‚Ìˆê—l•ª•z—”)
+	//0ï½æœ€å¤§å€¤-1 (ä½™ã‚Šã®ç¯„å›²ã®ä¸€æ§˜åˆ†å¸ƒä¹±æ•°)
 	std::int_fast32_t operator()(const std::int_fast32_t max_) {
 		std::uniform_int_distribution<> uid(0, ((max_ > 0) ? (std::int_fast32_t)max_ - 1 : 0));
 		return uid(mt);
 	}
-	//Å¬’l`Å‘å’l
+	//æœ€å°å€¤ï½æœ€å¤§å€¤
 	std::int_fast32_t operator()(const std::int_fast32_t min_, const std::int_fast32_t max_) {
 		std::uniform_int_distribution<> uid((min_ <= max_) ? min_ : max_, (min_ <= max_) ? max_ : min_);
 		return uid(mt);
@@ -45,7 +45,7 @@ public:
 		return uid(mt);
 	}
 
-	//Šm—¦
+	//ç¢ºç‡
 	bool randBool(const double probability_) {
 		std::bernoulli_distribution uid(probability_);
 		return uid(mt);

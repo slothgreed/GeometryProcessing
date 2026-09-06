@@ -353,18 +353,18 @@ Matrix4x4 glmUtil::CreateTransform(float scale, const Vector3& translate)
 
 Matrix4x4 glmUtil::CreateRotate(Vector3 from, Vector3 to)
 {
-	// “ü—ÍƒxƒNƒgƒ‹‚ğ³‹K‰»
+	// å…¥åŠ›ãƒ™ã‚¯ãƒˆãƒ«ã‚’æ­£è¦åŒ–
 	from = glm::normalize(from);
 	to = glm::normalize(to);
 
-	// “àÏ‚ÆŠOÏ‚ğŒvZ
+	// å†…ç©ã¨å¤–ç©ã‚’è¨ˆç®—
 	float dot = glm::clamp(glm::dot(from, to), -1.0f, 1.0f);
 	auto axis = glm::cross(from, to);
 
-	// Šp“x‚ğZo
+	// è§’åº¦ã‚’ç®—å‡º
 	float angle = acos(dot);
 
-	// ‰ñ“]²‚ÆŠp“x‚©‚ç‰ñ“]s—ñ‚ğì¬
+	// å›è»¢è»¸ã¨è§’åº¦ã‹ã‚‰å›è»¢è¡Œåˆ—ã‚’ä½œæˆ
 	return glm::rotate(glm::mat4(1.0f), angle, axis);
 }
 Vector3 glmUtil::ToScale(const Matrix4x4& matrix)
@@ -391,7 +391,7 @@ Vector3 glmUtil::ToRotateAngle(const Matrix4x4& matrix)
 
 	Vector3 eulerAngles;
 
-	// Še²‚Ì‰ñ“]‚ğæ“¾ (YXZ‡)
+	// å„è»¸ã®å›è»¢ã‚’å–å¾— (YXZé †)
 	if (rotation[2][0] < 1) {
 		if (rotation[2][0] > -1) {
 			eulerAngles.y = std::asin(-rotation[2][0]);

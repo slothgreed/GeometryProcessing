@@ -99,7 +99,7 @@ void SimulationNode::Initialize()
             int y = (i / sqrtCount) % sqrtCount;
             int z = i / (sqrtCount * sqrtCount);
 
-            // ³‹K‰»‚µ‚Ä‹óŠÔ“à‚Éû‚ß‚é
+            // æ­£è¦åŒ–ã—ã¦ç©ºé–“å†…ã«åã‚ã‚‹
             Vector3 pos = m_space.Min() + extent * Vector3(
                 static_cast<float>(x) / sqrtCount,
                 static_cast<float>(y) / sqrtCount,
@@ -206,7 +206,7 @@ void SimulationNode::UpdatePosition()
         p.velocity += GRAVITY * DT;
         p.position += p.velocity * DT;
 
-        // •ÇÕ“Ë
+        // å£è¡çª
         for (int d = 0; d < 3; ++d) {
             if (p.position[d] < m_space.Min()[d]) {
                 p.position[d] = m_space.Min()[d];
@@ -356,7 +356,7 @@ void SimulationNode::UpdateVelocity()
         return;
     }
 
-    // ŠÈˆÕˆ³—Í‚Æ”½”­
+    // ç°¡æ˜“åœ§åŠ›ã¨åç™º
     for (int i = 0; i < m_particles.size(); ++i) {
         auto& pi = m_particles[i];
         auto neighbors = GetNeighbors(i);

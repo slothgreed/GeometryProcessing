@@ -230,10 +230,10 @@ bool Polyline::IsPlane() const
 {
     auto normal = GetNormal();
 
-    // ‘S“_‚ª•½–Êã‚©Šm”F
+    // å…¨ç‚¹ãŒå¹³é¢ä¸Šã‹ç¢ºèª
     for (size_t i = 3; i < m_points.size(); i++) {
         float d = glm::dot(m_points[i] - m_points[0], normal);
-        if (fabs(d) > 1e-6f) return false; // •½–Êã‚É‚È‚¢
+        if (fabs(d) > 1e-6f) return false; // å¹³é¢ä¸Šã«ãªã„
     }
 
     return true;

@@ -104,7 +104,7 @@ PointCloud* PointCloudIO::Create2D(int positionNum, const glm::vec2& min, const 
 {
 	auto pInstance = new PointCloud();
 	pInstance->m_position.resize(positionNum);
-	pInstance->m_normal.resize(positionNum, Vector3(0));	// FileIOópÇ…çÏÇ¡ÇƒÇ¢ÇÈÅB
+	pInstance->m_normal.resize(positionNum, Vector3(0));	// FileIOÁî®„Å´‰Ωú„Å£„Å¶„ÅÑ„Çã„ÄÇ
 	for (int i = 0; i < positionNum; i++) {
 		pInstance->m_position[i].x = Gaccho::rnd(min.x, max.x) / 100.0f;
 		pInstance->m_position[i].y = Gaccho::rnd(min.y, max.y) / 100.0f;

@@ -158,7 +158,7 @@ torch::Tensor MeshSegmentationAI::CreateFeatureTensor(const MeshData& mesh)
 	).clone();
 
 	//---------------------------------------------------------
-	// feature‚²‚Æ‚É³‹K‰»
+	// featureã”ã¨ã«æ­£è¦åŒ–
 	//---------------------------------------------------------
 	auto mean = tensor.mean(0, true);
 	auto std = tensor.std(0, true);
@@ -191,7 +191,7 @@ std::vector<MeshSegmentationAI::TrainData> MeshSegmentationAI::LoadTrainData(con
 		//-----------------------------------------------------
 		// 1_0.seg
 		// 1_1.seg
-		// «
+		// â†“
 		// meshName = "1"
 		//-----------------------------------------------------
 		const std::string stem = segPath.stem().string();
@@ -213,12 +213,12 @@ std::vector<MeshSegmentationAI::TrainData> MeshSegmentationAI::LoadTrainData(con
 		// Category
 		//
 		// Benchmark/1/1_0.seg
-		//           ª
+		//           â†‘
 		//-----------------------------------------------------
 		const std::string category = segPath.parent_path().filename().string();
 
 		//-----------------------------------------------------
-		// Category + MeshName‚ğKey‚É‚·‚é
+		// Category + MeshNameã‚’Keyã«ã™ã‚‹
 		//-----------------------------------------------------
 		const std::string key = category + "/" + meshName;
 
@@ -307,7 +307,7 @@ void MeshSegmentationAI::Train(const std::vector<TrainData>& trainDatas, const s
 	m_model = SegmentationNet();
 
 	//---------------------------------------------------------------------
-	// ŠwKÏ‚İƒ‚ƒfƒ‹‚ª‘¶İ‚·‚é‚È‚ç“Ç‚İ‚ñ‚ÅI—¹
+	// å­¦ç¿’æ¸ˆã¿ãƒ¢ãƒ‡ãƒ«ãŒå­˜åœ¨ã™ã‚‹ãªã‚‰èª­ã¿è¾¼ã‚“ã§çµ‚äº†
 	//---------------------------------------------------------------------
 	if (std::filesystem::exists(modelPath)) {
 
@@ -325,7 +325,7 @@ void MeshSegmentationAI::Train(const std::vector<TrainData>& trainDatas, const s
 	torch::optim::Adam optimizer(m_model->parameters(), torch::optim::AdamOptions(0.001));
 
 	//---------------------------------------------------------
-	// Target‚ğ–‘O¶¬
+	// Targetã‚’äº‹å‰ç”Ÿæˆ
 	//---------------------------------------------------------
 	std::vector<torch::Tensor> targets;
 	targets.reserve(trainDatas.size());
@@ -581,7 +581,7 @@ void MeshSegmentationAI::Train(const std::vector<TrainData>& trainDatas, const s
 	//		//-------------------------------------------------
 	//		// Boundary Prediction
 	//		//
-	//		// target = 0.0 ` 1.0
+	//		// target = 0.0 ï½ 1.0
 	//		//-------------------------------------------------
 	//		auto loss = torch::nn::functional::binary_cross_entropy_with_logits(outputs, targets[i], options);
 

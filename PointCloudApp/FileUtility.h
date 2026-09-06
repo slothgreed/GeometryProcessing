@@ -189,7 +189,7 @@ public:
 				m_text.remove_prefix(pos + 1);
 			}
 
-			// Windows(CRLF)‘Î‰ž
+			// Windows(CRLF)å¯¾å¿œ
 			if (!m_line.empty() && m_line.back() == '\r')
 				m_line.remove_suffix(1);
 		}

@@ -150,7 +150,7 @@ public:
 	};
 
 
-	// orient = true : Œü‚«‚ğl—¶‚·‚éB
+	// orient = true : å‘ãã‚’è€ƒæ…®ã™ã‚‹ã€‚
 	IntersectResult Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient) const;
 	IntersectResult Intersect(const BDB& bdb) const;
 	IntersectResult Intersect(const Plane& plane) const;

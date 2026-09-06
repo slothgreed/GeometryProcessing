@@ -117,7 +117,7 @@ void ComputePointCloudApp::ResizeEvent(int width, int height)
 #define WIDTH 800
 #define HEIGHT 600
 
-// ---------- ƒVƒF[ƒ_ ----------
+// ---------- ã‚·ã‚§ãƒ¼ãƒ€ ----------
 const char* vertSrc = R"(
 #version 450 core
 #extension GL_OVR_multiview : require
@@ -132,7 +132,7 @@ uniform mat4 uProj[2];
 
 void main() {
     gl_Position = uProj[gl_ViewID_OVR] * uView[gl_ViewID_OVR] * vec4(aPos, 1.0);
-    // ¶‰E‚Ì–Ú‚ÅF‚ğ­‚µ•Ï‰»‚³‚¹‚é
+    // å·¦å³ã®ç›®ã§è‰²ã‚’å°‘ã—å¤‰åŒ–ã•ã›ã‚‹
     vColor = (gl_ViewID_OVR == 0) ? vec3(1,0,0) : vec3(0,1,1);
 }
 )";
@@ -148,7 +148,7 @@ void main() {
 )";
 
 
-// ---------- ƒVƒF[ƒ_ƒ†[ƒeƒBƒŠƒeƒB ----------
+// ---------- ã‚·ã‚§ãƒ¼ãƒ€ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ ----------
 GLuint compileShader(GLenum type, const char* src)
 {
 	GLuint shader = glCreateShader(type);
@@ -246,7 +246,7 @@ void ComputePointCloudApp::Execute()
 
 
 
-	// Šg’£ƒ`ƒFƒbƒN
+	// æ‹¡å¼µãƒã‚§ãƒƒã‚¯
 	const char* ext = (const char*)glGetString(GL_EXTENSIONS);
 	auto exts = StringUtility::Split(ext, ' ');
 	for (auto ext : exts) {
@@ -254,7 +254,7 @@ void ComputePointCloudApp::Execute()
 			std::cerr << "GL_EXT_multiview support!" << std::endl;
 		}
 	}
-	// OŠpŒ`ƒf[ƒ^
+	// ä¸‰è§’å½¢ãƒ‡ãƒ¼ã‚¿
 	float vertices[] = {
 		-0.6f, -0.5f, 0.0f,
 		 0.6f, -0.5f, 0.0f,
@@ -270,11 +270,11 @@ void ComputePointCloudApp::Execute()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 	glEnableVertexAttribArray(0);
 
-	// ƒvƒƒOƒ‰ƒ€
+	// ãƒ—ãƒ­ã‚°ãƒ©ãƒ 
 	GLuint prog = createProgram();
 	glUseProgram(prog);
 
-	// FBOƒZƒbƒgƒAƒbƒvi¶‰E–Ú‚ğƒŒƒCƒ„[‚Å•ª‚¯‚éj
+	// FBOã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ï¼ˆå·¦å³ç›®ã‚’ãƒ¬ã‚¤ãƒ¤ãƒ¼ã§åˆ†ã‘ã‚‹ï¼‰
 	GLuint fbo, colorTex, depthTex;
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -294,7 +294,7 @@ void ComputePointCloudApp::Execute()
 		return;
 	}
 
-	// s—ñi¶‰E–Ú‚Ì‚í‚¸‚©‚È‹·j
+	// è¡Œåˆ—ï¼ˆå·¦å³ç›®ã®ã‚ãšã‹ãªè¦–å·®ï¼‰
 	GLfloat eyeOffset = 0.05f;
 	GLfloat view[2][16] = {
 		{1,0,0, eyeOffset, 0,1,0,0, 0,0,1,0, 0,0,0,1},

@@ -293,7 +293,7 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& positio
 	}
 
 	RemoveHugeTriangle();
-	// positionŠO‚É‚ ‚éOŠpŒ`‚ğíœ‚·‚éB
+	// positionå¤–ã«ã‚ã‚‹ä¸‰è§’å½¢ã‚’å‰Šé™¤ã™ã‚‹ã€‚
 	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
 		if (!MathHelper::InPolyline(position, it->GetGravity(this), true)) {
 			it = m_Delaunay.erase(it);
@@ -379,7 +379,7 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polylin
 	RemoveHugeTriangle();
 
 
-	// polylineŠO‚É‚ ‚éOŠpŒ`‚ğíœ‚·‚éB
+	// polylineå¤–ã«ã‚ã‚‹ä¸‰è§’å½¢ã‚’å‰Šé™¤ã™ã‚‹ã€‚
 	//for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
 	//	if (!MathHelper::InPolyline(polyline, it->GetGravity(this), true)) {
 	//		it = m_Delaunay.erase(it);
@@ -388,7 +388,7 @@ Vector<unsigned int> DelaunayGenerator::Execute2D(const Vector<Vector3>& polylin
 	//	}
 	//}
 
-	// inner“à‚É‚ ‚éOŠpŒ`‚ğíœ‚·‚éB
+	// innerå†…ã«ã‚ã‚‹ä¸‰è§’å½¢ã‚’å‰Šé™¤ã™ã‚‹ã€‚
 	for (int i = 0; i < inPolyline.size(); i++) {
 		for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
 			if (MathHelper::InPolyline(*inPolyline[i], it->GetGravity(this), true)) {
@@ -407,26 +407,26 @@ bool DelaunayGenerator::InnerByCircle(const DelaunayGenerator::Circumscribe& cir
 	float dist2 = glm::length2(point - circle.center);
 	float radius2 = circle.radius * circle.radius;
 
-	const float EPS = 1e-6; // •‚“®¬”“_Œë·‘Îô
+	const float EPS = 1e-6; // æµ®å‹•å°æ•°ç‚¹èª¤å·®å¯¾ç­–
 
-	if (dist2 < radius2 - EPS) return true;   // –¾Šm‚É“à‘¤
-	if (dist2 > radius2 + EPS) return false;  // –¾Šm‚ÉŠO‘¤
+	if (dist2 < radius2 - EPS) return true;   // æ˜ç¢ºã«å†…å´
+	if (dist2 > radius2 + EPS) return false;  // æ˜ç¢ºã«å¤–å´
 
-	// ---- ƒ^ƒCƒuƒŒ[ƒN‹K‘¥ ----
-	// ŠOÚ‰~ã‚É‚¿‚å‚¤‚Ç‚ ‚éê‡
-	// —á: À•W‚Ì«‘‡‚Å“à‘¤ˆµ‚¢‚É‚·‚é
+	// ---- ã‚¿ã‚¤ãƒ–ãƒ¬ãƒ¼ã‚¯è¦å‰‡ ----
+	// å¤–æ¥å††ä¸Šã«ã¡ã‚‡ã†ã©ã‚ã‚‹å ´åˆ
+	// ä¾‹: åº§æ¨™ã®è¾æ›¸é †ã§å†…å´æ‰±ã„ã«ã™ã‚‹
 	if (point.x < circle.center.x ||
 	   (point.x == circle.center.x && point.y < circle.center.y)) {
-		return true;   // “à‘¤‚ÉŠÜ‚ß‚é
+		return true;   // å†…å´ã«å«ã‚ã‚‹
 	}
 
-	return false; // ŠO‘¤‚É‚·‚é
+	return false; // å¤–å´ã«ã™ã‚‹
 	return glm::length2(point - circle.center) < circle.radius * circle.radius;
 }
 
 void DelaunayGenerator::DivisionConstraint(const Vector<Vector3>& position, int index)
 {
-	std::unordered_set<IndexedEdge, IndexedEdge::Hash> boundEdge; // ‹«ŠE•Ó
+	std::unordered_set<IndexedEdge, IndexedEdge::Hash> boundEdge; // å¢ƒç•Œè¾º
 	for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
 		auto inner = InnerByCircle(CalcCircumscribedCircle(*it), position[index]);
 		if (inner) {
@@ -450,7 +450,7 @@ void DelaunayGenerator::Division(const Vector<Vector3>& position, int index)
 {
 	int pattern = 0;
 	if (pattern == 0) {
-		std::unordered_set<IndexedEdge, IndexedEdge::Hash> boundEdge; // ‹«ŠE•Ó
+		std::unordered_set<IndexedEdge, IndexedEdge::Hash> boundEdge; // å¢ƒç•Œè¾º
 		for (auto it = m_Delaunay.begin(); it != m_Delaunay.end();) {
 			auto inner = InnerByCircle(CalcCircumscribedCircle(*it), position[index]);
 			if (inner) {
@@ -526,7 +526,7 @@ DelaunayGenerator::Triangle DelaunayGenerator::CreateHugeTriangle(const Vector<V
 	return tri;
 }
 
-// 3“_‚ÌÀ•W‚ğ“ü—Í‚Æ‚µ‚ÄAŠOÚ‰~‚Ì’†S‚Æ”¼Œa‚ğŒvZ‚·‚éŠÖ”
+// 3ç‚¹ã®åº§æ¨™ã‚’å…¥åŠ›ã¨ã—ã¦ã€å¤–æ¥å††ã®ä¸­å¿ƒã¨åŠå¾„ã‚’è¨ˆç®—ã™ã‚‹é–¢æ•°
 DelaunayGenerator::Circumscribe DelaunayGenerator::CalcCircumscribedCircle(const IndexedTriangle& triangle)
 {
 	return CalcCircumscribedCircle(triangle.Convert(this));
@@ -538,20 +538,20 @@ DelaunayGenerator::Circumscribe DelaunayGenerator::CalcCircumscribedCircle(const
 	const auto& pos3 = triangle.pos2;
 
 
-	// OŠpŒ`‚ÌŠe•Ó‚Ì’·‚³‚ğŒvZ
+	// ä¸‰è§’å½¢ã®å„è¾ºã®é•·ã•ã‚’è¨ˆç®—
 	float dA = glm::length2(pos1);
 	float dB = glm::length2(pos2);
 	float dC = glm::length2(pos3);
 
-	// s—ñ®‚ğg‚Á‚ÄŠOS‚ÌÀ•W‚ğ‹‚ß‚é
+	// è¡Œåˆ—å¼ã‚’ä½¿ã£ã¦å¤–å¿ƒã®åº§æ¨™ã‚’æ±‚ã‚ã‚‹
 	float aux1 = (dA * (pos3.y - pos2.y) + dB * (pos1.y - pos3.y) + dC * (pos2.y - pos1.y));
 	float aux2 = -(dA * (pos3.x - pos2.x) + dB * (pos1.x - pos3.x) + dC * (pos2.x - pos1.x));
 	float div = (2 * (pos1.x * (pos3.y - pos2.y) + pos2.x * (pos1.y - pos3.y) + pos3.x * (pos2.y - pos1.y)));
 
 	Circumscribe c;
-	// ŠOS‚ÌxÀ•W‚ÆyÀ•W
+	// å¤–å¿ƒã®xåº§æ¨™ã¨yåº§æ¨™
 	c.center = Vector3(aux1 / div, aux2 / div, 0.0f);
-	// ”¼Œa‚ğŒvZiŠOS‚©‚ç”CˆÓ‚Ì’¸“_‚Ü‚Å‚Ì‹——£j
+	// åŠå¾„ã‚’è¨ˆç®—ï¼ˆå¤–å¿ƒã‹ã‚‰ä»»æ„ã®é ‚ç‚¹ã¾ã§ã®è·é›¢ï¼‰
 	c.radius = glm::length(c.center - pos1);
 	return  c;
 
@@ -692,7 +692,7 @@ Delaunay3DGenerator::Circumsphere Delaunay3DGenerator::CreateCircumsphere(const 
 
 	float det = det3x3(ba, ca, da);
 	if (std::abs(det) < 1e-10) {
-		return Circumsphere(); // ‘Ş‰»
+		return Circumsphere(); // é€€åŒ–
 	}
 
 	auto cross_cd = Vector3(

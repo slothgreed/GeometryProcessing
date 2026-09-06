@@ -114,14 +114,14 @@ PlanePrimitive::PlanePrimitive(const Vector3& min, const Vector3& max, float pos
 
 Matrix4x4 PlanePrimitive::CreateMatrix(const Vector3& min, const Vector3& max, float position, Axis axis)
 {
-	// Step 1: •‚Æ‚‚³i‘¼‚Ì2²j‚ğ‹‚ß‚é
+	// Step 1: å¹…ã¨é«˜ã•ï¼ˆä»–ã®2è»¸ï¼‰ã‚’æ±‚ã‚ã‚‹
 	switch (axis) {
 	case Axis::X:
-		return glmUtil::CreateTranslate(Vector3(position, 0.0f, 0.0f)); // XY¨YZ–Ê‚Ö
+		return glmUtil::CreateTranslate(Vector3(position, 0.0f, 0.0f)); // XYâ†’YZé¢ã¸
 	case Axis::Y:
-		return glmUtil::CreateTranslate(Vector3(0.0f, position, 0.0f)) * glmUtil::CreateRotateAngle(Vector3(0, 0, -90)); // XY¨XZ–Ê‚Ö
+		return glmUtil::CreateTranslate(Vector3(0.0f, position, 0.0f)) * glmUtil::CreateRotateAngle(Vector3(0, 0, -90)); // XYâ†’XZé¢ã¸
 	case Axis::Z:
-		return glmUtil::CreateTranslate(Vector3(0.0f, 0.0f, position)) * glmUtil::CreateRotateAngle(Vector3(0, 90, 0)); // ‚»‚Ì‚Ü‚ÜXY•½–Ê
+		return glmUtil::CreateTranslate(Vector3(0.0f, 0.0f, position)) * glmUtil::CreateRotateAngle(Vector3(0, 90, 0)); // ãã®ã¾ã¾XYå¹³é¢
 	}
 
 	return Matrix4x4();
@@ -164,12 +164,12 @@ Cone::Cone(float _radius, float _height, int _partition)
 			index2 = 2 + i + 1;
 		}
 
-		m_index.push_back(0);			// æ’[“_
+		m_index.push_back(0);			// å…ˆç«¯ç‚¹
 		m_index.push_back(index1);
 		m_index.push_back(index2);
 
-		// I’[‚ğŒ‹‚Ô
-		m_index.push_back(1);			// ’ê–Ê‚Ì’†S“_
+		// çµ‚ç«¯ã‚’çµã¶
+		m_index.push_back(1);			// åº•é¢ã®ä¸­å¿ƒç‚¹
 		m_index.push_back(index2);
 		m_index.push_back(index1);
 	}
@@ -182,7 +182,7 @@ Vector3 Cone::CalcApex(const Vector3& center, const Vector3& axis, float radius,
 {
 	float tanAlpha = std::tan(MathHelper::ToRadian(semiAngleDeg));
 
-	// tan(alpha)=0 ‚Í‰~’Œˆµ‚¢‚È‚Ì‚ÅƒK[ƒh
+	// tan(alpha)=0 ã¯å††æŸ±æ‰±ã„ãªã®ã§ã‚¬ãƒ¼ãƒ‰
 	if (MathHelper::IsZero(tanAlpha)) {	return center;}
 
 	return center + glm::normalize(axis) * (-radius / tanAlpha);
@@ -198,19 +198,19 @@ Mesh Cone::CreateSideMesh(
 	stacks = std::max(1, stacks);
 
 	// -----------------------------
-	// ²•ûŒü
+	// è»¸æ–¹å‘
 	// -----------------------------
 	Vector3 z = glm::normalize(axis);
 
 	// -----------------------------
-	// beginPoint ‚ğŠî€‚É‹ÇŠÀ•WŒn\’z
-	// x: ‰~ü•ûŒü‚ÌŠî€
-	// y: x ‚Æ z ‚É’¼Œğ‚·‚é‚à‚¤ˆê•û
+	// beginPoint ã‚’åŸºæº–ã«å±€æ‰€åº§æ¨™ç³»æ§‹ç¯‰
+	// x: å††å‘¨æ–¹å‘ã®åŸºæº–
+	// y: x ã¨ z ã«ç›´äº¤ã™ã‚‹ã‚‚ã†ä¸€æ–¹
 	// -----------------------------
 	Vector3 beginDir = beginPoint - baseCenter;
 	beginDir = beginDir - z * glm::dot(beginDir, z);
 
-	// –œˆê beginDir ‚ª²‚É‹ß‚·‚¬‚éê‡‚Ì•ÛŒ¯
+	// ä¸‡ä¸€ beginDir ãŒè»¸ã«è¿‘ã™ãã‚‹å ´åˆã®ä¿é™º
 	if (MathHelper::IsZero(beginDir)) {
 		Vector3 fallback = (std::abs(z.z) < 0.999f) ? Vector3(0, 0, 1) : Vector3(1, 0, 0);
 		beginDir = glm::cross(fallback, z);
@@ -220,8 +220,8 @@ Mesh Cone::CreateSideMesh(
 	Vector3 y = glm::normalize(glm::cross(z, x));
 
 	// -----------------------------
-	// end angle ‚ÌZo
-	// beginPoint ‚ğŠp“x0‚Æ‚İ‚È‚·
+	// end angle ã®ç®—å‡º
+	// beginPoint ã‚’è§’åº¦0ã¨ã¿ãªã™
 	// -----------------------------
 	auto closed = MathHelper::IsSame(beginPoint, endPoint);
 	float endAngle = MathHelper::PI2;
@@ -238,7 +238,7 @@ Mesh Cone::CreateSideMesh(
 	}
 
 	// -----------------------------
-	// ”¼’¸Šp -> ”¼Œa•Ï‰»—Ê
+	// åŠé ‚è§’ -> åŠå¾„å¤‰åŒ–é‡
 	// r(h) = radius - h * tan(alpha)
 	// -----------------------------
 	float tanAlpha = std::tan(MathHelper::ToRadian(semiAngleDeg));
@@ -247,9 +247,9 @@ Mesh Cone::CreateSideMesh(
 		z = -z;
 	}
 	// -----------------------------
-	// ’¸“_¶¬
-	// apex ‚ğŠÜ‚Şê‡AÅã’i”¼Œa‚ª 0 ‹ß–T‚É‚È‚é‚±‚Æ‚ª‚ ‚é
-	// ‚»‚Ìê‡‚àˆê’U‚»‚Ì‚Ü‚Ü¶¬‚·‚é
+	// é ‚ç‚¹ç”Ÿæˆ
+	// apex ã‚’å«ã‚€å ´åˆã€æœ€ä¸Šæ®µåŠå¾„ãŒ 0 è¿‘å‚ã«ãªã‚‹ã“ã¨ãŒã‚ã‚‹
+	// ãã®å ´åˆã‚‚ä¸€æ—¦ãã®ã¾ã¾ç”Ÿæˆã™ã‚‹
 	// -----------------------------
 	const int ringVertexCount = closed ? slices : (slices + 1);
 
@@ -258,7 +258,7 @@ Mesh Cone::CreateSideMesh(
 		float h = height * vTex;
 		float r = radius - h * tanAlpha;
 
-		// •‰”¼Œa‚É‚Í‚µ‚È‚¢
+		// è² åŠå¾„ã«ã¯ã—ãªã„
 		if (r < 0.0f) r = 0.0f;
 		Vector3 center = baseCenter + z * h;
 
@@ -271,9 +271,9 @@ Mesh Cone::CreateSideMesh(
 	}
 
 	// -----------------------------
-	// ƒCƒ“ƒfƒbƒNƒX¶¬
-	// apex s‚ª’×‚ê‚Ä‚¢‚Ä‚àŠî–{‚Í quad •ªŠ„‚Å’£‚é
-	// •K—v‚É‰‚¶‚Ä‘Ş‰»OŠpŒ`‚ğƒXƒLƒbƒv
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ç”Ÿæˆ
+	// apex è¡ŒãŒæ½°ã‚Œã¦ã„ã¦ã‚‚åŸºæœ¬ã¯ quad åˆ†å‰²ã§å¼µã‚‹
+	// å¿…è¦ã«å¿œã˜ã¦é€€åŒ–ä¸‰è§’å½¢ã‚’ã‚¹ã‚­ãƒƒãƒ—
 	// -----------------------------
 	auto AddTriangle = [&](uint32_t a, uint32_t b, uint32_t c)
 	{
@@ -283,7 +283,7 @@ Mesh Cone::CreateSideMesh(
 
 		Vector3 e0 = p1 - p0;
 		Vector3 e1 = p2 - p0;
-		if (MathHelper::IsZero(glm::cross(e0, e1)))	return; // ‘Ş‰»OŠpŒ`‚ÍÌ‚Ä‚é
+		if (MathHelper::IsZero(glm::cross(e0, e1)))	return; // é€€åŒ–ä¸‰è§’å½¢ã¯æ¨ã¦ã‚‹
 
 		if (!orient) {
 			indices.push_back(a);
@@ -346,22 +346,22 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 		m_position.push_back(Vector3(xPos, yPos, zPos));
 	}
 
-	// ’ê–Ê’¸“_ => ã–Ê’¸“_‚Ì‡‚Åì¬
-	// k = 0 < ã–ÊE’ê–Ê•”;
+	// åº•é¢é ‚ç‚¹ => ä¸Šé¢é ‚ç‚¹ã®é †ã§ä½œæˆ
+	// k = 0 < ä¸Šé¢ãƒ»åº•é¢éƒ¨;
 	int k = 2;
 	for (int i = 0; i < slices - 1; i++)
 	{
-		// ’ê–Ê
+		// åº•é¢
 		m_index.push_back(0);
 		m_index.push_back(k);
 		m_index.push_back(k + 2);
 
-		// ã–Ê
+		// ä¸Šé¢
 		m_index.push_back(1);
 		m_index.push_back(k + 3);
 		m_index.push_back(k + 1);
 
-		//// ‘¤–Ê
+		//// å´é¢
 		m_index.push_back(k);
 		m_index.push_back(k + 1);
 		m_index.push_back(k + 2);
@@ -372,17 +372,17 @@ Cylinder::Cylinder(float _baseRad, float _topRad, float _height, int _slices)
 		k += 2;
 	}
 
-	// ’ê–Ê
+	// åº•é¢
 	m_index.push_back(0);
 	m_index.push_back(k);
 	m_index.push_back(2);
 
-	// ã–Ê
+	// ä¸Šé¢
 	m_index.push_back(1);
 	m_index.push_back(3);
 	m_index.push_back(k + 1);
 
-	//// ‘¤–Ê
+	//// å´é¢
 	m_index.push_back(k);
 	m_index.push_back(k + 1);
 	m_index.push_back(2);
@@ -400,21 +400,21 @@ static constexpr float PI = 3.14159265358979323846f;
 static inline float clamp01(float a) { return std::min(1.0f, std::max(0.0f, a)); }
 static inline float wrap01(float a)
 {
-	// [0,1) ‚É•ï‚Şi•‰‚àOKj
+	// [0,1) ã«åŒ…ã‚€ï¼ˆè² ã‚‚OKï¼‰
 	a = a - std::floor(a);
-	// a==1.0 ‚É‚È‚è“¾‚éƒP[ƒX‚ğ”ğ‚¯‚é‚È‚ç­‚µ‚¾‚¯‰Ÿ‚µ–ß‚·‚ªAŠî–{•s—v
+	// a==1.0 ã«ãªã‚Šå¾—ã‚‹ã‚±ãƒ¼ã‚¹ã‚’é¿ã‘ã‚‹ãªã‚‰å°‘ã—ã ã‘æŠ¼ã—æˆ»ã™ãŒã€åŸºæœ¬ä¸è¦
 	return a;
 }
 
 Vector2 Cylinder::UVConverter::toUV(const Vector3& xyz) const
 {
-	// v: ‚‚³•ûŒü
+	// v: é«˜ã•æ–¹å‘
 	const float invH = 1.0f / m_height;
 	float v = xyz.z + (m_height * 0.5f)/ m_height;
 	v = clamp01(v);
 
-	// u: ü•ûŒüiŠp“xj
-	// theta: [-pi, pi]A+X‚ª0
+	// u: å‘¨æ–¹å‘ï¼ˆè§’åº¦ï¼‰
+	// theta: [-pi, pi]ã€+XãŒ0
 	float theta = std::atan2(xyz.y, xyz.x);
 	// [0, 2pi)
 	if (theta < 0.0f) theta += 2.0f * PI;
@@ -430,7 +430,7 @@ Vector3 Cylinder::UVConverter::toXYZ(const Vector2& uv) const
 	const float v = clamp01(uv.y);
 
 
-	// ”¼Œa‚Í‚‚³‚É‰ˆ‚Á‚ÄüŒ`•âŠÔi‰~‘äj
+	// åŠå¾„ã¯é«˜ã•ã«æ²¿ã£ã¦ç·šå½¢è£œé–“ï¼ˆå††éŒå°ï¼‰
 	const float r = m_baseRad + (m_topRad - m_baseRad) * v;
 
 	const float theta = u * (2.0f * PI);
@@ -451,13 +451,13 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 	stacks = std::max(1, stacks);
 
 	Vector3 axisPoint = baseCenter + axis * dot(beginPoint - baseCenter, axis);
-	Vector3 outward = normalize(beginPoint - axisPoint); // ”¼Œa•ûŒü
+	Vector3 outward = normalize(beginPoint - axisPoint); // åŠå¾„æ–¹å‘
 	Vector3 faceNormal = orient ? outward : -outward;
 
-	// ²•ûŒü
+	// è»¸æ–¹å‘
 	Vector3 z = normalize(axis);
 
-	// begin ‚ğŠî€‚Éƒ[ƒJƒ‹À•WŒn\’z
+	// begin ã‚’åŸºæº–ã«ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ç³»æ§‹ç¯‰
 	Vector3 beginDir = beginPoint - baseCenter;
 	beginDir = beginDir - z * dot(beginDir, z);
 	Vector3 x = normalize(beginDir);
@@ -466,7 +466,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 	bool closed = MathHelper::IsSame(beginPoint, endPoint);
 	float endAngle = glm::two_pi<float>();;
 	if (!closed) {
-		// end ‚ÌŠp“x
+		// end ã®è§’åº¦
 		Vector3 endDir = endPoint - baseCenter;
 		endDir = endDir - z * dot(endDir, z);
 		endDir = normalize(endDir);
@@ -477,7 +477,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 
 	float beginAngle = 0.0f;
 
-	// —ñ”‚Í•Â‚¶‚È‚¢‚Ì‚Å +1 •s—v
+	// åˆ—æ•°ã¯é–‰ã˜ãªã„ã®ã§ +1 ä¸è¦
 	const int vertCols = slices + 1;
 	const int vertRows = stacks + 1;
 
@@ -487,7 +487,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 	positions.reserve(vertCols * vertRows);
 	indices.reserve(slices * stacks * 6);
 
-	// ’¸“_¶¬
+	// é ‚ç‚¹ç”Ÿæˆ
 	for (int iy = 0; iy < vertRows; ++iy) {
 		float v = static_cast<float>(iy) / static_cast<float>(stacks);
 		float h = v * height;
@@ -503,7 +503,7 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 		}
 	}
 
-	// ƒCƒ“ƒfƒbƒNƒX
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 	auto indexOf = [vertCols](int row, int col) -> UInt
 	{
 		return static_cast<UInt>(row * vertCols + col);
@@ -547,13 +547,13 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 
 Polyline Cylinder::CreatePolyline(const Vector3& baseCenter, const Vector3& axis, float radius, float height, int slices, int stacks)
 {
-	// ²‚©‚ç’¼ŒğŠî’ê‚ğ\’z
+	// è»¸ã‹ã‚‰ç›´äº¤åŸºåº•ã‚’æ§‹ç¯‰
 	auto Z = glm::normalize(axis);
 	auto tmp = (fabs(Z.x) < 0.9f) ? Vector3(1, 0, 0) : Vector3(0, 1, 0);
 	auto X = glm::normalize(glm::cross(tmp, Z));
 	auto Y = glm::cross(Z, X);
 
-	// ƒOƒŠƒbƒhó‚É’¸“_‚ğŒvZ
+	// ã‚°ãƒªãƒƒãƒ‰çŠ¶ã«é ‚ç‚¹ã‚’è¨ˆç®—
 	Vector<Vector3> top(slices);
 	Vector<Vector3> bottom(slices);
 	for (int i = 0; i < slices; ++i) {
@@ -707,13 +707,13 @@ Vector2 Torus::ToUV(const Vector3& center, const Vector3& xAxis, const Vector3& 
 	float py = glm::dot(d, yAxis);
 	float pz = glm::dot(d, zAxis);
 
-	// ‘å‰~•ûŒü‚ÌŠp“x
+	// å¤§å††æ–¹å‘ã®è§’åº¦
 	float u = std::atan2(py, px);
 
-	// ²‚©‚çŒ©‚½•½–Ê“à‹——£
+	// è»¸ã‹ã‚‰è¦‹ãŸå¹³é¢å†…è·é›¢
 	float rho = std::sqrt(px * px + py * py);
 
-	// ¬‰~•ûŒü‚ÌŠp“x
+	// å°å††æ–¹å‘ã®è§’åº¦
 	float v = std::atan2(pz, rho - majorRadius);
 
 	return Vector2(u, v);
@@ -734,7 +734,7 @@ Mesh Torus::CreateMesh(
 	if (MathHelper::IsZero(z)) { return Mesh(); }
 	//if (!vDir) { z = -z; }
 
-	// refDirection ‚ğ z ‚É’¼Œğ‰»‚µ‚Ä X ‚Æ‚·‚é
+	// refDirection ã‚’ z ã«ç›´äº¤åŒ–ã—ã¦ X ã¨ã™ã‚‹
 	Vector3 x = refDirection - z * glm::dot(refDirection, z);
 	if (MathHelper::IsZero(x)) {
 		x = MathHelper::CreatePerpendicular(z);
@@ -762,12 +762,12 @@ Mesh Torus::CreateMesh(
 			float cu = std::cos(u);
 			float su = std::sin(u);
 
-			// ƒg[ƒ‰ƒX’†S‰~ã‚Ì•ûŒü
+			// ãƒˆãƒ¼ãƒ©ã‚¹ä¸­å¿ƒå††ä¸Šã®æ–¹å‘
 			Vector3 radial = cu * x + su * y;
-			// ’†S‰~ã‚Ì“_
+			// ä¸­å¿ƒå††ä¸Šã®ç‚¹
 			Vector3 circleCenter = center + majorRadius * radial;
 
-			// ¬‰~‚Ì–@ü•ûŒü
+			// å°å††ã®æ³•ç·šæ–¹å‘
 			auto normal = glm::normalize(cv * radial + sv * z);
 			positions.push_back(circleCenter + minorRadius * normal);
 		}
@@ -926,7 +926,7 @@ Vector3 Circle::GetPoint(float radius, const Vector3& u, const Vector3& v, const
 		float endAngle = MathHelper::ToRadian(end - center, u, v, radius);
 		delta = MathHelper::NormalizePI(endAngle - beginAngle);
 	}
-	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
+	// å††å¼§ã‚’åˆ†å‰²ã—ã¦ç‚¹ã‚’ç”Ÿæˆ
 	float angle = beginAngle + delta * parameter;
 	return Vector3(center + radius * (std::cos(angle) * u + std::sin(angle) * v));
 }
@@ -949,7 +949,7 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& u, const V
 	float endAngle = MathHelper::ToRadian(end - center, u, v, radius);
 
 	float delta = MathHelper::NormalizePI(endAngle - beginAngle);
-	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
+	// å††å¼§ã‚’åˆ†å‰²ã—ã¦ç‚¹ã‚’ç”Ÿæˆ
 	for (int i = 0; i < pointNum; i++) {
 		float t = i / (float)pointNum;
 		float angle = beginAngle + t * delta;
@@ -964,7 +964,7 @@ Polyline Circle::CreateArc(float radius, int pointNum, const Vector3& center, fl
 {
 	Vector<Vector3> points;
 	float delta = MathHelper::NormalizePI(endAngle - beginAngle);
-	// ‰~ŒÊ‚ğ•ªŠ„‚µ‚Ä“_‚ğ¶¬
+	// å††å¼§ã‚’åˆ†å‰²ã—ã¦ç‚¹ã‚’ç”Ÿæˆ
 	for (int i = 0; i <= pointNum; i++) {
 		float t = i / (float)pointNum;
 		float angle = beginAngle + t * delta;

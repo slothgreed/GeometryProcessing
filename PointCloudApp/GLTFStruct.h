@@ -37,7 +37,7 @@ public:
 		// int jointNode[0];
 		// mat4x4 inverseBindMatrix[0];
 		// mat4x4 jointMatrix[0]
-		// EEE
+		// ãƒ»ãƒ»ãƒ»
 		// int jointNode[n];
 		// mat4x4 inverseBindMatrix[n];
 		// mat4x4 jointMatrix[n];
@@ -131,7 +131,7 @@ protected:
 	Vector<int> m_child;
 };
 
-// SSBO‚ÅShader‚Åg‚Á‚Ä‚éB
+// SSBOã§Shaderã§ä½¿ã£ã¦ã‚‹ã€‚
 struct GLTFMaterial
 {
 	static const int NO_TEXTURE = -1;
@@ -237,9 +237,9 @@ public:
 		std::vector<Vector4> transform;
 	};
 
-	// data‚É‚Ítimer,transform.x,transform.y,transform.z‚ª“ü‚é
-	// Å‘åƒTƒCƒY‚Í63
-	// SSBO“¯—l256‚É‚µ‚Ä‚¢‚éB
+	// dataã«ã¯timer,transform.x,transform.y,transform.zãŒå…¥ã‚‹
+	// æœ€å¤§ã‚µã‚¤ã‚ºã¯63
+	// SSBOåŒæ§˜256ã«ã—ã¦ã„ã‚‹ã€‚
 	struct SamplerGpuObject
 	{
 		SamplerGpuObject()

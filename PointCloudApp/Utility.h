@@ -50,7 +50,7 @@ public:
 
 	static Vector3 CreateRandom();
 	static Vector4 CreateRandom4();
-	static Vector3 CreatePrimary(int index); // Œ´F
+	static Vector3 CreatePrimary(int index); // åŸè‰²
 	static Vector4 CreatePrimary4(int index);
 	static Vector3 CreatePseudo(unsigned int value, unsigned int maxValue);
 	static Vector3 CreatePseudo(float value, float minValue, float maxValue);

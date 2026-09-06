@@ -604,7 +604,7 @@ Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 		const float sdfX = GetSDF(voxel, Vector3i(x + 1, y, z));
 		const float sdfY = GetSDF(voxel, Vector3i(x, y + 1, z));
 		const float sdfZ = GetSDF(voxel, Vector3i(x, y, z + 1));
-		// X •ûŒü
+		// X æ–¹å‘
 		if (y > 0 && z > 0 && IsBoundary(sdf, sdfX)) {
 			const Vertex& c0 = voxelVertex.GetData(x, y - 1, z - 1);
 			const Vertex& c1 = voxelVertex.GetData(x, y, z - 1);
@@ -613,7 +613,7 @@ Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 			AddQuad(indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
 		}
 
-		// Y •ûŒü
+		// Y æ–¹å‘
 		if (x > 0 && z > 0 && IsBoundary(sdf, sdfY)) {
 			const Vertex& c0 = voxelVertex.GetData(x - 1, y, z - 1);
 			const Vertex& c1 = voxelVertex.GetData(x - 1, y, z);
@@ -622,7 +622,7 @@ Mesh DualContouring::CreateMesh(const VoxelF& voxel)
 			AddQuad(indices, c0.indices, c1.indices, c2.indices, c3.indices, IsInside(sdf));
 		}
 
-		// Z •ûŒü
+		// Z æ–¹å‘
 		if (x > 0 && y > 0 && IsBoundary(sdf, sdfZ)) {
 			const Vertex& c0 = voxelVertex.GetData(x - 1, y - 1, z);
 			const Vertex& c1 = voxelVertex.GetData(x, y - 1, z);

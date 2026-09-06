@@ -169,7 +169,7 @@ void AIDataGenerator::SavePointCloud(const String& folderName, int sampleCount)
     }
 
     /*
-        ‘z’è\‘¢:
+        æƒ³å®šæ§‹é€ :
 
         ModelNet40/
             airplane/
@@ -218,8 +218,8 @@ void AIDataGenerator::ConvertTrainFolder(const fs::path& trainFolder,int sampleC
         }
 
         /*
-            train”z‰º‚ÉƒTƒuƒtƒHƒ‹ƒ_‚ª‚ ‚Á‚Ä‚àA
-            ‘Š‘Î\‘¢‚ðo—Í‘¤‚ÖˆÛŽ‚·‚éB
+            trainé…ä¸‹ã«ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ãŒã‚ã£ã¦ã‚‚ã€
+            ç›¸å¯¾æ§‹é€ ã‚’å‡ºåŠ›å´ã¸ç¶­æŒã™ã‚‹ã€‚
         */
         const fs::path relativePath = fs::relative(sourceFile, trainFolder);
 

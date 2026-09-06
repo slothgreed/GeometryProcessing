@@ -71,26 +71,26 @@ Vector<String> STEPString::SplitValue(const String& value)
 {	
 	Vector<String> result;
 	size_t start = 0;
-	int depth = 0;  // Š‡ŒÊ‚Ì[‚³
+	int depth = 0;  // æ‹¬å¼§ã®æ·±ã•
 	for (size_t i = 0; i < value.size(); ++i) {
 		char ch = value[i];
 
-		// Š‡ŒÊ‚ÌŠJn
+		// æ‹¬å¼§ã®é–‹å§‹
 		if (ch == '(') {
-			if (depth == 0) start = i + 1;  // Å‰‚Ì '(' ‚ÌŒã‚©‚çŠJn
+			if (depth == 0) start = i + 1;  // æœ€åˆã® '(' ã®å¾Œã‹ã‚‰é–‹å§‹
 			++depth;
-			// Š‡ŒÊ‚ÌI—¹
+			// æ‹¬å¼§ã®çµ‚äº†
 			} else if (ch == ')') {
 				--depth;
 				if (depth == 0) {
-					// ÅŠO‚ÌŠ‡ŒÊ‚ª•Â‚¶‚½‚çƒŠƒXƒg‚Æ‚µ‚Ä’Ç‰Á
+					// æœ€å¤–ã®æ‹¬å¼§ãŒé–‰ã˜ãŸã‚‰ãƒªã‚¹ãƒˆã¨ã—ã¦è¿½åŠ 
 					auto removeWhiteSpaceStr = StringUtility::TrimWhiteSpace(value.substr(start, i - start));
 					result.push_back(removeWhiteSpaceStr);
 				}
 			}
-			// Š‡ŒÊ“à‚ÌƒJƒ“ƒ}‚Å‹æØ‚è
+			// æ‹¬å¼§å†…ã®ã‚«ãƒ³ãƒã§åŒºåˆ‡ã‚Š
 			else if (depth == 1 && ch == ',' && (i == start || value[i - 1] != '\\')) {
-			// ƒJƒ“ƒ}‚ğ‹æØ‚è‚Æ‚µ‚Ä•ª‚¯‚éiƒGƒXƒP[ƒv•¶š‚àˆ—j
+			// ã‚«ãƒ³ãƒã‚’åŒºåˆ‡ã‚Šã¨ã—ã¦åˆ†ã‘ã‚‹ï¼ˆã‚¨ã‚¹ã‚±ãƒ¼ãƒ—æ–‡å­—ã‚‚å‡¦ç†ï¼‰
 			auto removeWhiteSpaceStr = StringUtility::TrimWhiteSpace(value.substr(start, i - start));
 			result.push_back(removeWhiteSpaceStr);
 			start = i + 1;
@@ -118,10 +118,10 @@ bool STEPString::ValueToRef(const String& str, int& value)
 	if (IsAsterisk(str)) { value = STEPEnum::ASTERISK; return true; }
 	if (IsDollar(str)) { value = STEPEnum::DOLL; return true; }
 
-	// æ“ª‚ª '#' ‚Ìê‡‚Íœ‹
+	// å…ˆé ­ãŒ '#' ã®å ´åˆã¯é™¤å»
 	auto numStr = (str[0] == '#') ? str.substr(1) : str;
 
-	// atoi() ‚ğg‚Á‚Ä®”•ÏŠ·
+	// atoi() ã‚’ä½¿ã£ã¦æ•´æ•°å¤‰æ›
 
 	value = StringUtility::ToInt(numStr.c_str());
 	return true;
@@ -145,7 +145,7 @@ bool STEPString::IsAsterisk(const String& str)
 	return StringUtility::Contains(str, "*");
 }
 
-// •¶š‚ªƒhƒ‹‹L†‚©”»’è
+// æ–‡å­—ãŒãƒ‰ãƒ«è¨˜å·ã‹åˆ¤å®š
 bool STEPString::IsDollar(const String& str)
 {
 	return StringUtility::Contains(str, "$");
@@ -270,7 +270,7 @@ void STEPEntityBase::NotDefineEntity(const String& str)
 		}
 	}
 
-	// ŒŸ“¢‚µ‚Ä‚¢‚È‚¢ƒGƒ“ƒeƒBƒeƒB
+	// æ¤œè¨ã—ã¦ã„ãªã„ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£
 	printf("%s\n", str.data());
 }
 
@@ -1234,10 +1234,10 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchConicalEdge(const STE
 		}
 	}
 
-	// •êü1–{‚Ì
+	// æ¯ç·š1æœ¬ã®æ™‚
 	if (setBegin && !setEnd) { ret.end = ret.begin; }
 	if (!setBegin && setEnd) { ret.begin = ret.end; }
-	// •êü‚ª‚È‚¢‚Æ‚«
+	// æ¯ç·šãŒãªã„ã¨ã
 	if (!setBegin && !setEnd) {
 		ret.begin = pConical->axis.second->data.point + pConical->axis.second->data.U() * pConical->radius;
 		ret.end = ret.begin;
@@ -1269,10 +1269,10 @@ STEPFaceBase::Data::ToroidalEdge STEPFaceBase::Data::SearchToroidalEdge(const ST
 			auto v2 = MathHelper::UnWrapDiffRad(midAngle, beginAngle);
 
 			if (MathHelper::IsSameRad(diff1.x, 0.0f) && MathHelper::IsSameRad(diff2.x, 0.0f)) {
-				// v •ûŒü
+				// v æ–¹å‘
 				ret.vDir = (v2 - v1) > 0.0f;
 			} else if(MathHelper::IsSameRad(diff1.y, 0.0f) && MathHelper::IsSameRad(diff2.y, 0.0f)){
-				// u •ûŒü
+				// u æ–¹å‘
 				ret.uDir = (v2 - v1) > 0.0f;
 			} else {
 				Assert::Failed();
@@ -1386,10 +1386,10 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const ST
 		}
 	}
 
-	// •êü1–{‚Ì
+	// æ¯ç·š1æœ¬ã®æ™‚
 	if (setBegin && !setEnd) { ret.end = ret.begin; }
 	if (!setBegin && setEnd) { ret.begin = ret.end; }
-	// •êü‚ª‚È‚¢‚Æ‚«
+	// æ¯ç·šãŒãªã„ã¨ã
 	if (!setBegin && !setEnd) {
 		ret.begin = pCylinder->axis.second->data.point + pCylinder->axis.second->data.U() * pCylinder->rad;
 		ret.end = ret.begin;
@@ -1779,7 +1779,7 @@ void STEPBSplineCurve::Fetch(STEPStruct& step, const STEPString& stepStr)
 		} else {
 			if (StringUtility::Equal(entity.value, "()") ||
 				StringUtility::Equal(entity.value, "('')")) {
-				// value –³‹ƒpƒ^[ƒ“
+				// value ç„¡è¦–ãƒ‘ã‚¿ãƒ¼ãƒ³
 			} else {
 				Assert::Failed();
 			}
@@ -2042,7 +2042,7 @@ void STEPBSplineSurface::Fetch(STEPStruct& step, const STEPString& stepStr)
 		} else {
 			if (StringUtility::Equal(entity.value, "()") ||
 				StringUtility::Equal(entity.value, "('')")) {
-				// value –³‹ƒpƒ^[ƒ“
+				// value ç„¡è¦–ãƒ‘ã‚¿ãƒ¼ãƒ³
 			} else {
 				Assert::Failed();
 			}
@@ -2173,7 +2173,7 @@ void STEPShapeRepresentationRelationShip::Fetch(STEPStruct& step, const STEPStri
 }
 void STEPShapeRepresentationRelationShip::FetchData(const STEPStruct& step)
 {
-	// ref0, ref1 ‚Í—¼•û shapeRepresentation ‚©A—¼•û advancedBrepShapeRepresentation ‚Ì‚Ç‚¿‚ç‚©‚É‚È‚é‚Í‚¸
+	// ref0, ref1 ã¯ä¸¡æ–¹ shapeRepresentation ã‹ã€ä¸¡æ–¹ advancedBrepShapeRepresentation ã®ã©ã¡ã‚‰ã‹ã«ãªã‚‹ã¯ãš
 	shapeRepresentation = FindSetData2(step, step.shapeRepresentation, ref0);
 	if (shapeRepresentation == nullptr) {
 		shapeRepresentation = FindSetData2(step, step.shapeRepresentation, ref1);

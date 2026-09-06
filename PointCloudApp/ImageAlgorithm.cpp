@@ -39,12 +39,12 @@ Polyline ImageAlgorithm::CreateOutlineByMooreNeighbor(const PixelData& data, int
 		for (int i = 0; i < Neighbor8::Size(); ++i) {
 			if (neighbor8[i].x == d.x && neighbor8[i].y == d.y) return i;
 		}
-		return 6; // ‡‚í‚È‚¯‚ê‚ÎW‚É‚µ‚Ä‚¨‚­iŠî–{‚±‚±‚É‚Í—ˆ‚È‚¢j
+		return 6; // åˆã‚ãªã‘ã‚Œã°Wã«ã—ã¦ãŠãï¼ˆåŸºæœ¬ã“ã“ã«ã¯æ¥ãªã„ï¼‰
 	};
 
-	// b0 = seed, c0 ‚Í seed ‚Ì¶ (W) ‚ðŠO‘¤ŽQÆ“_‚Æ‚µ‚Ä’u‚­‚Ì‚ª’è”Ô
+	// b0 = seed, c0 ã¯ seed ã®å·¦ (W) ã‚’å¤–å´å‚ç…§ç‚¹ã¨ã—ã¦ç½®ãã®ãŒå®šç•ª
 	Vector2i b = seed;
-	Vector2i c = Vector2i(seed.x - 1, seed.y);   // ‰æ‘œŠO‚Å‚àOKiŠO‘¤ŽQÆ“_j
+	Vector2i c = Vector2i(seed.x - 1, seed.y);   // ç”»åƒå¤–ã§ã‚‚OKï¼ˆå¤–å´å‚ç…§ç‚¹ï¼‰
 
 	const Vector2i b0 = b;
 	const Vector2i c0 = c;
@@ -52,9 +52,9 @@ Polyline ImageAlgorithm::CreateOutlineByMooreNeighbor(const PixelData& data, int
 	polyline.push_back(Vector3((float)b.x, (float)b.y, 0.0f));
 	const int maxSteps = data.width * data.height * 8;
 	for (int step = 0; step < maxSteps; ++step) {
-		// b‚©‚çŒ©‚½c‚Ì•ûŒü
+		// bã‹ã‚‰è¦‹ãŸcã®æ–¹å‘
 		int dirBC = dirFromTo(b, c);
-		// c‚ÌŽŸ(ŽžŒv‰ñ‚è)‚©‚ç’TõŠJŽn
+		// cã®æ¬¡(æ™‚è¨ˆå›žã‚Š)ã‹ã‚‰æŽ¢ç´¢é–‹å§‹
 		int startDir = Neighbor8::Next(dirBC);
 
 		bool found = false;
@@ -65,13 +65,13 @@ Polyline ImageAlgorithm::CreateOutlineByMooreNeighbor(const PixelData& data, int
 			int d = Neighbor8::Index(startDir + k);
 			Vector2i n = b + neighbor8[d];
 
-			// ‘OŒi‚Å‚ ‚é‚±‚Æi•K—v‚È‚ç‹«ŠE§ŒÀ‚à“ü‚ê‚éj
+			// å‰æ™¯ã§ã‚ã‚‹ã“ã¨ï¼ˆå¿…è¦ãªã‚‰å¢ƒç•Œåˆ¶é™ã‚‚å…¥ã‚Œã‚‹ï¼‰
 			if (!IsBoundPixel(data,n,neighbor8)) continue;
 
-			// ŽŸ‚Ì‹«ŠE“_
+			// æ¬¡ã®å¢ƒç•Œç‚¹
 			bNext = n;
 
-			// ŽŸ‚Ìc‚ÍuŒ©‚Â‚¯‚½•ûŒü‚Ì1‚Â‘Oi”½ŽžŒv‰ñ‚è‘¤jv’¼‘O‚ÉŒ©‚Ä‚¢‚½“_
+			// æ¬¡ã®cã¯ã€Œè¦‹ã¤ã‘ãŸæ–¹å‘ã®1ã¤å‰ï¼ˆåæ™‚è¨ˆå›žã‚Šå´ï¼‰ã€ï¼ç›´å‰ã«è¦‹ã¦ã„ãŸç‚¹
 			int prev = Neighbor8::Prev(d);
 			cNext = b + neighbor8[prev];
 
@@ -87,10 +87,10 @@ Polyline ImageAlgorithm::CreateOutlineByMooreNeighbor(const PixelData& data, int
 
 		polyline.push_back(Vector3((float)b.x, (float)b.y, 0.0f));
 
-		// I—¹ðŒFb‚Æc‚ªŠJŽnó‘Ô‚É–ß‚Á‚½‚çŠ®—¹id—vj
+		// çµ‚äº†æ¡ä»¶ï¼šbã¨cãŒé–‹å§‹çŠ¶æ…‹ã«æˆ»ã£ãŸã‚‰å®Œäº†ï¼ˆé‡è¦ï¼‰
 		if (b == b0) break;
 
-		// ”O‚Ì‚½‚ß‚ÌˆÀ‘S•Ù
+		// å¿µã®ãŸã‚ã®å®‰å…¨å¼
 		if ((int)polyline.size() >= data.width * data.height) break;
 		if (loopNum == (int)polyline.size()) break;
 	}

@@ -43,7 +43,7 @@ public:
 	Cone(float _radius, float _height, int _partition);
 	~Cone() {};
 
-	// ’¸Šp
+	// é ‚è§’
 	static Vector3 CalcApex(const Vector3& center, const Vector3& axis, float radius, float semiAngleDeg);
 	static Mesh CreateSideMesh(
 		const Vector3& baseCenter, const Vector3& axis,

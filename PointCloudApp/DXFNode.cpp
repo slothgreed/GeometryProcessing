@@ -49,7 +49,7 @@ DXFStruct* DXFLoader::Load(const String& name)
 
 DXFPoint DXFLoader::ParsePoint(const Vector<String>& lines, size_t& index)
 {
-	// Vertex‚Æ“¯“™‚È‚Ì‚ÅAParseVertex‚ğ—˜—p‚·‚éB
+	// Vertexã¨åŒç­‰ãªã®ã§ã€ParseVertexã‚’åˆ©ç”¨ã™ã‚‹ã€‚
 	auto vertex = ParseVertex(lines, index);
 	DXFPoint point;
 	point.layerName = vertex.layerName;

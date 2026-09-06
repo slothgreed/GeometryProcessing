@@ -111,7 +111,7 @@ private:
 	struct Node
 	{
 		Matrix4x4 world = Matrix4x4(1.0f);
-		Vector<GPUShell*> gpuShell; // 描画はこちらを参照する
+		Vector<GPUShell*> gpuShell; // 謠冗判縺ｯ縺薙■繧峨ｒ蜿ら�ｧ縺吶ｋ
 		Vector<Node> child;
 	};
 
@@ -125,7 +125,7 @@ private:
 	Node m_root;
 	STEPUIContext uiContext;
 	UI m_ui;
-	std::unordered_map<int, GPUShell> m_gpu; // リソース
+	std::unordered_map<int, GPUShell> m_gpu; // 繝ｪ繧ｽ繝ｼ繧ｹ
 	Vector<STEPShape> m_shape;
 	Matrix4x4 m_rotateMatrix;
 	Shared<STEPStruct> m_step;

@@ -12,9 +12,9 @@ void ServerPipe::Connect()
         PIPE_TYPE_MESSAGE |
         PIPE_READMODE_MESSAGE |
         PIPE_WAIT,
-        1,                  // Å‘åÚ‘±”
-        4096,               // ‘—Mƒoƒbƒtƒ@
-        4096,               // óMƒoƒbƒtƒ@
+        1,                  // æœ€å¤§æ¥ç¶šæ•°
+        4096,               // é€ä¿¡ãƒãƒƒãƒ•ã‚¡
+        4096,               // å—ä¿¡ãƒãƒƒãƒ•ã‚¡
         0,
         nullptr);
 
@@ -27,7 +27,7 @@ void ServerPipe::Connect()
 
     BOOL connected = ConnectNamedPipe(m_hPipe, nullptr);
 
-    // ƒNƒ‰ƒCƒAƒ“ƒg‚ªŠù‚ÉÚ‘±Ï‚İ‚Ìê‡
+    // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãŒæ—¢ã«æ¥ç¶šæ¸ˆã¿ã®å ´åˆ
     if (!connected && GetLastError() == ERROR_PIPE_CONNECTED) {
         connected = TRUE;
     }

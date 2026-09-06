@@ -67,7 +67,7 @@ String FileUtility::GetExtension(const String& filePath)
 String FileUtility::RemoveExtension(const String& filePath)
 {
 	int index = (int)filePath.find_last_of('.');
-	if (index == String::npos)	return filePath; // Šg’£q‚È‚µ
+	if (index == String::npos)	return filePath; // æ‹¡å¼µå­ãªã—
 	return filePath.substr(0, index);
 }
 
@@ -75,9 +75,9 @@ String FileUtility::GetFileName(const String& filePath)
 {
 	try {
 		fs::path p(filePath);
-		return p.filename().string(); // ƒtƒ@ƒCƒ‹–¼‚Ì‚İ‚ğ•Ô‚·
+		return p.filename().string(); // ãƒ•ã‚¡ã‚¤ãƒ«åã®ã¿ã‚’è¿”ã™
 	} catch (const fs::filesystem_error& e) {
-		// ƒpƒX‚ª•s³‚È‚Ç‚Ìê‡‚Í‹ó•¶š‚ğ•Ô‚·
+		// ãƒ‘ã‚¹ãŒä¸æ­£ãªã©ã®å ´åˆã¯ç©ºæ–‡å­—ã‚’è¿”ã™
 		return "";
 	}
 }
@@ -125,7 +125,7 @@ int FileUtility::FileNum(const String& directory)
 			}
 		}
 	} catch (const fs::filesystem_error& e) {
-		// ƒfƒBƒŒƒNƒgƒŠ‚ª‘¶İ‚µ‚È‚¢‚È‚Ç‚Ì—áŠO‚É‘Î‰
+		// ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ãªã„ãªã©ã®ä¾‹å¤–ã«å¯¾å¿œ
 		return -1;
 	}
 
@@ -213,29 +213,29 @@ std::pair<String, String> StringUtility::SplitAtFirst(const String& str, char de
 {
 	size_t pos = str.find(delimiter);
 	if (pos == std::string::npos) {
-		return std::pair<String, String>(); // ‹æØ‚è•¶š‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡
+		return std::pair<String, String>(); // åŒºåˆ‡ã‚Šæ–‡å­—ãŒè¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸå ´åˆ
 	}
 
-	auto left = str.substr(0, pos);         // ‹æØ‚è•¶š‚Ì‘O‚Ì•”•ª
-	auto right = str.substr(pos + 1);      // ‹æØ‚è•¶š‚ÌŒã‚Ì•”•ª
+	auto left = str.substr(0, pos);         // åŒºåˆ‡ã‚Šæ–‡å­—ã®å‰ã®éƒ¨åˆ†
+	auto right = str.substr(pos + 1);      // åŒºåˆ‡ã‚Šæ–‡å­—ã®å¾Œã®éƒ¨åˆ†
 	return std::make_pair(left, right);
 }
 
 String StringUtility::TrimWhiteSpace(const String& str)
 {
-	size_t start = str.find_first_not_of(" \t\n\r\f\v"); // ‹ó”’‚Å‚È‚¢Å‰‚ÌˆÊ’u
-	if (start == std::string::npos) return ""; // ‚·‚×‚Ä‹ó”’‚È‚ç‹ó•¶š‚ğ•Ô‚·
+	size_t start = str.find_first_not_of(" \t\n\r\f\v"); // ç©ºç™½ã§ãªã„æœ€åˆã®ä½ç½®
+	if (start == std::string::npos) return ""; // ã™ã¹ã¦ç©ºç™½ãªã‚‰ç©ºæ–‡å­—ã‚’è¿”ã™
 
-	size_t end = str.find_last_not_of(" \t\n\r\f\v"); // ‹ó”’‚Å‚È‚¢ÅŒã‚ÌˆÊ’u
+	size_t end = str.find_last_not_of(" \t\n\r\f\v"); // ç©ºç™½ã§ãªã„æœ€å¾Œã®ä½ç½®
 	return str.substr(start, end - start + 1);
 }
 
 String StringUtility::Remove(const String& str, char del)
 {
-	// str‚©‚çdel‚ğíœ‚µ‚½V‚µ‚¢•¶š—ñ‚ğì¬
+	// strã‹ã‚‰delã‚’å‰Šé™¤ã—ãŸæ–°ã—ã„æ–‡å­—åˆ—ã‚’ä½œæˆ
 	String result = str;
 
-	// del‚ğíœistd::remove‚Å—v‘f‚ğˆÚ“®‚µAerase‚ÅÀÛ‚Éíœj
+	// delã‚’å‰Šé™¤ï¼ˆstd::removeã§è¦ç´ ã‚’ç§»å‹•ã—ã€eraseã§å®Ÿéš›ã«å‰Šé™¤ï¼‰
 	result.erase(std::remove(result.begin(), result.end(), del), result.end());
 
 	return result;
@@ -263,9 +263,9 @@ String StringUtility::After(const String& str, char del)
 {
 	size_t pos = str.find(del);
 	if (pos != std::string::npos) {
-		return str.substr(pos + 1);  // del‚ÌŸ‚Ì•¶š‚©‚çÅŒã‚Ü‚Å
+		return str.substr(pos + 1);  // delã®æ¬¡ã®æ–‡å­—ã‹ã‚‰æœ€å¾Œã¾ã§
 	}
-	return "";  // del‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡‚Í‹ó•¶š—ñ‚ğ•Ô‚·
+	return "";  // delãŒè¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸå ´åˆã¯ç©ºæ–‡å­—åˆ—ã‚’è¿”ã™
 }
 
 String StringUtility::After(const String& str, int pos)
@@ -277,7 +277,7 @@ int StringUtility::FindFirst(const String& str, char del)
 {
 	size_t pos = str.find(del);
 	if (pos != std::string::npos) {
-		return pos;  // del‚ÌŸ‚Ì•¶š‚©‚çÅŒã‚Ü‚Å
+		return pos;  // delã®æ¬¡ã®æ–‡å­—ã‹ã‚‰æœ€å¾Œã¾ã§
 	}
 
 	return -1;
@@ -285,16 +285,16 @@ int StringUtility::FindFirst(const String& str, char del)
 
 String StringUtility::Before(const String& str, int pos)
 {
-	return str.substr(0, pos);  // delimiter‚æ‚è‘O‚Ì•”•ª
+	return str.substr(0, pos);  // delimiterã‚ˆã‚Šå‰ã®éƒ¨åˆ†
 }
 
 String StringUtility::Before(const String& str, char del)
 {
 	size_t pos = str.find(del);
 	if (pos != std::string::npos) {
-		return str.substr(0, pos);  // delimiter‚æ‚è‘O‚Ì•”•ª
+		return str.substr(0, pos);  // delimiterã‚ˆã‚Šå‰ã®éƒ¨åˆ†
 	}
-	return str;  // delimiter‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡‚Í‘S‘Ì‚ğ•Ô‚·
+	return str;  // delimiterãŒè¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸå ´åˆã¯å…¨ä½“ã‚’è¿”ã™
 }
 
 int StringUtility::ToInt(const String& str)

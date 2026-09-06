@@ -11,8 +11,8 @@ namespace KI
 #define FIND_SET_DATA(a,b,c,d) { auto x = step.c.find(d); if(x != step.c.end()) { a.b = x->second->ToData(step);}}
 #define FIND_SET_DATA2(a,b,c) { auto x = step.b.find(c); if(x == step.b.end()) {a = x->second->ToData(step);}}
 
-// Œ`ó‚É•s•K—v‚ÈEntity
-// ƒ}ƒeƒŠƒAƒ‹î•ñ‚àŠÜ‚Ü‚ê‚éB
+// å½¢çŠ¶ã«ä¸å¿…è¦ãªEntity
+// ãƒãƒ†ãƒªã‚¢ãƒ«æƒ…å ±ã‚‚å«ã¾ã‚Œã‚‹ã€‚
 static const Vector<String> g_ignoreEqualEntity = {
 	"ACTION_DIRECTIVE",
 	"ACTION_METHOD",
@@ -33,7 +33,7 @@ static const Vector<String> g_ignoreEqualEntity = {
 	"FACE_SHAPE_REPRESENTATION",
 	"FILL_AREA_STYLE",
 	"FILL_AREA_STYLE_COLOUR",
-	"GEOMETRIC_CURVE_SET", // ’‹L¡–@—p3D‚Å‚Í‚È‚¢B
+	"GEOMETRIC_CURVE_SET", // æ³¨è¨˜å¯¸æ³•ç”¨3Dã§ã¯ãªã„ã€‚
 	"HOLE_BOTTOM",
 	"INSTANCED_FEATURE",
 	"LENGTH_MEASURE_WITH_UNIT",
@@ -71,7 +71,7 @@ static const Vector<String> g_ignoreEqualEntity = {
 	"TOLERANCE_VALUE",
 	"VEE_PROFILE",
 	"VERSIONED_ACTION_REQUEST",
-	"VERTEX_LOOP" // Šô‰½‚¾‚ª‚ ‚Á‚Ä‚àˆÓ–¡‚Í‚È‚¢B
+	"VERTEX_LOOP" // å¹¾ä½•ã ãŒã‚ã£ã¦ã‚‚æ„å‘³ã¯ãªã„ã€‚
 
 };
 
@@ -108,9 +108,9 @@ static const TypeName* Cast(const STEPEntityBase* pBase) \
     return (pBase->GetType() == TypeName::ClassType) ? static_cast<const TypeName*>(pBase) : nullptr; \
 }\
 
-// 1’i–ÚiŒ‹‡ê—pj
+// 1æ®µç›®ï¼ˆçµåˆå°‚ç”¨ï¼‰
 #define MACRO_CONCAT(a, b) a##b
-// 2’i–Úi“WŠJ‚³‚¹‚Ä‚©‚çŒ‹‡j
+// 2æ®µç›®ï¼ˆå±•é–‹ã•ã›ã¦ã‹ã‚‰çµåˆï¼‰
 #define MACRO_CONCAT_EXPAND(a, b) MACRO_CONCAT(a, b)
 
 #define STEP_DEFINE_HPP(TypeName,_EntityName) \
@@ -190,7 +190,7 @@ struct STEPString
 	static bool ValueToRef(const String& str, int& value);
 	static bool ValueToFloat(const String& str, float& value);
 	static bool IsAsterisk(const String& str);
-	// •¶š‚ªƒhƒ‹‹L†‚©”»’è
+	// æ–‡å­—ãŒãƒ‰ãƒ«è¨˜å·ã‹åˆ¤å®š
 	static bool IsDollar(const String& str);
 	static bool ValueToBool(const String& str, bool& value);
 	static bool ValueToLogical(const String& str, STEPLogicalType& value);
@@ -366,10 +366,10 @@ struct STEPAxis2Placement3D : public STEPEntityBase
 				return Matrix4x4(1.0f);
 			}
 		}
-		// Z²
+		// Zè»¸
 		Vector3 Z = glm::normalize(data.dir1);
 
-		// X²iZ‚É’¼Œğ‰»j
+		// Xè»¸ï¼ˆZã«ç›´äº¤åŒ–ï¼‰
 		Vector3 X = glm::normalize(Vector3(
 			data.dir2.x - glm::dot(data.dir2, Z) * Z.x,
 			data.dir2.y - glm::dot(data.dir2, Z) * Z.y,
@@ -849,7 +849,7 @@ struct STEPQuasiUniformCurve : public STEPEntityBase
 	void ShowUI(STEPUIContext& ui);
 
 	Polyline CreatePolyline(const Vector3& begin, const Vector3& end) const;
-	int degree = 1; // ŸŒ³
+	int degree = 1; // æ¬¡å…ƒ
 	Vector<std::pair<int, STEPPoint*>> points;
 	STEPBSplineCurveFormType form = STEPBSplineCurveFormType::UNSPECIFIED;
 	STEPLogicalType intersect = STEPLogicalType::UNDEFINED;

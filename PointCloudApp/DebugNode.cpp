@@ -119,22 +119,22 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		Vector<Vector3> outer;
 		Vector<Vector3> outerColor;
 
-		// ŠO‘¤F¯Œ^‚Á‚Û‚¢Œ`‚ğ for •¶‚Åì¬
+		// å¤–å´ï¼šæ˜Ÿå‹ã£ã½ã„å½¢ã‚’ for æ–‡ã§ä½œæˆ
 		int outerCount = 10;
-		float outerRadius1 = 100.0f; // ‘å‚«‚¢”¼Œa
-		float outerRadius2 = 60.0f;  // ¬‚³‚¢”¼Œa
+		float outerRadius1 = 100.0f; // å¤§ãã„åŠå¾„
+		float outerRadius2 = 60.0f;  // å°ã•ã„åŠå¾„
 		for (int i = 0; i < outerCount; i++) {
 			float angle = i * (M_PI * 2.0f / outerCount);
 			float radius = (i % 2 == 0) ? outerRadius1 : outerRadius2;
 			outer.push_back(Vector3(radius * cos(angle), radius * sin(angle), 0));
-			outerColor.push_back(Vector3(1, 0, 0)); // Ô
+			outerColor.push_back(Vector3(1, 0, 0)); // èµ¤
 		}
 		primitiveA->SetPosition(std::move(outer));
 		primitiveA->SetColor(std::move(outerColor));
 		primitiveA->SetType(GL_LINE_LOOP);
 
 
-		// “à‘¤F‰~Œ`‚É‹ß‚¢‘½ŠpŒ`
+		// å†…å´ï¼šå††å½¢ã«è¿‘ã„å¤šè§’å½¢
 		auto primitiveB = std::make_shared<Primitive>();
 		Vector<Vector3> inner;
 		Vector<Vector3> innerColor;
@@ -144,7 +144,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		for (int i = 0; i < innerCount; i++) {
 			float angle = i * (M_PI * 2.0f / innerCount);
 			inner.push_back(Vector3(innerRadius * cos(angle), innerRadius * sin(angle), 0));
-			innerColor.push_back(Vector3(0, 1, 0)); // —Î
+			innerColor.push_back(Vector3(0, 1, 0)); // ç·‘
 		}
 		primitiveB->SetPosition(std::move(inner));
 		primitiveB->SetColor(std::move(innerColor));
@@ -156,7 +156,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 	}
 
 	if (m_ui.pattern == 2) {
-		// ŠO‘¤F˜ZŠpŒ`
+		// å¤–å´ï¼šå…­è§’å½¢
 		auto primitiveA = std::make_shared<Primitive>();
 		Vector<Vector3> outerA;
 		Vector<Vector3> outerColorA;
@@ -166,13 +166,13 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		for (int i = 0; i < outerCountA; i++) {
 			float angle = i * (M_PI * 2.0f / outerCountA);
 			outerA.push_back(Vector3(radiusA * cos(angle), radiusA * sin(angle), 0));
-			outerColorA.push_back(Vector3(0, 0, 1)); // Â
+			outerColorA.push_back(Vector3(0, 0, 1)); // é’
 		}
 		primitiveA->SetPosition(std::move(outerA));
 		primitiveA->SetColor(std::move(outerColorA));
 		primitiveA->SetType(GL_LINE_LOOP);
 
-		// “à‘¤FOŠpŒ`
+		// å†…å´ï¼šä¸‰è§’å½¢
 		auto primitiveB = std::make_shared<Primitive>();
 		Vector<Vector3> innerB;
 		Vector<Vector3> innerColorB;
@@ -180,9 +180,9 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		int innerCountB = 3;
 		float innerRadiusB = 40.0f;
 		for (int i = 0; i < innerCountB; i++) {
-			float angle = i * (M_PI * 2.0f / innerCountB) + M_PI / 6.0f; // ‚¿‚å‚Á‚Æ‰ñ“]
+			float angle = i * (M_PI * 2.0f / innerCountB) + M_PI / 6.0f; // ã¡ã‚‡ã£ã¨å›è»¢
 			innerB.push_back(Vector3(innerRadiusB * cos(angle), innerRadiusB * sin(angle), 0));
-			innerColorB.push_back(Vector3(1, 1, 0)); // ‰©
+			innerColorB.push_back(Vector3(1, 1, 0)); // é»„
 		}
 		primitiveB->SetPosition(std::move(innerB));
 		primitiveB->SetColor(std::move(innerColorB));
@@ -193,7 +193,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 	}
 
 	if (m_ui.pattern == 3) {
-		// ŠO‘¤FlŠpŒ`
+		// å¤–å´ï¼šå››è§’å½¢
 		auto primitiveC = std::make_shared<Primitive>();
 		Vector<Vector3> outerC;
 		Vector<Vector3> outerColorC;
@@ -202,13 +202,13 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		outerC.push_back(Vector3(120, -120, 0));
 		outerC.push_back(Vector3(120, 120, 0));
 		outerC.push_back(Vector3(-120, 120, 0));
-		for (int i = 0; i < 4; i++) outerColorC.push_back(Vector3(1, 0.5, 0)); // ƒIƒŒƒ“ƒW
+		for (int i = 0; i < 4; i++) outerColorC.push_back(Vector3(1, 0.5, 0)); // ã‚ªãƒ¬ãƒ³ã‚¸
 		primitiveC->SetPosition(std::move(outerC));
 		primitiveC->SetColor(std::move(outerColorC));
 		primitiveC->SetType(GL_LINE_LOOP);
 
 
-		// “à‘¤‚PF‰~Œ`i¶j
+		// å†…å´ï¼‘ï¼šå††å½¢ï¼ˆå·¦ï¼‰
 		auto primitiveD1 = std::make_shared<Primitive>();
 		Vector<Vector3> innerD1;
 		Vector<Vector3> innerColorD1;
@@ -218,14 +218,14 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		for (int i = 0; i < circleCount; i++) {
 			float angle = i * (M_PI * 2.0f / circleCount);
 			innerD1.push_back(Vector3(-50 + circleRadius * cos(angle), 0 + circleRadius * sin(angle), 0));
-			innerColorD1.push_back(Vector3(0, 1, 1)); // ƒVƒAƒ“
+			innerColorD1.push_back(Vector3(0, 1, 1)); // ã‚·ã‚¢ãƒ³
 		}
 		primitiveD1->SetPosition(std::move(innerD1));
 		primitiveD1->SetColor(std::move(innerColorD1));
 		primitiveD1->SetType(GL_LINE_LOOP);
 
 
-		// “à‘¤‚QFŒÜŠpŒ`i‰Ej
+		// å†…å´ï¼’ï¼šäº”è§’å½¢ï¼ˆå³ï¼‰
 		auto primitiveD2 = std::make_shared<Primitive>();
 		Vector<Vector3> innerD2;
 		Vector<Vector3> innerColorD2;
@@ -235,7 +235,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		for (int i = 0; i < pentagonCount; i++) {
 			float angle = i * (M_PI * 2.0f / pentagonCount) - M_PI / 2.0f;
 			innerD2.push_back(Vector3(60 + pentagonRadius * cos(angle), 0 + pentagonRadius * sin(angle), 0));
-			innerColorD2.push_back(Vector3(1, 0, 1)); // ƒ}ƒ[ƒ“ƒ^
+			innerColorD2.push_back(Vector3(1, 0, 1)); // ãƒã‚¼ãƒ³ã‚¿
 		}
 		primitiveD2->SetPosition(std::move(innerD2));
 		primitiveD2->SetColor(std::move(innerColorD2));
@@ -247,7 +247,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 	}
 
 	if (m_ui.pattern == 4) {
-		// ŠO‘¤F‰šŒ^‚Ìƒ|ƒŠƒSƒ“i‚­‚ÌšŒ^j
+		// å¤–å´ï¼šå‡¹å‹ã®ãƒãƒªã‚´ãƒ³ï¼ˆãã®å­—å‹ï¼‰
 		auto primitive1 = std::make_shared<Primitive>();
 		Vector<Vector3> outer1;
 		Vector<Vector3> outerColor1;
@@ -269,7 +269,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 
 
 	if (m_ui.pattern == 5) {
-		// ŠO‘¤FlŠpŒ`
+		// å¤–å´ï¼šå››è§’å½¢
 		auto primitive3 = std::make_shared<Primitive>();
 		Vector<Vector3> outer3;
 		Vector<Vector3> outerColor3;
@@ -283,7 +283,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		primitive3->SetColor(std::move(outerColor3));
 		primitive3->SetType(GL_LINE_LOOP);
 
-		// “à‘¤FŠOü‚ÉÚ‚µ‚Ä‚¢‚é‰~
+		// å†…å´ï¼šå¤–å‘¨ã«æ¥ã—ã¦ã„ã‚‹å††
 		auto primitive3_hole = std::make_shared<Primitive>();
 		Vector<Vector3> inner3;
 		Vector<Vector3> innerColor3;
@@ -292,7 +292,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		float radius3 = 30.0f;
 		for (int i = 0; i < holeCount3; i++) {
 			float angle = i * (M_PI * 2.0f / holeCount3);
-			// ’†S‚ğ‰E’[‚ÉŠñ‚¹‚éiŠOü‚ÉÚGj
+			// ä¸­å¿ƒã‚’å³ç«¯ã«å¯„ã›ã‚‹ï¼ˆå¤–å‘¨ã«æ¥è§¦ï¼‰
 			inner3.push_back(Vector3(70 + radius3 * cos(angle), 0 + radius3 * sin(angle), 0));
 			innerColor3.push_back(Vector3(0, 1, 1));
 		}
@@ -305,7 +305,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 	}
 
 	if (m_ui.pattern == 6) {
-		// ŠO‘¤F‘å‚«‚È‰~Œ`
+		// å¤–å´ï¼šå¤§ããªå††å½¢
 		auto primitive4 = std::make_shared<Primitive>();
 		Vector<Vector3> outer4;
 		Vector<Vector3> outerColor4;
@@ -322,7 +322,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		primitive4->SetColor(std::move(outerColor4));
 		primitive4->SetType(GL_LINE_LOOP);
 
-		// “à‘¤F‹É¬‰~
+		// å†…å´ï¼šæ¥µå°å††
 		auto primitive4_hole = std::make_shared<Primitive>();
 		Vector<Vector3> inner4;
 		Vector<Vector3> innerColor4;
@@ -341,7 +341,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		m_pPrimitive.push_back(primitive4);
 		m_pPrimitive.push_back(primitive4_hole);
 	} else if (m_ui.pattern == 6) {
-		// ŠO‘¤F‘å‚«‚È‰~Œ`
+		// å¤–å´ï¼šå¤§ããªå††å½¢
 		auto primitive4 = std::make_shared<Primitive>();
 		Vector<Vector3> outer4;
 		Vector<Vector3> outerColor4;
@@ -358,7 +358,7 @@ void DelaunayDebugNode::BuildDebugPrimitive()
 		primitive4->SetColor(std::move(outerColor4));
 		primitive4->SetType(GL_LINE_LOOP);
 
-		// “à‘¤F‹É¬‰~
+		// å†…å´ï¼šæ¥µå°å††
 		auto primitive4_hole = std::make_shared<Primitive>();
 		Vector<Vector3> inner4;
 		Vector<Vector3> innerColor4;
@@ -506,13 +506,13 @@ GridNode::GridNode(const String& name, const Vector3& min, const Vector3& max, f
 	m_pPrimitive = std::make_shared<Primitive>();
 	Vector<Vector3> positions;
 
-	// X•ûŒü‚É•½s‚Èü (Y‚ªŒÅ’è)
+	// Xæ–¹å‘ã«å¹³è¡Œãªç·š (YãŒå›ºå®š)
 	for (float y = min.y; y <= max.y + 0.001f; y += interval) {
 		positions.push_back(Vector3(min.x, y, min.z));
 		positions.push_back(Vector3(max.x, y, min.z));
 	}
 
-	// Y•ûŒü‚É•½s‚Èü (X‚ªŒÅ’è)
+	// Yæ–¹å‘ã«å¹³è¡Œãªç·š (XãŒå›ºå®š)
 	for (float x = min.x; x <= max.x + 0.001f; x += interval) {
 		positions.push_back(Vector3(x, min.y, min.z));
 		positions.push_back(Vector3(x, max.y, min.z));

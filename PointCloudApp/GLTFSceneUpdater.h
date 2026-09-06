@@ -4,9 +4,9 @@
 #include "IShader.h"
 namespace KI
 {
-// �m�[�h�̃C���f�b�N�X�����2�����s��Ɋi�[����B
-// GPU�Ńm�[�h�̃C���f�b�N�X���v�Z�ł���悤�ɂ��邽�߂̃}�b�v
-// �s���m�[�h�C���f�b�N�X�E�񂪂��̃C���f�b�N�X�����ǂ����C���f�b�N�X
+// ノードのインデックスを基に2次元行列に格納する。
+// GPUでノードのインデックスを計算できるようにするためのマップ
+// 行がノードインデックス・列がそのインデックスをたどったインデックス
 class GLTFSceneMatrixUpdaterOnGpu
 {
 public:

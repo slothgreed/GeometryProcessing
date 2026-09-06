@@ -11,7 +11,7 @@ const float MathHelper::PI = 3.14159f;
 const float MathHelper::PI2 = 6.28318f;
 const float MathHelper::EPS = 0.0001f;
 const float MathHelper::EPS_RAD = 0.01f;
-const float MathHelper::THR_RAD5 = 0.996f; // 5“x
+const float MathHelper::THR_RAD5 = 0.996f; // 5åº¦
 
 bool MathHelper::ToScreen(const Vector4i& viewport, const Matrix4x4& mvp, const Vector3& position, Vector3& screen)
 {
@@ -202,8 +202,8 @@ bool MathHelper::IsOne(float v1)
 
 bool MathHelper::IsZPlus(const Vector3& value)
 {
-	// •½–Ê‚Ì–@ü
-	// Z²‚Ö‘µ‚¦‚é‰ñ“]
+	// å¹³é¢ã®æ³•ç·š
+	// Zè»¸ã¸æƒãˆã‚‹å›è»¢
 	float dotVal = glm::clamp(glm::dot(value, Vector3(0, 0, 1)), -1.0f, 1.0f);
 	if (fabs(dotVal - 1.0f) < 1e-6f) { return true; }
 	return false;
@@ -269,7 +269,7 @@ MathHelper::ProjectInfo MathHelper::CreateProjectInfo(const Vector<Vector3>& poi
 	info.normal = CalcNormal(points);
 
 	// -------------------------
-	// •½–ÊŠî’ê
+	// å¹³é¢åŸºåº•
 	// -------------------------
 
 	Vector3 helper =
@@ -284,7 +284,7 @@ MathHelper::ProjectInfo MathHelper::CreateProjectInfo(const Vector<Vector3>& poi
 Vector<Vector3> MathHelper::Project(const Vector<Vector3>& points, ProjectInfo& info)
 {
 	// -------------------------
-	// Ë‰e
+	// å°„å½±
 	// -------------------------
 	Vector<Vector3> result;
 	result.reserve(points.size());
@@ -318,12 +318,12 @@ Vector<Vector3> MathHelper::UnProject(const Vector<Vector3>& points, const Proje
 }
 Matrix4x4 MathHelper::CreateZAxisMatrix(const Vector3& normal)
 {
-	// •½–Ê‚Ì–@ü
-	// Z²‚Ö‘µ‚¦‚é‰ñ“]
+	// å¹³é¢ã®æ³•ç·š
+	// Zè»¸ã¸æƒãˆã‚‹å›è»¢
 	glm::vec3 target(0, 0, 1);
 	float dotVal = glm::clamp(glm::dot(normal, target), -1.0f, 1.0f);
 
-	// –@ü‚ª‚·‚Å‚ÉZ²‚Æ•½s‚È‚çƒXƒLƒbƒv
+	// æ³•ç·šãŒã™ã§ã«Zè»¸ã¨å¹³è¡Œãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 	if (fabs(abs(dotVal) - 1.0f) < 1e-6f) { return Matrix4x4(1.0f); }
 
 	glm::vec3 axis = glm::normalize(glm::cross(normal, target));
@@ -343,8 +343,8 @@ Vector3 MathHelper::CreatePerpendicular(const Vector3& n)
 }
 Intersect::Result Intersect::PointToBox(const glm::vec3& P, const BDB& bdb, bool innerDist)
 {
-	// AABB “à•”‚É‚¢‚éê‡‚ÍA•\–Ê‚Ü‚Å‚ÌÅ’Z‹——£‚ğŒvZ
-	glm::vec3 C; // AABB ‚ÌÅ‹ß“_
+	// AABB å†…éƒ¨ã«ã„ã‚‹å ´åˆã¯ã€è¡¨é¢ã¾ã§ã®æœ€çŸ­è·é›¢ã‚’è¨ˆç®—
+	glm::vec3 C; // AABB ã®æœ€è¿‘ç‚¹
 	C.x = std::max(bdb.Min().x, std::min(P.x, bdb.Max().x));
 	C.y = std::max(bdb.Min().y, std::min(P.y, bdb.Max().y));
 	C.z = std::max(bdb.Min().z, std::min(P.z, bdb.Max().z));
@@ -354,13 +354,13 @@ Intersect::Result Intersect::PointToBox(const glm::vec3& P, const BDB& bdb, bool
 		P.z >= bdb.Min().z && P.z <= bdb.Max().z) {
 
 		if (!innerDist) { return Intersect::Result(0); }
-		// AABB ‚Ì“à•”‚É‚¢‚éê‡AÅ’Z‚Ì–Êã‚Ì“_‚ğ‹‚ß‚é
+		// AABB ã®å†…éƒ¨ã«ã„ã‚‹å ´åˆã€æœ€çŸ­ã®é¢ä¸Šã®ç‚¹ã‚’æ±‚ã‚ã‚‹
 		float dx = std::min(P.x - bdb.Min().x, bdb.Max().x - P.x);
 		float dy = std::min(P.y - bdb.Min().y, bdb.Max().y - P.y);
 		float dz = std::min(P.z - bdb.Min().z, bdb.Max().z - P.z);
 		float minDist = std::min({ dx, dy, dz });
 
-		// ‚Ç‚Ì–Ê‚ÉÅ‚à‹ß‚¢‚©”»’è‚µAC ‚ğC³
+		// ã©ã®é¢ã«æœ€ã‚‚è¿‘ã„ã‹åˆ¤å®šã—ã€C ã‚’ä¿®æ­£
 		if (minDist == dx) {
 			C.x = (P.x - bdb.Min().x < bdb.Max().x - P.x) ? bdb.Min().x : bdb.Max().x;
 		} else if (minDist == dy) {
@@ -385,16 +385,16 @@ Intersect::Result Intersect::PointToEdge(const glm::vec3& P, const glm::vec3& X,
 
 Intersect::Result Intersect::PointToTriangle(const Vector3& P, const Vector3& A, const Vector3& B, const Vector3& C)
 {
-	// OŠpŒ`‚Ì–@ü‚ğ‹‚ß‚é
+	// ä¸‰è§’å½¢ã®æ³•ç·šã‚’æ±‚ã‚ã‚‹
 	glm::vec3 AB = B - A;
 	glm::vec3 AC = C - A;
 	glm::vec3 N = glm::normalize(glm::cross(AB, AC));
 
-	// P ‚©‚çOŠpŒ`‚Ì•½–Ê‚Ö‚Ì‚ü‚Ì‘«‚ğ‹‚ß‚é
+	// P ã‹ã‚‰ä¸‰è§’å½¢ã®å¹³é¢ã¸ã®å‚ç·šã®è¶³ã‚’æ±‚ã‚ã‚‹
 	float d = glm::dot(P - A, N);
-	glm::vec3 Q_face = P - d * N; // ‚ü‚Ì‘«
+	glm::vec3 Q_face = P - d * N; // å‚ç·šã®è¶³
 
-	// Q_face ‚ªOŠpŒ`‚Ì“à•”‚É‚ ‚é‚©”»’èiƒoƒŠƒZƒ“ƒgƒŠƒbƒNÀ•W‚ğg—pj
+	// Q_face ãŒä¸‰è§’å½¢ã®å†…éƒ¨ã«ã‚ã‚‹ã‹åˆ¤å®šï¼ˆãƒãƒªã‚»ãƒ³ãƒˆãƒªãƒƒã‚¯åº§æ¨™ã‚’ä½¿ç”¨ï¼‰
 	glm::vec3 v0 = C - A, v1 = B - A, v2 = Q_face - A;
 	float d00 = glm::dot(v0, v0);
 	float d01 = glm::dot(v0, v1);
@@ -409,22 +409,22 @@ Intersect::Result Intersect::PointToTriangle(const Vector3& P, const Vector3& A,
 	float v = (d00 * d21 - d01 * d20) / denom;
 
 	if (u >= 0.0f && v >= 0.0f && (u + v) <= 1.0f) {
-		// Q_face ‚ªOŠpŒ`‚Ì“à•”‚É‚ ‚éê‡
+		// Q_face ãŒä¸‰è§’å½¢ã®å†…éƒ¨ã«ã‚ã‚‹å ´åˆ
 		return Intersect::Result(std::abs(d), Q_face);
 	} else {
 		auto edge0 = PointToEdge(P, A, B);
 		auto edge1 = PointToEdge(P, B, C);
 		auto edge2 = PointToEdge(P, C, A);
 
-		// Å’Z‹——£‚ğ‚Â‚à‚Ì‚ğ‘I‘ğ
+		// æœ€çŸ­è·é›¢ã‚’æŒã¤ã‚‚ã®ã‚’é¸æŠ
 		return std::min({ edge0, edge1, edge2 }, [](const Intersect::Result& a, const Intersect::Result& b)	{ return a.distance < b.distance; });
 	}
 }
 // refer : https://shikousakugo.wordpress.com/2012/06/27/ray-intersection-2/
-// Tomas Moller‚ÌŒğ·”»’è,@ƒNƒ‰ƒƒ‹‚ÌŒö®—˜—p
+// Tomas Mollerã®äº¤å·®åˆ¤å®š,ã€€ã‚¯ãƒ©ãƒ¡ãƒ«ã®å…¬å¼åˆ©ç”¨
 Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const Vector3& p2, bool orient) const
 {
-	const float epsilon = 1e-6f; // ¸“x‚Ìè‡’l
+	const float epsilon = 1e-6f; // ç²¾åº¦ã®é–¾å€¤
 	if (glm::distance(m_origin, p0) < epsilon || 
 		glm::distance(m_origin, p1) < epsilon || 
 		glm::distance(m_origin, p2) < epsilon) {
@@ -436,14 +436,14 @@ Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const 
 	glm::vec3 P = glm::cross(m_direction, AC);
 
 	float det = glm::dot(AB, P);
-	// –Ê‚ÌŒü‚«‚ğl—¶‚µ‚È‚¢ê‡‚Ífabs‚ğŠO‚·B
+	// é¢ã®å‘ãã‚’è€ƒæ…®ã—ãªã„å ´åˆã¯fabsã‚’å¤–ã™ã€‚
 	if (orient) {
 		if (det < epsilon) {
-			return IntersectResult(); // •½s
+			return IntersectResult(); // å¹³è¡Œ
 		}
 	} else {
 		if (fabs(det) < epsilon) {
-			return IntersectResult(); // •½s
+			return IntersectResult(); // å¹³è¡Œ
 		}
 	}
 
@@ -451,16 +451,16 @@ Ray::IntersectResult Ray::Intersect(const Vector3& p0, const Vector3& p1, const 
 	glm::vec3 T = m_origin - p0;;
 	float u = glm::dot(T, P) * invDet;
 	if (u < 0.0f || u > 1.0f) {
-		return IntersectResult(); // OŠpŒ`‚ÌŠO‘¤
+		return IntersectResult(); // ä¸‰è§’å½¢ã®å¤–å´
 	}
 
 	glm::vec3 Q = glm::cross(T, AB);
 	float v = glm::dot(m_direction, Q) * invDet;
 	if (v < 0.0f || u + v > 1.0f) {
-		return IntersectResult(); // OŠpŒ`‚ÌŠO‘¤
+		return IntersectResult(); // ä¸‰è§’å½¢ã®å¤–å´
 	}
 
-	float t = glm::dot(AC, Q) * invDet; // Œğ·“_‚Ü‚Å‚Ì‹——£
+	float t = glm::dot(AC, Q) * invDet; // äº¤å·®ç‚¹ã¾ã§ã®è·é›¢
 	if (t <= 0) { return IntersectResult(); }
 
 	return IntersectResult(m_origin + m_direction * t, t);
@@ -487,23 +487,23 @@ Ray::IntersectResult Ray::Intersect(const BDB& bdb) const
 
 Ray::IntersectResult Ray::Intersect(const Plane& plane) const
 {
-	// •½–Ê‚ÆƒŒƒC‚ÌŒğ·‚ğ‹‚ß‚éŒö®
+	// å¹³é¢ã¨ãƒ¬ã‚¤ã®äº¤å·®ã‚’æ±‚ã‚ã‚‹å…¬å¼
 	//  t = dot(P0 - O, n) / dot(d, n)
-	//  P0: •½–Êã‚Ìˆê“_ (m_point)
-	//  n : •½–Ê‚Ì–@ü (m_normal, ³‹K‰»„§)
+	//  P0: å¹³é¢ä¸Šã®ä¸€ç‚¹ (m_point)
+	//  n : å¹³é¢ã®æ³•ç·š (m_normal, æ­£è¦åŒ–æ¨å¥¨)
 	//  O : ray origin
 	//  d : ray direction
 
 	float denom = glm::dot(m_direction, plane.GetNormal());
 
-	// ƒŒƒC‚ª•½–Ê‚Æ•½si‚Ü‚½‚Íˆê’vj‚µ‚Ä‚¢‚éê‡
+	// ãƒ¬ã‚¤ãŒå¹³é¢ã¨å¹³è¡Œï¼ˆã¾ãŸã¯ä¸€è‡´ï¼‰ã—ã¦ã„ã‚‹å ´åˆ
 	if (fabs(denom) < 1e-6f) {
 		return IntersectResult::CreateFailed();
 	}
 
 	float t = glm::dot(plane.GetPoint() - m_origin, plane.GetNormal()) / denom;
 
-	// t < 0 ‚ÍƒŒƒC‚ÌŒã•û‚È‚Ì‚ÅŒğ·‚È‚µ
+	// t < 0 ã¯ãƒ¬ã‚¤ã®å¾Œæ–¹ãªã®ã§äº¤å·®ãªã—
 	if (t < 0.0f) {
 		return IntersectResult::CreateFailed();
 	}
@@ -525,7 +525,7 @@ void MathHelper::CalcClasterPoints(const Vector<Vector3>& points, const Vector3&
 }
 bool MathHelper::InPolyline(const Vector<Vector3>& polyline, const Vector3& point, bool isLoop)
 {
-	if (polyline.size() < 3) return false; // ‘½ŠpŒ`‚Å‚È‚¢
+	if (polyline.size() < 3) return false; // å¤šè§’å½¢ã§ãªã„
 
 	double angleSum = 0.0;
 	size_t fin = polyline.size() - 1;
@@ -539,11 +539,11 @@ bool MathHelper::InPolyline(const Vector<Vector3>& polyline, const Vector3& poin
 		auto v1 = glm::normalize(polyline[index0] - point);
 		auto v2 = glm::normalize(polyline[index1] - point);
 
-		// “àÏ‚©‚çŠp“x‚ğ‹‚ß‚é
-		auto dot = std::clamp(glm::dot(v1, v2), -1.0f, 1.0f); // ”’lŒë·‘Îô
+		// å†…ç©ã‹ã‚‰è§’åº¦ã‚’æ±‚ã‚ã‚‹
+		auto dot = std::clamp(glm::dot(v1, v2), -1.0f, 1.0f); // æ•°å€¤èª¤å·®å¯¾ç­–
 		double angle = std::acos(dot);
 
-		// ŠOÏ‚Å•„†‚ğŒˆ‚ß‚éiz¬•ª‚Å”»’èj
+		// å¤–ç©ã§ç¬¦å·ã‚’æ±ºã‚ã‚‹ï¼ˆzæˆåˆ†ã§åˆ¤å®šï¼‰
 		auto cross = glm::cross(v1, v2);
 		if (glm::dot(cross, glm::vec3(0, 0, 1)) < 0) {
 			angle = -angle;
@@ -551,12 +551,12 @@ bool MathHelper::InPolyline(const Vector<Vector3>& polyline, const Vector3& poin
 		angleSum += angle;
 	}
 
-	// Šp“x˜a‚ª 2ƒÎ (}Œë·) ‚È‚ç“à•”
+	// è§’åº¦å’ŒãŒ 2Ï€ (Â±èª¤å·®) ãªã‚‰å†…éƒ¨
 	return std::fabs(std::fabs(angleSum) - 2 * glm::pi<float>()) < 1e-3;
 }
 bool MathHelper::IsLoop(const Vector<Vector3>& polyline)
 {
-	// ÅŒã‚ª“¯‚¶‚©‚Ç‚¤‚©‚¾‚¯‚Å”»’f GL_LINE_STRIP‚Åƒ‹[ƒv•`‰æ‚Å‚«‚é‚æ‚¤‚È\¬‚©‚ğ\’z
+	// æœ€å¾ŒãŒåŒã˜ã‹ã©ã†ã‹ã ã‘ã§åˆ¤æ–­ GL_LINE_STRIPã§ãƒ«ãƒ¼ãƒ—æç”»ã§ãã‚‹ã‚ˆã†ãªæ§‹æˆã‹ã‚’æ§‹ç¯‰
 	if (polyline.size() == 0) return false;
 	return polyline[0] == polyline[polyline.size() - 1];
 }

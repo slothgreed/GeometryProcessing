@@ -64,7 +64,7 @@ RenderNode* CSFLoader::Load(const String& fileName)
         memcpy(&indices[offset], csfGeom->indexSolid, sizeof(GLuint)* csfGeom->numIndexSolid);
         if (csfGeom->indexWire) {
             memcpy(&indices[offset + csfGeom->numIndexSolid], csfGeom->indexWire, sizeof(GLuint)* csfGeom->numIndexWire);
-            // solid‚ÌŒã‚Éwire—p‚ÌIndexBuffer‚ª\’z‚³‚ê‚é‚Ì‚Å‚±‚±‚Å‰ÂZ‚·‚é
+            // solidã®å¾Œã«wireç”¨ã®IndexBufferãŒæ§‹ç¯‰ã•ã‚Œã‚‹ã®ã§ã“ã“ã§å¯ç®—ã™ã‚‹
             wireOffset += csfGeom->numIndexSolid * sizeof(GLuint);
         }
 
@@ -91,7 +91,7 @@ RenderNode* CSFLoader::Load(const String& fileName)
             wiresDraw[i].push_back(wire);
         }
 
-        // wire•ª‚ª‘«‚³‚ê‚Ä‚¢‚È‚¢‚Ì‚Å‚±‚±‚Å‰ÁZ‚·‚éB
+        // wireåˆ†ãŒè¶³ã•ã‚Œã¦ã„ãªã„ã®ã§ã“ã“ã§åŠ ç®—ã™ã‚‹ã€‚
         solidOffset += csfGeom->numIndexWire * sizeof(GLuint);
         vertexOffset += csfGeom->numVertices;
 
@@ -221,7 +221,7 @@ public:
 		glVertexAttribFormat(1, 4, GL_FLOAT, false, offsetof(CSFVertex, normal));
 		glVertexAttribBinding(0, 0);
 		glVertexAttribBinding(1, 0);
-		glDisableVertexAttribArray(2); // ‰¼ƒR[ƒh/•Ê‰ÓŠ‚ÅAttribute‚ªEnable‚É‚È‚éB
+		glDisableVertexAttribArray(2); // ä»®ã‚³ãƒ¼ãƒ‰/åˆ¥ç®‡æ‰€ã§AttributeãŒEnableã«ãªã‚‹ã€‚
 		OUTPUT_GLERROR;
 	}
 

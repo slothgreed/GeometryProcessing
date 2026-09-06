@@ -280,7 +280,7 @@ struct TBB_Function
 	Args m_args;
 };
 
-// コールバック関数を定義
+// 繧ｳ繝ｼ繝ｫ繝舌ャ繧ｯ髢｢謨ｰ繧貞ｮ夂ｾｩ
 void SoftwareRasterizer::Execute()
 {
 	auto m_pResource = std::make_unique<RenderResource>();
@@ -656,7 +656,7 @@ void SoftwareRasterizer::Rasterize()
 					float targetZ = 0.0f;
 					Vector2 target{ i + 0.5f, j + 0.5f };
 					if (IsDrawTriangle(screen0, screen1, screen2, invArea, target, targetZ)) {
-						targetZ = pow(targetZ, 50.0); // 誇張
+						targetZ = pow(targetZ, 50.0); // 隱�蠑ｵ
 						if (m_depthPixel.GetR(i, j) > targetZ) {
 							// triangle Index
 							m_debugPixel.Set(i, j, Vector4(k, 0, 0, 0));

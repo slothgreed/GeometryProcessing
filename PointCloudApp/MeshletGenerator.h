@@ -80,7 +80,7 @@ public:
 
     void BeginQuery();
     void EndQuery();
-    void ShowUI(); // ImGui‚ÅŒ‹‰Ê‚ğ•\¦
+    void ShowUI(); // ImGuiã§çµæœã‚’è¡¨ç¤º
 
 private:
     GLuint m_primitiveQuery = 0;

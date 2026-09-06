@@ -39,7 +39,7 @@ Matrix4x4 ComputeRotationFromSVD(const Matrix4x4& M)
 		R = U2 * V.transpose();
 	}
 
-	// •½sˆÚ“®‚ÍŒÄ‚Ño‚µ‘¤‚Å‘«‚· or ‚»‚Ì‚Ü‚Ü
+	// å¹³è¡Œç§»å‹•ã¯å‘¼ã³å‡ºã—å´ã§è¶³ã™ or ãã®ã¾ã¾
 	// out[3] = M[3];
 
 	return ToGlm(R);
@@ -89,7 +89,7 @@ ShapeMatching::~ShapeMatching()
 
 void ShapeMatching::Initialize()
 {
-	const int MIN_CLUSTER_NUM = 2; // 1‚Â‚Ì’¸“_‚Í•K‚¸ minCluster ŒÂ‚ÌƒNƒ‰ƒXƒ^‚É‚ÍŠ‘®‚³‚¹‚é.
+	const int MIN_CLUSTER_NUM = 2; // 1ã¤ã®é ‚ç‚¹ã¯å¿…ãš minCluster å€‹ã®ã‚¯ãƒ©ã‚¹ã‚¿ã«ã¯æ‰€å±žã•ã›ã‚‹.
 	auto bdb = m_pHalfEdge->GetData()->CreateBDB();
 	float sigma = bdb.MaxLength();
 	KMeansAlgorithm kmeans;

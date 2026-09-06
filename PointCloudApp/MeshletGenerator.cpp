@@ -122,7 +122,7 @@ Meshlet MeshletGenerator::ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int
 				auto aroundFace = halfEdge.GetAroundFace(halfEdge.GetIndexedFace(faceIndex));
 				for (auto around : aroundFace) {
 					auto cluster = faceToCluster[around];
-					// É}Å[ÉWçœÇ›Ç≈Ç»Ç≠é©êgÇ≈Ç»Ç¢èÍçá
+					// „Éû„Éº„Ç∏Ê∏à„Åø„Åß„Å™„ÅèËá™Ë∫´„Åß„Å™„ÅÑÂ†¥Âêà
 					if (cluster->IsActive() && cluster->index != faceToCluster[faceIndex]->index) {
 						ret.insert(cluster);
 					}
@@ -139,7 +139,7 @@ Meshlet MeshletGenerator::ExecuteBinaryFetch(const HalfEdgeStruct& halfEdge, int
 				auto aroundFace = halfEdge.GetAroundFace(halfEdge.GetIndexedFace(faceIndex));
 				for (auto around : aroundFace) {
 					auto cluster = faceToCluster[around];
-					// É}Å[ÉWçœÇ›Ç≈Ç»Ç≠é©êgÇ≈Ç»Ç¢èÍçá
+					// „Éû„Éº„Ç∏Ê∏à„Åø„Åß„Å™„ÅèËá™Ë∫´„Åß„Å™„ÅÑÂ†¥Âêà
 					if (cluster->IsActive() && cluster->index != faceToCluster[faceIndex]->index) {
 						ret.insert(cluster->index);
 					}
@@ -276,9 +276,9 @@ void MeshletProfiler::EndQuery()
 void MeshletProfiler::ShowUI()
 {
 	ImVec2 window_pos = ImVec2(ImGui::GetIO().DisplaySize.x - 10.0f, ImGui::GetIO().DisplaySize.y - 10.0f);
-	ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f); // âEâ∫
+	ImVec2 window_pos_pivot = ImVec2(1.0f, 1.0f); // Âè≥‰∏ã
 	ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-	ImGui::SetNextWindowBgAlpha(0.4f); // îºìßñæ
+	ImGui::SetNextWindowBgAlpha(0.4f); // ÂçäÈÄèÊòé
 
 	ImGui::Begin("Meshlet Profiler", nullptr,
 		ImGuiWindowFlags_NoDecoration |

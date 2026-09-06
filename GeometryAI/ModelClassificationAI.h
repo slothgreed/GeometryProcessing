@@ -56,7 +56,7 @@ private:
              * pooled:
              * [batchSize, 256]
              *
-             * pointCount•ûŒü‚ÌÅ‘å’l‚ðŽæ‚éB
+             * pointCountæ–¹å‘ã®æœ€å¤§å€¤ã‚’å–ã‚‹ã€‚
              */
 
             auto logits = classifier->forward(pooled);

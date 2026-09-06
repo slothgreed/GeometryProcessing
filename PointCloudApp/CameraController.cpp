@@ -100,7 +100,7 @@ void CameraController::Translate(const vec2& move)
 
 void CameraController::RotateAnimation(float time, const BDB& bdb)
 {
-	float angle = time * 0.5f; // ‘¬“x’²®
+	float angle = time * 0.5f; // é€Ÿåº¦èª¿æ•´
 	auto center = bdb.Center();
 	auto bdbLength = bdb.MaxLength() * 1.2f;
 	float x = center.x + bdbLength * cos(angle);

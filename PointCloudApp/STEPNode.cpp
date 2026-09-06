@@ -519,7 +519,7 @@ void STEPRenderNode::UpdateData(float diff)
 	auto rotate = glm::rotate(glm::mat4(1.0f), angle, axis);
 	auto translateBack = glm::translate(glm::mat4(1.0f), center);
 
-	// ‰ñ“]‚ğ’~Ï‚·‚éê‡
+	// å›è»¢ã‚’è“„ç©ã™ã‚‹å ´åˆ
 	m_rotateMatrix = translateBack * rotate * translateToOrigin * m_rotateMatrix;
 }
 

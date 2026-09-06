@@ -32,7 +32,7 @@ public:
 public:
 	const BDB& GetBDB();
 	GLuint GetDrawType() const;
-	void CalcNormal(); // ìKìñÉRÅ[Éh
+	void CalcNormal(); // ÈÅ©ÂΩì„Ç≥„Éº„Éâ
 	bool IsInterleave() const { return m_storeType == StoreType::Interleave; }
 	StoreType GetStoreType() const { return m_storeType; }
 

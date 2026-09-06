@@ -22,7 +22,7 @@ int main()
 	//generator.SaveMeshCNN(outPath, *pBunny);
 	//return 0;
 
-	std::cout << std::fixed << std::setprecision(2); // •‚“®¬”“_2Œ…‚Ü‚Å
+	std::cout << std::fixed << std::setprecision(2); // æµ®å‹•å°æ•°ç‚¹2æ¡ã¾ã§
     
 	KI::AIProcessor::Instance().ExecuteASync("--named");
 	//KI::RadixSortTest app;

@@ -58,7 +58,7 @@ Mesh* GeometryLoader::LoadOff(const String& name)
 				faceIndices.push_back(StringUtility::ToInt(text[i + 1]));
 			}
 
-			// GL_TRIANGLES用のインデックスへ変換
+			// GL_TRIANGLES逕ｨ縺ｮ繧､繝ｳ繝�繝�繧ｯ繧ｹ縺ｸ螟画鋤
 			for (int i = 1; i < polygonVertexNum - 1; ++i) {
 				indices.push_back(faceIndices[0]);
 				indices.push_back(faceIndices[i]);

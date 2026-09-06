@@ -201,7 +201,7 @@ bool BSplineBuilder::ProjectPointToUV(const STEPBSplineSurfaceBase& bspline, con
 	float vMin = bspline.knots.v.front();
 	float vMax = bspline.knots.v.back();
 
-	uv = Vector2(uMin + uMax, vMin + vMax) * 0.5f; // b’è’l
+	uv = Vector2(uMin + uMax, vMin + vMax) * 0.5f; // æš«å®šå€¤
 
 	for (int iter = 0; iter < maxIter; ++iter) {
 		Vector3 S;
@@ -220,7 +220,7 @@ bool BSplineBuilder::ProjectPointToUV(const STEPBSplineSurfaceBase& bspline, con
 			Assert::Failed();
 			continue;
 		}
-		// U•ûŒü‚ÌŒX‚«‚ğ‹‚ß‚é
+		// Uæ–¹å‘ã®å‚¾ãã‚’æ±‚ã‚ã‚‹
 		auto Su = (SxMax -	SxMin) / (std::min(uv.x + offset, uMax) - std::max(uv.x - offset, uMin));
 
 		Vector3 SyMax;
@@ -234,10 +234,10 @@ bool BSplineBuilder::ProjectPointToUV(const STEPBSplineSurfaceBase& bspline, con
 			Assert::Failed();
 			continue;
 		}
-		// V•ûŒü‚ÌŒX‚«‚ğ‹‚ß‚é
+		// Væ–¹å‘ã®å‚¾ãã‚’æ±‚ã‚ã‚‹
 		auto Sv = (SyMax - SyMin) / (std::min(uv.y + offset, vMax) - std::max(uv.y - offset, vMin));
 
-		// Å¬“ñæ–@‚ÅAtarget‚É‹ß‚Ã‚­‚æ‚¤‚Éuv‚ğXV‚·‚éB
+		// æœ€å°äºŒä¹—æ³•ã§ã€targetã«è¿‘ã¥ãã‚ˆã†ã«uvã‚’æ›´æ–°ã™ã‚‹ã€‚
 		auto r = target - S;
 
 		float a00 = glm::dot(Su, Su);
@@ -260,7 +260,7 @@ bool BSplineBuilder::ProjectPointToUV(const STEPBSplineSurfaceBase& bspline, con
 		uv.x = std::clamp(uv.x, uMin, uMax);
 		uv.y = std::clamp(uv.y, vMin, vMax);
 
-		// XV—Ê‚ª\•ª¬‚³‚¯‚ê‚ÎI—¹
+		// æ›´æ–°é‡ãŒååˆ†å°ã•ã‘ã‚Œã°çµ‚äº†
 		if (std::abs(du) < MathHelper::EPS &&
 			std::abs(dv) < MathHelper::EPS) {
 			return true;
@@ -283,7 +283,7 @@ Mesh BSplineBuilder::CreateMesh(const STEPBSplineSurfaceBase& bspline, int uSegm
 	const int columnCount = uSegments + 1;
 	const int rowCount = vSegments + 1;
 
-	// Šiq“_‚ğæ‚Éì‚é
+	// æ ¼å­ç‚¹ã‚’å…ˆã«ä½œã‚‹
 	Vector<Vector3> points;
 	points.resize(columnCount * rowCount);
 	auto gridIndex = [columnCount](int x, int y)
@@ -308,7 +308,7 @@ Mesh BSplineBuilder::CreateMesh(const STEPBSplineSurfaceBase& bspline, int uSegm
 		}
 	}
 
-	// 1ƒZƒ‹‚É‚Â‚«2OŠpŒ`
+	// 1ã‚»ãƒ«ã«ã¤ã2ä¸‰è§’å½¢
 	Vector<Vector3> triangles;
 	triangles.reserve(uSegments * vSegments * 6);
 

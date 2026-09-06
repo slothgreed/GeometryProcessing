@@ -31,28 +31,28 @@ torch::Tensor TorchUtility::ToTensor1D(const std::vector<float>& data, int dimen
 
 std::vector<float> TorchUtility::ToFloatVector(torch::Tensor tensor)
 {
-    // GPU Tensor ‚Ì‰Â”\«‚ª‚ ‚é‚Ì‚Å CPU ‚ÖˆÚ‚·
+    // GPU Tensor ã®å¯èƒ½æ€§ãŒã‚ã‚‹ã®ã§ CPU ã¸ç§»ã™
     tensor = tensor.detach().cpu().contiguous().to(torch::kFloat32);
 
-    // —v‘f”‚ğæ“¾
+    // è¦ç´ æ•°ã‚’å–å¾—
     size_t size = tensor.numel();
 
     std::vector<float> result(size);
-    // Tensor‚Ì’†g‚ğvector‚ÖƒRƒs[
+    // Tensorã®ä¸­èº«ã‚’vectorã¸ã‚³ãƒ”ãƒ¼
 	std::memcpy(result.data(), tensor.data_ptr<float>(), size * sizeof(float));
     return result;
 }
 
 std::vector<int> TorchUtility::ToIntVector(torch::Tensor tensor)
 {
-    // GPU Tensor ‚Ì‰Â”\«‚ª‚ ‚é‚Ì‚Å CPU ‚ÖˆÚ‚·
+    // GPU Tensor ã®å¯èƒ½æ€§ãŒã‚ã‚‹ã®ã§ CPU ã¸ç§»ã™
     tensor = tensor.detach().cpu().contiguous().to(torch::kInt32);
 
-    // —v‘f”‚ğæ“¾
+    // è¦ç´ æ•°ã‚’å–å¾—
     size_t size = tensor.numel();
 
     std::vector<int> result(size);
-    // Tensor‚Ì’†g‚ğvector‚ÖƒRƒs[
+    // Tensorã®ä¸­èº«ã‚’vectorã¸ã‚³ãƒ”ãƒ¼
     std::memcpy(result.data(), tensor.data_ptr<int>(), size * sizeof(int));
     return result;
 }

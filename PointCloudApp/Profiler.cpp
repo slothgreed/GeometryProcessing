@@ -102,7 +102,7 @@ float GPUProfiler::GetUsage()
 	nvmlUtilization_t utilization;
 	nvmlDeviceGetUtilizationRates(device, &utilization);
 
-	return utilization.gpu; // g—p—¦i%j
+	return utilization.gpu; // ä½¿ç”¨ç‡ï¼ˆ%ï¼‰
 }
 
 float GPUProfiler::GetFPS()

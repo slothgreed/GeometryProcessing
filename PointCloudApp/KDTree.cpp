@@ -66,7 +66,7 @@ void KDTree::ShowUI(UIContext& ui)
 	}
 
 	if (ImGui::Checkbox("ShowLine", &m_ui.showLine)) {
-		if (m_dimension != 2) { m_ui.showLine = false; } // ”ñ‘Î‰ž
+		if (m_dimension != 2) { m_ui.showLine = false; } // éžå¯¾å¿œ
 		if (m_ui.showLine) {
 			m_pPointCloud->AddNode(CreatePartition2D("Partition2D", m_ui.depth));
 		} else {

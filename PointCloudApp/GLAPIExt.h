@@ -88,7 +88,7 @@ public:
 private:
 	static GLAPIExt* m_pInfo;
 	glm::ivec3 m_maxComputeWorkGroupCount;
-	glm::ivec4 m_maxComputeLocalSize; // w�͐ς̍ő�l
+	glm::ivec4 m_maxComputeLocalSize; // wは積の最大値
 	int m_meshletMaxVertex;
 	int m_meshletMaxPrimitive;
 };

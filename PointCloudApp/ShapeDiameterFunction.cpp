@@ -11,21 +11,21 @@ namespace KI
 
 std::vector<Vector3> CraeteSamplingCircle(glm::vec3 tip, glm::vec3 axis, float height, float radius, int segments)
 {
-	axis = glm::normalize(axis);  // ²ƒxƒNƒgƒ‹‚ğ³‹K‰»
+	axis = glm::normalize(axis);  // è»¸ãƒ™ã‚¯ãƒˆãƒ«ã‚’æ­£è¦åŒ–
 
-	// ’ê–Ê‚Ì’†SˆÊ’u
+	// åº•é¢ã®ä¸­å¿ƒä½ç½®
 	glm::vec3 baseCenter = tip + axis * height;
 
-	// ’ê–Ê‚Ì‰~üã‚Ì“_‚ğ¶¬‚·‚é‚½‚ß‚ÌŠî€ƒxƒNƒgƒ‹‚ğæ“¾
+	// åº•é¢ã®å††å‘¨ä¸Šã®ç‚¹ã‚’ç”Ÿæˆã™ã‚‹ãŸã‚ã®åŸºæº–ãƒ™ã‚¯ãƒˆãƒ«ã‚’å–å¾—
 	glm::vec3 orthoVec = glm::normalize(glm::cross(axis, glm::vec3(1.0f, 0.0f, 0.0f)));
 	if (glm::length(orthoVec) < 0.001f) {
 		orthoVec = glm::normalize(glm::cross(axis, glm::vec3(0.0f, 1.0f, 0.0f)));
 	}
 
-	orthoVec *= radius;  // ”¼Œa‚ğl—¶‚µ‚½ƒxƒNƒgƒ‹‚ÉƒXƒP[ƒŠƒ“ƒO
-	// ’¸“_‚Æ‚µ‚Ä‰~‚Ìæ’[‚ğ’Ç‰Á
+	orthoVec *= radius;  // åŠå¾„ã‚’è€ƒæ…®ã—ãŸãƒ™ã‚¯ãƒˆãƒ«ã«ã‚¹ã‚±ãƒ¼ãƒªãƒ³ã‚°
+	// é ‚ç‚¹ã¨ã—ã¦å††éŒã®å…ˆç«¯ã‚’è¿½åŠ 
 	std::vector<Vector3> vertices;
-	// ‰~üã‚Ì“_‚ğ’Ç‰Á
+	// å††å‘¨ä¸Šã®ç‚¹ã‚’è¿½åŠ 
 	for (int i = 0; i < segments; ++i) {
 		float angle = glm::two_pi<float>() * i / segments;
 		vertices.push_back(baseCenter + glm::rotate(orthoVec, angle, axis));

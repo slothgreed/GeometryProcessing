@@ -46,10 +46,10 @@ void BVH::Execute()
 			m_nodes[right].SetParent(parentIndex);
 		}
 
-		// Šï”ŒÂ‚Ìê‡‚Ìˆ—
+		// å¥‡æ•°å€‹ã®å ´åˆã®å‡¦ç†
 		if (leaves % 2 == 1) {
 			int lastIndex = offset + leaves - 1;
-			m_nodes.push_back(m_nodes[lastIndex]); // ƒRƒs[‚Å‚Í‚È‚­’P“Æƒm[ƒh
+			m_nodes.push_back(m_nodes[lastIndex]); // ã‚³ãƒ”ãƒ¼ã§ã¯ãªãå˜ç‹¬ãƒãƒ¼ãƒ‰
 		}
 
 		offset = nextOffset;
@@ -74,8 +74,8 @@ BVH::IntersectResult BVH::CalcMinDistance(const Vector3& pos) const
 
 	auto minDist = BVH::IntersectResult(0, pToTri.position, pToTri.distance);
 	std::vector<std::pair<int,int>> stack;
-	stack.push_back({ m_nodes.size() - 1,0 }); // ƒ‹[ƒgƒm[ƒh‚©‚çŠJn
-	// [‚³—Dæ’Tõ
+	stack.push_back({ m_nodes.size() - 1,0 }); // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰ã‹ã‚‰é–‹å§‹
+	// æ·±ã•å„ªå…ˆæ¢ç´¢
 	while (!stack.empty()) {
 		auto nodeIndex = stack.back();
 		stack.pop_back();
@@ -83,10 +83,10 @@ BVH::IntersectResult BVH::CalcMinDistance(const Vector3& pos) const
 		const Node& node = m_nodes[nodeIndex.first];
 
 		auto intersect = Intersect::PointToBox(pos, BDB(node.MinBox(), node.MaxBox()), false);
-		// AABB‚ÌÅ’Z‹——£‚ª–Ê‚Æ‚ÌÅ’Z‹——£‚æ‚è‘å‚«‚¢ê‡‚ÍƒXƒLƒbƒv
+		// AABBã®æœ€çŸ­è·é›¢ãŒé¢ã¨ã®æœ€çŸ­è·é›¢ã‚ˆã‚Šå¤§ãã„å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
 		if (intersect.distance > minDist.distance) { continue; }
 		if (node.Left() == -1 && node.Right() == -1) {
-			// ƒŠ[ƒtƒm[ƒh‚È‚çŒğ·ƒŠƒXƒg‚É’Ç‰Á
+			// ãƒªãƒ¼ãƒ•ãƒãƒ¼ãƒ‰ãªã‚‰äº¤å·®ãƒªã‚¹ãƒˆã«è¿½åŠ 
 			auto face = GetFace(m_pHalfEdge, node.Triangle());
 			auto triIntersect = Intersect::PointToTriangle(pos, face.pos0, face.pos1, face.pos2);
 			if (triIntersect.distance < minDist.distance) {
@@ -125,7 +125,7 @@ Vector<BVH::IntersectResult> BVH::IntersectFace(const Ray& ray) const
 	if (m_nodes.empty()) { return Vector<BVH::IntersectResult>(); }
 
 	std::vector<int> stack;
-	stack.push_back(m_nodes.size() - 1); // ƒ‹[ƒgƒm[ƒh‚©‚çŠJn
+	stack.push_back(m_nodes.size() - 1); // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰ã‹ã‚‰é–‹å§‹
 	Vector<BVH::IntersectResult> hit;
 	while (!stack.empty()) {
 		int nodeIndex = stack.back();
@@ -134,18 +134,18 @@ Vector<BVH::IntersectResult> BVH::IntersectFace(const Ray& ray) const
 		const Node& node = m_nodes[nodeIndex];
 
 		auto intersect = ray.Intersect(BDB(node.MinBox(), node.MaxBox()));
-		// AABB‚ÆŒğ·‚µ‚È‚¢ê‡‚ÍƒXƒLƒbƒv
+		// AABBã¨äº¤å·®ã—ãªã„å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
 		if (!intersect.success) { continue; }
 
 		if (node.Left() == -1 && node.Right() == -1) {
-			// ƒŠ[ƒtƒm[ƒh‚È‚çŒğ·ƒŠƒXƒg‚É’Ç‰Á
+			// ãƒªãƒ¼ãƒ•ãƒãƒ¼ãƒ‰ãªã‚‰äº¤å·®ãƒªã‚¹ãƒˆã«è¿½åŠ 
 			auto face = GetFace(m_pHalfEdge, node.Triangle());
 			auto triIntersect = ray.Intersect(face.pos0, face.pos1, face.pos2, false);
 			if (triIntersect.success) {
 				hit.push_back(BVH::IntersectResult(node.Triangle(), triIntersect.position, triIntersect.distance));
 			}
 		} else {
-			// “à•”ƒm[ƒh‚È‚çqƒm[ƒh‚ğƒXƒ^ƒbƒN‚É’Ç‰Ái‰E‚ğæ‚É“ü‚ê‚é‚Æ¶‚ªæ‚Éˆ—‚³‚ê‚éj
+			// å†…éƒ¨ãƒãƒ¼ãƒ‰ãªã‚‰å­ãƒãƒ¼ãƒ‰ã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«è¿½åŠ ï¼ˆå³ã‚’å…ˆã«å…¥ã‚Œã‚‹ã¨å·¦ãŒå…ˆã«å‡¦ç†ã•ã‚Œã‚‹ï¼‰
 			if (node.Right() != -1) stack.push_back(node.Right());
 			if (node.Left() != -1) stack.push_back(node.Left());
 		}
@@ -163,18 +163,18 @@ void BVH::CountLeafNodes(int nodeIndex, int& leafNum)
 
 	const Node& node = m_nodes[nodeIndex];
 
-	// ƒŠ[ƒtƒm[ƒh‚È‚ço—Í
+	// ãƒªãƒ¼ãƒ•ãƒãƒ¼ãƒ‰ãªã‚‰å‡ºåŠ›
 	if (node.Left() == -1 && node.Right() == -1) {
 		leafNum++;
 		return;
 	}
 
-	// ¶‚Ìq‚ğ‚½‚Ç‚é
+	// å·¦ã®å­ã‚’ãŸã©ã‚‹
 	if (node.Left() != -1) {
 		CountLeafNodes(node.Left(), leafNum);
 	}
 
-	// ‰E‚Ìq‚ğ‚½‚Ç‚é
+	// å³ã®å­ã‚’ãŸã©ã‚‹
 	if (node.Right() != -1) {
 		CountLeafNodes(node.Right(), leafNum);
 	}

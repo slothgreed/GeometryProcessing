@@ -235,7 +235,7 @@ Camera Camera::FitToBDB(const Camera& camera, const BDB& bdb)
 	} else if (camera.IsOrtho()) {
 		auto size = bdb.Max() - bdb.Min();
 		auto center = bdb.Center();
-		auto eye = center + glm::vec3(0.0f, 0.0f, 1.0f) * size.z * 2.0f; // ’†S‚Ì­‚µã‚©‚ç
+		auto eye = center + glm::vec3(0.0f, 0.0f, 1.0f) * size.z * 2.0f; // ä¸­å¿ƒã®å°‘ã—ä¸Šã‹ã‚‰
 		auto target = center;
 		auto up = glm::vec3(0.0f, 1.0f, 0.0f);
 

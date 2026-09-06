@@ -26,9 +26,9 @@ public:
 	static Vector<Vector3> LoadMeshsegBenchmarkSeg(const std::filesystem::path& path);
 	static Vector<Vector3> LoadSegBinary(const std::string& path);
 
-	// ModelNet40‚ÌtrainƒtƒHƒ‹ƒ_‚ğw’è‚µ‚ÄAŠeoffƒtƒ@ƒCƒ‹‚ğƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Äpoint cloud‚É•ÏŠ·‚·‚éB
+	// ModelNet40ã®trainãƒ•ã‚©ãƒ«ãƒ€ã‚’æŒ‡å®šã—ã¦ã€å„offãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ã—ã¦point cloudã«å¤‰æ›ã™ã‚‹ã€‚
 	static void SavePointCloud(const String& folderName, int sampleCount);
-	// MeshCNN—p‚Ìƒf[ƒ^ƒZƒbƒg‚ğì¬‚·‚éB
+	// MeshCNNç”¨ã®ãƒ‡ãƒ¼ã‚¿ã‚»ãƒƒãƒˆã‚’ä½œæˆã™ã‚‹ã€‚
 	static void SaveMeshCNN(const Vector<AIDataFolder>& folder);
 	static void SaveMeshCNN(const String& fileName, const HalfEdgeStruct& halfEdge);
 private:

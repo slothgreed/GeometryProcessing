@@ -9,7 +9,7 @@ namespace KI
 {
 unsigned int MortonCode::To(unsigned int x)
 {
-    // MortonƒR[ƒh‚ÌŒvZiŠeƒrƒbƒg‚ğŒğŒİ‚É•À‚×‚éj
+    // Mortonã‚³ãƒ¼ãƒ‰ã®è¨ˆç®—ï¼ˆå„ãƒ“ãƒƒãƒˆã‚’äº¤äº’ã«ä¸¦ã¹ã‚‹ï¼‰
     x = (x | (x << 16)) & 0x030000FF;
     x = (x | (x << 8)) & 0x0300F00F;
     x = (x | (x << 4)) & 0x030C30C3;
@@ -56,7 +56,7 @@ Vector<Vector3> MeshAlgorithm::CreatePoissonSampleVolume(HalfEdgeNode& halfEdge)
     Voxelizer voxelizer(&halfEdge);
 
     const auto& bdb = halfEdge.GetBoundBox();
-    voxelizer.Execute(1 << 6); // TODO : “KØ‚È’l 
+    voxelizer.Execute(1 << 6); // TODO : é©åˆ‡ãªå€¤ 
     Vector<Vector3> poisson;
     auto voxelLabel = voxelizer.CreateLabel();
     for (int i = 0; i < voxelizer.GetResolution(); i++)
@@ -176,9 +176,9 @@ Vector<Vector3> MeshAlgorithm::CreateSampleOnFace(const Mesh& mesh, int sampleNu
         samples.resize(static_cast<std::size_t>(sampleNum));
         return samples;
 	}
-    // ”‚ª‘«‚è‚È‚¢ê‡B
+    // æ•°ãŒè¶³ã‚Šãªã„å ´åˆã€‚
     std::vector<float> areas(mesh.TriangleNum());
-    std::vector<float> cdf(mesh.TriangleNum()); // —İÏ•ª•zŠÖ”
+    std::vector<float> cdf(mesh.TriangleNum()); // ç´¯ç©åˆ†å¸ƒé–¢æ•°
     float sumArea = 0.0f;
     for (int i = 0; i < mesh.TriangleNum(); i++) {
         auto triangle = mesh.GetTriangle(i);
@@ -191,7 +191,7 @@ Vector<Vector3> MeshAlgorithm::CreateSampleOnFace(const Mesh& mesh, int sampleNu
         const float randomArea = Random::Float(0.0f, 1.0f) * sumArea;
 		auto itr = std::lower_bound(cdf.begin(), cdf.end(), randomArea);
         int index =  static_cast<int>(std::distance(cdf.begin(), itr));
-        // •‚“®¬”“_Œë·‚Ö‚Ì•ÛŒ¯B
+        // æµ®å‹•å°æ•°ç‚¹èª¤å·®ã¸ã®ä¿é™ºã€‚
         index = std::min(index, mesh.TriangleNum() - 1);
 
         const auto face = mesh.GetTriangle(index);
@@ -217,7 +217,7 @@ Vector<Vector3> MeshAlgorithm::CreateSampleOnFace(const Mesh& mesh, int sampleNu
 Vector<Vector3> MeshAlgorithm::CreatePoissonSampleOnFace(const HalfEdgeStruct& halfEdge)
 {
     std::vector<float> areas(halfEdge.GetFaceNum());
-    std::vector<float> cdf(halfEdge.GetFaceNum()); // —İÏ•ª•zŠÖ”
+    std::vector<float> cdf(halfEdge.GetFaceNum()); // ç´¯ç©åˆ†å¸ƒé–¢æ•°
     float sumArea = 0.0f;
     for (int i = 0; i < halfEdge.GetFaceNum(); i++) {
         areas[i] = halfEdge.CalcFaceArea(i);
