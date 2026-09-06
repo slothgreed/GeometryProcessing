@@ -8,6 +8,7 @@ import { parseHalfEdgeFile, type HalfEdgeMeshData } from '../lib/halfEdgeLoader'
 type ViewState = {
     mesh: boolean;
     wireframe: boolean;
+    vertices: boolean;
     grid: boolean;
 };
 
@@ -17,6 +18,7 @@ export default function HalfEdgeViewport() {
     const viewportRef = useRef<HTMLDivElement>(null);
     const fitRef = useRef<(() => void) | null>(null);
     const meshRef = useRef<THREE.Mesh | null>(null);
+    const wireframeRef = useRef<THREE.LineSegments | null>(null);
     const verticesRef = useRef<THREE.Points | null>(null);
     const gridRef = useRef<THREE.GridHelper | null>(null);
 
@@ -26,6 +28,7 @@ export default function HalfEdgeViewport() {
     const [view, setView] = useState<ViewState>({
         mesh: true,
         wireframe: false,
+        vertices: false,
         grid: true,
     });
 
@@ -88,11 +91,28 @@ export default function HalfEdgeViewport() {
             roughness: 0.7,
             metalness: 0.02,
             side: THREE.DoubleSide,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
         });
 
         const mesh = new THREE.Mesh(geometry, material);
         meshRef.current = mesh;
         scene.add(mesh);
+
+        const wireframeGeometry = new THREE.WireframeGeometry(geometry);
+        const wireframeMaterial = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            depthTest: true,
+            depthWrite: false,
+            toneMapped: false,
+        });
+
+        const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+        wireframe.visible = false;
+        wireframe.renderOrder = 1;
+        wireframeRef.current = wireframe;
+        scene.add(wireframe);
 
         const verticesGeometry = new THREE.BufferGeometry();
         verticesGeometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
@@ -108,7 +128,7 @@ export default function HalfEdgeViewport() {
 
         const vertices = new THREE.Points(verticesGeometry, verticesMaterial);
         vertices.visible = false;
-        vertices.renderOrder = 1;
+        vertices.renderOrder = 2;
         verticesRef.current = vertices;
         scene.add(vertices);
 
@@ -189,12 +209,15 @@ export default function HalfEdgeViewport() {
             controls.dispose();
             geometry.dispose();
             material.dispose();
+            wireframeGeometry.dispose();
+            wireframeMaterial.dispose();
             verticesGeometry.dispose();
             verticesMaterial.dispose();
             renderer.dispose();
             renderer.domElement.remove();
 
             meshRef.current = null;
+            wireframeRef.current = null;
             verticesRef.current = null;
             gridRef.current = null;
             fitRef.current = null;
@@ -209,11 +232,11 @@ export default function HalfEdgeViewport() {
         const mesh = meshRef.current;
 
         if (mesh) {
-            const material = mesh.material as THREE.MeshStandardMaterial;
-
             mesh.visible = view.mesh;
-            material.wireframe = view.wireframe;
-            material.needsUpdate = true;
+        }
+
+        if (wireframeRef.current) {
+            wireframeRef.current.visible = view.wireframe;
         }
 
         if (gridRef.current) {
@@ -221,9 +244,9 @@ export default function HalfEdgeViewport() {
         }
 
         if (verticesRef.current) {
-            verticesRef.current.visible = editMode === 'vertex';
+            verticesRef.current.visible = view.vertices;
         }
-    }, [data, editMode, view]);
+    }, [data, view]);
 
     const toggle = (key: keyof ViewState) => {
         setView((current) => ({
@@ -364,6 +387,15 @@ export default function HalfEdgeViewport() {
                                 className={`toggle ${view.wireframe ? 'on' : ''}`}
                                 onClick={() => toggle('wireframe')}
                             />
+                        </div>
+                        <div className="toggle-row">
+                          <span>Vertex</span>
+                          <button
+                            aria-label="Vertex表示"
+                            className={`toggle ${view.vertices ? 'on' : ''}`}
+                            onClick={() => toggle('vertices')}
+                          />
+                        
                         </div>
                         <div className="toggle-row">
                             <span>Ground grid</span>
