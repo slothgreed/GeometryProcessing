@@ -165,9 +165,9 @@ void PointCloudApp::Execute()
 		//m_pRoot->AddNode(CreateVolumeTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 		lightCullBDB = pSponza->CalcCameraFitBox();
-		m_pResource->BuildPointLights(bdb, Vector3i(16));
+		m_pResource->GetTileLightResource().BuildPointLights(bdb, Vector3i(16));
 		auto pLightNode = std::make_shared<LightNode>("PointLights");
-		pLightNode->SetBoundBox(lightCullBDB);
+		//pLightNode->SetBoundBox(lightCullBDB);
 		m_pRoot->AddNode(pLightNode);
 	}
 	
