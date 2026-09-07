@@ -21,6 +21,7 @@ export default class SelectionMarkers {
     private readonly faceGeometry: THREE.BufferGeometry;
     private readonly faceMaterial: THREE.MeshBasicMaterial;
     private readonly face: THREE.Mesh;
+    private state: MarkerState | null = null;
 
     constructor(scene: THREE.Scene, data: HalfEdgeMeshData, meshRadius: number) {
         this.scene = scene;
@@ -78,6 +79,12 @@ export default class SelectionMarkers {
     }
 
     update({ selection, hoverSelection, view }: MarkerState) {
+        this.state = {
+            selection,
+            hoverSelection,
+            view,
+        };
+
         const displayedSelection = hoverSelection ?? selection;
         const markerColor = hoverSelection ? 0x55d6be : 0xffc857;
 
@@ -95,6 +102,12 @@ export default class SelectionMarkers {
 
         if (displayedSelection?.type === 'face') {
             this.updateFace(displayedSelection.index, markerColor, view.mesh);
+        }
+    }
+
+    refresh() {
+        if (this.state) {
+            this.update(this.state);
         }
     }
 

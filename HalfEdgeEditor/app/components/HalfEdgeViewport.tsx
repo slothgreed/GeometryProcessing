@@ -8,27 +8,29 @@ import type { EditMode, Selection, ViewState } from '../lib/editorTypes';
 import { parseHalfEdgeFile, type HalfEdgeMeshData } from '../lib/halfEdgeLoader';
 import SelectionController from '../lib/SelectionController';
 import SelectionMarkers from '../lib/SelectionMarkers';
+import VertexManipulator from '../lib/VertexManipulator';
 
 export default function HalfEdgeViewport() {
     const viewportRef = useRef<HTMLDivElement>(null);
     const fitRef = useRef<(() => void) | null>(null);
-    const editModeRef = useRef<EditMode>('object');
+    const editModeRef = useRef<EditMode>('any');
     const meshRef = useRef<THREE.Mesh | null>(null);
     const wireframeRef = useRef<THREE.LineSegments | null>(null);
     const verticesRef = useRef<THREE.Points | null>(null);
     const selectionControllerRef = useRef<SelectionController | null>(null);
     const selectionMarkersRef = useRef<SelectionMarkers | null>(null);
+    const vertexManipulatorRef = useRef<VertexManipulator | null>(null);
     const gridRef = useRef<THREE.GridHelper | null>(null);
 
     const [data, setData] = useState<HalfEdgeMeshData | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [editMode, setEditMode] = useState<EditMode>('object');
+    const [editMode, setEditMode] = useState<EditMode>('any');
     const [selection, setSelection] = useState<Selection | null>(null);
     const [hoverSelection, setHoverSelection] = useState<Selection | null>(null);
     const [view, setView] = useState<ViewState>({
         mesh: true,
-        wireframe: false,
-        vertices: false,
+        wireframe: true,
+        vertices: true,
         grid: true,
     });
 
@@ -100,7 +102,7 @@ export default function HalfEdgeViewport() {
         meshRef.current = mesh;
         scene.add(mesh);
 
-        const wireframeGeometry = new THREE.WireframeGeometry(geometry);
+        let wireframeGeometry = new THREE.WireframeGeometry(geometry);
         const wireframeMaterial = new THREE.LineBasicMaterial({
             color: 0x000000,
             depthTest: true,
@@ -174,6 +176,36 @@ export default function HalfEdgeViewport() {
         });
         selectionControllerRef.current = selectionController;
 
+        const vertexManipulator = new VertexManipulator({
+            scene,
+            camera,
+            domElement: renderer.domElement,
+            orbitControls: controls,
+            data,
+            meshRadius,
+            onDraggingChange: (dragging) => {
+                selectionController.setPickingEnabled(!dragging);
+            },
+            onVertexChange: () => {
+                const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+                const vertexPositions = verticesGeometry.getAttribute('position') as THREE.BufferAttribute;
+
+                position.needsUpdate = true;
+                vertexPositions.needsUpdate = true;
+                geometry.computeVertexNormals();
+                geometry.computeBoundingBox();
+                geometry.computeBoundingSphere();
+
+                wireframeGeometry.dispose();
+                wireframeGeometry = new THREE.WireframeGeometry(geometry);
+                wireframe.geometry = wireframeGeometry;
+
+                selectionController.updateGeometry();
+                selectionMarkers.refresh();
+            },
+        });
+        vertexManipulatorRef.current = vertexManipulator;
+
         const fit = () => {
             const sphere = geometry.boundingSphere;
             const box = geometry.boundingBox;
@@ -229,6 +261,7 @@ export default function HalfEdgeViewport() {
         return () => {
             cancelAnimationFrame(frame);
             observer.disconnect();
+            vertexManipulator.dispose();
             selectionController.dispose();
             selectionMarkers.dispose();
             controls.dispose();
@@ -246,6 +279,7 @@ export default function HalfEdgeViewport() {
             verticesRef.current = null;
             selectionControllerRef.current = null;
             selectionMarkersRef.current = null;
+            vertexManipulatorRef.current = null;
             gridRef.current = null;
             fitRef.current = null;
         };
@@ -281,6 +315,10 @@ export default function HalfEdgeViewport() {
         });
     }, [data, hoverSelection, selection, view]);
 
+    useEffect(() => {
+        vertexManipulatorRef.current?.setSelection(selection);
+    }, [data, selection]);
+
     const toggle = (key: keyof ViewState) => {
         setView((current) => ({
             ...current,
@@ -307,19 +345,19 @@ export default function HalfEdgeViewport() {
                 <nav className="mode-tabs" aria-label="編集対象">
                     <button
                         type="button"
-                        className={`mode-tab ${editMode === 'object' ? 'active' : ''}`}
-                        aria-pressed={editMode === 'object'}
-                        onClick={() => changeEditMode('object')}
+                        className={`mode-tab ${editMode === 'any' ? 'active' : ''}`}
+                        aria-pressed={editMode === 'any'}
+                        onClick={() => changeEditMode('any')}
                     >
-                        {EDIT_MODE_LABELS.object}
+                        {EDIT_MODE_LABELS.any}
                     </button>
                     <button
                         type="button"
-                        className={`mode-tab ${editMode === 'vertex' ? 'active' : ''}`}
-                        aria-pressed={editMode === 'vertex'}
-                        onClick={() => changeEditMode('vertex')}
+                        className={`mode-tab ${editMode === 'face' ? 'active' : ''}`}
+                        aria-pressed={editMode === 'face'}
+                        onClick={() => changeEditMode('face')}
                     >
-                        {EDIT_MODE_LABELS.vertex}
+                        {EDIT_MODE_LABELS.face}
                     </button>
                     <button
                         type="button"
@@ -331,11 +369,11 @@ export default function HalfEdgeViewport() {
                     </button>
                     <button
                         type="button"
-                        className={`mode-tab ${editMode === 'face' ? 'active' : ''}`}
-                        aria-pressed={editMode === 'face'}
-                        onClick={() => changeEditMode('face')}
+                        className={`mode-tab ${editMode === 'vertex' ? 'active' : ''}`}
+                        aria-pressed={editMode === 'vertex'}
+                        onClick={() => changeEditMode('vertex')}
                     >
-                        {EDIT_MODE_LABELS.face}
+                        {EDIT_MODE_LABELS.vertex}
                     </button>
                 </nav>
                 <div className="top-actions">

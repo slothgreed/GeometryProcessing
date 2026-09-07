@@ -35,6 +35,7 @@ export default class SelectionController {
     private hoverPickingFrame = 0;
     private pointerInside = false;
     private pointerButtons = 0;
+    private pickingEnabled = true;
 
     constructor({
         data,
@@ -78,6 +79,18 @@ export default class SelectionController {
         this.gpuPicker.setSize(width, height);
     }
 
+    updateGeometry() {
+        this.gpuPicker.updateGeometry();
+    }
+
+    setPickingEnabled(enabled: boolean) {
+        this.pickingEnabled = enabled;
+
+        if (!enabled) {
+            this.onHoverSelectionChange(null);
+        }
+    }
+
     dispose() {
         if (this.hoverPickingFrame !== 0) {
             cancelAnimationFrame(this.hoverPickingFrame);
@@ -105,7 +118,7 @@ export default class SelectionController {
     }
 
     private scheduleHoverPicking = () => {
-        if (!this.pointerInside || this.pointerButtons !== 0 || this.hoverPickingFrame !== 0) {
+        if (!this.pickingEnabled || !this.pointerInside || this.pointerButtons !== 0 || this.hoverPickingFrame !== 0) {
             return;
         }
 
@@ -141,6 +154,10 @@ export default class SelectionController {
         this.pointerInside = true;
         this.pointerButtons = event.buttons;
         this.hoverPointerPosition.set(event.clientX, event.clientY);
+
+        if (!this.pickingEnabled) {
+            return;
+        }
 
         const dragDistance = this.pointerDownPosition.distanceTo(new THREE.Vector2(event.clientX, event.clientY));
 

@@ -5,9 +5,9 @@ export type ViewState = {
     grid: boolean;
 };
 
-export type EditMode = 'object' | 'vertex' | 'edge' | 'face';
+export type EditMode = 'any' | 'vertex' | 'edge' | 'face';
 
 export type Selection = {
-    type: Exclude<EditMode, 'object'>;
+    type: Exclude<EditMode, 'any'>;
     index: number;
 };

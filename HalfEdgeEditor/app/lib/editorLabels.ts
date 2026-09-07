@@ -7,7 +7,7 @@ export const ELEMENT_LABELS = {
 } as const;
 
 export const EDIT_MODE_LABELS: Record<EditMode, string> = {
-    object: 'Object',
+    any: 'Any',
     vertex: ELEMENT_LABELS.vertex,
     edge: ELEMENT_LABELS.edge,
     face: ELEMENT_LABELS.face,

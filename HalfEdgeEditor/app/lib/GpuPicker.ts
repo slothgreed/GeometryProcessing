@@ -22,6 +22,10 @@ type PickRequest = {
     verticesVisible: boolean;
 };
 
+type ElementMode = Selection['type'];
+
+const ANY_PICKING_ORDER: ElementMode[] = ['vertex', 'edge', 'face'];
+
 export default class GpuPicker {
     private readonly data: HalfEdgeMeshData;
     private readonly scene: THREE.Scene;
@@ -139,6 +143,15 @@ export default class GpuPicker {
         this.target.setSize(width, height);
     }
 
+    updateGeometry() {
+        const vertexPositions = this.verticesGeometry.getAttribute('position') as THREE.BufferAttribute;
+        const edgePickingData = createEdgePickingData(this.data);
+
+        vertexPositions.needsUpdate = true;
+        this.edgesGeometry.setPositions(edgePickingData.positions);
+        this.facesGeometry.setAttribute('position', new THREE.BufferAttribute(createFacePickingPositions(this.data), 3));
+    }
+
     pick({
         renderer,
         camera,
@@ -149,43 +162,32 @@ export default class GpuPicker {
         wireframeVisible,
         verticesVisible,
     }: PickRequest): Selection | null {
-        if (editMode === 'object' || !this.isSelectableVisible(
-            editMode,
-            surfaceVisible,
-            wireframeVisible,
-            verticesVisible,
-        )) {
-            return null;
-        }
-
         const bounds = renderer.domElement.getBoundingClientRect();
         const pixelX = Math.min(this.target.width - 1, Math.max(0, Math.floor(((clientX - bounds.left) / bounds.width) * this.target.width)));
         const pixelY = Math.min(this.target.height - 1, Math.max(0, Math.floor(((bounds.bottom - clientY) / bounds.height) * this.target.height)));
-        const previousRenderTarget = renderer.getRenderTarget();
+        const pickingOrder = editMode === 'any' ? ANY_PICKING_ORDER : [editMode];
 
-        this.surface.visible = editMode !== 'face' && surfaceVisible;
-        this.vertices.visible = editMode === 'vertex';
-        this.edges.visible = editMode === 'edge';
-        this.faces.visible = editMode === 'face';
-        renderer.setRenderTarget(this.target);
+        for (const elementMode of pickingOrder) {
+            if (!this.isSelectableVisible(
+                elementMode,
+                surfaceVisible,
+                wireframeVisible,
+                verticesVisible,
+            )) {
+                continue;
+            }
 
-        try {
-            renderer.render(this.scene, camera);
-            renderer.readRenderTargetPixels(this.target, pixelX, pixelY, 1, 1, this.pixel);
-        } finally {
-            renderer.setRenderTarget(previousRenderTarget);
+            const pickedIndex = this.pickElement(renderer, camera, pixelX, pixelY, elementMode, surfaceVisible);
+
+            if (pickedIndex !== null && this.isIndexValid(elementMode, pickedIndex)) {
+                return {
+                    type: elementMode,
+                    index: pickedIndex,
+                };
+            }
         }
 
-        const pickedIndex = decodePickingId(this.pixel);
-
-        if (pickedIndex === null || !this.isIndexValid(editMode, pickedIndex)) {
-            return null;
-        }
-
-        return {
-            type: editMode,
-            index: pickedIndex,
-        };
+        return null;
     }
 
     dispose() {
@@ -200,7 +202,7 @@ export default class GpuPicker {
     }
 
     private isSelectableVisible(
-        editMode: EditMode,
+        editMode: ElementMode,
         surfaceVisible: boolean,
         wireframeVisible: boolean,
         verticesVisible: boolean,
@@ -214,7 +216,33 @@ export default class GpuPicker {
         );
     }
 
-    private isIndexValid(editMode: EditMode, index: number) {
+    private pickElement(
+        renderer: THREE.WebGLRenderer,
+        camera: THREE.Camera,
+        pixelX: number,
+        pixelY: number,
+        elementMode: ElementMode,
+        surfaceVisible: boolean,
+    ) {
+        const previousRenderTarget = renderer.getRenderTarget();
+
+        this.surface.visible = elementMode !== 'face' && surfaceVisible;
+        this.vertices.visible = elementMode === 'vertex';
+        this.edges.visible = elementMode === 'edge';
+        this.faces.visible = elementMode === 'face';
+        renderer.setRenderTarget(this.target);
+
+        try {
+            renderer.render(this.scene, camera);
+            renderer.readRenderTargetPixels(this.target, pixelX, pixelY, 1, 1, this.pixel);
+        } finally {
+            renderer.setRenderTarget(previousRenderTarget);
+        }
+
+        return decodePickingId(this.pixel);
+    }
+
+    private isIndexValid(editMode: ElementMode, index: number) {
         return (
             editMode === 'vertex' && index < this.data.vertexCount
         ) || (
