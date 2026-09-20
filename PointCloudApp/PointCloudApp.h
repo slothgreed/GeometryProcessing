@@ -49,7 +49,8 @@ private:
 		int mipmap;
 		bool animation;
 		bool tileLight = false;
-		bool tileLightDebug = false;
+		// Hidden, minimum depth, maximum depth, light count.
+		int tileLightDebugMode = 0;
 		bool tileLightAnimation = false;
 		int stepSelected;
 		int dxfSelected;
@@ -87,10 +88,9 @@ private:
 	Vector<String> m_dxfFiles;
 	RenderNode* m_pSelect;
 	Vector<Shared<Texture>> m_pgmTexture;
+	BDB m_spaceBDB;
 	Vector<std::pair<String, const Texture*>> m_uiTextureList;
 	void ShowUI(UIContext& ui);
-	Shared<RenderNode> m_pGLTFAnimation;
-	Shared<HalfEdgeStruct> m_pBunny;
 };
 }
 

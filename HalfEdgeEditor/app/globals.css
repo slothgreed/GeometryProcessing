@@ -52,3 +52,15 @@ button { font:inherit; }
 .statusbar .spacer { flex:1; }
 @media (max-width:900px) { .workspace{grid-template-columns:190px minmax(0,1fr)} .panel-right{display:none} .brand{min-width:auto} .file-name{display:none} }
 @media (max-width:620px) { .workspace{grid-template-columns:minmax(0,1fr)} .panel-left{display:none} .mode-tab{min-width:auto;padding-inline:8px} .topbar{gap:10px;padding-inline:11px} .brand-name{display:none} }
+.remesh-field {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+.remesh-field input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}

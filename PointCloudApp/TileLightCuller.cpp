@@ -9,6 +9,8 @@ void TileLightCuller::DebugViewShader::FetchUniformLocation()
 	m_uTileCount = GetUniformLocation("u_tileCount");
 	m_uTileSize = GetUniformLocation("u_tileSize");
 	m_uMaxLightNum = GetUniformLocation("u_maxLightNum");
+	m_uDepthRange = GetUniformLocation("u_depthRange");
+	m_uDisplayMode = GetUniformLocation("u_displayMode");
 }
 
 ShaderPath TileLightCuller::DebugViewShader::GetShaderPath()
@@ -17,7 +19,7 @@ ShaderPath TileLightCuller::DebugViewShader::GetShaderPath()
 	path.version = "version.h";
 	path.header.push_back("common.h");
 	path.shader[SHADER_PROGRAM_VERTEX] = "posteffect\\posteffect.vert";
-	path.shader[SHADER_PROGRAM_FRAG] = "algorithm\\tileLighViewer.frag";
+	path.shader[SHADER_PROGRAM_FRAG] = "algorithm\\tileLightViewer.frag";
 	return path;
 }
 
@@ -35,6 +37,16 @@ void TileLightCuller::DebugViewShader::BindMaxLightNum()
 	BindUniform(m_uMaxLightNum, MAX_LIGHT_NUM);
 }
 
+void TileLightCuller::DebugViewShader::BindDepthRange(const Vector2& depthRange)
+{
+	BindUniform(m_uDepthRange, depthRange);
+}
+
+
+void TileLightCuller::DebugViewShader::BindDisplayMode(int displayMode)
+{
+	BindUniform(m_uDisplayMode, displayMode);
+}
 
 void TileLightCuller::Shader::FetchUniformLocation()
 {
@@ -92,7 +104,7 @@ void TileLightCuller::UpdateShader::BindTimeDelta(float timeDelta)
 {
 	BindUniform(m_uTimeDelta, timeDelta);
 }
-void TileLightCuller::DrawDebugView(const DrawContext& context)
+void TileLightCuller::DrawDebugView(const DrawContext& context, int displayMode)
 {
 	if (m_pDebugShader == nullptr) {
 		m_pDebugShader = new DebugViewShader();
@@ -101,9 +113,25 @@ void TileLightCuller::DrawDebugView(const DrawContext& context)
 	context.pResource->GL()->EnableBlend();
 	m_pDebugShader->Use();
 	m_pDebugShader->BindTileCount(GetTileCount2D(context.pResource->GetCamera()->ViewSize()));
-	m_pDebugShader->BindShaderStorage(1, context.pResource->GetTileLightBuffer()->Handle());
+	m_pDebugShader->BindShaderStorage(1, context.pResource->GetTileLightResource()->GetTileLightBuffer()->Handle());
 	m_pDebugShader->BindTileSize(GetTileSize());
 	m_pDebugShader->BindMaxLightNum();
+	m_pDebugShader->BindDisplayMode(displayMode);
+	const auto& camera = *context.pResource->GetCamera();
+	const auto& bdb = context.pResource->GetTileLightResource()->GetBoundingBox();
+	// Fall back to the camera range if no bounding box is available.
+	Vector2 depthRange = camera.GetDepthRange();
+	if (bdb.IsActive()) {
+		Rangef range;
+		for (const auto& corner : bdb.CreateBoxPos()) {
+			range.Add(-(camera.ViewMatrix() * Vector4(corner, 1.0f)).z);
+		}
+		// Ignore the portion behind the camera when the box straddles it.
+		if (range.Max() > 0.0f) {
+			depthRange = Vector2(std::max(0.0f, range.Min()), range.Max());
+		}
+	}
+	m_pDebugShader->BindDepthRange(depthRange);
 	m_pDebugShader->Draw(*context.pResource->GetTexturePlane());
 	context.pResource->GL()->DisableBlend();
 }
@@ -116,10 +144,10 @@ void TileLightCuller::Update(const DrawContext& context, const BDB& bdb)
 	}
 	BuildResource(context.pResource->GetCamera()->ViewSize());
 	m_pUpdateShader->Use();
-	m_pUpdateShader->BindShaderStorage(2, context.pResource->GetPointLightBuffer()->Handle());
+	m_pUpdateShader->BindShaderStorage(2, context.pResource->GetTileLightResource()->GetPointLightBuffer()->Handle());
 	m_pUpdateShader->BindBoundingBox(bdb.Min(), bdb.Max());
 	m_pUpdateShader->BindTimeDelta(context.pResource->GetTimeDelta() * 10);
-	m_pUpdateShader->Dispatch1D(context.pResource->GetPointLightBuffer()->Num());
+	m_pUpdateShader->Dispatch1D(context.pResource->GetTileLightResource()->GetPointLightBuffer()->Num());
 	m_pUpdateShader->BarrierSSBO();
 
 }
@@ -131,11 +159,11 @@ void TileLightCuller::Execute(const DrawContext& context)
 	m_pShader->BindDepth(context.pResource->GetRenderTarget()->GetDepth().get());
 	m_pShader->BindWindowSize(viewSize);
 	m_pShader->BindLocalSize(m_pShader->GetLocalThread2D());
-	m_pShader->BindLightNum(context.pResource->GetPointLightBuffer()->Num());
+	m_pShader->BindLightNum(context.pResource->GetTileLightResource()->GetPointLightBuffer()->Num());
 
 	m_pShader->BindShaderStorage(0, context.pResource->GetCameraBuffer()->Handle());
-	m_pShader->BindShaderStorage(1, context.pResource->GetTileLightBuffer()->Handle());
-	m_pShader->BindShaderStorage(2, context.pResource->GetPointLightBuffer()->Handle());
+	m_pShader->BindShaderStorage(1, context.pResource->GetTileLightResource()->GetTileLightBuffer()->Handle());
+	m_pShader->BindShaderStorage(2, context.pResource->GetTileLightResource()->GetPointLightBuffer()->Handle());
 	m_pShader->Dispatch(m_pShader->GetDispatchNum2D(viewSize));
 	m_pShader->BarrierSSBO();
 }

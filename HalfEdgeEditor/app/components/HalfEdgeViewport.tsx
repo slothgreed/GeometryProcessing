@@ -9,6 +9,7 @@ import { parseHalfEdgeFile, type HalfEdgeMeshData } from '../lib/halfEdgeLoader'
 import SelectionController from '../lib/SelectionController';
 import SelectionMarkers from '../lib/SelectionMarkers';
 import VertexManipulator from '../lib/VertexManipulator';
+import { collapseSkinnyTriangles, getAreaStatistics, getTriangleQuality, improveDelaunay, remeshByArea } from '../lib/remeshing';
 
 export default function HalfEdgeViewport() {
     const viewportRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,10 @@ export default function HalfEdgeViewport() {
     const selectionMarkersRef = useRef<SelectionMarkers | null>(null);
     const vertexManipulatorRef = useRef<VertexManipulator | null>(null);
     const gridRef = useRef<THREE.GridHelper | null>(null);
+
+    const [targetArea, setTargetArea] = useState('');
+    const [maxSplits, setMaxSplits] = useState('2000');
+    const [remeshMessage, setRemeshMessage] = useState('');
 
     const [data, setData] = useState<HalfEdgeMeshData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -49,6 +54,7 @@ export default function HalfEdgeViewport() {
             .then((loaded) => {
                 if (!cancelled) {
                     setData(loaded);
+                    setTargetArea(String(getAreaStatistics(loaded).mean));
                 }
             })
             .catch((reason: unknown) => {
@@ -334,6 +340,35 @@ export default function HalfEdgeViewport() {
 
     const count = (value?: number) => value?.toLocaleString('ja-JP') ?? '—';
 
+    const remesh = () => {
+        if (!data) {
+            return;
+        }
+
+        try {
+            const result = remeshByArea(data, Number(targetArea), Number(maxSplits));
+            const improved = improveDelaunay(result.data, Number(targetArea));
+            const cleaned = collapseSkinnyTriangles(improved.data, Number(targetArea));
+            const quality = getTriangleQuality(cleaned.data);
+
+            if (result.splits > 0 || improved.flips > 0 || cleaned.collapses > 0) {
+                setSelection(null);
+                setHoverSelection(null);
+                setData(cleaned.data);
+            }
+
+            setRemeshMessage(`${result.splits}回分割、${improved.flips}辺を入れ替え、${cleaned.collapses}辺を縮約しました。${getAreaStatistics(cleaned.data).maximum > Number(targetArea)
+                ? '目標面積を超える面が残っています。再実行で分割を続けられます。'
+                : 'すべての面が目標面積以下です。'}${improved.stoppedAtLimit
+                ? '辺の改善は反復上限に達しました。'
+                : ''} 最小角20°未満の面は${quality.skinnyFaces}面、最小角は${quality.minimumDegrees.toFixed(2)}°です。${cleaned.stoppedAtLimit
+                ? '細長い面の改善は反復上限に達しました。'
+                : quality.skinnyFaces > 0 ? '残った面は形状・接続の保護条件により維持しています。' : ''}`);
+        } catch (reason: unknown) {
+            setRemeshMessage(reason instanceof Error ? reason.message : String(reason));
+        }
+    };
+
     return (
         <main className="editor-shell">
             <header className="topbar">
@@ -388,6 +423,38 @@ export default function HalfEdgeViewport() {
 
             <div className="workspace">
                 <aside className="panel panel-left">
+                    <section className="panel-section">
+                        <h2 className="section-label">再分割</h2>
+                        <label className="remesh-field">
+                            目標面積（上限）
+                            <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={targetArea}
+                                onChange={(event) => setTargetArea(event.target.value)}
+                            />
+                        </label>
+                        <label className="remesh-field">
+                            最大分割回数
+                            <input
+                                type="number"
+                                min="1"
+                                max="10000"
+                                step="1"
+                                value={maxSplits}
+                                onChange={(event) => setMaxSplits(event.target.value)}
+                            />
+                        </label>
+                        <button className="tool-button" disabled={!data} onClick={remesh}>
+                            再分割して三角形を改善
+                        </button>
+                        <p className="format-note">
+                            再分割・辺の入れ替えの後、最小角20°未満の面の短い辺を縮約します。
+                            境界と鋭い折れ目を保護し、細長い面を減らします。
+                        </p>
+                        <p className="format-note" role="status">{remeshMessage}</p>
+                    </section>
                     <section className="panel-section">
                         <h2 className="section-label">Scene</h2>
                         <div className="scene-item">

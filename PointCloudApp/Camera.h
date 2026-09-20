@@ -89,6 +89,7 @@ public:
 
 	const Perspective& GetPerspective() const { return m_perspective; }
 	const Ortho& GetOrtho() const { return m_ortho; }
+	Vector2 GetDepthRange() const;
 	float Left() const { return m_ortho.m_left; }
 	float Right() const { return m_ortho.m_right; }
 	float Top() const { return m_ortho.m_top; }

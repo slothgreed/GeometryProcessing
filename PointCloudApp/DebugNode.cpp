@@ -70,7 +70,7 @@ void DebugNode::DrawNode(const DrawContext& context)
 
 void LightNode::DrawNode(const DrawContext& context)
 {
-	const auto* pPointLights = context.pResource->GetPointLightBuffer();
+	const auto* pPointLights = context.pResource->GetTileLightResource()->GetPointLightBuffer();
 	if (!pPointLights || pPointLights->Num() == 0) { return; }
 
 	auto pShader = context.pResource->GetShaderTable()->GetPointLightShader();

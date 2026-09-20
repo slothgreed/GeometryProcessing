@@ -198,11 +198,8 @@ public:
 	void UpdateDebugCamera(const Camera& camera);
 	void SetTimeDelta(float value) { m_timeDelta = value; }
 	float GetTimeDelta() const { return m_timeDelta; }
-	TileLightResource& GetTileLightResource() { return m_pTileLightResource; }
-	const TileLightResource& GetTileLightResource() const { return m_pTileLightResource; }
-	const GLBuffer* GetTileLightBuffer() const { return m_pTileLightResource.GetTileLightBuffer(); }
-	const GLBuffer* GetPointLightBuffer() const { return m_pTileLightResource.GetPointLightBuffer(); }
-
+	TileLightResource* GetTileLightResource() { return &m_pTileLightResource; }
+	const TileLightResource* GetTileLightResource() const { return &m_pTileLightResource; }
 private:
 	float m_timeDelta = 0.0f;
 	PBRResource* m_pPBR;

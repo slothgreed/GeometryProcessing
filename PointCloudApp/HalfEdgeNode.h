@@ -99,6 +99,15 @@ private:
 	void BuildEdge();
 	void ShowNormal(const DrawContext& context);
 	void BuildGLBuffer();
+	void BuildFaceAreaColors();
+	bool m_faceAreaDirty = true;
+	bool m_showFaceAreas = false;
+	float m_areaThreshold = 2.0f;
+	double m_meanFaceArea = 0;
+	float m_maxFaceArea = 0;
+	int m_maxAreaFace = -1;
+	int m_largeFaceCount = 0;
+	std::array<Unique<GLBuffer>, 3> m_areaIndices;
 
 	struct PickId
 	{

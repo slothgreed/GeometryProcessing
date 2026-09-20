@@ -18,7 +18,7 @@ public:
 	};
 	
 	void Execute(const DrawContext& context);
-	void DrawDebugView(const DrawContext& context);
+	void DrawDebugView(const DrawContext& context, int displayMode);
 	void Update(const DrawContext& context, const BDB& bdb);
 
 	struct DebugViewShader : IPostEffectShader
@@ -29,6 +29,10 @@ public:
 		void BindTileCount(const Vector2i& tileCount);
 		void BindTileSize(const Vector2i& tileSize);
 		void BindMaxLightNum();
+		void BindDepthRange(const Vector2& depthRange);
+		void BindDisplayMode(int displayMode);
+		GLuint m_uDisplayMode = -1;
+		GLuint m_uDepthRange = -1;
 		GLuint m_uMaxLightNum = -1;
 		GLuint m_uTileCount = -1;
 		GLuint m_uTileSize = -1;
@@ -88,8 +92,10 @@ public:
 		RELEASE_INSTANCE(m_pTileLight);
 	}
 
+	bool IsActive() const { return m_pTileLight != nullptr && m_pPointLightGpu != nullptr; }
 	const GLBuffer* GetTileLightBuffer() const { return m_pTileLight; }
 	const GLBuffer* GetPointLightBuffer() const { return m_pPointLightGpu; }
+	const BDB& GetBoundingBox() const { return m_bdb; }
 	void BuildPointLights(const BDB& bdb, int resolution);
 	void BuildPointLights(const BDB& bdb, const Vector3i& resolution);
 	void BuildPointLightBuffer(const Vector2i& windowSize);

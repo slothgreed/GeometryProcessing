@@ -112,10 +112,10 @@ void GLTFShader::SetPBRResource(const DrawContext& drawContext)
 {
 	auto pPBR = drawContext.pResource->GetPBR();
 	BindShaderStorage(6, pPBR->GetGlobalParam()->Handle());
-	if (drawContext.pResource->GetPointLightBuffer() &&
-		drawContext.pResource->GetTileLightBuffer()) {
-		BindShaderStorage(7, drawContext.pResource->GetPointLightBuffer()->Handle());
-		BindShaderStorage(8, drawContext.pResource->GetTileLightBuffer()->Handle());
+	if (drawContext.pResource->GetTileLightResource()->IsActive()) {
+		auto tileLightResource = drawContext.pResource->GetTileLightResource();
+		BindShaderStorage(7, tileLightResource->GetPointLightBuffer()->Handle());
+		BindShaderStorage(8, tileLightResource->GetTileLightBuffer()->Handle());
 	}
 	BindTexture(m_uBRDF, 5, *pPBR->GetBRDFLUT());
 	BindCubemap(m_uIrradiance, 6, *pPBR->GetIrradiance());

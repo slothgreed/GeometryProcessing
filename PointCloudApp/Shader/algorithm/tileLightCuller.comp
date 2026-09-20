@@ -24,7 +24,7 @@ uniform int u_lightNum;
 shared uint minDepthBits;
 shared uint maxDepthBits;
 shared uint tileLightCount;
-shared uint tileLightIndices[8];
+shared uint tileLightIndices[MAX_LIGHT_NUM];
 shared uint hasValidDepth;
 
 void insertLightIndex(uint lightIndex)
@@ -186,11 +186,10 @@ void main()
 	}
     barrier();
 
-	tileLights[tileLightIndex].minDepth = minDepth;
-	tileLights[tileLightIndex].maxDepth = maxDepth;
-	
     // save to ssbo
     if (localIndex == 0) {
+		tileLights[tileLightIndex].minDepth = minDepth;
+		tileLights[tileLightIndex].maxDepth = maxDepth;
         uint count = min(tileLightCount, MAX_LIGHT_NUM);
         tileLights[tileLightIndex].count = int(count);
         for (uint i = 0; i < count; ++i) {

@@ -12,6 +12,7 @@
 #include "HalfEdgeController.h"
 #include "ShapeMatching.h"
 #include "DebugNode.h"
+#include <cmath>
 namespace KI
 {
 
@@ -88,6 +89,42 @@ void HalfEdgeNode::BuildGLBuffer()
 	m_gpu.vertexColor = std::make_unique<GLBuffer>();
 	m_gpu.vertexDir1 = std::make_unique<GLBuffer>();
 	m_gpu.vertexDir2 = std::make_unique<GLBuffer>();
+}
+
+void HalfEdgeNode::BuildFaceAreaColors()
+{
+	if (!m_faceAreaDirty) { return; }
+	Vector<float> areas(m_pHalfEdge->GetFaceNum());
+	m_meanFaceArea = 0;
+	m_maxFaceArea = 0;
+	m_maxAreaFace = -1;
+	m_largeFaceCount = 0;
+	for (size_t i = 0; i < areas.size(); ++i) {
+		areas[i] = m_pHalfEdge->CalcFaceArea(static_cast<int>(i));
+		if (!std::isfinite(areas[i]) || areas[i] < 0) { areas[i] = 0; }
+		m_meanFaceArea += areas[i];
+		if (areas[i] > m_maxFaceArea) {
+			m_maxFaceArea = areas[i];
+			m_maxAreaFace = static_cast<int>(i);
+		}
+	}
+	if (!areas.empty()) { m_meanFaceArea /= areas.size(); }
+	std::array<Vector<UInt>, 3> indices;
+	for (size_t i = 0; i < areas.size(); ++i) {
+		const bool large = areas[i] > m_meanFaceArea * m_areaThreshold;
+		if (large) { ++m_largeFaceCount; }
+		const int group = static_cast<int>(i) == m_maxAreaFace ? 2 : (large ? 1 : 0);
+		const auto& face = m_pHalfEdge->GetIndexedFace(static_cast<int>(i));
+		for (int vertex : face.position) { indices[group].push_back(static_cast<UInt>(vertex)); }
+	}
+	for (size_t i = 0; i < indices.size(); ++i) {
+		m_areaIndices[i].reset();
+		if (!indices[i].empty()) {
+			m_areaIndices[i] = std::make_unique<GLBuffer>();
+			m_areaIndices[i]->Create(indices[i]);
+		}
+	}
+	m_faceAreaDirty = false;
 }
 
 void HalfEdgeNode::ShowNormal(const DrawContext& context)
@@ -188,7 +225,17 @@ void HalfEdgeNode::DrawNode(const DrawContext& context)
 		pFaceShader->SetClipPlane(crossSectionPlane);
 		context.pResource->GL()->EnableClipDistance(0);
 	}
-	pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
+	if (m_showFaceAreas) {
+		BuildFaceAreaColors();
+		const Vector3 colors[] = { Vector3(0.7f, 0.7f, 1.0f), Vector3(1.0f, 0.35f, 0.05f), Vector3(1.0f, 0.0f, 0.4f) };
+		for (size_t i = 0; i < m_areaIndices.size(); ++i) {
+			if (!m_areaIndices[i]) { continue; }
+			pFaceShader->SetColor(colors[i]);
+			pFaceShader->DrawElement(GL_TRIANGLES, m_areaIndices[i].get());
+		}
+	} else {
+		pFaceShader->DrawElement(GL_TRIANGLES, m_gpu.faceIndexBuffer.get());
+	}
 	if (m_ui.visibleCrossSection) {
 		context.pResource->GL()->DisableClipDistance(0);
 	}
@@ -332,6 +379,7 @@ void HalfEdgeNode::PickNode(const PickContext& context)
 
 void HalfEdgeNode::UpdateVertex()
 {
+	m_faceAreaDirty = true;
 	m_updateData[UPDATE_VERTEX] = true;
 }
 bool HalfEdgeNode::CollectPickedNode(PickResult& result)
@@ -421,6 +469,17 @@ void HalfEdgeNode::ShowUI(UIContext& ui)
 		m_pHalfEdge->GetFaceNum());
 
 	ImGui::Checkbox("ShowMesh", &m_ui.visibleMesh);
+	ImGui::Checkbox("Color large faces", &m_showFaceAreas);
+	if (m_showFaceAreas) {
+		if (ImGui::SliderFloat("Area / mean threshold", &m_areaThreshold, 1.0f, 10.0f, "%.1fx")) {
+			m_faceAreaDirty = true;
+		}
+		BuildFaceAreaColors();
+		ImGui::Text("Mean area: %.6g | Max: %.6g", m_meanFaceArea, m_maxFaceArea);
+		ImGui::Text("Largest face ID: %d | Above threshold: %d", m_maxAreaFace, m_largeFaceCount);
+		ImGui::TextColored(ImVec4(1, 0.35f, 0.05f, 1), "Orange: above threshold");
+		ImGui::TextColored(ImVec4(1, 0, 0.4f, 1), "Pink: largest face (always)");
+	}
 	if (ImGui::Checkbox("ShowEdge", &m_ui.visibleEdge)) {
 		if (m_ui.visibleEdge) {
 			BuildEdge();

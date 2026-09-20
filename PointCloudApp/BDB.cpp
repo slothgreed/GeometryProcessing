@@ -160,8 +160,10 @@ std::array<BDB::Triangle, 12> BDB::CreateTriangle() const
 BDB BDB::CreateRotate(const Matrix4x4& matrix) const
 {
 	BDB bdb;
-	bdb.m_min = matrix * Vector4(m_min, 1.0f);
-	bdb.m_max = matrix * Vector4(m_max, 1.0f);
+	if (!IsActive()) { return bdb; }
+	for (const auto& pos : CreateBoxPos()) {
+		bdb.Add(Vector3(matrix * Vector4(pos, 1.0f)));
+	}
 	return bdb;
 }
 }

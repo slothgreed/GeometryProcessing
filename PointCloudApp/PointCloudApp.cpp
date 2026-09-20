@@ -152,7 +152,6 @@ void PointCloudApp::Execute()
 	m_pDebugRoot = std::make_unique<RenderNode>("DebugOutput");
 	m_uiContext.SetDebugNode(m_pDebugRoot.get());
 	BDB bdb;
-	BDB lightCullBDB;
 	// Default Scene Demo.
 	{
 		auto pSponza = CreateSponzaTest();
@@ -164,10 +163,8 @@ void PointCloudApp::Execute()
 		m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateVolumeTest());
 		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-		lightCullBDB = pSponza->CalcCameraFitBox();
-		m_pResource->GetTileLightResource().BuildPointLights(bdb, Vector3i(16));
+		m_spaceBDB = pSponza->GetBoundBox();
 		auto pLightNode = std::make_shared<LightNode>("PointLights");
-		//pLightNode->SetBoundBox(lightCullBDB);
 		m_pRoot->AddNode(pLightNode);
 	}
 	
@@ -200,17 +197,6 @@ void PointCloudApp::Execute()
 	{
 		//m_pRoot->AddNode(CreatePBRTest());
 	}
-
-	// Large Scene Demo.
-	{
-		//for (int x = -10; x < 10; x++) 
-		//for (int y = -10; y < 10; y++) 
-		//for (int z = -10; z < 10; z++)
-		//{
-		//	m_pRoot->AddNode(CreateBunnyNodeTest(Vector3(x, y, z) * 200.0f));
-		//}
-	}
-
 
 	//m_pCamera->SetLookAt(Vector3(0, 0, -500), Vector3(0, 0, 0), m_pCamera->Up());
 	//auto pPointCloud = (Shared<PointCloud>(PointCloudIO::Load("E:\\cgModel\\pointCloud\\pcd\\rops_cloud.pcd")));
@@ -302,7 +288,7 @@ void PointCloudApp::Execute()
 		depthPrePass.Execute(m_pRoot.get(), drawContext);
 		if (m_ui.tileLight) {
 			if (m_ui.tileLightAnimation) {
-				tileLightCuller.Update(drawContext, lightCullBDB);
+				tileLightCuller.Update(drawContext, m_spaceBDB);
 			}
 			tileLightCuller.Execute(drawContext);
 		}
@@ -313,8 +299,8 @@ void PointCloudApp::Execute()
 		postEffect.Execute(drawContext);
 		m_pResource->GL()->PopRenderTarget();
 		
-		if (m_ui.tileLight && m_ui.tileLightDebug) {
-			tileLightCuller.DrawDebugView(drawContext);
+		if (m_ui.tileLight && m_ui.tileLightDebugMode > 0) {
+			tileLightCuller.DrawDebugView(drawContext, m_ui.tileLightDebugMode - 1);
 		}
 
 		m_pResource->GL()->PopRenderTarget();
@@ -497,9 +483,17 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		pLight->SetColor(color);
 	}
 
-	ImGui::Checkbox("TileLight", &m_ui.tileLight);
+	if (ImGui::Checkbox("TileLight", &m_ui.tileLight)) {
+		auto tileLightResource = m_pResource->GetTileLightResource();
+		if(!tileLightResource->IsActive()) {
+			tileLightResource->BuildPointLights(m_spaceBDB, Vector3i(16));
+		}
+	}
 	if (m_ui.tileLight) {
-		ImGui::Checkbox("DebugTileLight",&m_ui.tileLightDebug);
+		auto tileLightResource = m_pResource->GetTileLightResource();
+		tileLightResource->BuildPointLightBuffer(m_windowSize);
+		const char* modes[] = { "Hidden", "Minimum Depth", "Maximum Depth", "Light Count" };
+		ImGui::Combo("Tile Light View", &m_ui.tileLightDebugMode, modes, 4);
 		ImGui::Checkbox("AnimationTileLight", &m_ui.tileLightAnimation);
 	}
 	//ImGui::BeginChild("StringList", ImVec2(300, 200), true);
@@ -566,7 +560,6 @@ void PointCloudApp::Finalize()
 	m_uiContext.ClearDebugNode();
 	m_uiTextureList.clear();
 	m_pgmTexture.clear();
-	m_pGLTFAnimation.reset();
 	m_pSelect = nullptr;
 	m_pRoot.reset();
 	m_pDebugRoot.reset();
@@ -685,13 +678,10 @@ Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest()
 Shared<HalfEdgeNode> PointCloudApp::CreateBunnyNodeTest(const Vector3& pos)
 {
 	//String path = "E:\\cgModel\\Armadillo.half";
-	String path = "E:\\cgModel\\bunny6000.half";
+	String path = "E:\\cgModel\\bunny4000.half";
 	//String path = "E:\\cgModel\\model\\buddha\\buddha.half";
-	if (m_pBunny == nullptr) {
-		m_pBunny = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
-	}
-
-	auto node = std::make_shared<HalfEdgeNode>(path + glmUtil::ToString(pos), m_pBunny);
+	auto pBunny = std::shared_ptr<HalfEdgeStruct>(HalfEdgeLoader::Load(path));
+	auto node = std::make_shared<HalfEdgeNode>(path + glmUtil::ToString(pos), pBunny);
 	node->SetMatrix(glmUtil::CreateRotate(glm::pi<float>() / 2, Vector3(0, 0, 1)) * glmUtil::CreateTranslate(pos));
 	return node;
 }
