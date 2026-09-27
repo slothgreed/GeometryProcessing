@@ -6,6 +6,26 @@
 namespace KI
 {
 
+Vector<Vector3> IUVConverter::ConvertUV(const Vector<Vector3>& target) const
+{
+	Vector<Vector3> uvs(target.size());
+	for (size_t i = 0; i < uvs.size(); i++) {
+		auto uv = toUV(target[i]);
+		uvs[i] = Vector3(uv.x, uv.y, 0.0);
+	}
+
+	return uvs;
+}
+Vector<Vector3> IUVConverter::ConvertXYZ(const Vector<Vector3>& target) const
+{
+	Vector<Vector3> uvs(target.size());
+	for (size_t i = 0; i < uvs.size(); i++) {
+		auto uv = toXYZ(target[i]);
+		uvs[i] = Vector3(uv.x, uv.y, uv.z);
+	}
+
+	return uvs;
+}
 Polyline::Polyline(Vector<Vector3>&& points)
 	: m_points(std::move(points)) 
     , m_drawType(DrawType::LineStrip)
@@ -189,35 +209,25 @@ Mesh Polyline::CreateMesh() const
     return Mesh(delaunay.Execute2D_CGAL(), Mesh::DrawType::Triangles);
 }
 
-Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, const Vector3& axis)
+Mesh Polyline::CreateMesh(const Polyline& target, const Polyline& inner, const IUVConverter& converter, const Vector3& axis)
 {
-    if (target.m_points.size() == 0) { return Mesh(); }
+	if (target.m_points.size() == 0) { return Mesh(); }
+	DelaunayGenerator delaunay;
+	auto uvTarget = converter.ConvertUV(target.GetPoints());
+	delaunay.SetTarget(&uvTarget);
+	Vector<Vector3> uvInner;
+	if (inner.GetPoints().size() != 0) {
+		for (auto innerPoints : inner.GetPoints()) {
+			auto uv = converter.toUV(innerPoints);
+			uvInner.push_back(Vector3(uv.x, uv.y, 0.0));
+		}
 
-    Mesh mesh;
-    {
-        DelaunayGenerator delaunay;
-        auto info = MathHelper::CreateProjectInfo(target.GetPoints());
-        auto zPosition = MathHelper::Project(target.GetPoints(), info);
-        delaunay.SetTarget(&zPosition);
-        Vector<Vector3> zInnerPosition;
+		delaunay.AddInner(&uvInner);
+	}
+	auto result = delaunay.Execute2D_CGAL();
+	if (result.empty()) { return Mesh(); }
 
-        if (inner.GetPoints().size() != 0) {
-            if (!MathHelper::IsSame(target.GetNormal(), -inner.GetNormal())) { return Mesh(); }
-            zInnerPosition = MathHelper::Project(inner.GetPoints(), info);
-            delaunay.AddInner(&zInnerPosition);
-        }
-        auto result = delaunay.Execute2D_CGAL();
-        if (result.empty()) { return mesh; }
-        auto meshPoints = MathHelper::UnProject(result, info);
-        if (MathHelper::IsSameDir(axis,
-            MathHelper::CalcNormal(meshPoints[0], meshPoints[1], meshPoints[2]))) {
-            mesh = Mesh(std::move(meshPoints), Mesh::DrawType::Triangles);
-        } else {
-            mesh = Mesh(std::move(meshPoints), Mesh::DrawType::Triangles);
-            mesh.Reverse();
-        }
-    }
-    return mesh;
+	return Mesh(std::move(converter.ConvertXYZ(result)), Mesh::DrawType::Triangles);
 }
 
 Vector3 Polyline::GetNormal() const

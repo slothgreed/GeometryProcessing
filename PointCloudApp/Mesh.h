@@ -58,7 +58,6 @@ public:
 	const Vector<Vector3>& GetNormals() const { return m_normals; }
 	const Vector<UInt>& GetIndexs() const { return m_indexs; }
 	GLuint GetDrawType() const { return (GLuint)m_drawType; }
-
 	void BuildNormal();
 	void RemoveUnusedVertex();
 	void RemoveArea0Trianlge();

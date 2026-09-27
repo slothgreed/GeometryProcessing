@@ -12,9 +12,13 @@ public:
 	~PointLightShader() {};
 
 	virtual ShaderPath GetShaderPath() override;
-	virtual void FetchUniformLocation() override {};
+	virtual void FetchUniformLocation() override;
 	void SetCamera(const GLBuffer* pBuffer);
 	void SetPointLights(const GLBuffer* pBuffer);
+	void SetPosition(const GLBuffer* pBuffer);
+	void SetLightIndex(int index);
+private:
+	GLuint m_uLightIndex = -1;
 };
 
 class DepthPrepassShader : public IShadingShader

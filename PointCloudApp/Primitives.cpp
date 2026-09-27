@@ -127,6 +127,42 @@ Matrix4x4 PlanePrimitive::CreateMatrix(const Vector3& min, const Vector3& max, f
 	return Matrix4x4();
 }
 
+PlanePrimitive::UVConverter::UVConverter(const Vector<Vector3>& points)
+{
+	origin = points[0];
+	normal = MathHelper::CalcNormal(points);
+
+	// -------------------------
+	// 平面基底
+	// -------------------------
+
+	Vector3 helper =
+		(std::abs(normal.z) < 0.9f)
+		? Vector3(0, 0, 1)
+		: Vector3(1, 0, 0);
+
+	uAxis = glm::normalize(glm::cross(helper, normal));
+	vAxis = glm::normalize(glm::cross(normal, uAxis));
+}
+
+Vector2 PlanePrimitive::UVConverter::toUV(const Vector3& points) const
+{
+	// -------------------------
+	// 射影
+	// -------------------------
+
+	Vector3 d = points - origin;
+	return Vector3(
+		glm::dot(d, uAxis),
+		glm::dot(d, vAxis),
+		glm::dot(d, normal));
+}
+Vector3 PlanePrimitive::UVConverter::toXYZ(const Vector2& points) const
+{
+	return origin +
+		uAxis * points.x +
+		vAxis * points.y;
+}
 Cone::Cone(float _radius, float _height, int _partition)
 	: radius(_radius)
 	, height(_height)
@@ -449,7 +485,6 @@ Mesh Cylinder::CreateSideMesh(const Vector3& baseCenter, const Vector3& axis, co
 {
 	slices = std::max(3, slices);
 	stacks = std::max(1, stacks);
-
 	Vector3 axisPoint = baseCenter + axis * dot(beginPoint - baseCenter, axis);
 	Vector3 outward = normalize(beginPoint - axisPoint); // 半径方向
 	Vector3 faceNormal = orient ? outward : -outward;
@@ -596,6 +631,37 @@ Polyline Cylinder::CreatePolyline(const Vector3& baseCenter, const Vector3& axis
 	return Polyline(std::move(top), std::move(lines), Polyline::DrawType::Lines);
 }
 
+
+Primitive Sphere::CreateWire(float radius, int slices, int stacks)
+{
+	if (!std::isfinite(radius) || radius <= 0.0f || slices < 3 || stacks < 2) {
+		throw std::invalid_argument("Wire sphere requires a positive finite radius, slices >= 3 and stacks >= 2.");
+	}
+	Vector<Vector3> positions;
+	auto spherePoint = [=](int latitude, int longitude) {
+		if (latitude == 0) { return Vector3(0, 0, radius); }
+		if (latitude == stacks) { return Vector3(0, 0, -radius); }
+		const float phi = glm::pi<float>() * float(latitude) / float(stacks);
+		const float theta = 2.0f * glm::pi<float>() * float(longitude) / float(slices);
+		return radius * Vector3(std::sin(phi) * std::cos(theta), std::sin(phi) * std::sin(theta), std::cos(phi));
+	};
+	for (int latitude = 1; latitude < stacks; ++latitude) {
+		for (int longitude = 0; longitude < slices; ++longitude) {
+			positions.push_back(spherePoint(latitude, longitude));
+			positions.push_back(spherePoint(latitude, (longitude + 1) % slices));
+		}
+	}
+	for (int longitude = 0; longitude < slices; ++longitude) {
+		for (int latitude = 0; latitude < stacks; ++latitude) {
+			positions.push_back(spherePoint(latitude, longitude));
+			positions.push_back(spherePoint(latitude + 1, longitude));
+		}
+	}
+	Primitive wire;
+	wire.SetPosition(std::move(positions));
+	wire.SetType(GL_LINES);
+	return wire;
+}
 
 Sphere::Sphere(float _radius, int _slices, int _stacks)
 	: radius(_radius)

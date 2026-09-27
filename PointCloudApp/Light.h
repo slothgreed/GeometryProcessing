@@ -6,8 +6,8 @@ namespace KI
 class Light
 {
 public:
-	Light();
-	~Light();
+	Light() {};
+	~Light() {};
 
 	void SetDirection(const Vector3& direction) { m_direction = direction; }
 	void SetColor(const Vector3& color) { m_color = color; }

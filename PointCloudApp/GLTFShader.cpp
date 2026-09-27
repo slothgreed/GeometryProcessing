@@ -1,7 +1,9 @@
+#include "ClusteredLightCuller.h"
 #include "GLTFShader.h"
 #include "GLTFStruct.h"
 #include "Texture.h"
 #include "PBR.h"
+#include "Camera.h"
 namespace KI
 {
 
@@ -58,6 +60,16 @@ void GLTFShader::BindBufferIndex(int matrix, int material)
 	BindUniform(m_uSSBOIndex, Vector2i(matrix, material));
 }
 
+void GLTFShader::BindClusterPartition(const Vector3i& partitionNum)
+{
+	BindUniform(m_uClusterPartition, partitionNum);
+}
+
+void GLTFShader::BindClusterNum(const Vector3i& partitionNum)
+{
+	BindUniform(m_uClusterNum, partitionNum);
+}
+
 void GLTFShader::BindDebugView(int value)
 {
 	BindUniform(m_uDebugView, value);
@@ -76,6 +88,8 @@ void GLTFShader::FetchUniformLocation()
 	m_uPrefilter = GetUniformLocation("u_prefilter");
 	m_uIrradiance = GetUniformLocation("u_irradiance");
 	m_uBRDF = GetUniformLocation("u_brdf");
+	m_uClusterPartition = GetUniformLocation("u_clusterPartition");
+	m_uClusterNum = GetUniformLocation("u_clusterNum");
 }
 
 void GLTFShader::SetModel(const Matrix4x4& value)
@@ -112,10 +126,12 @@ void GLTFShader::SetPBRResource(const DrawContext& drawContext)
 {
 	auto pPBR = drawContext.pResource->GetPBR();
 	BindShaderStorage(6, pPBR->GetGlobalParam()->Handle());
-	if (drawContext.pResource->GetTileLightResource()->IsActive()) {
-		auto tileLightResource = drawContext.pResource->GetTileLightResource();
-		BindShaderStorage(7, tileLightResource->GetPointLightBuffer()->Handle());
-		BindShaderStorage(8, tileLightResource->GetTileLightBuffer()->Handle());
+	if (drawContext.pResource->GetClusteredLightResource()->IsActive()) {
+		auto clusteredLightResource = drawContext.pResource->GetClusteredLightResource();
+		BindClusterPartition(ClusteredLightCuller::GetClusterPartition());
+		BindClusterNum(ClusteredLightCuller::GetClusterCount3D(drawContext.pResource->GetCamera()->ViewSize()));
+		BindShaderStorage(7, clusteredLightResource->GetPointLightBuffer()->Handle());
+		BindShaderStorage(8, clusteredLightResource->GetClusteredLightBuffer()->Handle());
 	}
 	BindTexture(m_uBRDF, 5, *pPBR->GetBRDFLUT());
 	BindCubemap(m_uIrradiance, 6, *pPBR->GetIrradiance());

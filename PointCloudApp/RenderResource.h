@@ -3,119 +3,15 @@
 #include "ShaderTable.h"
 #include "Texture.h"
 #include "RenderTarget.h"
-#include "TileLightCuller.h"
 #include "PBR.h"
+#include "GLContext.h"
 namespace KI
 {
-struct GLStatus
-{
-	friend class GLContext;
-	GLStatus()
-		:backCull(true)
-		,pointSize(-1.0f)
-		,lineWidth(-1.0f)
-	{
-	}
-	
-	void SetPointSize(float size) { lineWidth = size; }
-	void SetLineWidth(float size) { pointSize = size; }
-	void SetBackCull(bool value) { backCull = value; }
-private:
-	float pointSize;
-	float lineWidth;
-	bool backCull;
-};
-
-struct Viewport
-{
-	Viewport(const Vector2i& size) :m_value(Vector4i(0, 0, size.x, size.y)) {}
-	Viewport(const Vector4i& value) :m_value(value) {}
-	enum Anchor
-	{
-		TopLeft,
-		TopRight,
-		BottomLeft,
-		BottomRight
-	};
-
-	const Vector4i& Get() const { return m_value; }
-	const int Width() const { return m_value.z - m_value.x; }
-	const int Height() const { return m_value.w - m_value.y; }
-	static Viewport Create(const Vector2i& windowSize, const Vector2i& ratioSize, Anchor anghor);
-	static std::array<Viewport, 2> SplitHorizontal(const Viewport& viewport);
-	static std::array<Viewport, 2> SplitVertical(const Viewport& viewport);
-private:
-	Vector4i m_value;
-};
-
-
-class GLContext
-{
-public:
-	GLContext() {}
-	~GLContext() {};
-
-	void SetupStatus(const GLStatus& status);
-	void EnablePolygonOffset(int factor, int units);
-	void DisablePolygonOffset();
-	void EnableDepth();
-	void DisableDepth();
-	void SetDepthFunc(GLenum func);
-	void DepthMask(bool value);
-	void EnableCullFace();
-	void DisableCullFace();
-	void SetCullFace(GLenum face);
-	void EnableBlend();
-	void DisableBlend();
-	void EnableStencil();
-	void DisableStencil();
-	void EnableClipDistance(int index);
-	void DisableClipDistance(int index);
-	void SetStencilFunc(GLenum func, int reference, GLuint mask);
-	void SetStencilOperation(GLenum stencilFail, GLenum depthFail, GLenum depthPass);
-	void SetStencilOperationSeparate(GLenum face, GLenum stencilFail, GLenum depthFail, GLenum depthPass);
-	void SetStencilMask(GLuint mask);
-	void SetClearStencil(int value);
-	void EnablePolygonWire();
-	void EnablePolygonFill();
-	void EnableScissor(const Viewport& scissor);
-	void DisableScissor();
-
-
-	void SetWindowSize(const Vector2i& size);
-	
-	void Clear(GLuint clear);
-
-	Viewport CreateViewport(const Vector2i& ratioSize, Viewport::Anchor anghor) const;
-	void SetViewport(const Viewport& viewport);
-	void SetViewportFullWindow();
-	void SetPointSize(float value);
-	void SetLineWidth(float value);
-
-	void SetupPick();
-	void SetupShading();
-
-	void PushRenderTarget(RenderTarget* pTarget, int drawTargetNum = -1);
-	void PopRenderTarget();
-	void ColorMask(bool value);
-	const Vector2i& GetWindowSize() const { return m_windowSize; }
-private:
-	Vector2i m_windowSize = Vector2i(0, 0);
-	GLStatus m_cache;
-
-	struct RenderTargetStack
-	{
-		RenderTarget* pRenderTarget = nullptr;
-		int drawTargetNum = 0;
-	};
-
-
-	std::stack<RenderTargetStack> m_pRenderTargetStack;
-};
 
 class Camera;
 class Light;
 class BDB;
+class ClusteredLightResource;
 namespace ShaderLayout
 {
 	struct Camera
@@ -127,7 +23,8 @@ namespace ShaderLayout
 		Vector4 eye;
 		Vector4 center;
 		Vector2 viewSize;
-		float padding[2];
+		float _near;
+		float _far;
 		Vector4 frustum[6];
 	};
 
@@ -159,7 +56,8 @@ public:
 		, m_pComputeColorTarget(nullptr)
 		, m_pComputeDepthTarget(nullptr)
 		, m_pRenderTarget(nullptr)
-		, m_pTexturePlane(nullptr){};
+		, m_pTexturePlane(nullptr)
+		{};
 	~RenderResource() {};
 	void Build();
 
@@ -198,12 +96,12 @@ public:
 	void UpdateDebugCamera(const Camera& camera);
 	void SetTimeDelta(float value) { m_timeDelta = value; }
 	float GetTimeDelta() const { return m_timeDelta; }
-	TileLightResource* GetTileLightResource() { return &m_pTileLightResource; }
-	const TileLightResource* GetTileLightResource() const { return &m_pTileLightResource; }
+	ClusteredLightResource* GetClusteredLightResource() { return m_pClusteredLightResource; }
+	const ClusteredLightResource* GetClusteredLightResource() const { return m_pClusteredLightResource; }
 private:
 	float m_timeDelta = 0.0f;
 	PBRResource* m_pPBR;
-	TileLightResource m_pTileLightResource;
+	ClusteredLightResource* m_pClusteredLightResource = nullptr;
 	Unique<GLContext> m_pContext;
 	Shared<Camera> m_pCamera;
 	Shared<Light> m_pLight;

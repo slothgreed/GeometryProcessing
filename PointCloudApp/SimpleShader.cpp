@@ -25,6 +25,23 @@ void PointLightShader::SetPointLights(const GLBuffer* pBuffer)
 	BindShaderStorage(1, pBuffer->Handle());
 }
 
+void PointLightShader::FetchUniformLocation()
+{
+	m_uLightIndex = GetUniformLocation("u_lightIndex");
+}
+
+void PointLightShader::SetLightIndex(int index)
+{
+	BindUniform(m_uLightIndex, index);
+}
+
+void PointLightShader::SetPosition(const GLBuffer* pBuffer)
+{
+	SetVertexFormat(VertexFormat(ATTRIB_POSITION, pBuffer));
+	glBindVertexBuffer(ATTRIB_POSITION, pBuffer->Handle(), 0, pBuffer->SizeOfData());
+	OUTPUT_GLERROR;
+}
+
 ShaderPath DepthPrepassShader::GetShaderPath()
 {
 	ShaderPath path;

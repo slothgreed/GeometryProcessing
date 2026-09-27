@@ -48,6 +48,8 @@ public:
 	~LightNode() = default;
 
 	virtual void DrawNode(const DrawContext& context) override;
+private:
+	Unique<GLBuffer> m_pSpherePosition;
 };
 
 class DelaunayDebugNode : public DebugNode

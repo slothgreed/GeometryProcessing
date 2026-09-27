@@ -27,9 +27,20 @@ public:
 	static Vector<float> CreateExpandedKnots(const Vector<int>& multiple, const Vector<float>& knots);
 	static bool CheckKnotSize(const Vector<float>& knots, int pointNum, int degree);
 
+
+	struct UVConverter : public IUVConverter
+	{
+		UVConverter(const STEPBSplineSurfaceBase* pSurface) :surface(pSurface) {};
+		virtual Vector2 toUV(const Vector3& xyz) const;
+		virtual Vector3 toXYZ(const Vector2& uv) const;
+
+		const STEPBSplineSurfaceBase* surface;
+	};
+
+
 	static bool ProjectPointToUV(const STEPBSplineSurfaceBase& surface, const Vector3& target, Vector2& uv);
-	static bool Evaluate(const STEPBSplineCurve& bspline, float u, Vector3& outPoint);
 	static bool Evaluate(const STEPBSplineSurfaceBase& bspline, const Vector2& uv, Vector3& outPoint);
+	static bool Evaluate(const STEPBSplineCurve& bspline, float u, Vector3& outPoint);
 private:
 
 	static float Basis(int i, int p, float u, const Vector<float>& expandKnots);

@@ -1,22 +1,29 @@
-#ifndef TILE_LIGHT_CULLER_H
-#define	TILE_LIGHT_CULLER_H
+#ifndef CLUSTERED_LIGHT_CULLER_H
+#define	CLUSTERED_LIGHT_CULLER_H
 #include "IShader.h"
 #include "BDB.h"
 namespace KI
 {
 
 struct DrawContext;
-class TileLightCuller
+class ClusteredLightResource;
+class ClusteredLightCuller
 {
 public:
-	TileLightCuller() {};
-	~TileLightCuller()
+	static constexpr int MAX_LIGHT_NUM = 64;
+	ClusteredLightCuller() {};
+	~ClusteredLightCuller()
 	{
 		RELEASE_INSTANCE(m_pUpdateShader);
 		RELEASE_INSTANCE(m_pDebugShader);
 		RELEASE_INSTANCE(m_pShader);
 	};
 	
+	void ShowUI(ClusteredLightResource& resource, const BDB& bdb, const Vector2i& windowSize);
+	bool IsEnabled() const { return m_ui.enabled; }
+	bool IsAnimationEnabled() const { return m_ui.animation; }
+	int GetDebugMode() const { return m_ui.debugMode; }
+
 	void Execute(const DrawContext& context);
 	void DrawDebugView(const DrawContext& context, int displayMode);
 	void Update(const DrawContext& context, const BDB& bdb);
@@ -26,16 +33,18 @@ public:
 		virtual void FetchUniformLocation();
 		virtual ShaderPath GetShaderPath();
 
-		void BindTileCount(const Vector2i& tileCount);
-		void BindTileSize(const Vector2i& tileSize);
+		void BindClusterCount(const Vector2i& clusterCount);
+		void BindClusterPartition(const Vector3i& clusterPartition);
 		void BindMaxLightNum();
-		void BindDepthRange(const Vector2& depthRange);
 		void BindDisplayMode(int displayMode);
+		void BindSlice(int slice);
+		void BindShowGrid(bool showGrid);
+		GLuint m_uSlice = -1;
+		GLuint m_uShowGrid = -1;
 		GLuint m_uDisplayMode = -1;
-		GLuint m_uDepthRange = -1;
 		GLuint m_uMaxLightNum = -1;
-		GLuint m_uTileCount = -1;
-		GLuint m_uTileSize = -1;
+		GLuint m_uClusterCount = -1;
+		GLuint m_uClusterPartition = -1;
 	};
 
 	struct UpdateShader : public IComputeShader
@@ -59,22 +68,32 @@ public:
 
 		void BindDepth(const Texture* pTexture);
 		void BindWindowSize(const Vector2i& windowSize);
-		void BindLocalSize(const Vector2i& localSize);
 		void BindLightNum(int lightNum);
+		void BindClusterPartition(const Vector3i& clusterNum);
 
 		GLuint m_uDepth = -1;
 		GLuint m_uWindowSize = -1;
-		GLuint m_uLocalSize = -1;
+		GLuint m_uClusterPartition = -1;
 		GLuint m_uLightNum = -1;
 	};
 
-	Vector2i GetTileSize() const { return Vector2i(PIXEL_SIZE, PIXEL_SIZE); }
-	static Vector2i GetTileCount2D(const Vector2i& windowSize);
-	static int GetTileCount1D(const Vector2i& windowSize);
+	static Vector3i GetClusterPartition() { return Vector3i(PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE); }
+	static Vector3i GetClusterCount3D(const Vector2i& windowSize);
+	static int GetClusterCount1D(const Vector2i& windowSize);
 
 private:
+	struct UI
+	{
+		bool enabled = false;
+		bool animation = false;
+		// Hidden, minimum depth, maximum depth, light count.
+		int debugMode = 0;
+		int debugSlice = 0;
+		bool debugGrid = true;
+		int pointLightCountIndex = 0; // One light at the bounding box center.
+	};
+	UI m_ui;
 	static constexpr int PIXEL_SIZE = 16;
-	static constexpr int MAX_LIGHT_NUM = 8;
 	void BuildResource(const Vector2i& windowSize);
 	Shader* m_pShader = nullptr;
 	DebugViewShader* m_pDebugShader = nullptr;
@@ -82,18 +101,18 @@ private:
 
 };
 
-class TileLightResource
+class ClusteredLightResource
 {
 public:
-	TileLightResource() {}
-	~TileLightResource()
+	ClusteredLightResource() {}
+	~ClusteredLightResource()
 	{
 		RELEASE_INSTANCE(m_pPointLightGpu);
-		RELEASE_INSTANCE(m_pTileLight);
+		RELEASE_INSTANCE(m_pClusteredLight);
 	}
 
-	bool IsActive() const { return m_pTileLight != nullptr && m_pPointLightGpu != nullptr; }
-	const GLBuffer* GetTileLightBuffer() const { return m_pTileLight; }
+	bool IsActive() const { return m_pClusteredLight != nullptr && m_pPointLightGpu != nullptr; }
+	const GLBuffer* GetClusteredLightBuffer() const { return m_pClusteredLight; }
 	const GLBuffer* GetPointLightBuffer() const { return m_pPointLightGpu; }
 	const BDB& GetBoundingBox() const { return m_bdb; }
 	void BuildPointLights(const BDB& bdb, int resolution);
@@ -101,7 +120,7 @@ public:
 	void BuildPointLightBuffer(const Vector2i& windowSize);
 private:
 	BDB m_bdb;
-	GLBuffer* m_pTileLight = nullptr;
+	GLBuffer* m_pClusteredLight = nullptr;
 	GLBuffer* m_pPointLightGpu = nullptr;
 };
 

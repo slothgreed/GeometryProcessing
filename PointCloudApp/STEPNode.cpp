@@ -383,6 +383,7 @@ void STEPRenderNode::DrawNode(const DrawContext& context)
 void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimpleShader, const GPUShell& shell)
 {
 	Vector3 selectColor = Vector3(1.0f, 1.0f, 1.0f);
+	Vector3 pointColor = Vector3(0.0f, 0.0f, 1.0f);
 	if (m_ui.visibleBDB) {
 		pSimpleShader->SetColor(Vector3(0, 0, 1));
 		pSimpleShader->SetPosition(shell.bdb.pPosition.get());
@@ -394,6 +395,8 @@ void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimple
 			pSimpleShader->SetPosition(shell.line.pPosition.get());
 			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 			pSimpleShader->DrawArray(shell.line.drawType, shell.line.pPosition.get());
+			pSimpleShader->SetColor(pointColor);
+			pSimpleShader->DrawArray(GL_POINTS, shell.line.pPosition.get());
 			auto entity = shell.line.FindEntity(uiContext.GetSelectId());
 			if (entity.IsActive()) {
 				pSimpleShader->SetColor(selectColor);
@@ -405,6 +408,8 @@ void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimple
 			pSimpleShader->SetPosition(shell.lineStrip.pPosition.get());
 			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 			pSimpleShader->DrawArray(shell.lineStrip.drawType, shell.lineStrip.pPosition.get());
+			pSimpleShader->SetColor(pointColor);
+			pSimpleShader->DrawArray(GL_POINTS, shell.lineStrip.pPosition.get());
 			auto entity = shell.lineStrip.FindEntity(uiContext.GetSelectId());
 			if (entity.IsActive()) {
 				pSimpleShader->SetColor(selectColor);
@@ -416,6 +421,9 @@ void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimple
 			pSimpleShader->SetPosition(shell.lineLoop.pPosition.get());
 			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
 			pSimpleShader->DrawArray(shell.lineLoop.drawType, shell.lineLoop.pPosition.get());
+			pSimpleShader->SetColor(pointColor);
+			pSimpleShader->DrawArray(GL_POINTS, shell.lineLoop.pPosition.get());
+
 			auto entity = shell.lineLoop.FindEntity(uiContext.GetSelectId());
 			if (entity.IsActive()) {
 				pSimpleShader->SetColor(selectColor);
@@ -458,6 +466,11 @@ void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimple
 	}
 
 	if (m_ui.visibleMesh) {
+		auto pGL = context.pResource->GL();
+		if (m_ui.visibleMeshWireframe) {
+			// Match the application's fill offset so the wireframe stays in front.
+			pGL->EnablePolygonOffset(1, 1);
+		}
 		if (shell.triangle.pPosition) {
 			pSimpleShader->SetPosition(shell.triangle.pPosition.get());
 			pSimpleShader->SetColor(Vector3(1.0f, 0.0f, 0.0f));
@@ -479,6 +492,22 @@ void STEPRenderNode::DrawShell(const DrawContext& context, SimpleShader* pSimple
 				pSimpleShader->DrawElement(shell.triangleIndex.drawType, shell.triangleIndex.pIndex.get(), entity.num, entity.first);
 			}
 		}
+		if (m_ui.visibleMeshWireframe) {
+			pGL->EnablePolygonWire();
+			pGL->DepthMask(false);
+			pSimpleShader->SetColor(Vector3(0.0f, 0.0f, 0.0f));
+			if (shell.triangle.pPosition) {
+				pSimpleShader->SetPosition(shell.triangle.pPosition.get());
+				pSimpleShader->DrawArray(shell.triangle.drawType, shell.triangle.pPosition.get());
+			}
+			if (shell.triangleIndex.pPosition) {
+				pSimpleShader->SetPosition(shell.triangleIndex.pPosition.get());
+				pSimpleShader->DrawElement(shell.triangleIndex.drawType, shell.triangleIndex.pIndex.get());
+			}
+
+			pGL->DepthMask(true);
+			pGL->EnablePolygonFill();
+		}
 	}
 }
 void STEPRenderNode::ShowUI(UIContext& ui)
@@ -489,6 +518,7 @@ void STEPRenderNode::ShowUI(UIContext& ui)
 	ImGui::Checkbox("VisibleBDB",&m_ui.visibleBDB);
 	ImGui::Checkbox("VisibleWire", &m_ui.visibleWire);
 	ImGui::Checkbox("VisibleMesh", &m_ui.visibleMesh);
+	ImGui::Checkbox("Mesh Wireframe", &m_ui.visibleMeshWireframe);
 	if (ImGui::TreeNode("Root")) {
 		for (auto& node : m_step->shapeRepresentationRelationShip) { node.second->ShowUI(uiContext); }
 		for (auto& shell : m_step->closedShell) { shell.second->ShowUI(uiContext); }

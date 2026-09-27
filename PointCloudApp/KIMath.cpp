@@ -168,8 +168,9 @@ bool MathHelper::IsSame(float v1, float v2)
 }
 bool MathHelper::IsSameDir(const Vector3& v1, const Vector3& v2)
 {
-	return glm::dot(v1, v2) > 1.0f - EPS;
-	//return glm::dot(v1, v2) > 0 && glm::length2(glm::cross(v1, v2)) < EPS;
+	if (glm::length2(v1) == 0.0f || glm::length2(v2) == 0.0f) { return false; }
+	const float dot = glm::dot(glm::normalize(v1), glm::normalize(v2));
+	return dot > 1.0f - EPS;
 }
 bool MathHelper::IsSame(const Vector3& v1, const Vector3& v2)
 {
@@ -257,64 +258,6 @@ Vector3 MathHelper::CalcNormal(const Vector<Vector3>& points)
 	}
 
 	return glm::normalize(normal);
-}
-
-MathHelper::ProjectInfo MathHelper::CreateProjectInfo(const Vector<Vector3>& points)
-{
-	ProjectInfo info;
-	if (points.size() < 3)
-		return info;
-
-	info.origin = points[0];
-	info.normal = CalcNormal(points);
-
-	// -------------------------
-	// 平面基底
-	// -------------------------
-
-	Vector3 helper =
-		(std::abs(info.normal.z) < 0.9f)
-		? Vector3(0, 0, 1)
-		: Vector3(1, 0, 0);
-
-	info.uAxis = glm::normalize(glm::cross(helper, info.normal));
-	info.vAxis = glm::normalize(glm::cross(info.normal, info.uAxis));
-	return info;
-}
-Vector<Vector3> MathHelper::Project(const Vector<Vector3>& points, ProjectInfo& info)
-{
-	// -------------------------
-	// 射影
-	// -------------------------
-	Vector<Vector3> result;
-	result.reserve(points.size());
-
-	for (auto& p : points) {
-		Vector3 d = p - info.origin;
-		result.push_back(Vector3(
-			glm::dot(d, info.uAxis),
-			glm::dot(d, info.vAxis),
-			glm::dot(d, info.normal)));
-	}
-
-	return result;
-}
-Vector<Vector3> MathHelper::UnProject(const Vector<Vector3>& points, const ProjectInfo& info)
-{
-	Vector<Vector3> result;
-	result.reserve(points.size());
-
-	for (auto& p : points) {
-		Vector3 world =
-			info.origin +
-			info.uAxis * p.x +
-			info.vAxis * p.y +
-			info.normal * p.z;
-
-		result.push_back(world);
-	}
-
-	return result;
 }
 Matrix4x4 MathHelper::CreateZAxisMatrix(const Vector3& normal)
 {

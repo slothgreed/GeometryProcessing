@@ -203,6 +203,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="GeometryBuffer.cpp" />
     <ClCompile Include="GeometryUtility.cpp" />
     <ClCompile Include="GLAPIExt.cpp" />
+    <ClCompile Include="GLContext.cpp" />
     <ClCompile Include="GLFWApp.cpp" />
     <ClCompile Include="GLTFLoader.cpp" />
     <ClCompile Include="GLTFScene.cpp" />
@@ -215,7 +216,6 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="HalfEdgeNode.cpp" />
     <ClCompile Include="ImageAlgorithm.cpp" />
     <ClCompile Include="ImageNode.cpp" />
-    <ClCompile Include="Light.cpp" />
     <ClCompile Include="KIMath.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshletGenerator.cpp" />
@@ -267,7 +267,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="ShaderTable.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
-    <ClCompile Include="TileLightCuller.cpp" />
+    <ClCompile Include="CameraFrustumDebug.cpp" />
+    <ClCompile Include="ClusteredLightCuller.cpp" />
     <ClCompile Include="Utility.cpp" />
     <ClCompile Include="VolumeNode.cpp" />
     <ClCompile Include="Voxel.cpp" />
@@ -300,6 +301,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="GeometryBuffer.h" />
     <ClInclude Include="GeometryUtility.h" />
     <ClInclude Include="GLAPIExt.h" />
+    <ClInclude Include="GLContext.h" />
     <ClInclude Include="GLFWApp.h" />
     <ClInclude Include="GLTFLoader.h" />
     <ClInclude Include="GLTFScene.h" />
@@ -371,7 +373,8 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderResource.h" />
     <ClInclude Include="ShaderTable.h" />
-    <ClInclude Include="TileLightCuller.h" />
+    <ClInclude Include="CameraFrustumDebug.h" />
+    <ClInclude Include="ClusteredLightCuller.h" />
     <ClInclude Include="Utility.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="SimpleShader.h" />

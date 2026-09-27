@@ -47,6 +47,8 @@ public:
 	void BindMetalRoughness(const Texture& texture);
 	void BindOcclusion(const Texture& texture);
 	void BindEmissive(const Texture& texture);
+	void BindClusterPartition(const Vector3i& partitionNum);
+	void BindClusterNum(const Vector3i& partitionNum);
 
 	void SetPBRResource(const DrawContext& drawContext);
 private:
@@ -59,6 +61,8 @@ private:
 	GLuint m_uEmissiveTexture;
 	GLuint m_uDebugView;
 
+	GLuint m_uClusterPartition;
+	GLuint m_uClusterNum;
 	GLuint m_uPrefilter;
 	GLuint m_uIrradiance;
 	GLuint m_uBRDF;

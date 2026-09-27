@@ -10,7 +10,10 @@ uniform mat4 u_Model;
 out vec3 texCoord;
 void main()
 {
-    vec4 pos = camera.VP * u_Model * vec4(position, 1.0);
+    //vec4 pos = camera.VP * u_Model * vec4(position, 1.0);
+	mat4 viewRotation = mat4(mat3(camera.view));
+	vec4 pos = camera.proj * viewRotation * vec4(position, 1.0);
+
 	gl_Position = pos;
 	texCoord = position;
 }

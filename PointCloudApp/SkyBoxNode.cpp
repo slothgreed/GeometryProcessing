@@ -97,12 +97,14 @@ void SkyBoxNode::Draw(const DrawContext& context)
 {
 	BuildResource();
 	context.pResource->GL()->EnableCullFace();
+	context.pResource->GL()->DepthMask(false);
 	m_pShader->Use();
 	m_pShader->SetCamera(context.pResource->GetCameraBuffer());
 	m_pShader->SetPosition(m_pPositionBuffer.get());
 	m_pShader->SetTexture(m_pCubemap.get());
 	m_pShader->SetModel(glmUtil::CreateScale(m_scale));
 	m_pShader->DrawArray(m_skybox->GetDrawType(), m_pPositionBuffer->Num());
+	context.pResource->GL()->DepthMask(true);
 }
 
 }

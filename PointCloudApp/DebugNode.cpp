@@ -1,3 +1,4 @@
+#include "ClusteredLightCuller.h"
 #include "DebugNode.h"
 #include "Camera.h"
 #include "SimpleShader.h"
@@ -70,13 +71,28 @@ void DebugNode::DrawNode(const DrawContext& context)
 
 void LightNode::DrawNode(const DrawContext& context)
 {
-	const auto* pPointLights = context.pResource->GetTileLightResource()->GetPointLightBuffer();
+	return;
+	const auto* pPointLights = context.pResource->GetClusteredLightResource()->GetPointLightBuffer();
 	if (!pPointLights || pPointLights->Num() == 0) { return; }
+	if (!m_pSpherePosition) {
+		const auto sphere = Sphere::CreateWire(1.0f, 24, 12);
+		m_pSpherePosition = std::make_unique<GLBuffer>();
+		m_pSpherePosition->Create(sphere.Position());
+	}
 
 	auto pShader = context.pResource->GetShaderTable()->GetPointLightShader();
 	pShader->Use();
 	pShader->SetCamera(context.pResource->GetCameraBuffer());
 	pShader->SetPointLights(pPointLights);
+	pShader->SetPosition(m_pSpherePosition.get());
+	for (int lightIndex = 0; lightIndex < pPointLights->Num(); ++lightIndex) {
+		pShader->SetLightIndex(lightIndex);
+		pShader->DrawArray(GL_LINES, m_pSpherePosition->Num());
+	}
+	// Draw centers separately with vertex attributes disabled: their count can
+	// exceed the number of vertices in the shared sphere buffer.
+	glDisableVertexAttribArray(ATTRIB_POSITION);
+	pShader->SetLightIndex(-1);
 	pShader->DrawArray(GL_POINTS, pPointLights->Num());
 }
 

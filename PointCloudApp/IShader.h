@@ -127,6 +127,7 @@ public:
 	virtual void FetchUniformLocation() {};
 
 	virtual Vector3i GetLocalThreadNum() const;
+	Vector3i GetDispatchNum3D(const Vector3i& value);
 	Vector3i GetDispatchNum2D(const Vector2i& value);
 	Vector3i GetDispatchNum1D(int value);
 	virtual void Build();

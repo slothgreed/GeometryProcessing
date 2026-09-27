@@ -54,6 +54,7 @@ private:
 		bool visibleBDB = false;
 		bool visibleWire = true;
 		bool visibleMesh = true;
+		bool visibleMeshWireframe = false;
 	};
 
 

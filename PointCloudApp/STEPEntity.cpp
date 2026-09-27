@@ -1324,17 +1324,18 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const ST
 {
 	CylidnerEdge ret;
 	bool setBegin = false; bool setEnd = false;
+	auto normal = pCylinder->axis.second->data.Normal();
 	for (const auto& face : faceBound) {
 		auto edgeLoop = face->data.edgeLoop;
 		if (!edgeLoop) { continue; }
 		for (const auto& edge : edgeLoop->data.orientedEdges) {
 			auto begin = edge->data.GetBegin() - pCylinder->axis.second->data.point;
 			auto end = edge->data.GetEnd() - pCylinder->axis.second->data.point;
-			auto v0 = glm::dot(begin, pCylinder->axis.second->data.Normal());
-			auto v1 = glm::dot(end, pCylinder->axis.second->data.Normal());
+			auto v0 = glm::dot(begin, normal);
+			auto v1 = glm::dot(end, normal);
 
-			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pCylinder->axis.second->data.Normal());
-			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pCylinder->axis.second->data.Normal());
+			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), normal);
+			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), normal);
 			{
 				if (ret.maxZ.first < v0) { ret.maxZ.first = v0; ret.maxZ.second = edge->data.GetBegin(); }
 				if (ret.maxZ.first < v1) { ret.maxZ.first = v1; ret.maxZ.second = edge->data.GetEnd(); }
@@ -1361,11 +1362,11 @@ STEPFaceBase::Data::CylidnerEdge STEPFaceBase::Data::SearchCylinderEdge(const ST
 		for (const auto& edge : edgeLoop->data.orientedEdges) {
 			auto begin = edge->data.GetBegin() - pCylinder->axis.second->data.point;
 			auto end = edge->data.GetEnd() - pCylinder->axis.second->data.point;
-			auto v0 = glm::dot(begin, pCylinder->axis.second->data.Normal());
-			auto v1 = glm::dot(end, pCylinder->axis.second->data.Normal());
+			auto v0 = glm::dot(begin, normal);
+			auto v1 = glm::dot(end, normal);
 
-			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), pCylinder->axis.second->data.Normal());
-			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), pCylinder->axis.second->data.Normal());
+			auto sameBeginDir = MathHelper::IsSameDir(edge->data.GetBegin() - edge->data.GetEnd(), normal);
+			auto sameEndDir = MathHelper::IsSameDir(edge->data.GetEnd() - edge->data.GetBegin(), normal);
 			{
 				if (ret.maxZ.first < v0) { ret.maxZ.first = v0; ret.maxZ.second = edge->data.GetBegin(); }
 				if (ret.maxZ.first < v1) { ret.maxZ.first = v1; ret.maxZ.second = edge->data.GetEnd(); }
@@ -1415,33 +1416,48 @@ Mesh STEPFaceBase::Data::CreateMesh(const Polyline& bound, const Polyline& outer
 	if (plane) {
 		if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
 		auto normal = glm::normalize(plane->axis.second->data.Normal());
-		if (!sameScene) {
-			normal = -normal;
+		if (!sameScene) { normal = -normal; }
+		if (outerBound.PointNum() != 0) {
+			auto uvConverter = PlanePrimitive::UVConverter(outerBound.GetPoints());
+			auto mesh = Polyline::CreateMesh(outerBound, bound, uvConverter, normal);
+			if (!MathHelper::IsSameDir(normal,
+				MathHelper::CalcNormal(mesh.GetPoints()[0], mesh.GetPoints()[1], mesh.GetPoints()[2]))) {
+				mesh.Reverse();
+			}
+
+			return mesh;
+		} else if (bound.PointNum() != 0) {
+			auto uvConverter = PlanePrimitive::UVConverter(bound.GetPoints());
+			auto mesh = Polyline::CreateMesh(bound, outerBound, uvConverter, normal);
+			if (!MathHelper::IsSameDir(normal,
+				MathHelper::CalcNormal(mesh.GetPoints()[0], mesh.GetPoints()[1], mesh.GetPoints()[2]))) {
+				mesh.Reverse();
+			}
+
+			return mesh;
 		}
-		if (bound.PointNum() && outerBound.PointNum()) {
-			return Polyline::CreateMesh(outerBound, bound, normal);
-		} else if (bound.PointNum()) {
-			return Polyline::CreateMesh(bound, Polyline(), normal);
-		} else if (outerBound.PointNum()) {
-			return Polyline::CreateMesh(outerBound, Polyline(), normal);
-		}
+
 	} else if (cylinder) {
-		auto normal = cylinder->axis.second->data.Normal();
-		//if (!orient) { normal = -normal; }
+		auto normal = glm::normalize(cylinder->axis.second->data.Normal());
 		auto edge = SearchCylinderEdge(cylinder);
-		Vector3 origin = cylinder->axis.second->data.point +
-			normal * edge.minZ.first;
-		//if (!orient) { begin = -begin; end = -end; }
-		return Cylinder::CreateSideMesh(
-			origin,
-			normal,
-			edge.begin,
-			edge.end,
-			cylinder->rad,
-			edge.GetHeight(),
-			sameScene,
-			CIRCLE_SUBDIVISION_NUM,
-			CIRCLE_SUBDIVISION_NUM);
+		auto uvConverter = Cylinder::UVConverter(cylinder->rad, edge.GetHeight(), CIRCLE_SUBDIVISION_NUM);
+		if (outerBound.PointNum() != 0) {
+			return Polyline::CreateMesh(outerBound, bound, uvConverter, normal);
+		} else {
+			return Polyline::CreateMesh(bound, outerBound, uvConverter, normal);
+		}
+		//uvConverter.toUV();
+		//Vector3 origin = cylinder->axis.second->data.point +normal * edge.minZ.first;
+		//return Cylinder::CreateSideMesh(
+		//	origin,
+		//	normal,
+		//	edge.begin,
+		//	edge.end,
+		//	cylinder->rad,
+		//	edge.GetHeight(),
+		//	sameScene,
+		//	CIRCLE_SUBDIVISION_NUM,
+		//	CIRCLE_SUBDIVISION_NUM);
 	} else if (conical) {
 		auto edge = SearchConicalEdge(conical);
 		return Cone::CreateSideMesh(
@@ -1969,36 +1985,35 @@ void STEPBSplineSurfaceBase::FetchData(const STEPStruct& step)
 
 Mesh STEPBSplineSurfaceBase::CreateMesh(const Polyline& bound, const Polyline& outerBound, bool sameScene) const
 {
-	if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
-	Vector<Vector3> uvBound;
-	Vector<Vector3> uvOuterBound;
-	if (bound.PointNum()) {
-		uvBound.resize(bound.PointNum());
-		for (size_t i = 0; i < bound.PointNum(); i++) {
-			Vector2 uv;
-			STEP::BSplineBuilder::ProjectPointToUV(*this, bound.GetPoints()[i], uv);
-			uvBound[i] = Vector3(uv.x, uv.y, 0);
-		}
-	}
-	if (outerBound.PointNum()) {
-		uvOuterBound.resize(outerBound.PointNum());
-		for (size_t i = 0; i < outerBound.PointNum(); i++) {
-			Vector2 uv;
-			STEP::BSplineBuilder::ProjectPointToUV(*this, outerBound.GetPoints()[i], uv);
-			uvOuterBound[i] = Vector3(uv.x, uv.y, 0);
-		}
-	}
-	auto mesh = Polyline::CreateMesh(Polyline(std::move(uvOuterBound)), Polyline(std::move(uvBound)), sameScene ? Vector3(0, 0, 1) : Vector3(0, 0, -1));
-	Vector<Vector3> vertices(mesh.GetPoints().size());
-	for (size_t i = 0; i < mesh.GetPoints().size(); i++) {
-		if(!STEP::BSplineBuilder::Evaluate(*this, Vector2(mesh.GetPoints()[i].x, mesh.GetPoints()[i].y), vertices[i])) {
-		//	Assert::Failed();
-			continue;
-		}
-	}
+	//if (bound.PointNum() == 0 && outerBound.PointNum() == 0) { return Mesh(); }
+	//Vector<Vector3> uvBound;
+	//Vector<Vector3> uvOuterBound;
+	//if (bound.PointNum()) {
+	//	uvBound.resize(bound.PointNum());
+	//	for (size_t i = 0; i < bound.PointNum(); i++) {
+	//		Vector2 uv;
+	//		STEP::BSplineBuilder::ProjectPointToUV(*this, bound.GetPoints()[i], uv);
+	//		uvBound[i] = Vector3(uv.x, uv.y, 0);
+	//	}
+	//}
+	//if (outerBound.PointNum()) {
+	//	uvOuterBound.resize(outerBound.PointNum());
+	//	for (size_t i = 0; i < outerBound.PointNum(); i++) {
+	//		Vector2 uv;
+	//		STEP::BSplineBuilder::ProjectPointToUV(*this, outerBound.GetPoints()[i], uv);
+	//		uvOuterBound[i] = Vector3(uv.x, uv.y, 0);
+	//	}
+	//}
+	auto converter = STEP::BSplineBuilder::UVConverter(this);
+	return Polyline::CreateMesh(outerBound, bound, converter, sameScene ? Vector3(0, 0, 1) : Vector3(0, 0, -1));
+	//Vector<Vector3> vertices(mesh.GetPoints().size());
+	//for (size_t i = 0; i < mesh.GetPoints().size(); i++) {
+	//	if(!STEP::BSplineBuilder::Evaluate(*this, Vector2(mesh.GetPoints()[i].x, mesh.GetPoints()[i].y), vertices[i])) {
+	//		continue;
+	//	}
+	//}
 
-	mesh.SetPoints(std::move(vertices));
-	return mesh;
+	//mesh.SetPoints(std::move(vertices));
 }
 
 bool STEPBSplineSurfaceBase::IsValid() const

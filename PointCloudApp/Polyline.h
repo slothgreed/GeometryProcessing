@@ -8,6 +8,8 @@ class IUVConverter
 public:
 	virtual Vector2 toUV(const Vector3& xyz) const = 0;
 	virtual Vector3 toXYZ(const Vector2& uv) const = 0;
+	Vector<Vector3> ConvertUV(const Vector<Vector3>& target) const;
+	Vector<Vector3> ConvertXYZ(const Vector<Vector3>& target) const;
 };
 class Mesh;
 class Polyline
@@ -45,7 +47,7 @@ public:
 	Vector3 GetCenter() const;
 	Polyline& Reverse();
 	bool IsPlane() const;
-	static Mesh CreateMesh(const Polyline& target, const Polyline& inner, const Vector3& axis);
+	static Mesh CreateMesh(const Polyline& target, const Polyline& inner, const IUVConverter& converter, const Vector3& axis);
 	Polyline CreateSmooth() const;
 	Vector<Vector3> CreateParametricColor() const;
 	Polyline& ConvertLines();

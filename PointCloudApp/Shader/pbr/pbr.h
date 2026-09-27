@@ -123,12 +123,14 @@ vec3 getPBRColor(PBRInfo pbrInputs, vec3 lightColor)
 	
 	vec3 diffuseContrib = (1.0 - F) * getDiffuse(pbrInputs);
 	vec3 specContrib = F * G * D / (4.0 * pbrInputs.NdotL * pbrInputs.NdotV);
-	//return lightColor;
+	//return diffuseContrib;
 	//return F;
 	//return vec3(G,G,G);
 	//return vec3(D,D,D);
 	//return diffuseContrib;
 	//return specContrib;
+	//return pbrInputs.NdotL * lightColor;
+	//return pbrInputs.NdotL * (diffuseContrib + specContrib);
 	//return vec3(pbrInputs.NdotL,pbrInputs.NdotL,pbrInputs.NdotL);
 	return pbrInputs.NdotL * lightColor * (diffuseContrib + specContrib);
 	
@@ -194,5 +196,6 @@ vec3 getPointLightPBRColor(
 
 	vec3 radiance = pointLight.colorIntensity.rgb * pointLight.colorIntensity.w;
 	radiance *= window;
+	radiance *= 10;
 	return getPBRColor(lightInputs, radiance*0.2);
 }

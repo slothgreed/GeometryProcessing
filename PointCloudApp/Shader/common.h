@@ -7,7 +7,8 @@ struct Camera
 	vec4 eye;
 	vec4 center;
 	vec2 viewSize;
-	float padding[2];
+	float near;
+	float far;
 	vec4 frustum[6];
 };
 
@@ -26,14 +27,26 @@ struct PointLight
 };
 
 
-#define MAX_LIGHT_NUM 8
-struct TileLight
+#define MAX_LIGHT_NUM 64
+struct ClusteredLight
 {
 	int count;
-	float maxDepth; float minDepth; int pad2;
+	float minDepth; float maxDepth; float debug;
 	int indices[MAX_LIGHT_NUM];
 };
 
+float getClusteredDepth(Camera camera,int clusteredZNum, int index)
+{
+	float depthRange = (camera.far - camera.near) / clusteredZNum;
+	return camera.near + depthRange * index;
+}
+
+int getClusteredDepthIndex(Camera camera,int clusteredZNum, float viewDepth)
+{
+	float depthRatio = (viewDepth - camera.near) / (camera.far - camera.near);
+	return clamp(int(floor(depthRatio * float(clusteredZNum))),0, clusteredZNum - 1);
+}
+	
 struct DrawElementsIndirect
 {
     uint count;
@@ -106,6 +119,7 @@ vec4 unpackColor4(uint value)
 bool IsSame(float lhs, float rhs) {
     return abs(lhs - rhs) < 1e-5;
 }
+
 
 mat3 quatToMat3(vec4 q)
 {
@@ -238,3 +252,11 @@ vec3 getViewRay(Camera camera, vec2 ndc)
     // View空間ではカメラ位置が原点
     return normalize(viewPosition.xyz);
 }
+
+uint toIndex(uvec3 pos, uvec3 num)
+{
+   return 	uint(pos.x) + 
+			uint(pos.y) * num.x +
+			uint(pos.z) * num.x * num.y;
+}
+

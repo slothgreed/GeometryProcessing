@@ -16,7 +16,9 @@ uniform sampler2D u_brdf;
 uniform ivec2 u_ssboIndex; // (x,y,z,w) = (matrix,material,Hoge,Hoge);
 uniform int u_debugView;
 
-const ivec2 c_tileSize = ivec2(16);
+uniform ivec3 u_clusterPartition;
+uniform ivec3 u_clusterNum;
+
 layout(std430, binding = 0) buffer CameraBuffer
 {
 	Camera camera;
@@ -37,9 +39,9 @@ layout(std430, binding = 7) buffer PointLightBuffer
 	PointLight pointLights[];
 };
 
-layout(std430, binding = 8) buffer TileLightBuffer
+layout(std430, binding = 8) buffer ClusteredLightBuffer
 {
-	TileLight tiles[];
+	ClusteredLight clusters[];
 };
 
 layout(std430, binding = 6) buffer PBRGlobalBuffer
@@ -98,17 +100,19 @@ float getOcculusion(GLTFMaterial material)
 	}
 }
 
-vec3 getPointLightColor(PBRInfo materialInputs)
+vec3 getPointLightColor(PBRInfo pbrInfo)
 {
-	ivec2 tileCount = (ivec2(camera.viewSize) + c_tileSize - ivec2(1)) / c_tileSize;
-	ivec2 tilePosition = clamp(ivec2(gl_FragCoord.xy) / c_tileSize, ivec2(0), tileCount - ivec2(1));
-	TileLight tile = tiles[tilePosition.x + tilePosition.y * tileCount.x];
+	float viewDepth = -(camera.view * vec4(f_worldPos, 1.0)).z;
+	int depthIndex = getClusteredDepthIndex(camera,u_clusterNum.z,viewDepth);
+	uvec3 clusterXYZ = uvec3(uvec2(gl_FragCoord.xy) / u_clusterPartition.xy,	uint(depthIndex));
+	clusterXYZ = clamp(clusterXYZ,uvec3(0),uvec3(u_clusterNum) - 1);
+	ClusteredLight cluster = clusters[toIndex(clusterXYZ,u_clusterNum)];
 
 	vec3 color = vec3(0.0);
-	for(int i = 0; i < min(tile.count, MAX_LIGHT_NUM); ++i){
+	for(int i = 0; i < min(cluster.count, MAX_LIGHT_NUM); ++i){
 		color += getPointLightPBRColor(
-			materialInputs,
-			pointLights[tile.indices[i]],
+			pbrInfo,
+			pointLights[cluster.indices[i]],
 			camera.eye.xyz,
 			f_worldPos);
 	}

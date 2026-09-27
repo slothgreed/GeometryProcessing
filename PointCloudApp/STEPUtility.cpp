@@ -191,6 +191,126 @@ bool BSplineBuilder::Evaluate(const STEPBSplineSurfaceBase& bspline, const Vecto
 	return true;
 }
 
+
+Vector3 BSplineBuilder::UVConverter::toXYZ(const Vector2& uv) const
+{
+	Vector3 numerator{ 0.0f, 0.0f, 0.0f };
+	float denominator = 0.0f;
+
+	auto clampedUV = uv;
+	const auto& bspline = *surface;
+	clampedUV.x = std::max(bspline.expandKnots.u.front(), clampedUV.x);
+	clampedUV.x = std::min(bspline.expandKnots.u.back(), clampedUV.x);
+	clampedUV.y = std::max(bspline.expandKnots.v.front(), clampedUV.y);
+	clampedUV.y = std::min(bspline.expandKnots.v.back(), clampedUV.y);
+
+	const bool hasWeight = !bspline.rational.empty();
+	for (int i = 0; i < bspline.GetUNum(); ++i) {
+		const float Nu = Basis(i, bspline.degree.u, clampedUV.x, bspline.expandKnots.u);
+		if (Nu == 0.0f) { continue; }
+
+		for (int j = 0; j < bspline.GetVNum(); ++j) {
+			const float Nv = Basis(j, bspline.degree.v, clampedUV.y, bspline.expandKnots.v);
+			if (Nv == 0.0f) { continue; }
+
+			const float w = hasWeight ? bspline.rational[i][j] : 1.0f;
+			const float B = Nu * Nv * w;
+
+			numerator += bspline.points[i][j].second->pos * B;
+			denominator += B;
+		}
+	}
+
+	if (denominator == 0.0f) {
+		Assert::Failed();
+		return Vector3(0.0, 0.0, 0.0);
+	}
+
+	return numerator / denominator;
+}
+
+Vector2 BSplineBuilder::UVConverter::toUV(const Vector3& target) const
+{
+	const float offset = 1e-4f;
+	const int maxIter = 20;
+	const auto& bspline = *surface;
+	float uMin = bspline.knots.u.front();
+	float uMax = bspline.knots.u.back();
+	float vMin = bspline.knots.v.front();
+	float vMax = bspline.knots.v.back();
+
+	auto uv = Vector2(uMin + uMax, vMin + vMax) * 0.5f; // 暫定値
+
+	for (int iter = 0; iter < maxIter; ++iter) {
+		Vector3 S;
+		if (!Evaluate(bspline, uv, S)) {
+			Assert::Failed();
+			continue;
+		}
+
+		Vector3 SxMax;
+		if (!Evaluate(bspline, Vector2(std::min(uv.x + offset, uMax), uv.y), SxMax)) {
+			Assert::Failed();
+			continue;
+		}
+		Vector3 SxMin;
+		if (!Evaluate(bspline, Vector2(std::max(uv.x - offset, uMin), uv.y), SxMin)) {
+			Assert::Failed();
+			continue;
+		}
+		// U方向の傾きを求める
+		auto Su = (SxMax - SxMin) / (std::min(uv.x + offset, uMax) - std::max(uv.x - offset, uMin));
+
+		Vector3 SyMax;
+		if (!Evaluate(bspline, Vector2(uv.x, std::min(uv.y + offset, vMax)), SyMax)) {
+			Assert::Failed();
+			continue;
+		}
+
+		Vector3 SyMin;
+		if (!Evaluate(bspline, Vector2(uv.x, std::max(uv.y - offset, vMin)), SyMin)) {
+			Assert::Failed();
+			continue;
+		}
+		// V方向の傾きを求める
+		auto Sv = (SyMax - SyMin) / (std::min(uv.y + offset, vMax) - std::max(uv.y - offset, vMin));
+
+		// 最小二乗法で、targetに近づくようにuvを更新する。
+		auto r = target - S;
+
+		float a00 = glm::dot(Su, Su);
+		float a01 = glm::dot(Su, Sv);
+		float a11 = glm::dot(Sv, Sv);
+
+		float b0 = glm::dot(Su, r);
+		float b1 = glm::dot(Sv, r);
+
+		float det = a00 * a11 - a01 * a01;
+		if (std::abs(det) < 1e-10f) {
+			Assert::Failed();
+			return Vector2(0, 0);
+		}
+
+		float du = (b0 * a11 - b1 * a01) / det;
+		float dv = (a00 * b1 - a01 * b0) / det;
+
+		uv.x += du;
+		uv.y += dv;
+
+		uv.x = std::clamp(uv.x, uMin, uMax);
+		uv.y = std::clamp(uv.y, vMin, vMax);
+
+		// 更新量が十分小さければ終了
+		if (std::abs(du) < MathHelper::EPS &&
+			std::abs(dv) < MathHelper::EPS) {
+			return uv;
+		}
+	}
+
+	Assert::Failed();
+	return Vector2(0, 0);
+}
+
 bool BSplineBuilder::ProjectPointToUV(const STEPBSplineSurfaceBase& bspline, const Vector3& target, Vector2& uv)
 {
 	const float offset = 1e-4f;

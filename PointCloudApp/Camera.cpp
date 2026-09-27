@@ -9,13 +9,6 @@ Camera::Camera()
 	m_mode = Mode::NONE;
 }
 
-Vector2 Camera::GetDepthRange() const
-{
-	return IsOrtho()
-		? Vector2(m_ortho.m_near, m_ortho.m_far)
-		: Vector2(m_perspective.m_near, m_perspective.m_far);
-}
-
 void Camera::SetEye(const Vector3& eye)
 {
 	SetLookAt(eye, m_center, m_up);

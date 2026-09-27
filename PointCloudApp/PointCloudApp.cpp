@@ -1,3 +1,5 @@
+#include "CameraFrustumDebug.h"
+#include "ClusteredLightCuller.h"
 // PointCloudApp.cpp : このファイルには 'main' 関数が含まれています。プログラム実行の開始と終了がそこで行われます。
 //
 
@@ -152,21 +154,22 @@ void PointCloudApp::Execute()
 	m_pDebugRoot = std::make_unique<RenderNode>("DebugOutput");
 	m_uiContext.SetDebugNode(m_pDebugRoot.get());
 	BDB bdb;
-	// Default Scene Demo.
-	{
-		auto pSponza = CreateSponzaTest();
-		m_pRoot->AddNode(pSponza);
-		//m_pRoot->AddNode(CreateCSFNodeTest());
-		m_pRoot->AddNode(CreateGLTFAnimationTest());
-		m_pRoot->AddNode(CreateGLTFNodeTest());
-		//m_pRoot->AddNode(CreateTerrain());
-		m_pRoot->AddNode(CreateBunnyNodeTest());
-		//m_pRoot->AddNode(CreateVolumeTest());
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
-		m_spaceBDB = pSponza->GetBoundBox();
-		auto pLightNode = std::make_shared<LightNode>("PointLights");
-		m_pRoot->AddNode(pLightNode);
-	}
+	//// Default Scene Demo.
+	//{
+	//	auto pSponza = CreateSponzaTest();
+	//	m_pRoot->AddNode(pSponza);
+	//	//m_pRoot->AddNode(CreateCSFNodeTest());
+	//	//m_pRoot->AddNode(CreateGLTFAnimationTest());
+	//	m_pRoot->AddNode(CreateGLTFNodeTest());
+	//	//m_pRoot->AddNode(CreateTerrain());
+	//	auto bunny = CreateBunnyNodeTest();
+	//	m_pRoot->AddNode(bunny);
+	//	//m_pRoot->AddNode(CreateVolumeTest());
+	//	bdb.Add(bunny->CalcCameraFitBox());
+	//	m_spaceBDB = pSponza->GetBoundBox();
+	//	auto pLightNode = std::make_shared<LightNode>("PointLights");
+	//	m_pRoot->AddNode(pLightNode);
+	//}
 	
 	// PointCloud
 	{
@@ -181,13 +184,14 @@ void PointCloudApp::Execute()
 	//}
 
 
-	//// STEP
-	//{
-	//	Shared<Primitive> pAxis = std::make_shared<Axis>(500);
-	//	m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
-	//	m_pRoot->AddNode(CreateSTEPNodeTest());
-	//	bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox()); 
-	//}
+	// STEP
+	{
+		Shared<Primitive> pAxis = std::make_shared<Axis>(500);
+		m_pRoot->AddNode(std::make_shared<PrimitiveNode>("Axis", pAxis));
+		auto pStepNode = CreateSTEPNodeTest();
+		bdb.Add(pStepNode.back()->CalcCameraFitBox());
+		m_pRoot->AddNode(pStepNode);
+	}
 
 	// Simulation
 	{
@@ -211,14 +215,14 @@ void PointCloudApp::Execute()
 
 	// Test
 	{
-		m_pRoot->AddNode(CreateBunnyNodeTest());
+		//m_pRoot->AddNode(CreateBunnyNodeTest());
 		//m_pRoot->AddNode(CreateDelaunayTest());
 		//m_pRoot->AddNode(CreateConstrainDelaunayTest());
 		//m_pRoot->AddNode(CreateInstacedNodeTest());
 		//m_pRoot->AddNode(CreateImageTest());
 		//m_pRoot->AddNode(CreatePolylineTest());
 		//m_pRoot->AddNode(CreateDXFTest());
-		bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
+		//bdb.Add(m_pRoot->GetChild().begin()->second->GetBoundBox());
 	}
 
 	ImPlot::CreateContext();
@@ -267,7 +271,8 @@ void PointCloudApp::Execute()
 		AddUITexture(FileUtility::GetFileName(pgmFiles[i]), m_pgmTexture[i].get());
 	}
 
-	TileLightCuller tileLightCuller;
+	ClusteredLightCuller clusteredLightCuller;
+	CameraFrustumDebug cameraFrustumDebug;
 	timer.Reset();
 	while (glfwWindowShouldClose(m_window) == GL_FALSE) {
 		auto tick = timer.Tick();
@@ -286,21 +291,22 @@ void PointCloudApp::Execute()
 			pSkyBoxNode->Draw(drawContext);
 		}
 		depthPrePass.Execute(m_pRoot.get(), drawContext);
-		if (m_ui.tileLight) {
-			if (m_ui.tileLightAnimation) {
-				tileLightCuller.Update(drawContext, m_spaceBDB);
+		if (clusteredLightCuller.IsEnabled()) {
+			if (clusteredLightCuller.IsAnimationEnabled()) {
+				clusteredLightCuller.Update(drawContext, m_spaceBDB);
 			}
-			tileLightCuller.Execute(drawContext);
+			clusteredLightCuller.Execute(drawContext);
 		}
 		defaultPass.Execute(m_pRoot.get(), drawContext);
+		cameraFrustumDebug.Draw(drawContext);
 		combiner.Execute(drawContext);
 
 		m_pResource->GL()->PushRenderTarget(m_pResource->GetPostEffectTarget());
 		postEffect.Execute(drawContext);
 		m_pResource->GL()->PopRenderTarget();
 		
-		if (m_ui.tileLight && m_ui.tileLightDebugMode > 0) {
-			tileLightCuller.DrawDebugView(drawContext, m_ui.tileLightDebugMode - 1);
+		if (clusteredLightCuller.IsEnabled() && clusteredLightCuller.GetDebugMode() > 0) {
+			clusteredLightCuller.DrawDebugView(drawContext, clusteredLightCuller.GetDebugMode() - 1);
 		}
 
 		m_pResource->GL()->PopRenderTarget();
@@ -371,7 +377,7 @@ void PointCloudApp::Execute()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		m_uiContext.SetViewport(m_windowSize);
-		ShowUI(m_uiContext);
+		ShowUI(m_uiContext, clusteredLightCuller, cameraFrustumDebug);
 		//postEffect.ShowUI(m_uiContext);
 		ImGui::Render();
 
@@ -387,7 +393,7 @@ void PointCloudApp::Execute()
 
 }
 
-void PointCloudApp::ShowUI(UIContext& ui)
+void PointCloudApp::ShowUI(UIContext& ui, ClusteredLightCuller& clusteredLightCuller, CameraFrustumDebug& cameraFrustumDebug)
 {
 	ImVec2 mainPos = ImGui::GetWindowPos();  // 現在のウィンドウの座標
 	ImVec2 mainSize = ImGui::GetWindowSize(); // 現在のウィンドウのサイズ
@@ -475,6 +481,9 @@ void PointCloudApp::ShowUI(UIContext& ui)
 			m_pCameraController->FitToBDB(bdb);
 		}
 	}
+	if (cameraFrustumDebug.ShowUI(*m_pCamera, ClusteredLightCuller::GetClusterPartition())) {
+		m_ui.animation = false;
+	}
 	ImGui::Checkbox("Animation", &m_ui.animation);
 
 	auto& pLight = m_pResource->GetLight();
@@ -483,19 +492,7 @@ void PointCloudApp::ShowUI(UIContext& ui)
 		pLight->SetColor(color);
 	}
 
-	if (ImGui::Checkbox("TileLight", &m_ui.tileLight)) {
-		auto tileLightResource = m_pResource->GetTileLightResource();
-		if(!tileLightResource->IsActive()) {
-			tileLightResource->BuildPointLights(m_spaceBDB, Vector3i(16));
-		}
-	}
-	if (m_ui.tileLight) {
-		auto tileLightResource = m_pResource->GetTileLightResource();
-		tileLightResource->BuildPointLightBuffer(m_windowSize);
-		const char* modes[] = { "Hidden", "Minimum Depth", "Maximum Depth", "Light Count" };
-		ImGui::Combo("Tile Light View", &m_ui.tileLightDebugMode, modes, 4);
-		ImGui::Checkbox("AnimationTileLight", &m_ui.tileLightAnimation);
-	}
+	clusteredLightCuller.ShowUI(*m_pResource->GetClusteredLightResource(), m_spaceBDB, m_windowSize);
 	//ImGui::BeginChild("StringList", ImVec2(300, 200), true);
 	//for (int i = 0; i < (int)m_ui.stepFiles.size(); ++i) {
 	//	bool selected = (m_ui.stepSelected == i);
@@ -649,7 +646,9 @@ Shared<RenderNode> PointCloudApp::CreateTerrain()
 Shared<RenderNode> PointCloudApp::CreateGaussianSplatting()
 {
 	auto pData = std::shared_ptr<GaussianSplattingData>(GaussianSplattingLoader::Load("E:\\cgModel\\gaussianSplatting\\samples\\hornedlizard.ply"));
-	return std::make_shared<GaussianSplattingNode>("GaussianSplatting", pData);
+	auto pNode = std::make_shared<GaussianSplattingNode>("GaussianSplatting", pData);
+	pNode->SetScale(100);
+	return pNode;
 }
 
 Shared<RenderNode> PointCloudApp::CreateVolumeTest()
@@ -807,13 +806,11 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 			m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap203\\weldment_asm_solid.stp");
 		} else if (folder == other) {
 
-			//実施中
+			//// 実施中
 			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\turbine.stp");
 			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\ap224_995288709.stp");
 
-			// 高難度データ
-
-			//
+			//// 高難度データ
 
 			//// B-Spline
 			//m_ui.stepFiles.push_back("E:\\cgModel\\step\\filler.stp");
@@ -821,22 +818,21 @@ Vector<Shared<RenderNode>> PointCloudApp::CreateSTEPNodeTest()
 		} else if (folder == finish) {
 			// 完成データ
 			{
-				//// CYLINDRICAL_SURFACE
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
-				//
+				// CYLINDRICAL_SURFACE
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\angle1.stp");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\interacting_pockets.stp");
 				m_ui.stepFiles.push_back("E:\\cgModel\\step\\mycylinder.stp");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp"); // Alignment
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp"); // B-Spline
-				//m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy.step"); // B-Spline
-
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubsomcy.stp");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\123Block_Color.stp");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\fillet2D.step");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\Torus2D.step");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\fusion360\\concaveCylinder.step");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\lower_carriage.stp");
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\cubcylso.stp"); // Alignment
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull.stp"); // B-Spline
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy.step"); // B-Spline
+				m_ui.stepFiles.push_back("E:\\cgModel\\step\\bull_easy_FACE428_orig.step"); // B-Spline
 			}
 		}
 	}

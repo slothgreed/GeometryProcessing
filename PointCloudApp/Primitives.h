@@ -27,6 +27,21 @@ public:
 	{
 		X,Y,Z
 	};
+
+	class UVConverter : public IUVConverter
+	{
+	public:
+
+		UVConverter(const Vector<Vector3>& points);
+
+		virtual Vector2 toUV(const Vector3& xyz) const;
+		virtual Vector3 toXYZ(const Vector2& uv) const;
+		Vector3 origin;
+		Vector3 uAxis;
+		Vector3 vAxis;
+		Vector3 normal;
+	};
+
 	PlanePrimitive() {}
 	PlanePrimitive(const Vector3& min, const Vector3& max, float position, Axis axis, bool texcoord = false);
 	~PlanePrimitive() {};
@@ -109,6 +124,7 @@ class Sphere : public Primitive
 public:
 	Sphere(float _radius, int _slices, int _stacks);
 	~Sphere() {};
+	static Primitive CreateWire(float radius, int slices, int stacks);
 
 
 private:

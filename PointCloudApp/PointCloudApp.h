@@ -7,6 +7,8 @@
 #include "Profiler.h"
 namespace KI
 {
+class ClusteredLightCuller;
+class CameraFrustumDebug;
 class CSFRenderNode;
 class HalfEdgeStruct;
 class HalfEdgeNode;
@@ -48,10 +50,6 @@ private:
 		int visibleTextureIndex;
 		int mipmap;
 		bool animation;
-		bool tileLight = false;
-		// Hidden, minimum depth, maximum depth, light count.
-		int tileLightDebugMode = 0;
-		bool tileLightAnimation = false;
 		int stepSelected;
 		int dxfSelected;
 		Vector<String> stepFiles;
@@ -90,7 +88,7 @@ private:
 	Vector<Shared<Texture>> m_pgmTexture;
 	BDB m_spaceBDB;
 	Vector<std::pair<String, const Texture*>> m_uiTextureList;
-	void ShowUI(UIContext& ui);
+	void ShowUI(UIContext& ui, ClusteredLightCuller& clusteredLightCuller, CameraFrustumDebug& cameraFrustumDebug);
 };
 }
 

@@ -447,6 +447,14 @@ Vector3i IComputeShader::GetLocalThreadNum() const
 	return Vector3i(1, 1, 1);
 }
 
+Vector3i IComputeShader::GetDispatchNum3D(const Vector3i& value)
+{
+	auto localSize = GetLocalThreadNum();
+	return Vector3i(
+		(value.x + localSize.x - 1) / localSize.x,
+		(value.y + localSize.y - 1) / localSize.y,
+		(value.z + localSize.z - 1) / localSize.z);
+}
 Vector3i IComputeShader::GetDispatchNum2D(const Vector2i& value)
 {
 	auto localSize = GetLocalThreadNum();
