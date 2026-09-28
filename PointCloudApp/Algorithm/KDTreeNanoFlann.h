@@ -1,0 +1,44 @@
+#ifndef KD_TREE_NANO_FLANN
+#define KD_TREE_NANO_FLANN
+#include "Algorithm/IAlgorithm.h"
+#include "Utility/FileUtility.h"
+namespace KI
+{
+class PointCloudNode;
+class PrimitiveNode;
+class KDTreeNanoFlann : public IAlgorithm
+{
+public:
+	class Impl
+	{
+	public:
+		Impl() {};
+		~Impl() {};
+	private:
+	};
+
+	KDTreeNanoFlann(PointCloudNode* pointCloud, int dimension);
+	~KDTreeNanoFlann();
+
+	virtual ALGORITHM_TYPE GetType() { return ALGORITHM_KDTREE; };
+	virtual void Execute();
+	virtual void ShowUI(RenderNode* pNode, UIContext& ui);
+	Vector<int> GetRadiusNeighbor(const Vector3& query, float rad);
+private:
+	struct UI
+	{
+		UI() : slider(0)
+		{
+		}
+
+		int slider;
+	};
+
+	UI m_ui;
+	PointCloudNode* m_pPointCloud;
+	KDTreeNanoFlann::Impl* m_pImpl;
+};
+}
+
+
+#endif 

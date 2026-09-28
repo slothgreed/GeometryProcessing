@@ -74,43 +74,43 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleShader.cpp">
+    <ClCompile Include="Renderer\Shader\SimpleShader.cpp">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="IShader.cpp">
+    <ClCompile Include="Renderer\Shader\IShader.cpp">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderUtility.cpp">
+    <ClCompile Include="Renderer\Shader\ShaderUtility.cpp">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CameraController.cpp">
+    <ClCompile Include="Renderer\Camera\CameraController.cpp">
       <Filter>ソース ファイル\Renderer\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Mouse.cpp">
+    <ClCompile Include="Utility\Mouse.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="BDB.cpp">
+    <ClCompile Include="Utility\BDB.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Profiler.cpp">
+    <ClCompile Include="Utility\Profiler.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="GLBuffer.cpp">
+    <ClCompile Include="GL\Buffer\GLBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
-    <ClCompile Include="FileUtility.cpp">
+    <ClCompile Include="Utility\FileUtility.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="KMeansAlgorithm.cpp">
+    <ClCompile Include="Algorithm\KMeansAlgorithm.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="Utility.cpp">
+    <ClCompile Include="Utility\Utility.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="KDTree.cpp">
+    <ClCompile Include="Algorithm\KDTree.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
     <ClCompile Include="..\extlibs\imgui\imgui_demo.cpp">
@@ -134,94 +134,94 @@
     <ClCompile Include="..\extlibs\imgui\backends\imgui_impl_glfw.cpp">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClCompile>
-    <ClCompile Include="RenderNode.cpp">
+    <ClCompile Include="Node\RenderNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="PrimitiveNode.cpp">
+    <ClCompile Include="Node\PrimitiveNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="Primitives.cpp">
+    <ClCompile Include="Primitive\Primitives.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Primitive.cpp">
+    <ClCompile Include="Primitive\Primitive.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="Renderer\Camera\Camera.cpp">
       <Filter>ソース ファイル\Renderer\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderTable.cpp">
+    <ClCompile Include="Renderer\Shader\ShaderTable.cpp">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="KDTreeNanoFlann.cpp">
+    <ClCompile Include="Algorithm\KDTreeNanoFlann.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="Harris3D.cpp">
+    <ClCompile Include="Algorithm\Harris3D.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="AlphaShape.cpp">
+    <ClCompile Include="Algorithm\AlphaShape.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="PointCloudApp.cpp">
+    <ClCompile Include="App\PointCloudApp.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="ComputeShaderTest.cpp">
+    <ClCompile Include="App\ComputeShaderTest.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="ComputePointCloudApp.cpp">
+    <ClCompile Include="App\ComputePointCloudApp.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
+    <ClCompile Include="GL\Buffer\Texture.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
-    <ClCompile Include="GLFWApp.cpp">
+    <ClCompile Include="App\GLFWApp.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="FrameBuffer.cpp">
+    <ClCompile Include="GL\Buffer\FrameBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
-    <ClCompile Include="TextureLoader.cpp">
+    <ClCompile Include="Node\Loader\TextureLoader.cpp">
       <Filter>ソース ファイル\Node\Loader</Filter>
     </ClCompile>
-    <ClCompile Include="GLTFLoader.cpp">
+    <ClCompile Include="Node\GLTF\GLTFLoader.cpp">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClCompile>
-    <ClCompile Include="GLTFStruct.cpp">
+    <ClCompile Include="Node\GLTF\GLTFStruct.cpp">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClCompile>
-    <ClCompile Include="GLTFSceneUpdater.cpp">
+    <ClCompile Include="Node\GLTF\GLTFSceneUpdater.cpp">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClCompile>
-    <ClCompile Include="GLTFScene.cpp">
+    <ClCompile Include="Node\GLTF\GLTFScene.cpp">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClCompile>
-    <ClCompile Include="MeshShaderTest.cpp">
+    <ClCompile Include="App\MeshShaderTest.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="GLAPIExt.cpp">
+    <ClCompile Include="GL\GLAPIExt.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
-    <ClCompile Include="HalfEdgeStruct.cpp">
+    <ClCompile Include="Algorithm\HalfEdge\HalfEdgeStruct.cpp">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClCompile>
-    <ClCompile Include="GLTFShader.cpp">
+    <ClCompile Include="Node\GLTF\GLTFShader.cpp">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClCompile>
-    <ClCompile Include="HalfEdgeLoader.cpp">
+    <ClCompile Include="Algorithm\HalfEdge\HalfEdgeLoader.cpp">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClCompile>
-    <ClCompile Include="HalfEdgeNode.cpp">
+    <ClCompile Include="Algorithm\HalfEdge\HalfEdgeNode.cpp">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClCompile>
-    <ClCompile Include="PointCloudIO.cpp">
+    <ClCompile Include="Node\PointCloud\PointCloudIO.cpp">
       <Filter>ソース ファイル\Node\PointCloud</Filter>
     </ClCompile>
-    <ClCompile Include="PointCloudNode.cpp">
+    <ClCompile Include="Node\PointCloud\PointCloudNode.cpp">
       <Filter>ソース ファイル\Node\PointCloud</Filter>
     </ClCompile>
-    <ClCompile Include="PointCloud.cpp">
+    <ClCompile Include="Node\PointCloud\PointCloud.cpp">
       <Filter>ソース ファイル\Node\PointCloud</Filter>
     </ClCompile>
-    <ClCompile Include="MeshletGenerator.cpp">
+    <ClCompile Include="Algorithm\MeshletGenerator.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
     <ClCompile Include="..\extlibs\implot\implot.cpp">
@@ -233,186 +233,186 @@
     <ClCompile Include="..\extlibs\implot\implot_items.cpp">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClCompile>
-    <ClCompile Include="SkyBoxNode.cpp">
+    <ClCompile Include="Node\SkyBoxNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="DelaunayGenerator.cpp">
+    <ClCompile Include="Algorithm\DelaunayGenerator.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="PrimitiveTable.cpp">
+    <ClCompile Include="Primitive\PrimitiveTable.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryBuffer.cpp">
+    <ClCompile Include="GL\Buffer\GeometryBuffer.cpp">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClCompile>
-    <ClCompile Include="KIMath.cpp">
+    <ClCompile Include="Utility\KIMath.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="ShapeDiameterFunction.cpp">
+    <ClCompile Include="Algorithm\ShapeDiameterFunction.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="Voxelizer.cpp">
+    <ClCompile Include="Algorithm\Voxelizer.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="CSFNode.cpp">
+    <ClCompile Include="Node\CSF\CSFNode.cpp">
       <Filter>ソース ファイル\Node\CSF</Filter>
     </ClCompile>
-    <ClCompile Include="SignedDistanceField.cpp">
+    <ClCompile Include="Algorithm\SignedDistanceField.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="BVH.cpp">
+    <ClCompile Include="Algorithm\BVH.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryUtility.cpp">
+    <ClCompile Include="Algorithm\GeometryUtility.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="Parameter.cpp">
+    <ClCompile Include="Utility\Parameter.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="SimulationNode.cpp">
+    <ClCompile Include="Node\SimulationNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="PostEffect.cpp">
+    <ClCompile Include="Renderer\Shader\PostEffect.cpp">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeNode.cpp">
+    <ClCompile Include="Node\VolumeNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="Voxel.cpp">
+    <ClCompile Include="Algorithm\Voxel.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="DebugNode.cpp">
+    <ClCompile Include="Node\DebugNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="Polyline.cpp">
+    <ClCompile Include="Primitive\Polyline.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="HalfEdgeController.cpp">
+    <ClCompile Include="Algorithm\HalfEdge\HalfEdgeController.cpp">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainNode.cpp">
+    <ClCompile Include="Node\TerrainNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="ShapeMatching.cpp">
+    <ClCompile Include="Algorithm\ShapeMatching.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="ImageAlgorithm.cpp">
+    <ClCompile Include="Algorithm\ImageAlgorithm.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="ImageNode.cpp">
+    <ClCompile Include="Node\ImageNode.cpp">
       <Filter>ソース ファイル\Node</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
+    <ClCompile Include="Primitive\Mesh.cpp">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="STEPEntity.cpp">
+    <ClCompile Include="Node\STEP\STEPEntity.cpp">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClCompile>
-    <ClCompile Include="STEPNode.cpp">
+    <ClCompile Include="Node\STEP\STEPNode.cpp">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClCompile>
-    <ClCompile Include="STEPUtility.cpp">
+    <ClCompile Include="Node\STEP\STEPUtility.cpp">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClCompile>
-    <ClCompile Include="SoftwareRasterizer.cpp">
+    <ClCompile Include="App\SoftwareRasterizer.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="DXFNode.cpp">
+    <ClCompile Include="Node\DXF\DXFNode.cpp">
       <Filter>ソース ファイル\Node\DXF</Filter>
     </ClCompile>
-    <ClCompile Include="GaussianSplattingNode.cpp">
+    <ClCompile Include="Node\GaussianSplatting\GaussianSplattingNode.cpp">
       <Filter>ソース ファイル\Node\GaussianSplatting</Filter>
     </ClCompile>
-    <ClCompile Include="CrossSectionLine.cpp">
+    <ClCompile Include="Algorithm\CrossSectionLine.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="CrossSectionFill.cpp">
+    <ClCompile Include="Algorithm\CrossSectionFill.cpp">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="ProcessExecutor.cpp">
+    <ClCompile Include="Utility\ProcessExecutor.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="AlgorithmShader.cpp">
+    <ClCompile Include="Renderer\Shader\AlgorithmShader.cpp">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryLoader.cpp">
+    <ClCompile Include="Node\Loader\GeometryLoader.cpp">
       <Filter>ソース ファイル\Node\Loader</Filter>
     </ClCompile>
-    <ClCompile Include="AIDataGenerator.cpp">
+    <ClCompile Include="Utility\AI\AIDataGenerator.cpp">
       <Filter>ソース ファイル\Utility\AI</Filter>
     </ClCompile>
-    <ClCompile Include="MeshViewer.cpp">
+    <ClCompile Include="App\MeshViewer.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
-    <ClCompile Include="PBR.cpp">
+    <ClCompile Include="Renderer\PBR.cpp">
       <Filter>ソース ファイル\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="ClusteredLightCuller.cpp">
+    <ClCompile Include="Renderer\ClusteredLightCuller.cpp">
       <Filter>ソース ファイル\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="CameraFrustumDebug.cpp">
+    <ClCompile Include="Utility\CameraFrustumDebug.cpp">
       <Filter>ソース ファイル\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPass.cpp">
+    <ClCompile Include="GL\RenderPass.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
-    <ClCompile Include="RenderResource.cpp">
+    <ClCompile Include="GL\RenderResource.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
-    <ClCompile Include="RenderTarget.cpp">
+    <ClCompile Include="GL\RenderTarget.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
-    <ClCompile Include="GLContext.cpp">
+    <ClCompile Include="GL\GLContext.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CameraController.h">
+    <ClInclude Include="Renderer\Camera\CameraController.h">
       <Filter>ソース ファイル\Renderer\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="GLBuffer.h">
+    <ClInclude Include="GL\Buffer\GLBuffer.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
-    <ClInclude Include="IShader.h">
+    <ClInclude Include="Renderer\Shader\IShader.h">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderUtility.h">
+    <ClInclude Include="Renderer\Shader\ShaderUtility.h">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleShader.h">
+    <ClInclude Include="Renderer\Shader\SimpleShader.h">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="BDB.h">
+    <ClInclude Include="Utility\BDB.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Mouse.h">
+    <ClInclude Include="Utility\Mouse.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="MouseInput.h">
+    <ClInclude Include="Utility\MouseInput.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Profiler.h">
+    <ClInclude Include="Utility\Profiler.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="FileUtility.h">
+    <ClInclude Include="Utility\FileUtility.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="IAlgorithm.h">
+    <ClInclude Include="Algorithm\IAlgorithm.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="KMeansAlgorithm.h">
+    <ClInclude Include="Algorithm\KMeansAlgorithm.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="Random.h">
+    <ClInclude Include="Utility\Random.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Utility.h">
+    <ClInclude Include="Utility\Utility.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="KDTree.h">
+    <ClInclude Include="Algorithm\KDTree.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="..\extlibs\imgui\imgui.h">
@@ -439,100 +439,100 @@
     <ClInclude Include="..\extlibs\imgui\backends\imgui_impl_glfw.h">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClInclude>
-    <ClInclude Include="RenderNode.h">
+    <ClInclude Include="Node\RenderNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="PrimitiveNode.h">
+    <ClInclude Include="Node\PrimitiveNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="Primitives.h">
+    <ClInclude Include="Primitive\Primitives.h">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="Primitive.h">
+    <ClInclude Include="Primitive\Primitive.h">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="Renderer\Camera\Camera.h">
       <Filter>ソース ファイル\Renderer\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderTable.h">
+    <ClInclude Include="Renderer\Shader\ShaderTable.h">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="KDTreeNanoFlann.h">
+    <ClInclude Include="Algorithm\KDTreeNanoFlann.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="Harris3D.h">
+    <ClInclude Include="Algorithm\Harris3D.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="AlphaShape.h">
+    <ClInclude Include="Algorithm\AlphaShape.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="PointCloudApp.h">
+    <ClInclude Include="App\PointCloudApp.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="TheApp.h">
+    <ClInclude Include="App\TheApp.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="ComputeShaderTest.h">
+    <ClInclude Include="App\ComputeShaderTest.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="ComputePointCloudApp.h">
+    <ClInclude Include="App\ComputePointCloudApp.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
+    <ClInclude Include="GL\Buffer\Texture.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
-    <ClInclude Include="GLFWApp.h">
+    <ClInclude Include="App\GLFWApp.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="FrameBuffer.h">
+    <ClInclude Include="GL\Buffer\FrameBuffer.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
-    <ClInclude Include="GLTypes.h">
+    <ClInclude Include="GL\GLTypes.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="TextureLoader.h">
+    <ClInclude Include="Node\Loader\TextureLoader.h">
       <Filter>ソース ファイル\Node\Loader</Filter>
     </ClInclude>
-    <ClInclude Include="GLTFLoader.h">
+    <ClInclude Include="Node\GLTF\GLTFLoader.h">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClInclude>
-    <ClInclude Include="GLTFStruct.h">
+    <ClInclude Include="Node\GLTF\GLTFStruct.h">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClInclude>
-    <ClInclude Include="GLTFSceneUpdater.h">
+    <ClInclude Include="Node\GLTF\GLTFSceneUpdater.h">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClInclude>
-    <ClInclude Include="GLTFScene.h">
+    <ClInclude Include="Node\GLTF\GLTFScene.h">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClInclude>
-    <ClInclude Include="MeshShaderTest.h">
+    <ClInclude Include="App\MeshShaderTest.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="GLAPIExt.h">
+    <ClInclude Include="GL\GLAPIExt.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="HalfEdgeStruct.h">
+    <ClInclude Include="Algorithm\HalfEdge\HalfEdgeStruct.h">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClInclude>
-    <ClInclude Include="GLTFShader.h">
+    <ClInclude Include="Node\GLTF\GLTFShader.h">
       <Filter>ソース ファイル\Node\GLTF</Filter>
     </ClInclude>
-    <ClInclude Include="HalfEdgeLoader.h">
+    <ClInclude Include="Algorithm\HalfEdge\HalfEdgeLoader.h">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClInclude>
-    <ClInclude Include="HalfEdgeNode.h">
+    <ClInclude Include="Algorithm\HalfEdge\HalfEdgeNode.h">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClInclude>
-    <ClInclude Include="PointCloudIO.h">
+    <ClInclude Include="Node\PointCloud\PointCloudIO.h">
       <Filter>ソース ファイル\Node\PointCloud</Filter>
     </ClInclude>
-    <ClInclude Include="PointCloudNode.h">
+    <ClInclude Include="Node\PointCloud\PointCloudNode.h">
       <Filter>ソース ファイル\Node\PointCloud</Filter>
     </ClInclude>
-    <ClInclude Include="PointCloud.h">
+    <ClInclude Include="Node\PointCloud\PointCloud.h">
       <Filter>ソース ファイル\Node\PointCloud</Filter>
     </ClInclude>
-    <ClInclude Include="MeshletGenerator.h">
+    <ClInclude Include="Algorithm\MeshletGenerator.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="..\extlibs\implot\implot.h">
@@ -541,148 +541,148 @@
     <ClInclude Include="..\extlibs\implot\implot_internal.h">
       <Filter>ソース ファイル\extlibs</Filter>
     </ClInclude>
-    <ClInclude Include="SkyBoxNode.h">
+    <ClInclude Include="Node\SkyBoxNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="DelaunayGenerator.h">
+    <ClInclude Include="Algorithm\DelaunayGenerator.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="PrimitiveTable.h">
+    <ClInclude Include="Primitive\PrimitiveTable.h">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryBuffer.h">
+    <ClInclude Include="GL\Buffer\GeometryBuffer.h">
       <Filter>ソース ファイル\GL\Buffer</Filter>
     </ClInclude>
-    <ClInclude Include="KIMath.h">
+    <ClInclude Include="Utility\KIMath.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="ShapeDiameterFunction.h">
+    <ClInclude Include="Algorithm\ShapeDiameterFunction.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="Voxelizer.h">
+    <ClInclude Include="Algorithm\Voxelizer.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="CSFNode.h">
+    <ClInclude Include="Node\CSF\CSFNode.h">
       <Filter>ソース ファイル\Node\CSF</Filter>
     </ClInclude>
-    <ClInclude Include="SignedDistanceField.h">
+    <ClInclude Include="Algorithm\SignedDistanceField.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="BVH.h">
+    <ClInclude Include="Algorithm\BVH.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryUtility.h">
+    <ClInclude Include="Algorithm\GeometryUtility.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="Parameter.h">
+    <ClInclude Include="Utility\Parameter.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="SimulationNode.h">
+    <ClInclude Include="Node\SimulationNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="PostEffect.h">
+    <ClInclude Include="Renderer\Shader\PostEffect.h">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeNode.h">
+    <ClInclude Include="Node\VolumeNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="Voxel.h">
+    <ClInclude Include="Algorithm\Voxel.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="DebugNode.h">
+    <ClInclude Include="Node\DebugNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="Polyline.h">
+    <ClInclude Include="Primitive\Polyline.h">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="MouseController.h">
+    <ClInclude Include="Utility\MouseController.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="HalfEdgeController.h">
+    <ClInclude Include="Algorithm\HalfEdge\HalfEdgeController.h">
       <Filter>ソース ファイル\Algorithm\HalfEdge</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainNode.h">
+    <ClInclude Include="Node\TerrainNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="ShapeMatching.h">
+    <ClInclude Include="Algorithm\ShapeMatching.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="ImageAlgorithm.h">
+    <ClInclude Include="Algorithm\ImageAlgorithm.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="ImageNode.h">
+    <ClInclude Include="Node\ImageNode.h">
       <Filter>ソース ファイル\Node</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="Primitive\Mesh.h">
       <Filter>ソース ファイル\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="STEPEntity.h">
+    <ClInclude Include="Node\STEP\STEPEntity.h">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClInclude>
-    <ClInclude Include="STEPNode.h">
+    <ClInclude Include="Node\STEP\STEPNode.h">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClInclude>
-    <ClInclude Include="STEPTypes.h">
+    <ClInclude Include="Node\STEP\STEPTypes.h">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClInclude>
-    <ClInclude Include="STEPUtility.h">
+    <ClInclude Include="Node\STEP\STEPUtility.h">
       <Filter>ソース ファイル\Node\STEP</Filter>
     </ClInclude>
-    <ClInclude Include="SoftwareRasterizer.h">
+    <ClInclude Include="App\SoftwareRasterizer.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="SIMDAPI.h">
+    <ClInclude Include="Utility\SIMDAPI.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="DXFNode.h">
+    <ClInclude Include="Node\DXF\DXFNode.h">
       <Filter>ソース ファイル\Node\DXF</Filter>
     </ClInclude>
-    <ClInclude Include="GaussianSplattingNode.h">
+    <ClInclude Include="Node\GaussianSplatting\GaussianSplattingNode.h">
       <Filter>ソース ファイル\Node\GaussianSplatting</Filter>
     </ClInclude>
-    <ClInclude Include="CrossSectionLine.h">
+    <ClInclude Include="Algorithm\CrossSectionLine.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="ProcessExecutor.h">
+    <ClInclude Include="Utility\ProcessExecutor.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="AlgorithmShader.h">
+    <ClInclude Include="Renderer\Shader\AlgorithmShader.h">
       <Filter>ソース ファイル\Renderer\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryLoader.h">
+    <ClInclude Include="Node\Loader\GeometryLoader.h">
       <Filter>ソース ファイル\Node\Loader</Filter>
     </ClInclude>
-    <ClInclude Include="AIDataGenerator.h">
+    <ClInclude Include="Utility\AI\AIDataGenerator.h">
       <Filter>ソース ファイル\Utility\AI</Filter>
     </ClInclude>
-    <ClInclude Include="MeshViewer.h">
+    <ClInclude Include="App\MeshViewer.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
-    <ClInclude Include="CrossSectionFill.h">
+    <ClInclude Include="Algorithm\CrossSectionFill.h">
       <Filter>ソース ファイル\Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="PBR.h">
+    <ClInclude Include="Renderer\PBR.h">
       <Filter>ソース ファイル\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="ClusteredLightCuller.h">
+    <ClInclude Include="Renderer\ClusteredLightCuller.h">
       <Filter>ソース ファイル\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="CameraFrustumDebug.h">
+    <ClInclude Include="Utility\CameraFrustumDebug.h">
       <Filter>ソース ファイル\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
+    <ClInclude Include="Renderer\Light.h">
       <Filter>ソース ファイル\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTarget.h">
+    <ClInclude Include="GL\RenderTarget.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPass.h">
+    <ClInclude Include="GL\RenderPass.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="RenderResource.h">
+    <ClInclude Include="GL\RenderResource.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="GLContext.h">
+    <ClInclude Include="GL\GLContext.h">
       <Filter>ソース ファイル\GL</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,0 +1,291 @@
+#ifndef KI_MESH_NODE_H
+#define KI_MESH_NODE_H
+#include "Renderer/Shader/SimpleShader.h"
+#include "Node/RenderNode.h"
+#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
+#include "Algorithm/BVH.h"
+#include "Algorithm/MeshletGenerator.h"
+#include "Algorithm/GeometryUtility.h"
+#include "Algorithm/CrossSectionLine.h"
+#include "Algorithm/CrossSectionFill.h"
+namespace KI
+{
+class BVH;
+class BDBNode;
+class Voxelizer;
+class ShapeDiameterFunction;
+class ShapeMatching;
+class SignedDistanceField;
+class HalfEdgeController;
+class HalfEdgeNode : public RenderNode
+{
+public:
+
+	struct HalfEdgeParts : public RenderParts
+	{
+	public:
+		enum class Type
+		{
+			Face,
+			Edge,
+			Vertex
+		};
+
+
+		HalfEdgeParts(Type _type, int _parts)
+		:type(_type)
+		,parts(_parts){};
+		~HalfEdgeParts() {};
+		static const HalfEdgeParts* Cast(const RenderParts* pParts);
+		virtual String ToString();
+		int IsFace() const { return type == Type::Face; }
+		int IsEdge() const { return type == Type::Edge; }
+		int IsVertex() const { return type == Type::Vertex; }
+		Type type;
+		int parts;
+	};
+
+
+	HalfEdgeNode(const String& name, const Shared<HalfEdgeStruct>& pStruct);
+	~HalfEdgeNode();
+
+	HalfEdgeStruct* GetData() { return m_pHalfEdge.get(); }
+	const HalfEdgeStruct* GetData() const { return m_pHalfEdge.get(); }
+
+	BVH* GetBVH();
+	const MortonCode& GetMorton() const { return m_morton.data; }
+	GLBuffer* GetPositionGpu() const { return m_gpu.position.get(); }
+	GLBuffer* GetFaceIndexGpu() const { return m_gpu.faceIndexBuffer.get(); }
+	GLBuffer* GetBVHGpu();
+
+	void UpdateVertex();
+
+	int ToPickFaceIndex(int index) const
+	{
+		return index - m_pickIds.face.begin;
+	}
+
+	int ToPickEdgeIndex(int index) const
+	{
+		return index - m_pickIds.edge.begin;
+	}
+
+	int ToPickVertexIndex(int index) const
+	{
+		return index - m_pickIds.vertex.begin;
+	}
+	virtual void ProcessMouseEvent(const PickContext& context);
+protected:
+	virtual void ShowUI(UIContext& ui);
+	virtual void DrawNode(const DrawContext& context);
+	virtual void PickNode(const PickContext& context);
+	virtual void DrawPartsNode(const DrawContext& context, const RenderParts& parts);
+	virtual bool CollectPickedNode(PickResult& result);
+	virtual void UpdateData(float time);
+	
+private:
+
+	enum UPDATE_DATA
+	{
+		UPDATE_VERTEX,
+		UPDATE_NUM,
+	};
+
+
+	std::bitset<UPDATE_NUM> m_updateData;
+	bool m_updateVertex;
+	void BuildBVH();
+	void BuildMorton();
+	void BuildEdge();
+	void ShowNormal(const DrawContext& context);
+	void BuildGLBuffer();
+	void BuildFaceAreaColors();
+	bool m_faceAreaDirty = true;
+	bool m_showFaceAreas = false;
+	float m_areaThreshold = 2.0f;
+	double m_meanFaceArea = 0;
+	float m_maxFaceArea = 0;
+	int m_maxAreaFace = -1;
+	int m_largeFaceCount = 0;
+	std::array<Unique<GLBuffer>, 3> m_areaIndices;
+
+	struct PickId
+	{
+		int begin;
+		int num;
+
+		bool Inner(int id) const
+		{
+			return begin <= id && id < begin + num;
+		}
+	};
+
+	struct PickIds
+	{
+		PickId face;
+		PickId edge;
+		PickId vertex;
+
+
+	};
+	struct GeometryGpu
+	{
+		GeometryGpu()
+			: position(nullptr)
+			, normal(nullptr)
+			, vertexColor(nullptr)
+			, faceIndexBuffer(nullptr)
+			, edgeIndexBuffer(nullptr)
+		{
+		}
+		Unique<GLBuffer> position;
+		Unique<GLBuffer> normal;
+		Unique<GLBuffer> vertexColor;
+		Unique<GLBuffer> vertexDir1;
+		Unique<GLBuffer> vertexDir2;
+		Unique<GLBuffer> faceIndexBuffer;
+		Unique<GLBuffer> edgeIndexBuffer;
+		Unique<GLBuffer> bvh;
+	};
+
+	GeometryGpu m_gpu;
+	Shared<HalfEdgeStruct> m_pHalfEdge;
+	
+	struct MeshletGpu
+	{
+		Unique<MeshletShader> shader;
+		Unique<GLBuffer> position;
+		Unique<GLBuffer> cluster;
+		Unique<GLBuffer> taskNum; // TaskShader内で実行するMeshletの数を格納し,MeshShaderで処理する配列
+		Unique<GLBuffer> index;
+	};
+
+
+	PickIds m_pickIds;
+
+
+	MeshletGpu m_meshletGpu;
+
+	struct Morton
+	{
+		Unique<GLBuffer> gpuLine;
+		Unique<GLBuffer> gpuColor;
+		MortonCode data;
+	};
+
+	Morton m_morton;
+	BVH* m_pBVH;
+	SignedDistanceField* m_pSignedDistanceField;
+	ShapeDiameterFunction* m_pShapeDiameterFunction;
+	ShapeMatching* m_pShapeMatching;
+	Voxelizer* m_pVoxelizer;
+	struct UI
+	{
+		struct Poisson
+		{
+			struct Surface
+			{
+				Surface()
+					: create(false)
+					, num(10000)
+					, length(0.1f)
+				{
+				}
+
+				bool create;
+				int num;
+				float length;
+			};
+			Poisson()
+				: volume(false)
+			{
+			}
+			bool volume;
+			Surface surface;
+		};
+
+		struct HeatMethod
+		{
+			HeatMethod() 
+				: timeStep(1.0f) {}
+			float timeStep;
+		};
+
+		struct VoxelU16
+		{
+			VoxelU16() :visible(false), resolute(8) {}
+			bool visible;
+			int resolute;
+		};
+
+		struct Meshlet
+		{
+			Meshlet() :visible(false), level(7), cullSize(5) {}
+			bool visible;
+			int level;
+			int cullSize;
+		};
+
+		struct MST
+		{
+			MST() : visible(false), weight(1.0f) {}
+			bool visible;
+			float weight;
+		};
+
+		UI()
+			: visible(true)
+			, visibleBVH(false)
+			, visibleMesh(true)
+			, visibleEdge(false)
+			, visibleVertex(false)
+			, visibleNormal(false)
+			, visibleMorton(false)
+			, editVertex(false)
+			, visibleSignedDistanceField(false)
+			, normalLength(1.0f)
+			, vertexValue(0)
+			, vertexDirection(0)
+			, visibleBDB(false)
+			, visibleCrossSection(false)
+			, crossSectionAxis(false)
+			, doShapeMatching(false)
+		{
+		}
+		bool visible;
+		bool visibleBVH;
+		bool visibleMorton;
+		bool visibleSignedDistanceField;
+		bool visibleMesh;
+		bool visibleBDB;
+		bool visibleEdge;
+		bool visibleVertex;
+		bool visibleNormal;
+		bool editVertex;
+		bool visibleCrossSection;
+		int crossSectionAxis;
+		bool doShapeMatching;
+		float normalLength;
+		int vertexValue;
+		int vertexDirection;
+		MST mst;
+		Meshlet meshlet;
+		VoxelU16 voxel;
+		HeatMethod heatMethod;
+		Poisson poisson;
+	};
+	Unique<CrossSectionLine> m_crossSection = nullptr;
+	Unique<CrossSectionFill> m_crossSectionFill = nullptr;
+	Shared<HalfEdgeParts> m_pEditVertex;
+	Shared<BDBNode> m_pBDBNode;
+	HalfEdgeController* m_pController;
+	Unique<MeshletProfiler> m_meshletProfiler;
+	Parameter m_vertexParameter;
+	UI m_ui;
+};
+
+
+}
+
+
+#endif KI_MESH_NODE_H

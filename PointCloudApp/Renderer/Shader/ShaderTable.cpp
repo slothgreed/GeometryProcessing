@@ -1,0 +1,51 @@
+#include "Renderer/Shader/ShaderTable.h"
+#include "Renderer/Shader/SimpleShader.h"
+namespace KI
+{
+
+void ShaderTable::Build()
+{
+	m_pPointLightShader = std::make_shared<PointLightShader>();
+	m_pPointLightShader->Build();
+
+	m_pDepthPrepassShader = std::make_shared<DepthPrepassShader>();
+	m_pDepthPrepassShader->Build();
+
+	m_pSimpleShader = std::make_shared<SimpleShader>();
+	m_pSimpleShader->Build();
+
+	m_pFaceShader = std::make_shared<FaceShader>();
+	m_pFaceShader->Build();
+
+	m_pVertexColorShader = std::make_shared<VertexColorShader>();
+	m_pVertexColorShader->Build();
+
+	m_pTextureShader = std::make_shared<TextureShader>(TextureShader::VEC4);
+	m_pTextureShader->Build();
+
+	m_pPrimitiveColorShader = std::make_shared<PrimitiveColorShader>();
+	m_pPrimitiveColorShader->Build();
+
+	m_pInstancedShader = std::make_shared<InstancedPrimitiveShader>();
+	m_pInstancedShader->Build();
+
+	m_pPointPickByPrimitive = std::make_shared<PointPickShader>(PointPickShader::PrimitiveID);
+	m_pPointPickByPrimitive->Build();
+
+	m_pPointPickByID = std::make_shared<PointPickShader>(PointPickShader::PickID);
+	m_pPointPickByID->Build();
+
+	m_pTextureUINTShader = std::make_shared<TextureShader>(TextureShader::UINT);
+	m_pTextureUINTShader->Build();
+
+	m_pTextureViewShader = std::make_shared<TextureViewShader>();
+	m_pTextureViewShader->Build();
+
+	m_pCubemapViewShader = std::make_shared<CubemapViewShader>();
+	m_pCubemapViewShader->Build();
+
+	m_pVertexVectorShader = std::make_shared<VertexVectorShader>();
+	m_pVertexVectorShader->Build();
+}
+
+}

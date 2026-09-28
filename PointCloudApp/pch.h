@@ -5,7 +5,7 @@
 #include <GL/GL.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include "GLAPIExt.h"
+#include "GL/GLAPIExt.h"
 #include <iostream>
 #include <algorithm>
 #include <String>

@@ -1,0 +1,171 @@
+#ifndef RENDER_NODE_H
+#define RENDER_NODE_H
+#include "GL/RenderResource.h"
+#include "Utility/BDB.h"
+#include "Renderer/Light.h"
+#include "Utility/Mouse.h"
+#include "Utility/Parameter.h"
+namespace KI
+{
+class GLBuffer;
+
+enum class RenderPassType : uint32_t
+{
+	DEFAULT_PASS = 1u << 0,
+	DEPTH_PRE_PASS = 1u << 1
+};
+
+using RenderPassMask = uint32_t;
+
+constexpr RenderPassMask GetRenderPassBit(RenderPassType pass)
+{
+	return static_cast<RenderPassMask>(pass);
+}
+
+struct DrawContext
+{
+	DrawContext() = default;
+	DrawContext(RenderResource* _pResource)
+		: pResource(_pResource){}
+	void SetRenderPass(RenderPassType pass) { renderPass = pass; }
+	RenderPassType GetRenderPass() const { return renderPass; }
+
+	RenderResource* pResource = nullptr;
+	RenderPassType renderPass = RenderPassType::DEFAULT_PASS;
+};
+
+class MouseController;
+class RenderNode;
+struct UIContext
+{
+	UIContext() {}
+
+	struct UIRect
+	{
+		UIRect() {}
+		UIRect(const Vector2i& p, const Vector2i& s) : Position(p), Size(s) {}
+		Vector2i GetRightBottom() const { return Position + Size; }
+		Vector2i GetLeftBottom() const { return Position + Vector2i(0, Size.y); }
+		Vector2i Position;
+		Vector2i Size;
+	};
+
+	void SetViewport(const Vector2i& size) { m_viewport = UIRect(Vector2i(), size); }
+	void SetRoot(const UIRect& rect) { m_root = rect; }
+	const UIRect& GetRoot() const { return m_root; }
+	const UIRect& GetViewport() const { return m_viewport; }
+	void SetCurrentController(MouseController* pController) { m_pController = pController; }
+	MouseController* GetCurrentController() { return m_pController; }
+	static void Show(const Parameter& parameter);
+	void SetDebugNode(RenderNode* pValue) { m_pDebugNode = pValue; }
+	void AddDebugNode(const Shared<RenderNode>& pNode);
+	void ClearDebugNode();
+private:
+	UIRect m_viewport;
+	UIRect m_root;
+	MouseController* m_pController;
+	RenderNode* m_pDebugNode;
+};
+
+
+class RenderParts
+{
+public:
+	RenderParts() {}
+	virtual ~RenderParts() {}
+	virtual String ToString() { return String(); };
+};
+
+struct PickContext
+{
+	PickContext(RenderResource* _pResource, const Mouse* _pMouse)
+		: pResource(_pResource)
+		, pMouse(_pMouse)
+		, pickedId(0)
+	{
+	}
+	RenderResource* pResource = nullptr;
+	const Mouse* pMouse = nullptr;
+	int pickMaxId = 0;
+	int pickedId = 0;
+};
+
+class RenderNode;
+struct PickResult
+{
+	PickContext* context;
+	std::unordered_map<RenderNode*, Shared<RenderParts>> pResult;
+	Vector3 pickPos;
+	int id;
+};
+
+class RenderNode
+{
+public:
+	RenderNode(const String& name) : m_name(name) {
+		m_scale = 1.0f;
+		m_rotate = Vector3(0.0f);
+		m_translate = Vector3(0.0f);
+		m_matrix = Matrix4x4(1.0f); 
+		m_normalMatrix = Matrix3x3(1.0f);
+	};
+	RenderNode(const String& name, const Matrix4x4& matrix) : m_name(name), m_matrix(matrix) {}
+	virtual ~RenderNode() {};
+
+	virtual void ShowUIData(UIContext& ui);
+	virtual const BDB& GetBoundBox() const { return m_bdb; }
+	virtual RenderPassMask GetRenderPassMask() const { return GetRenderPassBit(RenderPassType::DEFAULT_PASS); }
+	virtual void Draw(const DrawContext& context);
+	virtual void DrawParts(const DrawContext& context, const RenderParts& parts);
+	virtual void Pick(const PickContext& context);
+	virtual void CollectPicked(PickResult& result);
+	virtual void Update(float time);
+	const Matrix4x4& GetMatrix() const { return m_matrix; }
+	const Matrix3x3& GetNormalMatrix() const { return m_normalMatrix; }
+	void SetMatrix(float scale, const Vector3& rotate, const Vector3& translate);
+	void SetMatrix(const Matrix4x4& matrix);
+	void SetScale(float scale) { m_scale = scale; UpdateModelMatrix(); }
+	void SetRotate(const Vector3& rotate) { m_rotate = rotate; UpdateModelMatrix(); }
+	void SetRotateAngle(const Vector3& rotate);
+	void SetTranslate(const Vector3& translate) { m_translate = translate; UpdateModelMatrix(); }
+	void SetBoundBox(const BDB& bdb) { m_bdb = bdb; }
+	void ClearNode() { m_child.clear(); }
+	void RemoveNode(const String& name) { m_child.erase(name); }
+	void RemoveNodeNameContain(const String& name);
+	void AddNode(const Shared<RenderNode>& pNode) { m_child[pNode->m_name] = pNode; }
+	void AddNode(const Vector<Shared<RenderNode>>& pNode) { for (const auto& node : pNode) { m_child[node->m_name] = node; } }
+	Matrix4x4 GetTranslateMatrix() const;
+	Matrix4x4 GetScaleMatrix() const;
+
+	const Vector3& GetRotate() const { return m_rotate; }
+	Vector3 GetRotateAngle() const;
+	float GetScale() const { return m_scale; }
+	const Vector3& GetTranslate() const { return m_translate; }
+	const String& GetName() { return m_name; }
+	virtual BDB GetCameraFitBox() const;
+	BDB CalcCameraFitBox();
+	const std::unordered_map<String, Shared<RenderNode>>& GetChild() const { return m_child; }
+	void ShowMatrixUI(UIContext& context);
+	virtual void ProcessMouseEvent(const PickContext& context) {};
+	virtual void ShowUI(UIContext& ui) {};
+	virtual void PickNode(const PickContext& context) {};
+	virtual bool CollectPickedNode(PickResult& result) { return false; }
+	virtual void DrawPartsNode(const DrawContext& context, const RenderParts& parts) {};
+	virtual void DrawNode(const DrawContext& context) {};
+	virtual void UpdateData(float time) {};
+private:
+	BDB CalcCameraFitBox(BDB bdb);
+	void UpdateModelMatrix();
+
+	String m_name;
+	float m_scale;
+	Vector3 m_rotate;
+	Vector3 m_translate;
+	Matrix4x4 m_matrix;
+	Matrix3x3 m_normalMatrix;
+	BDB m_bdb;
+	std::unordered_map<String, Shared<RenderNode>> m_child;
+};
+}
+
+#endif RENDER_NODE_H

@@ -1,0 +1,95 @@
+#ifndef POINT_CLOUD_APP_H
+#define	POINT_CLOUD_APP_H
+
+#include "GL/RenderResource.h"
+#include "Node/RenderNode.h"
+#include "App/GLFWApp.h"
+#include "Utility/Profiler.h"
+namespace KI
+{
+class ClusteredLightCuller;
+class CameraFrustumDebug;
+class CSFRenderNode;
+class HalfEdgeStruct;
+class HalfEdgeNode;
+class PointCloudNode;
+class InstancedPrimitiveNode;
+class LightNode;
+class PointCloudApp : public GLFWApp
+{
+public:
+	PointCloudApp()
+		: m_pSelect(nullptr)
+		, m_gpuProfiler(nullptr)
+	{
+	};
+	~PointCloudApp() {};
+	void Initialize();
+	void Execute();
+	void Finalize();
+
+	virtual void ProcessMouseEvent(const MouseInput& input);
+	virtual void ResizeEvent(int width, int height);
+private:
+
+	struct UI
+	{
+		UI()
+		:pickMode(false)
+		,animation(false)
+		,visibleSkyBox(true)
+		,visibleTexture(false)
+		,visibleTextureIndex(0)
+		,mipmap(0)
+		,stepSelected(0)
+		,dxfSelected(0){}
+		~UI() {}
+		bool pickMode;
+		bool visibleSkyBox;
+		bool visibleTexture;
+		int visibleTextureIndex;
+		int mipmap;
+		bool animation;
+		int stepSelected;
+		int dxfSelected;
+		Vector<String> stepFiles;
+	};
+	void AddUITexture(const String& name, const Texture* pTexture);
+
+	PickResult m_pick;
+	UI m_ui;
+	UIContext m_uiContext;
+	Shared<RenderNode> CreateSponzaTest();
+	Shared<RenderNode> CreateGLTFAnimationTest();
+	Vector<Shared<RenderNode>> CreateDXFTest();
+	Shared<RenderNode> CreateGLTFNodeTest();
+	Shared<RenderNode> CreateCSFNodeTest();
+	Shared<RenderNode> CreatePBRTest();
+	Shared<RenderNode> CreateVolumeTest();
+	Shared<RenderNode> CreateTerrain();
+	Shared<RenderNode> CreateGaussianSplatting();
+	Shared<RenderNode> CreateLargePointCloudNodeTest();
+	Shared<RenderNode> CreatePolylineTest();
+	Vector<Shared<RenderNode>> CreateSTEPNodeTest();
+	Shared<RenderNode> CreateSTEPNodeTest(const String& fileName);
+	Shared<HalfEdgeNode> CreateBunnyNodeTest();
+	Shared<HalfEdgeNode> CreateBunnyNodeTest(const Vector3& pos);
+	Shared<PointCloudNode> CreateDelaunayTest();
+	Shared<RenderNode> CreateConstrainDelaunayTest();
+	Shared<RenderNode> CreateImageTest();
+	Shared<InstancedPrimitiveNode> CreateInstacedNodeTest();
+	Shared<RenderResource> m_pResource;
+	CPUProfiler m_cpuProfiler;
+	GPUProfiler* m_gpuProfiler;
+	Unique<RenderNode> m_pRoot;
+	Unique<RenderNode> m_pDebugRoot;
+	Vector<String> m_dxfFiles;
+	RenderNode* m_pSelect;
+	Vector<Shared<Texture>> m_pgmTexture;
+	BDB m_spaceBDB;
+	Vector<std::pair<String, const Texture*>> m_uiTextureList;
+	void ShowUI(UIContext& ui, ClusteredLightCuller& clusteredLightCuller, CameraFrustumDebug& cameraFrustumDebug);
+};
+}
+
+#endif // POINT_CLOUD_APP_H

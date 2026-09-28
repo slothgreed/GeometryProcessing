@@ -1,0 +1,25 @@
+#ifndef TEXTURE_LOADER_H
+#define TEXTURE_LOADER_H
+#include "Algorithm/Voxel.h"
+#include "GL/Buffer/Texture.h"
+namespace KI
+{
+class Texture;
+class TextureLoader
+{
+public:
+	
+	TextureLoader();
+	~TextureLoader();
+
+	static Texture* Load(const String& name, bool useMipmap);
+	static PixelData* LoadData(const String& name, int comp);
+	static VoxelU16* LoadVolume(const String& name);
+	static Texture* LoadPGM(const String& name, bool hasCPU);
+
+private:
+
+};
+}
+#endif TEXTURE_LOADER_H
+
