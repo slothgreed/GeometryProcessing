@@ -62,8 +62,11 @@ GPUバッファ変更時は、C++構造体とシェーダー側のフィール�
 
 ## 実装とビルド
 
+- includeはヘッダーのパス名を基準に、大文字・小文字を区別せずABC順に並べる。連続したincludeのまとまりごとに整列し、条件付きコンパイル、マクロ定義、意味のあるコメント・グループ境界を越えて移動しない。GLEWをOpenGL・GLFWより先に読むなど、順序依存がある場合は必要な順序を優先し、理由をコメントで残す。
+
 - 周囲の実装と現在のフィルターに合わせて配置する。ファイル追加時は [PointCloudApp.vcxproj](../../../PointCloudApp/PointCloudApp.vcxproj) と [PointCloudApp.vcxproj.filters](../../../PointCloudApp/PointCloudApp.vcxproj.filters) の両方へ登録する。
 - モジュール内のincludeはルート基準のパスを使う。例：`#include "GL/Buffer/GLBuffer.h"`。
+- include整理で未定義の型が出た場合は、必要なヘッダーを利用側が直接includeしているか確認する。単なるinclude漏れは直接の依存を追加して修正し、並び順の例外とは区別する。
 - 実行時データやシェーダーの読み込みにはローカルパスの前提がある。起動・読み込みの問題では、作業ディレクトリと実際の参照先を確認する。
 - Visual Studio 2022、MSVC v143、C++20、x64を基本に、影響するPointCloudAppプロジェクトをビルドする。単体ビルドでは`SolutionDir`にリポジトリルートを末尾区切り付きで渡す。依存設定は構成で異なるため、Releaseの成功からDebugの成功を推測しない。
 

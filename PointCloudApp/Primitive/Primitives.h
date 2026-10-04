@@ -1,8 +1,8 @@
 #ifndef PRIMITIVE_H
 #define PRIMITIVE_H
-#include "Primitive/Primitive.h"
 #include "Primitive/Mesh.h"
 #include "Primitive/Polyline.h"
+#include "Primitive/Primitive.h"
 namespace KI
 {
 class Cube : public Primitive

@@ -1,10 +1,10 @@
 #include "Algorithm/GeometryUtility.h"
-#include "Utility/Utility.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
 #include "Algorithm/HalfEdge/HalfEdgeStruct.h"
-#include "Utility/Utility.h"
-#include <random>
 #include "Algorithm/Voxelizer.h"
+#include <random>
+#include "Utility/Utility.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 unsigned int MortonCode::To(unsigned int x)

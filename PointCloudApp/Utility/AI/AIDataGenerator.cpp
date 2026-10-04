@@ -1,13 +1,13 @@
+#include "Algorithm/GeometryUtility.h"
+#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
+#include "Node/Loader/GeometryLoader.h"
+#include "Node/PointCloud/PointCloud.h"
+#include "Node/PointCloud/PointCloudIO.h"
+#include "Primitive/Mesh.h"
+#include <stdexcept>
 #include "Utility/AI/AIDataGenerator.h"
 #include "Utility/FileUtility.h"
-#include "Node/Loader/GeometryLoader.h"
-#include "Node/PointCloud/PointCloudIO.h"
-#include "Node/PointCloud/PointCloud.h"
-#include "Algorithm/GeometryUtility.h"
-#include "Primitive/Mesh.h"
 #include "Utility/Utility.h"
-#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
-#include <stdexcept>
 namespace fs = std::filesystem;
 
 namespace KI

@@ -1,7 +1,7 @@
 #ifndef SHAPE_MATCHING_H
 #define SHAPE_MATCHING_H
-#include "Algorithm/KMeansAlgorithm.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
+#include "Algorithm/KMeansAlgorithm.h"
 namespace KI
 {
 class ShapeMatching

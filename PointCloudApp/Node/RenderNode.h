@@ -1,8 +1,8 @@
 #ifndef RENDER_NODE_H
 #define RENDER_NODE_H
 #include "GL/RenderResource.h"
-#include "Utility/BDB.h"
 #include "Renderer/Light.h"
+#include "Utility/BDB.h"
 #include "Utility/Mouse.h"
 #include "Utility/Parameter.h"
 namespace KI

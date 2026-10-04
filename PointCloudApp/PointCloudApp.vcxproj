@@ -222,6 +222,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClCompile Include="App\MeshShaderTest.cpp" />
     <ClCompile Include="Node\Loader\GeometryLoader.cpp" />
     <ClCompile Include="App\MeshViewer.cpp" />
+    <ClCompile Include="App\STEPViewer.cpp" />
     <ClCompile Include="Utility\Parameter.cpp" />
     <ClCompile Include="Renderer\PBR.cpp" />
     <ClCompile Include="Primitive\Polyline.cpp" />
@@ -321,6 +322,7 @@ c10.lib;nvpro_core\$(Configuration)\nvpro_core_gl.lib;nvpro_core\third_party\$(C
     <ClInclude Include="Algorithm\MeshletGenerator.h" />
     <ClInclude Include="App\MeshShaderTest.h" />
     <ClInclude Include="App\MeshViewer.h" />
+    <ClInclude Include="App\STEPViewer.h" />
     <ClInclude Include="Utility\MouseController.h" />
     <ClInclude Include="Node\Loader\GeometryLoader.h" />
     <ClInclude Include="Utility\Parameter.h" />

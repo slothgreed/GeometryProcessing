@@ -1,1 +1,4 @@
 Runs/
+bin/
+obj/
+.dotnet-home/

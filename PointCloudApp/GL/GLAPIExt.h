@@ -1,6 +1,8 @@
 #ifndef KI_GL_API_EXT_H
 #define KI_GL_API_EXT_H
 
+#include <glm/glm.hpp>
+
 #define KI_GL_API extern __declspec(dllimport)
 #define KI_GL_API_ENTRY __stdcall
 

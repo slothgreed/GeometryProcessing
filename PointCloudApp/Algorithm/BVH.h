@@ -1,9 +1,9 @@
 #ifndef KI_BVH
 #define KI_BVH
-#include "Utility/KIMath.h"
+#include "Algorithm/GeometryUtility.h"
 #include "Algorithm/IAlgorithm.h"
 #include "GL/Buffer/GLBuffer.h"
-#include "Algorithm/GeometryUtility.h"
+#include "Utility/KIMath.h"
 namespace KI
 {
 class HalfEdgeNode;

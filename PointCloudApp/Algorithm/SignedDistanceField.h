@@ -1,9 +1,9 @@
 #ifndef SIGNED_DISTANCE_FIELD
 #define SIGNED_DISTANCE_FIELD
-#include "Algorithm/IAlgorithm.h"
-#include "GL/RenderResource.h"
 #include "Algorithm/BVH.h"
+#include "Algorithm/IAlgorithm.h"
 #include "Algorithm/Voxel.h"
+#include "GL/RenderResource.h"
 namespace KI
 {
 class HalfEdgeNode;

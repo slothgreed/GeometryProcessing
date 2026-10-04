@@ -1,21 +1,22 @@
-#include "App/PointCloudApp.h"
+#include "Algorithm/HalfEdge/HalfEdgeLoader.h"
+#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
 #include "App/ComputePointCloudApp.h"
 #include "App/ComputeShaderTest.h"
 #include "App/MeshShaderTest.h"
-#include "App/SoftwareRasterizer.h"
-#include <random>
-#include "Utility/Profiler.h"
-#include "Utility/ProcessExecutor.h"
 #include "App/MeshViewer.h"
-#include "Utility/AI/AIDataGenerator.h"
-#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
-#include "Algorithm/HalfEdge/HalfEdgeLoader.h"
+#include "App/PointCloudApp.h"
+#include "App/SoftwareRasterizer.h"
+#include "App/STEPViewer.h"
+#include <cmath>
 #include <filesystem>
 #include <fstream>
-#include <cmath>
-#include <memory>
-#include <stdexcept>
 #include <limits>
+#include <memory>
+#include <random>
+#include <stdexcept>
+#include "Utility/AI/AIDataGenerator.h"
+#include "Utility/ProcessExecutor.h"
+#include "Utility/Profiler.h"
 
 namespace
 {
@@ -204,6 +205,17 @@ int RunHalfEdgeCheck(const std::filesystem::path& outputDirectory)
 
 int main(int argc, char* argv[])
 {
+	if (argc >= 2 && std::string(argv[1]) == "--step-viewer") {
+		if (argc != 2) {
+			std::cerr << "Usage: PointCloudApp.exe --step-viewer\n";
+			return 2;
+		}
+		KI::STEPViewer app;
+		app.Initialize();
+		app.Execute();
+		app.Finalize();
+		return 0;
+	}
 	if (argc >= 2 && std::string(argv[1]) == "--halfedge-bunny") {
 		if (argc != 3) {
 			std::cerr << "Usage: PointCloudApp.exe --halfedge-bunny <new-output-directory>\n";

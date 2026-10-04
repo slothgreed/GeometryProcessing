@@ -1,9 +1,9 @@
 #ifndef POINT_CLOUD_APP_H
 #define	POINT_CLOUD_APP_H
 
+#include "App/GLFWApp.h"
 #include "GL/RenderResource.h"
 #include "Node/RenderNode.h"
-#include "App/GLFWApp.h"
 #include "Utility/Profiler.h"
 namespace KI
 {

@@ -1,8 +1,8 @@
 #ifndef MOUSE_CONTROLLER_H
 #define MOUSE_CONTROLLER_H
 
-#include "Utility/Mouse.h"
 #include "Renderer/Camera/Camera.h"
+#include "Utility/Mouse.h"
 namespace KI
 {
 

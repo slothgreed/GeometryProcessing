@@ -1,7 +1,7 @@
-#include "Utility/Utility.h"
-#include "Utility/Random.h"
 #include "Utility/FileUtility.h"
 #include "Utility/KIMath.h"
+#include "Utility/Random.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 Vector<Vector3> g_RGB;

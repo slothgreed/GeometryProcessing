@@ -1,5 +1,5 @@
-#include "Node/RenderNode.h"
 #include "App/PointCloudApp.h"
+#include "Node/RenderNode.h"
 #include "Utility/Utility.h"
 namespace KI
 {

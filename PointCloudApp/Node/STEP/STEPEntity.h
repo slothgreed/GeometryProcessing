@@ -1,10 +1,10 @@
 #ifndef KI_STEP_ENTITY_H
 #define KI_STEP_ENTITY_H
 #include "Node/STEP/STEPTypes.h"
+#include "Primitive/Mesh.h"
+#include "Primitive/Polyline.h"
 #include "Utility/FileUtility.h"
 #include "Utility/Utility.h"
-#include "Primitive/Polyline.h"
-#include "Primitive/Mesh.h"
 namespace KI
 {
 

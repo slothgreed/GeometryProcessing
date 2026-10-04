@@ -1,6 +1,6 @@
+#include <algorithm>
 #include "Algorithm/MeshletGenerator.h"
 #include "Utility/Utility.h"
-#include <algorithm>
 
 namespace KI
 {

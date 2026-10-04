@@ -1,10 +1,10 @@
 #ifndef VOXELIZER_H
 #define VOXELIZER_H
 #include "Algorithm/IAlgorithm.h"
+#include "Algorithm/Voxel.h"
 #include "Renderer/Shader/IShader.h"
 #include "Utility/BDB.h"
 #include "Utility/Utility.h"
-#include "Algorithm/Voxel.h"
 namespace KI
 {
 class HalfEdgeNode;

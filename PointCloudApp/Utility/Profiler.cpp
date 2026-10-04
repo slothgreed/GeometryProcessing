@@ -1,5 +1,5 @@
-#include "Utility/Profiler.h"
 #include <nvml.h>
+#include "Utility/Profiler.h"
 namespace KI
 {
 CPUProfiler::CPUProfiler()

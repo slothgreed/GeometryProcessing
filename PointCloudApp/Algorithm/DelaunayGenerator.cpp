@@ -1,10 +1,10 @@
 #include "Algorithm/DelaunayGenerator.h"
-#include "Node/PrimitiveNode.h"
-#include "Node/PointCloud/PointCloudNode.h"
 #include "Node/PointCloud/PointCloud.h"
+#include "Node/PointCloud/PointCloudNode.h"
+#include "Node/PrimitiveNode.h"
 #include "Primitive/Primitives.h"
-#include "Utility/Utility.h"
 #include "Utility/KIMath.h"
+#include "Utility/Utility.h"
 
 
 
@@ -12,13 +12,13 @@
 #define CGAL_NO_GMP 0
 #define CGAL_NO_MPFR 0
 #define CGAL_DISABLE_GMP 1
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 
-#include <vector>
-#include <list>
 #include <iostream>
+#include <list>
+#include <vector>
 namespace KI
 {
 // ----------------------

@@ -1,6 +1,6 @@
-#include <iostream>
 #include "App/ComputeShaderTest.h"
 #include "GL/Buffer/GLBuffer.h"
+#include <iostream>
 #include <random>
 
 namespace KI

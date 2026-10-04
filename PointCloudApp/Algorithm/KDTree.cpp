@@ -1,9 +1,9 @@
 #include "Algorithm/KDTree.h"
 #include "Node/PointCloud/PointCloud.h"
-#include "Utility/Utility.h"
 #include "Node/PointCloud/PointCloudNode.h"
 #include "Node/PrimitiveNode.h"
 #include "Primitive/Primitives.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 class PointComparator

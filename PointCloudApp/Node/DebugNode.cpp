@@ -1,9 +1,9 @@
-#include "Renderer/ClusteredLightCuller.h"
-#include "Node/DebugNode.h"
-#include "Renderer/Camera/Camera.h"
-#include "Renderer/Shader/SimpleShader.h"
 #include "Algorithm/DelaunayGenerator.h"
+#include "Node/DebugNode.h"
 #include "Primitive/Primitives.h"
+#include "Renderer/Camera/Camera.h"
+#include "Renderer/ClusteredLightCuller.h"
+#include "Renderer/Shader/SimpleShader.h"
 namespace KI
 {
 DebugNode::DebugNode(const String& name)

@@ -1,7 +1,7 @@
-#include <iostream>
 #include "App/GLFWApp.h"
-#include "Utility/MouseInput.h"
 #include "GL/GLAPIExt.h"
+#include <iostream>
+#include "Utility/MouseInput.h"
 namespace KI
 {
 

@@ -344,6 +344,9 @@
     <ClCompile Include="App\MeshViewer.cpp">
       <Filter>ソース ファイル\App</Filter>
     </ClCompile>
+    <ClCompile Include="App\STEPViewer.cpp">
+      <Filter>ソース ファイル\App</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer\PBR.cpp">
       <Filter>ソース ファイル\Renderer</Filter>
     </ClCompile>
@@ -656,6 +659,9 @@
       <Filter>ソース ファイル\Utility\AI</Filter>
     </ClInclude>
     <ClInclude Include="App\MeshViewer.h">
+      <Filter>ソース ファイル\App</Filter>
+    </ClInclude>
+    <ClInclude Include="App\STEPViewer.h">
       <Filter>ソース ファイル\App</Filter>
     </ClInclude>
     <ClInclude Include="Algorithm\CrossSectionFill.h">

@@ -1,5 +1,5 @@
-#include "Utility/BDB.h"
 #include <algorithm>
+#include "Utility/BDB.h"
 using namespace std;
 namespace KI
 {

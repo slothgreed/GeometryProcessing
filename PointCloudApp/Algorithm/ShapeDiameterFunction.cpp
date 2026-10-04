@@ -1,10 +1,10 @@
-#include "Algorithm/ShapeDiameterFunction.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
+#include "Algorithm/ShapeDiameterFunction.h"
+#include <glm/gtx/rotate_vector.hpp>
 #include "Node/PrimitiveNode.h"
-#include "Utility/Utility.h"
 #include "Primitive/Primitives.h"
 #include "Utility/Random.h"
-#include <glm/gtx/rotate_vector.hpp>
+#include "Utility/Utility.h"
 
 namespace KI
 {

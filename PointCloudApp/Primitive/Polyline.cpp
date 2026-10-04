@@ -1,8 +1,8 @@
+#include "Algorithm/DelaunayGenerator.h"
+#include "Primitive/Mesh.h"
 #include "Primitive/Polyline.h"
 #include "Utility/KIMath.h"
-#include "Algorithm/DelaunayGenerator.h"
 #include "Utility/Utility.h"
-#include "Primitive/Mesh.h"
 namespace KI
 {
 

@@ -1,8 +1,8 @@
-#include "Node/ImageNode.h"
 #include "Algorithm/ImageAlgorithm.h"
-#include "Primitive/Primitives.h"
 #include "Node/DebugNode.h"
+#include "Node/ImageNode.h"
 #include "Node/PrimitiveNode.h"
+#include "Primitive/Primitives.h"
 #include "Renderer/Shader/PostEffect.h"
 namespace KI
 {

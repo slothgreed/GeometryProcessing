@@ -1,9 +1,9 @@
 #ifndef SKYBOX_NODE_H
 #define SKYBOX_NODE_H
-#include "Node/RenderNode.h"
-#include "Renderer/Shader/IShader.h"
 #include "GL/Buffer/Texture.h"
+#include "Node/RenderNode.h"
 #include "Primitive/Primitives.h"
+#include "Renderer/Shader/IShader.h"
 namespace KI
 {
 class SkyBoxNode : public RenderNode

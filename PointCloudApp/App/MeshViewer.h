@@ -2,9 +2,9 @@
 #define	MODEL_CLASSIFICATION_H
 #include "App/GLFWApp.h"
 #include "Node/DebugNode.h"
+#include <string>
 #include "Utility/AI/AIDataGenerator.h"
 #include <vector>
-#include <string>
 namespace KI
 {
 class PrimitiveNode;

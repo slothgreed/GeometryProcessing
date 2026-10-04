@@ -1,9 +1,9 @@
 #include "Node/CSF/CSFNode.h"
 #include "Renderer/Shader/SimpleShader.h"
 #define CSF_IMPLEMENTATION
+#include <fileformats/cadscenefile.h>
 #include "Node/CSF/CSFNode.h"
 #include "Utility/Utility.h"
-#include <fileformats/cadscenefile.h>
 namespace KI
 {
 

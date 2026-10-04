@@ -1,8 +1,8 @@
 #include "Algorithm/KMeansAlgorithm.h"
-#include "Utility/Random.h"
-#include "Utility/Utility.h"
 #include "Node/PointCloud/PointCloud.h"
 #include <numeric>
+#include "Utility/Random.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 void KMeansAlgorithm::Execute(const Vector<Vector3>& position, int clusterNum, int iterateNum)

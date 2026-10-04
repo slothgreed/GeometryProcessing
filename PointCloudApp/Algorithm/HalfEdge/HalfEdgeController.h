@@ -1,7 +1,7 @@
 #ifndef HALFEDGE_CONTROLLER_H
 #define HALFEDGE_CONTROLLER_H
-#include "Utility/MouseController.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
+#include "Utility/MouseController.h"
 namespace KI
 {
 class HalfEdgeNode;

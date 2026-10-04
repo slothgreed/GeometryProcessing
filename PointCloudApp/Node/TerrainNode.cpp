@@ -1,6 +1,6 @@
+#include "Node/Loader/TextureLoader.h"
 #include "Node/TerrainNode.h"
 #include "Renderer/Shader/SimpleShader.h"
-#include "Node/Loader/TextureLoader.h"
 #include "Utility/Utility.h"
 namespace KI
 {

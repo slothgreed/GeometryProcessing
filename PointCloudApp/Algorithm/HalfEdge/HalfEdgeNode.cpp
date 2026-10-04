@@ -1,18 +1,18 @@
-#include "Algorithm/HalfEdge/HalfEdgeNode.h"
-#include "Renderer/Shader/SimpleShader.h"
-#include "Utility/Utility.h"
-#include "Algorithm/MeshletGenerator.h"
-#include "Algorithm/ShapeDiameterFunction.h"
-#include "Algorithm/SignedDistanceField.h"
-#include "Algorithm/Voxelizer.h"
-#include "Primitive/Primitive.h"
 #include "Algorithm/BVH.h"
 #include "Algorithm/GeometryUtility.h"
-#include "Node/PrimitiveNode.h"
 #include "Algorithm/HalfEdge/HalfEdgeController.h"
+#include "Algorithm/HalfEdge/HalfEdgeNode.h"
+#include "Algorithm/MeshletGenerator.h"
+#include "Algorithm/ShapeDiameterFunction.h"
 #include "Algorithm/ShapeMatching.h"
-#include "Node/DebugNode.h"
+#include "Algorithm/SignedDistanceField.h"
+#include "Algorithm/Voxelizer.h"
 #include <cmath>
+#include "Node/DebugNode.h"
+#include "Node/PrimitiveNode.h"
+#include "Primitive/Primitive.h"
+#include "Renderer/Shader/SimpleShader.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 

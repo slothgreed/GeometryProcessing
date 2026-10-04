@@ -1,9 +1,9 @@
 #ifndef FILE_UTILITY_H
 #define FILE_UTILITY_H
-#include <iostream>
-#include "Windows.h"
 #include <fstream>
+#include <iostream>
 #include <span>
+#include "Windows.h"
 namespace KI
 {
 enum class Format

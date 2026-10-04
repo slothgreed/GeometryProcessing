@@ -1,7 +1,7 @@
-#include "Node/GLTF/GLTFScene.h"
 #include "GL/Buffer/GLBuffer.h"
-#include "Node/GLTF/GLTFShader.h"
+#include "Node/GLTF/GLTFScene.h"
 #include "Node/GLTF/GLTFSceneUpdater.h"
+#include "Node/GLTF/GLTFShader.h"
 #include "Utility/Utility.h"
 namespace KI
 {

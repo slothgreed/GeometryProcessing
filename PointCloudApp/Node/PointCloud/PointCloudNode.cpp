@@ -1,20 +1,20 @@
-#include "Node/PointCloud/PointCloudNode.h"
-#include "Node/PointCloud/PointCloud.h"
+#include "Algorithm/AlphaShape.h"
+#include "Algorithm/DelaunayGenerator.h"
+#include "Algorithm/Harris3D.h"
 #include "Algorithm/KDTree.h"
 #include "Algorithm/KDTreeNanoFlann.h"
-#include "Utility/Utility.h"
-#include "Algorithm/Harris3D.h"
-#include "Algorithm/AlphaShape.h"
-#include "Renderer/Camera/Camera.h"
-#include "Algorithm/DelaunayGenerator.h"
-#include "Utility/FileUtility.h"
-#include "Node/PointCloud/PointCloudIO.h"
-#include "Utility/ProcessExecutor.h"
 #include "Algorithm/Voxelizer.h"
-#include "Node/VolumeNode.h"
-#include <Eigen/SVD>
 #include <Eigen/Core>
+#include <Eigen/SVD>
 #include <filesystem>
+#include "Node/PointCloud/PointCloud.h"
+#include "Node/PointCloud/PointCloudIO.h"
+#include "Node/PointCloud/PointCloudNode.h"
+#include "Node/VolumeNode.h"
+#include "Renderer/Camera/Camera.h"
+#include "Utility/FileUtility.h"
+#include "Utility/ProcessExecutor.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 

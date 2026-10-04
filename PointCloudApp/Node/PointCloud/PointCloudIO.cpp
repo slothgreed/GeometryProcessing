@@ -1,9 +1,9 @@
+#include <iostream>
+#include "Node/PointCloud/PointCloud.h"
 #include "Node/PointCloud/PointCloudIO.h"
+#include <string>
 #include "Utility/FileUtility.h"
 #include "Utility/Random.h"
-#include <iostream>
-#include <string>
-#include "Node/PointCloud/PointCloud.h"
 namespace KI
 {
 const String PointCloudIO::binExt = ".ki_bin";

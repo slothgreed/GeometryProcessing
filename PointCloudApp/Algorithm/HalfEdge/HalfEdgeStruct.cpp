@@ -1,8 +1,8 @@
+#include "Algorithm/GeometryUtility.h"
 #include "Algorithm/HalfEdge/HalfEdgeStruct.h"
+#include "Primitive/Mesh.h"
 #include "Utility/BDB.h"
 #include "Utility/Utility.h"
-#include "Algorithm/GeometryUtility.h"
-#include "Primitive/Mesh.h"
 namespace KI
 {
 

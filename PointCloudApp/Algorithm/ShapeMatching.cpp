@@ -1,5 +1,5 @@
-#include "Algorithm/ShapeMatching.h"
 #include "Algorithm/KMeansAlgorithm.h"
+#include "Algorithm/ShapeMatching.h"
 namespace KI
 {
 

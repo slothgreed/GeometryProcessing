@@ -1,6 +1,6 @@
 #include "Node/Loader/GeometryLoader.h"
-#include "Utility/FileUtility.h"
 #include "Primitive/Mesh.h"
+#include "Utility/FileUtility.h"
 namespace KI
 {
 

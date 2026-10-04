@@ -1,8 +1,8 @@
 #ifndef VOXEL_H
 #define VOXEL_H
-#include "Utility/BDB.h"
 #include "GL/Buffer/GLBuffer.h"
 #include "Primitive/Mesh.h"
+#include "Utility/BDB.h"
 namespace KI
 {
 enum VOXEL_LABEL

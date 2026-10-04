@@ -1,12 +1,12 @@
-#include <iostream>
-#include "Node/PointCloud/PointCloudIO.h"
 #include "App/ComputePointCloudApp.h"
-#include "Renderer/Shader/PostEffect.h"
 #include "GL/Buffer/Texture.h"
+#include <iostream>
 #include "Node/PointCloud/PointCloud.h"
+#include "Node/PointCloud/PointCloudIO.h"
+#include "Renderer/Shader/PostEffect.h"
+#include "Utility/FileUtility.h"
 #include "Utility/MouseInput.h"
 #include "Utility/Profiler.h"
-#include "Utility/FileUtility.h"
 namespace KI
 {
 

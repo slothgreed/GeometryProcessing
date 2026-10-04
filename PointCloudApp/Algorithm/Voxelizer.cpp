@@ -1,7 +1,7 @@
-#include "Algorithm/Voxelizer.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
-#include "Utility/BDB.h"
+#include "Algorithm/Voxelizer.h"
 #include "Node/PrimitiveNode.h"
+#include "Utility/BDB.h"
 //#define DEBUG_VOXEL
 
 namespace KI

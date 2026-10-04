@@ -1,10 +1,10 @@
 #include "Node/STEP/STEPEntity.h"
-#include "Utility/FileUtility.h"
-#include "Utility/Utility.h"
-#include "Utility/KIMath.h"
-#include "Primitive/Primitives.h"
 #include "Node/STEP/STEPNode.h"
 #include "Node/STEP/STEPUtility.h"
+#include "Primitive/Primitives.h"
+#include "Utility/FileUtility.h"
+#include "Utility/KIMath.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 

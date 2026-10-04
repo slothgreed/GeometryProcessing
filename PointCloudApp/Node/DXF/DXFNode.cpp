@@ -1,8 +1,8 @@
 #include "Node/DXF/DXFNode.h"
+#include "Primitive/Primitives.h"
 #include "Renderer/Shader/ShaderTable.h"
 #include "Renderer/Shader/SimpleShader.h"
 #include "Utility/FileUtility.h"
-#include "Primitive/Primitives.h"
 namespace KI
 {
 

@@ -1,7 +1,7 @@
 #ifndef SIMPLE_SHADER_H
 #define SIMPLE_SHADER_H
-#include "Renderer/Shader/IShader.h"
 #include "GL/Buffer/Texture.h"
+#include "Renderer/Shader/IShader.h"
 namespace KI
 {
 

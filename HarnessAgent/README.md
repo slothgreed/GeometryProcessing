@@ -1,48 +1,109 @@
-# HarnessAgent
+# HarnessAgent — C# / Claude API
 
-PointCloudAppでAgent Harnessを試すための小さな実行基盤です。
-「入力 → コンテキスト → Agent → Tool → トレース → 期待値との比較」を実行できます。
-Node.js 18以降の標準機能だけを使うため、npm installやAPIキーは不要です。
+Claudeに依頼文と点群を渡し、Toolの実行、結果返送、評価、ログ保存を行う学習用ハーネスです。
+実行コードとテストはすべてC#です。Node.js、JavaScript、Pythonは使いません。
 
-## 最初に実行する
+## 必要なもの
 
-リポジトリのルートで実行します。
+- .NET 9 SDK（この環境の9.0.308で検証）
+- Claudeモードのみ: Anthropic APIキーと、アカウントで利用できるモデルID
+
+NuGet外部パッケージは不要です。`HttpClient`でClaude Messages APIを直接呼びます。
+Claude Agent SDK / Claude Codeのラッパーではありません。
+独立した `HarnessAgent.csproj` なので、既存C++ソリューションのビルドは不要です。
+Visual Studioでは `HarnessAgent.sln` を開いてください。HarnessAgentプロジェクトを登録済みです。
+ソリューション単位では `dotnet build HarnessAgent/HarnessAgent.sln -c Release` でビルドできます。
+
+## UIを起動する
+
+Windowsで `HarnessAgent.sln` を開いて実行するか、次を実行します。
 
 ```powershell
-node HarnessAgent/cli.mjs --all
-node --test HarnessAgent/Evals/harness.test.mjs
+dotnet run --project HarnessAgent/HarnessAgent.csproj -c Release
 ```
 
-最初のコマンドはJSONの5ケースを実行します。正常な3ケースと、空入力・Tool未許可の
-拒否を確認する2ケースです。拒否ケースは「期待どおり拒否された」場合にPASSです。
-この成功率はハーネスの動作確認であり、LLMの能力評価ではありません。
+引数なしではWindows Formsの画面が開きます。文字を入力して「送信」を押すと、
+入力内容にかかわらず固定の「こんにちは」が渡されたものとして、次の回答を表示します。
 
-結果は毎回 `Runs/<batch UUID>/` に保存します。
+> 「こんにちは」を受け取りました。
+> HarnessAgentのデモ応答です。
 
-- `summary.json`: ケースごとの結果、評価理由、所要時間、実行ID。
-- `<run UUID>.jsonl`: コンテキスト、試行、Tool引数・結果・エラー、再試行、終了結果。
+UIは固定応答のみで、Claude API・点群Tool・評価処理には接続していません。
+APIキー不要で課金も発生しません。処理は `MainForm.Send()` → `GetDemoReply()` と追えます。
+空入力でも同じ回答です。繰り返し送信すると回答欄と時刻を更新します。
 
-終了コードは全評価PASSが0、評価FAILが1、CLI引数・入力ファイルなどのエラーが2です。
-ログはGit管理対象外ですが、入力座標とプロンプトをそのまま含みます。
+`Program.cs` は `[STAThread] private static void Main(string[] args)` から始まり、
+CLI引数がある場合だけ従来の評価・テストを実行します。
+明示的な `--all` は従来どおりClaude API評価なので、UIデモとは異なりAPIキーが必要です。
 
-## ファイルの役割
+## まずオフラインで試す
+
+リポジトリルートで実行します。
+
+```powershell
+dotnet build HarnessAgent/HarnessAgent.csproj -c Release
+dotnet run --project HarnessAgent/HarnessAgent.csproj -c Release --no-build -- --self-test
+dotnet run --project HarnessAgent/HarnessAgent.csproj -c Release --no-build -- --agent demo --all
+```
+
+`--self-test` はハーネスとClaude通信のテスト群です。HTTP通信を疑似応答に差し替えるため、
+APIキー・ネット接続・API利用料は不要です。外部テストライブラリは使わず、
+`SelfTests.cs` 内のテスト一覧を実行します。`dotnet test`で実行する構成ではありません。
+
+`--agent demo --all` は点群評価5ケースを実行します。デモは依頼文を解釈せず集計Toolを呼びます。
+正常系3件と、空入力・Tool未許可を正しく拒否する異常系2件です。拒否が期待どおりならPASSです。
+
+## Claude APIで実行する
+
+既定のAgentはClaudeです。APIキーはコードやケースJSON、チャットに書かず環境変数に設定します。
+PowerShell 7では次のように入力できます（キーは画面とコマンド履歴に残しません）。
+
+```powershell
+$env:ANTHROPIC_API_KEY = Read-Host 'Anthropic API key' -MaskInput
+$env:ANTHROPIC_MODEL = Read-Host '利用できるClaudeモデルID'
+dotnet run --project HarnessAgent/HarnessAgent.csproj -c Release -- --all
+```
+
+`--agent claude --all` と明示しても同じです。
+ケースのプロンプトと点群をAnthropicに送信し、API利用料金が発生します。
+正解の `expected` やリポジトリのファイルは送信しません。
+キーとモデルIDが未設定なら、API呼び出し前にエラーになります。
+
+## 処理の流れと読む順番
+
+```text
+Program.cs                            CLIの入口、Agent選択、ケースの反復
+  → AgentContext.Build()              依頼文・点群を取り出す。正解は渡さない
+  → Harness.RunAsync()            実行ID、ログ、Tool許可、再試行
+    → ClaudeAgent.RunAsync()          Messages APIでClaudeへ依頼
+      → tool_use                     ClaudeがTool名と引数を返す
+      → ToolRegistry.Call()          C#で点数・境界ボックスを実計算
+      → tool_result                  結果を会話履歴に追加してClaudeへ返す
+      → end_turn                     Claudeの最終JSONを受け取る
+  → Harness.Evaluate()              expectedと比較してPASS/FAIL
+```
 
 | ファイル | 役割 |
 | --- | --- |
-| `cli.mjs` | ケース一括実行と集計 |
-| `Runner/runner.mjs` | 実行ID、コンテキスト、Tool、再試行の組み合わせ |
-| `Runner/demo-agent.mjs` | SDK接続箇所を示す決定的なデモAgent |
-| `Context/context.mjs` | 明示された入力だけをコンテキスト化 |
-| `Tools/tools.mjs` | 点群の点数・境界ボックス、許可リスト、呼び出し上限 |
-| `Trace/trace.mjs` | JSONLのイベント保存 |
-| `Retry/retry.mjs` | 一時的エラーのみ上限付きで再試行 |
-| `Evals/evaluate.mjs` | 成功結果または拒否理由を期待値と比較 |
-| `Evals/cases.json` | 編集して増やせる評価ケース |
-| `Evals/harness.test.mjs` | リトライ、Tool制御、失敗判定の回帰テスト |
+| `Program.cs` | 明示的なvoid Main。引数なしはUI、引数ありはCLI |
+| `MainForm.cs` | 入力欄・送信ボタン・回答欄、固定応答 |
+| `Harness.cs` | 実行・再試行・評価。入力データ、ログ、デモAgentも同じファイル内 |
+| `ClaudeAgent.cs` | Claude APIとの通信とTool呼び出しの会話ループ |
+| `Tools.cs` | 点群集計、Toolの定義・許可・入力検証 |
+| `SelfTests.cs` | オフラインのテスト群 |
+| `Evals/cases.json` | 入力と期待値の一覧 |
+
+実行コードはUIを含め6ファイルです。評価と再試行は専用クラスを廃止し、
+`Harness`のメソッドにまとめています。`IAgent`はClaude・デモ・テストを同じ入口で動かすため、
+入力レコードとログ用クラスは型と状態を保持するために残しています。
+
+まず `cases.json` → `Program.cs` → `Harness.cs` → `ClaudeAgent.cs` と読むと流れが追えます。
+以前の `harness.test.mjs` に対応するものが `SelfTests.cs` です。
 
 ## ケースを追加する
 
-`Evals/cases.json`にオブジェクトを追加するか、同じ形式のオブジェクト1個を別のJSONに保存します。
+`Evals/cases.json`にオブジェクトを追加します。変更後は再ビルドし、出力先のコピーを更新します。
+次のようなオブジェクト1個を別JSONに保存して、単独評価もできます。
 
 ```json
 {
@@ -59,36 +120,52 @@ node --test HarnessAgent/Evals/harness.test.mjs
 ```
 
 ```powershell
-node HarnessAgent/cli.mjs --case HarnessAgent/my-case.json
+dotnet run --project HarnessAgent/HarnessAgent.csproj -c Release -- --case HarnessAgent/my-case.json
 ```
 
-`points`は有限な数値のXYZ配列です。単位は入力に従い、mmなどは仮定しません。
-現在の評価は値の完全一致です。幾何演算を追加した場合は演算に合う許容誤差や
-トポロジーの評価を追加してください。期待値はAgentへ渡しません。
+XYZは有限な数値で、単位は入力に従います。評価はJSONの値の完全一致です。
+将来、誤差のある幾何処理を追加するときは許容誤差やトポロジーの評価を追加してください。
 
-## SDKへ接続するとき
+## ログと終了コード
 
-差し替え先は `async run(context, tools)` を持つオブジェクトです。
-`Runner/runner.mjs` の `run(request, directory, agent)` の第3引数へ渡します。
-CLIで使う場合は `cli.mjs` のrun呼び出しでそのAgentを指定し、集計のagent表記も更新します。
-SDK用のToolスキーマを定義し、呼び出しは必ず `tools.call(name, args)` に通します。
-使用可能なToolの情報は `tools.definitions` にあります。
+実行ファイルの隣の `Runs/<batch UUID>/` に保存します。
+Releaseなら `HarnessAgent/bin/Release/net9.0-windows/Runs/` です。
 
-再試行するのは `RetryableError` だけで、既定2回、最大3回です。
-再試行はAgent全体を再実行します。現在のToolは読み取り専用です。
-将来、形状を変更するToolを追加するときは、二重実行を防ぐ処理を用意してから
-再試行を有効にしてください。Tool呼び出しは再試行を含めて最大4回です。
+- `summary.json`: Agent名、モデル指定、完了済みケースの出力・合否・理由・時間
+- `<run UUID>.jsonl`: コンテキスト、試行、Tool引数・結果、APIのusage・停止理由、最終回答
 
-## 実装済みと今後の接続
+APIキー、HTTPヘッダー、サーバーの生エラー本文はログに書きません。
+ログにはプロンプトや点群が含まれます。過去のJavaScript版の `HarnessAgent/Runs/` は移行前の記録として保持しています。
 
-実装済み: ローカル実行、Toolによる実際の点数・境界計算、許可制御、呼び出し上限、
-ログ、限定的な再試行、JSON評価と集計。
+終了コード: 0=全件PASS、1=評価/テストFAIL、2=CLIや設定エラー、130=Ctrl+C。
 
-未接続: LLM/Agent SDK、自然言語の解釈、PointCloudAppのC++処理、GeometryAIの名前付きパイプ、
-CAD生成、トークン・費用計測、SDK通信のタイムアウトとキャンセル。
-デモAgentはプロンプトを解釈せず、常に点群集計Toolを呼びます。
-SDK接続時はそのSDKのキャンセル機構を使って時間制限も追加してください。
+## 2種類のやり直し
 
-C++アプリとは独立しており、ソリューションへの登録やMSBuildは不要です。
-既存の `HalfEdgeHarness.md` に記載された幾何検証CLIは、次の段階でToolとして
-接続する候補です。ここではその実行やアセット変更は行いません。
+- **通信の再試行**: 429、5xx、ネットワーク障害、30秒のタイムアウトを`RetryableException`にします。
+  Agent全体を初めから再実行し、既定2試行・最大3試行で止めます。
+- **Claudeによる引数修正**: Tool入力エラーを`is_error: true`で返します。
+  Claudeは元の入力に合うよう引数を直して再度Toolを呼べます。
+
+Tool権限違反や上限超過は即時終了です。Tool上限4回は通信の再試行をまたいで共有します。
+1試行のAPI往復は最大6回、応答は各1024トークンまでです。途中で切れた応答やToolを
+使わない回答を正常結果として扱いません。Ctrl+Cは通信と待機をキャンセルします。
+再試行待ちは100/200msの簡易実装で、Retry-After対応は未実装です。
+将来、書き込みToolを追加するときは二重実行対策が必要です。
+
+最終評価がFAILでも、正解を渡して修正させる処理はありません。
+空入力をClaudeがToolに渡さず拒否すると、現行ケースはFAILになることがあります。
+Tool未許可ケースはAPI送信前のローカル拒否です。5ケース全体のPASS率をモデル単独の精度と
+解釈せず、ケースごとのログを確認してください。
+
+## 現時点の範囲
+
+実装済み: C#の実行・評価・テスト、Claude API接続、Toolの往復と引数修正、ログ、usage記録、
+限定的リトライ、タイムアウト、キャンセル。
+
+未接続: PointCloudAppのC++関数、GeometryAIの名前付きパイプ、CAD生成、料金計算。
+実APIの動作確認にはAPIキーと利用可能なモデルIDが必要です。
+
+参考: [Messages API](https://platform.claude.com/docs/en/api/messages/create)、
+[Tool呼び出し](https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls)。
+
+

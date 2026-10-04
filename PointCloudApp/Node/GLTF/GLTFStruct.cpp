@@ -1,11 +1,11 @@
-#include "Node/GLTF/GLTFStruct.h"
-#include "Utility/Utility.h"
 #include "GL/Buffer/Texture.h"
-#include "Node/GLTF/GLTFLoader.h"
+#include <GLTFSDK/Deserialize.h>
+#include <GLTFSDK/GLBResourceReader.h>
 #include <GLTFSDK/GLTF.h>
 #include <GLTFSDK/GLTFResourceReader.h>
-#include <GLTFSDK/GLBResourceReader.h>
-#include <GLTFSDK/Deserialize.h>
+#include "Node/GLTF/GLTFLoader.h"
+#include "Node/GLTF/GLTFStruct.h"
+#include "Utility/Utility.h"
 #include "Utility/Utility.h"
 namespace KI
 {

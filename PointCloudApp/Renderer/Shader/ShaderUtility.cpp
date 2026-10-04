@@ -1,7 +1,7 @@
-#include "Renderer/Shader/ShaderUtility.h"
-#include "Utility/Utility.h"
 #include <filesystem>
 #include <fstream>
+#include "Renderer/Shader/ShaderUtility.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 ShaderUtility::ShaderUtility()

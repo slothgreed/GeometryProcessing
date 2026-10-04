@@ -1,12 +1,12 @@
+#include "Algorithm/GeometryUtility.h"
+#include "Algorithm/HalfEdge/HalfEdgeLoader.h"
 #include "App/SoftwareRasterizer.h"
 #include "GL/Buffer/Texture.h"
 #include "Renderer/Shader/PostEffect.h"
-#include "Utility/Utility.h"
-#include "Algorithm/GeometryUtility.h"
-#include "Algorithm/HalfEdge/HalfEdgeLoader.h"
-#include "Utility/Profiler.h"
 #include "tbb/parallel_for.h"
+#include "Utility/Profiler.h"
 #include "Utility/SIMDAPI.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 void SoftwareRasterizer::Initialize()

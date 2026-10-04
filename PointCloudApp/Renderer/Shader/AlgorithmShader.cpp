@@ -1,5 +1,5 @@
-#include "Renderer/Shader/AlgorithmShader.h"
 #include "Algorithm/Voxel.h"
+#include "Renderer/Shader/AlgorithmShader.h"
 #include "Utility/KIMath.h"
 namespace KI
 {

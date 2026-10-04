@@ -1,6 +1,6 @@
 #include "Primitive/Primitives.h"
-#include "Utility/Utility.h"
 #include "Utility/KIMath.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 Cube::Cube(const Vector3& min, const Vector3& max)

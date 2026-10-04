@@ -1,8 +1,8 @@
 #ifndef KI_STEP_UTILITY_H
 #define KI_STEP_UTILITY_H
+#include "Node/STEP/STEPEntity.h"
 #include "Node/STEP/STEPTypes.h"
 #include "Primitive/Polyline.h"
-#include "Node/STEP/STEPEntity.h"
 
 namespace KI
 {

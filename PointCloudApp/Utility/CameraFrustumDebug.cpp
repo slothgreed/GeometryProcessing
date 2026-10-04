@@ -1,6 +1,6 @@
-#include "Utility/CameraFrustumDebug.h"
 #include "Node/RenderNode.h"
 #include "Renderer/Shader/SimpleShader.h"
+#include "Utility/CameraFrustumDebug.h"
 #include "Utility/Utility.h"
 
 namespace KI

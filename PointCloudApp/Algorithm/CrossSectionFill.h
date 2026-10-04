@@ -1,8 +1,8 @@
 #ifndef CROSS_SECTION_FILL_H
 #define CROSS_SECTION_FILL_H
 #include "Algorithm/IAlgorithm.h"
-#include "Renderer/Shader/IShader.h"
 #include "Node/RenderNode.h"
+#include "Renderer/Shader/IShader.h"
 namespace KI
 {
 class HalfEdgeNode;

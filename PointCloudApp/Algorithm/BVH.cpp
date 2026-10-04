@@ -1,10 +1,10 @@
 #include "Algorithm/BVH.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
-#include "Renderer/Shader/IShader.h"
-#include "Utility/Utility.h"
 #include "Node/PrimitiveNode.h"
 #include "Primitive/Primitives.h"
 #include <queue>
+#include "Renderer/Shader/IShader.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 

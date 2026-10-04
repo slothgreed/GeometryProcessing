@@ -1,11 +1,11 @@
 #ifndef VOLUME_NODE_H
 #define VOLUME_NODE_H
-#include "Node/RenderNode.h"
-#include "Renderer/Shader/IShader.h"
-#include "GL/Buffer/Texture.h"
 #include "Algorithm/Voxel.h"
+#include "GL/Buffer/Texture.h"
+#include "Node/RenderNode.h"
 #include "Primitive/Primitives.h"
 #include "Renderer/Shader/AlgorithmShader.h"
+#include "Renderer/Shader/IShader.h"
 namespace KI
 {
 class VolumeNode : public RenderNode

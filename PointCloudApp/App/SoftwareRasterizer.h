@@ -1,7 +1,7 @@
 #ifndef SOFTWARE_RASTERIZER_H
 #include "App/GLFWApp.h"
-#include "Primitive/Mesh.h"
 #include "GL/Buffer/Texture.h"
+#include "Primitive/Mesh.h"
 namespace KI
 {
 class HalfEdgeStruct;

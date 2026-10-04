@@ -5,8 +5,8 @@
 #define ATTRIB_NORMAL   1
 #define ATTRIB_COLOR   2
 #define ATTRIB_TEXCOORD   2
-#include "Utility/Utility.h"
 #include "GL/Buffer/GLBuffer.h"
+#include "Utility/Utility.h"
 namespace KI
 {
 class RenderTarget;

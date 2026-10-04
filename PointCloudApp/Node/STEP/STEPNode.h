@@ -3,9 +3,9 @@
 #include "Node/RenderNode.h"
 #include "Primitive/Mesh.h"
 
-#include "Primitive/Polyline.h"
 #include "Node/STEP/STEPEntity.h"
 #include "Node/STEP/STEPTypes.h"
+#include "Primitive/Polyline.h"
 namespace KI
 {
 class STEPLoader

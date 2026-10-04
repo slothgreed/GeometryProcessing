@@ -1,9 +1,9 @@
 #ifndef POINT_CLOUD_NODE_H
 #define POINT_CLOUD_NODE_H
+#include "Algorithm/DelaunayGenerator.h"
+#include "Algorithm/IAlgorithm.h"
 #include "Node/RenderNode.h"
 #include "Renderer/Shader/SimpleShader.h"
-#include "Algorithm/IAlgorithm.h"
-#include "Algorithm/DelaunayGenerator.h"
 namespace KI
 {
 class PointCloud;

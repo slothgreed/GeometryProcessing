@@ -1,5 +1,5 @@
-#include "Node/PrimitiveNode.h"
 #include "Node/PointCloud/PointCloud.h"
+#include "Node/PrimitiveNode.h"
 #include "Renderer/Shader/SimpleShader.h"
 #include "Utility/Utility.h"
 namespace KI

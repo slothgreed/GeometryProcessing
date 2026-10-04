@@ -1,9 +1,9 @@
 #ifndef IMAGE_NODE_H
 #define IMAGE_NODE_H
-#include "Node/RenderNode.h"
-#include "Renderer/Shader/IShader.h"
 #include "GL/Buffer/Texture.h"
+#include "Node/RenderNode.h"
 #include "Primitive/Primitive.h"
+#include "Renderer/Shader/IShader.h"
 namespace KI
 {
 class ImageNode : public RenderNode

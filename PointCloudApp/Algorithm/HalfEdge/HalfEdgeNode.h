@@ -1,13 +1,13 @@
 #ifndef KI_MESH_NODE_H
 #define KI_MESH_NODE_H
-#include "Renderer/Shader/SimpleShader.h"
-#include "Node/RenderNode.h"
-#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
 #include "Algorithm/BVH.h"
-#include "Algorithm/MeshletGenerator.h"
-#include "Algorithm/GeometryUtility.h"
-#include "Algorithm/CrossSectionLine.h"
 #include "Algorithm/CrossSectionFill.h"
+#include "Algorithm/CrossSectionLine.h"
+#include "Algorithm/GeometryUtility.h"
+#include "Algorithm/HalfEdge/HalfEdgeStruct.h"
+#include "Algorithm/MeshletGenerator.h"
+#include "Node/RenderNode.h"
+#include "Renderer/Shader/SimpleShader.h"
 namespace KI
 {
 class BVH;

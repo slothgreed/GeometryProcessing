@@ -1,8 +1,8 @@
+#include <iostream>
 #include "Node/PointCloud/PointCloud.h"
 #include "Utility/FileUtility.h"
 #include "Utility/Random.h"
 #include "Utility/Utility.h"
-#include <iostream>
 namespace KI
 {
 

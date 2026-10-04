@@ -1,17 +1,17 @@
-#include "Node/GLTF/GLTFLoader.h"
-#include <GLTFSDK/GLTFResourceReader.h>
-#include <GLTFSDK/GLBResourceReader.h>
 #include <GLTFSDK/Deserialize.h>
+#include <GLTFSDK/GLBResourceReader.h>
+#include <GLTFSDK/GLTFResourceReader.h>
+#include "Node/GLTF/GLTFLoader.h"
  //Replace this with <filesystem> (and use std::filesystem rather than
  //std::experimental::filesystem) if your toolchain fully supports C++17
 #include <filesystem>
 #include <fstream>
-#include <sstream>
-#include "Utility/Utility.h"
+#include "Node/GLTF/GLTFScene.h"
 #include "Node/Loader/TextureLoader.h"
+#include <sstream>
 #include "Utility/FileUtility.h"
 #include "Utility/Utility.h"
-#include "Node/GLTF/GLTFScene.h"
+#include "Utility/Utility.h"
 using namespace Microsoft::glTF;
 
 // The glTF SDK is decoupled from all file I/O by the IStreamReader (and IStreamWriter)

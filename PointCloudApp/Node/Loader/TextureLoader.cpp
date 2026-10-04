@@ -1,7 +1,7 @@
 #include "Node/Loader/TextureLoader.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "GL/Buffer/Texture.h"
+#include "stb_image.h"
 #include "Utility/FileUtility.h"
 #include "Utility/Utility.h"
 namespace KI

@@ -1,9 +1,9 @@
 #include "Algorithm/AlphaShape.h"
+#include "glm/gtx/norm.hpp"
+#include "Node/PointCloud/PointCloud.h"
 #include "Node/PointCloud/PointCloudNode.h"
 #include "Node/PrimitiveNode.h"
-#include "Node/PointCloud/PointCloud.h"
 #include "Utility/Utility.h"
-#include "glm/gtx/norm.hpp"
 namespace KI
 {
 AlphaShape2D::AlphaShape2D(PointCloudNode* pPointCloud)

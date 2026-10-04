@@ -1,7 +1,7 @@
 #ifndef ALGORITHM_SHADER_H
 #define ALGORITHM_SHADER_H
-#include "Renderer/Shader/IShader.h"
 #include "GL/Buffer/Texture.h"
+#include "Renderer/Shader/IShader.h"
 
 namespace KI
 {

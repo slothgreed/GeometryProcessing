@@ -1,14 +1,14 @@
-#include "Algorithm/SignedDistanceField.h"
 #include "Algorithm/HalfEdge/HalfEdgeNode.h"
-#include "Primitive/Primitives.h"
-#include "Node/PrimitiveNode.h"
-#include "GL/Buffer/Texture.h"
-#include "Utility/Utility.h"
-#include "Utility/FileUtility.h"
+#include "Algorithm/SignedDistanceField.h"
 #include "Algorithm/Voxelizer.h"	
+#include "GL/Buffer/Texture.h"
 #include "Node/DebugNode.h"
-#include "Utility/ProcessExecutor.h"
+#include "Node/PrimitiveNode.h"
 #include "Node/VolumeNode.h"
+#include "Primitive/Primitives.h"
+#include "Utility/FileUtility.h"
+#include "Utility/ProcessExecutor.h"
+#include "Utility/Utility.h"
 #define GPU_DEBUG
 namespace KI
 {

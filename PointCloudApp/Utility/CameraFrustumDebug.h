@@ -1,7 +1,7 @@
 #ifndef CAMERA_FRUSTUM_DEBUG_H
 #define CAMERA_FRUSTUM_DEBUG_H
-#include "Renderer/Camera/Camera.h"
 #include "GL/Buffer/GLBuffer.h"
+#include "Renderer/Camera/Camera.h"
 
 namespace KI
 {

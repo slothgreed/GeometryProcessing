@@ -1,10 +1,10 @@
+#include "../../extlibs/nanoflann/nanoflann.hpp"
 #include "Algorithm/KDTreeNanoFlann.h"
-#include "Node/PointCloud/PointCloudNode.h"
 #include "Node/PointCloud/PointCloud.h"
-#include "Utility/Utility.h"
+#include "Node/PointCloud/PointCloudNode.h"
 #include "Node/PrimitiveNode.h"
 #include "Primitive/Primitives.h"
-#include "../../extlibs/nanoflann/nanoflann.hpp"
+#include "Utility/Utility.h"
 namespace KI
 {
 struct Vector3Adaptor

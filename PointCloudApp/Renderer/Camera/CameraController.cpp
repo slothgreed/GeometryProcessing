@@ -1,5 +1,5 @@
-#include "Renderer/Camera/CameraController.h"
 #include "Renderer/Camera/Camera.h"
+#include "Renderer/Camera/CameraController.h"
 #include "Utility/Utility.h"
 namespace KI
 {
